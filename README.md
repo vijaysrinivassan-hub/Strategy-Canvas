@@ -57,7 +57,7 @@ column's match terms. Both lists are editable: **+ Competitor**, **+ Article
 type**, double-click any heading to rename, and the small *terms* / *aliases*
 buttons widen what a row or column catches.
 
-The checkbox in each cell is the same  flag the Keyword Repo uses, so
+The checkbox in each cell is the same `selected` flag the Keyword Repo uses, so
 ticking here promotes the keyword there and pressing − there clears it here.
 One flag, two views.
 
