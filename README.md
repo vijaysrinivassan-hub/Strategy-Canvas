@@ -39,10 +39,21 @@ Document Gallery
 The first seven hold an independent canvas each; the count beside a tab is its
 card count.
 
-**Document Gallery** is not a canvas. It is a plain file screen: drag files onto
-it (or browse) and they upload to Supabase Storage, filed under the current
-board. Word, Excel, PDF, PowerPoint and images are recognised and badged; each
-file can be opened through a short-lived signed URL, or removed.
+**Document Gallery** is not a canvas. It is a column board for files. Drag files
+onto it (or straight into a column) and they upload to Supabase Storage, filed
+under the current board. Word, Excel, PDF, PowerPoint and images are recognised
+and badged; each file opens through a short-lived signed URL, or can be removed.
+
+Columns start as Inbox / Research / Working / Final and are yours to change:
+**+ Column** adds one, double-click a heading to rename it, and drag a file card
+from one column to another. Double-click a file's name to rename it — that is a
+display name only, so the stored object is never touched.
+
+**Channel Strategy** is not a canvas either. It is a scope checklist: one card
+per channel, ticked for in-scope and greyed for "not doing", so a client can see
+at a glance what is and isn't included. Click a card to toggle it, double-click
+its name to rename, and **+ Add channel** for anything new. The starting four are
+just defaults written into the board on first use — nothing is hardcoded.
 
 Run `supabase-storage.sql` once to create the bucket and its policies. Until you
 do, the gallery says so plainly rather than failing on upload.

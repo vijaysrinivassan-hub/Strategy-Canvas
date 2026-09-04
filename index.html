@@ -292,32 +292,93 @@
   .doc-setup b{display:block; margin-bottom:4px; font-size:13.5px}
   .doc-setup code{background:rgba(0,0,0,.06); border-radius:4px; padding:1px 5px; font-size:12px}
 
-  .doc-head{display:flex; align-items:baseline; gap:10px; margin:26px 2px 12px}
+  .doc-head{display:flex; align-items:center; gap:10px; margin:26px 2px 12px}
   .doc-head h3{margin:0; font-size:13px; font-weight:600; letter-spacing:.05em;
                text-transform:uppercase; color:var(--muted)}
   .doc-head span{font-size:12px; color:var(--muted)}
+  .doc-head button{margin-left:auto; padding:5px 10px; font-size:12px}
 
-  .doc-grid{display:grid; grid-template-columns:repeat(auto-fill, minmax(240px,1fr)); gap:12px}
-  .doc{
-    display:flex; align-items:center; gap:12px; padding:12px;
-    background:var(--panel); border:1px solid var(--border); border-radius:11px;
-    box-shadow:var(--shadow); min-width:0;
+  /* columns of files */
+  .doc-cols{display:flex; gap:12px; align-items:flex-start; overflow-x:auto; padding-bottom:10px}
+  .doc-col{
+    flex:0 0 268px; background:var(--sidebar); border:1px solid var(--border);
+    border-radius:12px; display:flex; flex-direction:column; max-height:62vh;
   }
+  .doc-col.over{border-color:var(--accent); background:var(--accent-soft)}
+  .doc-col-head{display:flex; align-items:center; gap:7px; padding:10px 11px;
+                border-bottom:1px solid var(--border)}
+  .doc-col-head b{font-size:12.5px; font-weight:600; cursor:text; min-width:0;
+                  overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+  .doc-col-head input{font:inherit; font-size:12.5px; font-weight:600; color:var(--ink);
+                      background:var(--panel); border:1px solid var(--accent);
+                      border-radius:5px; padding:1px 5px; outline:none; width:100%}
+  .doc-col-head .n{font-size:10.5px; font-weight:600; color:var(--muted);
+                   background:var(--panel); border:1px solid var(--border);
+                   border-radius:999px; padding:1px 7px; flex:none}
+  .doc-col-head .x{margin-left:auto; padding:2px 7px; font-size:13px; line-height:1;
+                   color:var(--muted); border-color:transparent; background:transparent; flex:none}
+  .doc-col-head .x:hover{color:var(--danger); background:var(--danger-bg); border-color:transparent}
+  .doc-col-body{padding:9px; display:flex; flex-direction:column; gap:8px;
+                overflow-y:auto; min-height:70px}
+  .doc-col-empty{font-size:12px; color:var(--muted); padding:10px 4px; text-align:center}
+
+  .doc{
+    display:flex; align-items:center; gap:10px; padding:10px;
+    background:var(--panel); border:1px solid var(--border); border-radius:10px;
+    box-shadow:var(--shadow); min-width:0; cursor:grab;
+  }
+  .doc.dragging{opacity:.45}
   .doc-kind{
     width:38px; height:44px; border-radius:7px; flex:none; display:grid; place-items:center;
     font-size:9.5px; font-weight:700; letter-spacing:.03em; color:#fff; text-transform:uppercase;
     background:var(--muted);
   }
-  .doc-kind.doc{background:#2b5ce6} .doc-kind.xls{background:#1a7f45}
-  .doc-kind.pdf{background:#c8322b} .doc-kind.ppt{background:#d2601a}
-  .doc-kind.img{background:#7b4bc4} .doc-kind.zip{background:#8a6d3b}
+  .doc-kind.k-doc{background:#2b5ce6} .doc-kind.k-xls{background:#1a7f45}
+  .doc-kind.k-pdf{background:#c8322b} .doc-kind.k-ppt{background:#d2601a}
+  .doc-kind.k-img{background:#7b4bc4} .doc-kind.k-zip{background:#8a6d3b}
   .doc-main{min-width:0; flex:1}
   .doc-main b{display:block; font-size:13px; font-weight:600; overflow:hidden;
               text-overflow:ellipsis; white-space:nowrap}
   .doc-main span{display:block; font-size:11.5px; color:var(--muted); margin-top:2px}
-  .doc-acts{display:flex; gap:5px; flex:none}
-  .doc-acts button{padding:5px 9px; font-size:11.5px}
+  .doc-acts{display:flex; gap:4px; flex:none}
+  .doc-acts button{padding:4px 7px; font-size:11px}
   .doc-empty{color:var(--muted); font-size:13px; padding:26px 2px}
+  .doc-main input{font:inherit; font-size:13px; font-weight:600; color:var(--ink);
+                  background:var(--bg); border:1px solid var(--accent); border-radius:5px;
+                  padding:1px 5px; outline:none; width:100%}
+
+  /* ================= channel strategy ================= */
+  .chan{flex:1; min-height:0; overflow-y:auto; padding:22px 22px 40px; background:var(--bg)}
+  .chan-head{display:flex; align-items:flex-start; gap:16px; margin-bottom:18px}
+  .chan-head h3{margin:0 0 3px; font-size:15px; font-weight:600; letter-spacing:-.01em}
+  .chan-head p{margin:0; font-size:12.5px; color:var(--muted)}
+  .chan-head button{margin-left:auto; flex:none}
+  .chan-grid{display:grid; grid-template-columns:repeat(auto-fill, minmax(230px,1fr)); gap:12px}
+  .chan-card{
+    display:flex; align-items:center; gap:11px; padding:15px 14px;
+    background:var(--panel); border:1.5px solid var(--border); border-radius:12px;
+    box-shadow:var(--shadow); cursor:pointer; transition:border-color .14s, background .14s;
+  }
+  .chan-card:hover{border-color:var(--accent)}
+  .chan-card.on{border-color:var(--ok); background:var(--ok-bg)}
+  .chan-tick{
+    width:22px; height:22px; border-radius:6px; flex:none; display:grid; place-items:center;
+    border:1.5px solid var(--border); background:var(--panel); color:transparent;
+    font-size:13px; font-weight:700;
+  }
+  .chan-card.on .chan-tick{background:var(--ok); border-color:var(--ok); color:#fff}
+  .chan-name{flex:1; min-width:0; font-size:13.5px; font-weight:600;
+             overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+  .chan-card:not(.on) .chan-name{color:var(--muted); font-weight:500}
+  .chan-scope{font-size:10.5px; font-weight:600; letter-spacing:.06em;
+              text-transform:uppercase; color:var(--muted)}
+  .chan-card.on .chan-scope{color:var(--ok)}
+  .chan-card input{font:inherit; font-size:13.5px; font-weight:600; color:var(--ink);
+                   background:var(--bg); border:1px solid var(--accent); border-radius:5px;
+                   padding:1px 5px; outline:none; width:100%}
+  .chan-x{padding:2px 7px; font-size:13px; line-height:1; color:var(--muted);
+          border-color:transparent; background:transparent; flex:none}
+  .chan-x:hover{color:var(--danger); background:var(--danger-bg); border-color:transparent}
 
   .toast{position:fixed; left:50%; bottom:80px; transform:translateX(-50%); z-index:200;
          font-size:13px; font-weight:500; border-radius:10px; padding:10px 16px;
@@ -430,8 +491,21 @@
       <div class="doc-head">
         <h3>Files</h3>
         <span id="docCount"></span>
+        <button id="btnAddColumn">+ Column</button>
       </div>
-      <div class="doc-grid" id="docGrid"></div>
+      <div class="doc-cols" id="docCols"></div>
+    </div>
+
+    <!-- Channel Strategy is an in-scope / out-of-scope checklist, not a canvas -->
+    <div class="chan" id="chanPane" hidden>
+      <div class="chan-head">
+        <div>
+          <h3>Channels for this client</h3>
+          <p>Ticked channels are in scope. Everything else reads as explicitly out of scope.</p>
+        </div>
+        <button id="btnAddChannel">+ Add channel</button>
+      </div>
+      <div class="chan-grid" id="chanGrid"></div>
     </div>
   </div>
 </div>
@@ -1314,12 +1388,12 @@ const BUCKET = 'documents';
 const DOCS_TAB = 'Document Gallery';
 
 const KIND = [
-  { re: /\.(docx?|odt|rtf|pages)$/i,        cls: 'doc', label: 'DOC' },
-  { re: /\.(xlsx?|xlsm|csv|ods|numbers)$/i, cls: 'xls', label: 'XLS' },
-  { re: /\.pdf$/i,                          cls: 'pdf', label: 'PDF' },
-  { re: /\.(pptx?|odp|key)$/i,              cls: 'ppt', label: 'PPT' },
-  { re: /\.(png|jpe?g|gif|webp|svg|heic)$/i,cls: 'img', label: 'IMG' },
-  { re: /\.(zip|rar|7z|tar|gz)$/i,          cls: 'zip', label: 'ZIP' }
+  { re: /\.(docx?|odt|rtf|pages)$/i,        cls: 'k-doc', label: 'DOC' },
+  { re: /\.(xlsx?|xlsm|csv|ods|numbers)$/i, cls: 'k-xls', label: 'XLS' },
+  { re: /\.pdf$/i,                          cls: 'k-pdf', label: 'PDF' },
+  { re: /\.(pptx?|odp|key)$/i,              cls: 'k-ppt', label: 'PPT' },
+  { re: /\.(png|jpe?g|gif|webp|svg|heic)$/i,cls: 'k-img', label: 'IMG' },
+  { re: /\.(zip|rar|7z|tar|gz)$/i,          cls: 'k-zip', label: 'ZIP' }
 ];
 function kindOf(name){
   for (const k of KIND) if (k.re.test(name)) return k;
@@ -1347,7 +1421,7 @@ function showDocSetup(msg){
 }
 
 async function refreshDocs(){
-  const grid = $('docGrid');
+  const grid = $('docCols');
   if (!state.boardId){
     $('docCount').textContent = '';
     grid.innerHTML = '<div class="doc-empty">Save this board first — documents are filed under it.</div>';
@@ -1376,46 +1450,188 @@ async function refreshDocs(){
   $('docSetup').hidden = true;
 
   const files = (data || []).filter(f => f.id);   /* skip folder placeholders */
+  $('docSetup').hidden = true;
   $('docCount').textContent = files.length ? files.length + ' file' + (files.length === 1 ? '' : 's') : '';
-  grid.innerHTML = '';
-  if (!files.length){
-    grid.innerHTML = '<div class="doc-empty">No documents yet. Drop a file above to start.</div>';
-    return;
+  renderDocColumns(files);
+}
+
+/* ---- columns ---------------------------------------------------- */
+const DEFAULT_DOC_COLUMNS = ['Inbox', 'Research', 'Working', 'Final'];
+
+function docsMeta(){
+  const t = state.tabs[DOCS_TAB] || (state.tabs[DOCS_TAB] = { nodes: [], edges: [] });
+  if (!Array.isArray(t.columns) || !t.columns.length){
+    t.columns = DEFAULT_DOC_COLUMNS.map(n => ({ id: uid(), name: n }));
   }
+  if (!t.files || typeof t.files !== 'object') t.files = {};
+  return t;
+}
+/* Per-file metadata is keyed by the storage filename, so renaming a file
+   here never touches the object in the bucket. */
+function fileMeta(storageName){
+  const m = docsMeta();
+  if (!m.files[storageName]) m.files[storageName] = {};
+  return m.files[storageName];
+}
 
+function renderDocColumns(files){
+  const m = docsMeta();
+  const host = $('docCols');
+  host.innerHTML = '';
+
+  const firstCol = m.columns[0].id;
+  const bucketed = {};
+  m.columns.forEach(c => bucketed[c.id] = []);
   files.forEach(f => {
-    const k = kindOf(f.name);
-    const card = document.createElement('div');
-    card.className = 'doc';
-
-    const badge = document.createElement('div');
-    badge.className = 'doc-kind ' + k.cls;
-    badge.textContent = k.label;
-
-    const main = document.createElement('div');
-    main.className = 'doc-main';
-    const nm = document.createElement('b');
-    nm.textContent = displayName(f.name);
-    nm.title = displayName(f.name);
-    const meta = document.createElement('span');
-    const size = f.metadata && f.metadata.size;
-    const when = f.created_at ? new Date(f.created_at).toLocaleDateString() : '';
-    meta.textContent = [prettySize(size), when].filter(Boolean).join(' · ');
-    main.append(nm, meta);
-
-    const acts = document.createElement('div');
-    acts.className = 'doc-acts';
-    const open = document.createElement('button');
-    open.textContent = 'Open';
-    open.onclick = () => openDoc(f.name);
-    const del = document.createElement('button');
-    del.textContent = 'Remove';
-    del.onclick = () => removeDoc(f.name);
-    acts.append(open, del);
-
-    card.append(badge, main, acts);
-    grid.append(card);
+    const meta = m.files[f.name] || {};
+    const col = bucketed[meta.col] ? meta.col : firstCol;
+    bucketed[col].push(f);
   });
+
+  m.columns.forEach(col => {
+    const el = document.createElement('div');
+    el.className = 'doc-col';
+    el.dataset.col = col.id;
+
+    const head = document.createElement('div');
+    head.className = 'doc-col-head';
+    const nm = document.createElement('b');
+    nm.textContent = col.name;
+    nm.title = 'Double-click to rename';
+    nm.ondblclick = () => inlineRename(nm, col.name, v => {
+      col.name = v || 'Untitled'; markDirty(); refreshDocs();
+    });
+    const count = document.createElement('span');
+    count.className = 'n';
+    count.textContent = bucketed[col.id].length;
+    const x = document.createElement('button');
+    x.className = 'x';
+    x.innerHTML = '&times;';
+    x.title = 'Delete column';
+    x.onclick = () => removeColumn(col.id);
+    head.append(nm, count, x);
+
+    const body = document.createElement('div');
+    body.className = 'doc-col-body';
+    body.dataset.col = col.id;
+
+    if (!bucketed[col.id].length){
+      const e = document.createElement('div');
+      e.className = 'doc-col-empty';
+      e.textContent = 'Drop files here';
+      body.append(e);
+    }
+    bucketed[col.id].forEach(f => body.append(docCard(f)));
+
+    /* accept both a card dragged from another column and an OS file drop */
+    body.addEventListener('dragover', ev => {
+      ev.preventDefault(); ev.stopPropagation();
+      el.classList.add('over');
+    });
+    body.addEventListener('dragleave', () => el.classList.remove('over'));
+    body.addEventListener('drop', ev => {
+      ev.preventDefault(); ev.stopPropagation();
+      el.classList.remove('over');
+      const moved = ev.dataTransfer.getData('text/sb-file');
+      if (moved){
+        fileMeta(moved).col = col.id;
+        markDirty();
+        refreshDocs();
+        return;
+      }
+      if (ev.dataTransfer.files && ev.dataTransfer.files.length){
+        uploadFiles(ev.dataTransfer.files, col.id);
+      }
+    });
+
+    el.append(head, body);
+    host.append(el);
+  });
+}
+
+function docCard(f){
+  const meta = (docsMeta().files[f.name]) || {};
+  const shown = meta.title || displayName(f.name);
+  const k = kindOf(shown);
+
+  const card = document.createElement('div');
+  card.className = 'doc';
+  card.draggable = true;
+  card.addEventListener('dragstart', ev => {
+    ev.dataTransfer.setData('text/sb-file', f.name);
+    ev.dataTransfer.effectAllowed = 'move';
+    card.classList.add('dragging');
+  });
+  card.addEventListener('dragend', () => card.classList.remove('dragging'));
+
+  const badge = document.createElement('div');
+  badge.className = 'doc-kind ' + k.cls;
+  badge.textContent = k.label;
+
+  const main = document.createElement('div');
+  main.className = 'doc-main';
+  const nm = document.createElement('b');
+  nm.textContent = shown;
+  nm.title = 'Double-click to rename';
+  nm.ondblclick = () => inlineRename(nm, shown, v => {
+    fileMeta(f.name).title = v || displayName(f.name);
+    markDirty(); refreshDocs();
+  });
+  const sub = document.createElement('span');
+  const size = f.metadata && f.metadata.size;
+  const when = f.created_at ? new Date(f.created_at).toLocaleDateString() : '';
+  sub.textContent = [prettySize(size), when].filter(Boolean).join(' · ');
+  main.append(nm, sub);
+
+  const acts = document.createElement('div');
+  acts.className = 'doc-acts';
+  const open = document.createElement('button');
+  open.textContent = 'Open';
+  open.onclick = () => openDoc(f.name);
+  const del = document.createElement('button');
+  del.textContent = 'Remove';
+  del.onclick = () => removeDoc(f.name);
+  acts.append(open, del);
+
+  card.append(badge, main, acts);
+  return card;
+}
+
+/* Swap an element for an input, commit on blur or Enter. */
+function inlineRename(el, current, done){
+  const input = document.createElement('input');
+  input.value = current;
+  el.replaceWith(input);
+  input.focus(); input.select();
+  let finished = false;
+  const commit = () => {
+    if (finished) return;
+    finished = true;
+    done(input.value.trim());
+  };
+  input.addEventListener('blur', commit);
+  input.addEventListener('keydown', ev => {
+    ev.stopPropagation();
+    if (ev.key === 'Enter') input.blur();
+    if (ev.key === 'Escape'){ finished = true; refreshDocs(); renderChannels(); }
+  });
+}
+
+function addColumn(){
+  const m = docsMeta();
+  m.columns.push({ id: uid(), name: 'New column' });
+  markDirty();
+  refreshDocs();
+}
+function removeColumn(id){
+  const m = docsMeta();
+  if (m.columns.length <= 1){ toast('Keep at least one column.', true); return; }
+  if (!confirm('Delete this column? Its files move to the first column.')) return;
+  const firstOther = m.columns.filter(c => c.id !== id)[0].id;
+  Object.keys(m.files).forEach(k => { if (m.files[k].col === id) m.files[k].col = firstOther; });
+  m.columns = m.columns.filter(c => c.id !== id);
+  markDirty();
+  refreshDocs();
 }
 
 async function openDoc(name){
@@ -1433,7 +1649,7 @@ async function removeDoc(name){
   refreshDocs();
 }
 
-async function uploadFiles(list){
+async function uploadFiles(list, targetCol){
   const files = Array.from(list || []);
   if (!files.length) return;
   /* Documents are filed under the board, so it needs an id first. */
@@ -1453,7 +1669,13 @@ async function uploadFiles(list){
     if (error){
       failed.push(f.name + ' (' + error.message + ')');
       if (/not found|does not exist|nosuchbucket/i.test(error.message)) showDocSetup(error.message);
-    } else ok++;
+    } else {
+      ok++;
+      /* file the upload into whichever column received the drop */
+      const col = targetCol || docsMeta().columns[0].id;
+      fileMeta(path.split('/').pop()).col = col;
+      markDirty();
+    }
   }
   if (ok) toast(ok + ' file' + (ok === 1 ? '' : 's') + ' uploaded.');
   if (failed.length) toast('Failed: ' + failed.join(', '), true);
@@ -1463,11 +1685,98 @@ async function uploadFiles(list){
 /* Swap the canvas out for the gallery on that one tab. */
 function applyTabMode(){
   const isDocs = state.tab === DOCS_TAB;
-  $('viewport').hidden = isDocs;
+  const isChan = state.tab === CHANNELS_TAB;
+  const isCanvas = !isDocs && !isChan;
+  $('viewport').hidden = !isCanvas;
   $('docsPane').hidden = !isDocs;
-  ['btnZoomIn','btnZoomOut','btnFit'].forEach(id => { $(id).hidden = isDocs; });
-  $('zoomLabel').hidden = isDocs;
+  $('chanPane').hidden = !isChan;
+  ['btnZoomIn','btnZoomOut','btnFit'].forEach(id => { $(id).hidden = !isCanvas; });
+  $('zoomLabel').hidden = !isCanvas;
   if (isDocs && state.user) refreshDocs();
+  if (isChan) renderChannels();
+}
+
+/* ===================================================================
+   CHANNEL STRATEGY  —  what we run for this client, and what we do not
+   =================================================================== */
+const CHANNELS_TAB = 'Channel Strategy';
+const DEFAULT_CHANNELS = [
+  { name: 'Technical SEO',     on: true  },
+  { name: 'On-page SEO',       on: true  },
+  { name: 'Listicle outreach', on: false },
+  { name: 'Reddit',            on: false }
+];
+
+function channelState(){
+  const t = state.tabs[CHANNELS_TAB] || (state.tabs[CHANNELS_TAB] = { nodes: [], edges: [] });
+  if (!Array.isArray(t.items)){
+    t.items = DEFAULT_CHANNELS.map(c => ({ id: uid(), name: c.name, on: c.on }));
+  }
+  return t;
+}
+
+function renderChannels(){
+  const t = channelState();
+  const host = $('chanGrid');
+  host.innerHTML = '';
+
+  t.items.forEach(item => {
+    const card = document.createElement('div');
+    card.className = 'chan-card' + (item.on ? ' on' : '');
+    card.onclick = () => { item.on = !item.on; markDirty(); renderChannels(); };
+
+    const tick = document.createElement('div');
+    tick.className = 'chan-tick';
+    tick.textContent = '✓';
+
+    const wrap = document.createElement('div');
+    wrap.style.cssText = 'flex:1;min-width:0';
+    const nm = document.createElement('div');
+    nm.className = 'chan-name';
+    nm.textContent = item.name;
+    nm.title = 'Double-click to rename';
+    nm.ondblclick = ev => {
+      ev.stopPropagation();
+      inlineRename(nm, item.name, v => { item.name = v || 'Untitled'; markDirty(); renderChannels(); });
+    };
+    const scope = document.createElement('div');
+    scope.className = 'chan-scope';
+    scope.textContent = item.on ? 'In scope' : 'Not doing';
+    wrap.append(nm, scope);
+
+    const x = document.createElement('button');
+    x.className = 'chan-x';
+    x.innerHTML = '&times;';
+    x.title = 'Remove channel';
+    x.onclick = ev => {
+      ev.stopPropagation();
+      if (!confirm('Remove "' + item.name + '" from this board?')) return;
+      t.items = t.items.filter(i => i.id !== item.id);
+      markDirty(); renderChannels();
+    };
+
+    card.append(tick, wrap, x);
+    host.append(card);
+  });
+
+  if (!t.items.length){
+    const e = document.createElement('div');
+    e.className = 'doc-empty';
+    e.textContent = 'No channels yet. Add the ones you run for this client.';
+    host.append(e);
+  }
+}
+
+function addChannel(){
+  const t = channelState();
+  const item = { id: uid(), name: 'New channel', on: false };
+  t.items.push(item);
+  markDirty();
+  renderChannels();
+  /* drop straight into rename on the card we just made */
+  const cards = $('chanGrid').querySelectorAll('.chan-name');
+  const last = cards[cards.length - 1];
+  if (last) last.dispatchEvent(new MouseEvent('dblclick', { bubbles: true }));
 }
 
 /* ===================================================================
@@ -1566,6 +1875,8 @@ $('fileInput').onchange = ev => { uploadFiles(ev.target.files); ev.target.value 
 $('dropzone').addEventListener('drop', ev => {
   if (ev.dataTransfer && ev.dataTransfer.files) uploadFiles(ev.dataTransfer.files);
 });
+$('btnAddColumn').onclick = addColumn;
+$('btnAddChannel').onclick = addChannel;
 /* stop the browser opening a file dropped anywhere else on the page */
 ['dragover','drop'].forEach(t =>
   window.addEventListener(t, ev => { if (!ev.target.closest('#dropzone')) ev.preventDefault(); }));
