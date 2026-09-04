@@ -363,6 +363,61 @@
                   background:var(--bg); border:1px solid var(--accent); border-radius:5px;
                   padding:1px 5px; outline:none; width:100%}
 
+  /* ================= clients ================= */
+  .clients{flex:1; min-height:0; overflow-y:auto; padding:24px 30px 40px; background:var(--bg)}
+  .page-intro{color:var(--muted); margin:0 0 20px; max-width:680px; font-size:13.5px}
+  .grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(228px,1fr)); gap:16px}
+  .card{background:#fff; border:1px solid var(--line); border-radius:14px; padding:18px;
+        transition:.13s; cursor:pointer; box-shadow:var(--shadow); text-align:left;
+        display:block; width:100%}
+  .card:hover{border-color:#d4d9e2; box-shadow:var(--shadow-lift); transform:translateY(-2px);
+              background:#fff}
+  .card .ic{width:42px; height:42px; border-radius:11px; background:var(--accent-soft);
+            color:var(--accent); display:flex; align-items:center; justify-content:center;
+            margin-bottom:12px; font-weight:700; font-size:16px}
+  .card h3{font-size:15px; font-weight:700; margin:0 0 3px; color:var(--ink)}
+  .card .meta{color:var(--muted); font-size:12px}
+  .card .row{display:flex; align-items:center; gap:8px; margin-top:12px}
+  .card.add{border-style:dashed; box-shadow:none; display:flex; flex-direction:column;
+            align-items:center; justify-content:center; color:var(--muted);
+            font-weight:600; min-height:150px}
+  .card.add:hover{color:var(--accent); border-color:var(--accent); transform:none; box-shadow:none}
+  .badge{font-size:10px; font-weight:800; padding:3px 8px; border-radius:20px;
+         letter-spacing:.03em; text-transform:uppercase; flex-shrink:0}
+  .badge.ok{background:var(--ok-bg); color:var(--ok)}
+  .badge.off{background:#f1f2f4; color:var(--muted)}
+  .badge.uni{background:var(--accent-soft); color:var(--accent)}
+
+  /* ---- modal ---- */
+  .overlay{position:fixed; inset:0; z-index:400; background:rgba(16,24,40,.34);
+           display:grid; place-items:center; padding:24px}
+  .modal{background:#fff; border-radius:16px; border:1px solid var(--line); padding:24px;
+         width:440px; max-width:100%; box-shadow:0 20px 60px rgba(16,24,40,.2);
+         max-height:82vh; overflow-y:auto}
+  .modal h3{margin:0 0 4px; font-size:17px; font-weight:800; letter-spacing:-.01em}
+  .modal p{margin:0 0 16px; color:var(--muted); font-size:13px}
+  .fl{display:block; font-size:12px; font-weight:700; color:var(--muted);
+      text-transform:uppercase; letter-spacing:.05em; margin:0 0 6px}
+  .modal-in{width:100%; border:1px solid var(--line); border-radius:9px; padding:9px 11px;
+            font:inherit; font-size:14px; color:var(--ink); outline:none}
+  .modal-in:focus{border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-soft)}
+  .mrow{display:flex; gap:9px; justify-content:flex-end; margin-top:18px}
+  .acc-list{display:flex; flex-direction:column; gap:7px; margin:6px 0 0}
+  .acc{display:flex; align-items:center; gap:9px; border:1px solid var(--line);
+       border-radius:9px; padding:8px 11px; font-size:13px}
+  .acc span{flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+  .acc button{padding:3px 8px; font-size:11px}
+  .acc-empty{font-size:12.5px; color:var(--muted); padding:8px 2px}
+  .inline-add{display:flex; gap:8px; margin-top:12px}
+  .inline-add input{flex:1; border:1px solid var(--line); border-radius:9px; padding:9px 11px;
+                    font:inherit; font-size:13.5px; outline:none}
+  .inline-add input:focus{border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-soft)}
+
+  /* viewers get a plain read-only strip and no editing controls */
+  .ro-note{display:flex; align-items:center; gap:8px; font-size:12.5px; color:var(--cli);
+           background:var(--cli-bg); border:1px solid #f1dcb0; border-radius:9px;
+           padding:7px 12px; margin-left:8px}
+
   /* ================= keyword repo ================= */
   .kw{flex:1; min-height:0; overflow-y:auto; padding:18px 22px 40px; background:var(--bg);
       display:flex; flex-direction:column; gap:20px}
@@ -479,6 +534,7 @@
       <div class="sub">Strategy Board</div>
     </div>
 
+    <div style="padding:10px 10px 0"><button class="tab" id="clientsTab"></button></div>
     <nav class="tabs" id="tabs"></nav>
 
     <div class="side-foot">
@@ -494,6 +550,7 @@
   <div class="main">
     <div class="toolbar">
       <h2 id="tabTitle">Product Architecture</h2>
+      <span class="ro-note" id="roNote" hidden>View only &mdash; this board belongs to someone else</span>
       <div class="tool-sep"></div>
       <button id="btnZoomOut" title="Zoom out">−</button>
       <span class="zoom-label" id="zoomLabel">100%</span>
@@ -575,6 +632,13 @@
       <div class="chan-grid" id="chanGrid"></div>
     </div>
 
+    <!-- Clients: admin-only list of boards and who may read them -->
+    <div class="clients" id="clientsPane" hidden>
+      <p class="page-intro">Every client gets their own board with all the same tabs.
+        Give people access by email — they can read everything and change nothing.</p>
+      <div class="grid" id="clientGrid"></div>
+    </div>
+
     <!-- Keyword Repo: selected keywords on top, the full pull underneath -->
     <div class="kw" id="kwPane" hidden>
       <div class="kw-setup" id="kwSetup" hidden></div>
@@ -602,6 +666,7 @@
 </div>
 
 <div class="toast" id="toast" hidden></div>
+<div id="modalHost"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
@@ -640,6 +705,9 @@ const state = {
   tabs: {},                    /* tabName -> { nodes:[], edges:[] } */
   boards: [],                  /* [{id,title,updated_at}] */
   sel: { ids: [], edge: null },   /* many cards/groups, or one edge */
+  role: 'admin',                  /* 'admin' owns the board, 'viewer' may only read */
+  screen: 'board',                /* 'board' | 'clients' */
+  ownerId: null,                  /* owner_id of the loaded board */
   view: { x: 0, y: 0, z: 1 },
   dirty: false
 };
@@ -691,6 +759,7 @@ function isAllowed(email){
   });
 }
 function markDirty(){
+  if (readOnly()) return;
   state.dirty = true;
   const el = $('saveState');
   el.textContent = 'Unsaved changes';
@@ -817,7 +886,7 @@ function renderTabs(){
   TABS.forEach(name => {
     const t = state.tabs[name] || { nodes: [] };
     const b = document.createElement('button');
-    b.className = 'tab' + (name === state.tab ? ' active' : '');
+    b.className = 'tab' + (state.screen === 'board' && name === state.tab ? ' active' : '');
     b.append(tabIcon(name));
     const label = document.createElement('span');
     label.textContent = name;
@@ -869,6 +938,7 @@ function renderGroups(){
 }
 
 function renameGroup(labelEl, g){
+  if (readOnly()) return;
   const input = document.createElement('input');
   input.value = g.label || '';
   labelEl.textContent = '';
@@ -1042,6 +1112,7 @@ function positionPalette(){
 
 /* Wrap everything selected in a new group, the Obsidian way. */
 function groupSelection(){
+  if (readOnly()) return;
   const ns = selNodes().filter(n => n.type !== 'group');
   if (ns.length < 2){ toast('Select two or more cards to group them.', true); return; }
   let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
@@ -1066,6 +1137,7 @@ function groupSelection(){
    MUTATIONS
    =================================================================== */
 function addNode(wx, wy, text, opts){
+  if (readOnly()) return null;
   opts = opts || {};
   const w = opts.width || 220, h = opts.height || 90;
   const n = {
@@ -1083,6 +1155,7 @@ function addNode(wx, wy, text, opts){
   return n;
 }
 function deleteSelection(){
+  if (readOnly()) return;
   const c = cur();
   if (state.sel.edge){
     c.edges = c.edges.filter(e => e.id !== state.sel.edge);
@@ -1097,6 +1170,7 @@ function deleteSelection(){
 }
 function switchTab(name){
   state.tab = name;
+  state.screen = 'board';
   clearSel();
   render();
   applyTabMode();
@@ -1106,6 +1180,7 @@ function switchTab(name){
   if (name !== DOCS_TAB) zoomToFit();
 }
 function beginEdit(nodeEl, n){
+  if (readOnly()) return;
   /* Image cards have no text to edit — offer the URL instead. */
   if (n.type === 'link'){
     const url = prompt('Image URL', n.url || '');
@@ -1139,12 +1214,13 @@ let drag = null;
 
 $('viewport').addEventListener('pointerdown', ev => {
   if (ev.button !== 0 && ev.button !== 1 && ev.button !== 2) return;
+  const ro = readOnly();
 
   /* ---- groups first: only their label and corner are grabbable ---- */
   const groupEl = ev.target.closest('.group');
   if (groupEl){
     const g = nodeById(groupEl.dataset.id);
-    if (g && ev.target.closest('.ggrip')){
+    if (g && !ro && ev.target.closest('.ggrip')){
       ev.preventDefault(); ev.stopPropagation();
       if (!isSel(g.id)) selectOnly(g.id);
       drag = { kind:'gresize', id:g.id, ox:ev.clientX, oy:ev.clientY, w0:g.width, h0:g.height };
@@ -1154,6 +1230,7 @@ $('viewport').addEventListener('pointerdown', ev => {
     }
     if (g && ev.target.closest('.glabel')){
       ev.preventDefault(); ev.stopPropagation();
+      if (ro){ selectOnly(g.id); render(); $('viewport').setPointerCapture(ev.pointerId); drag = null; return; }
       if (!isSel(g.id)) { if (ev.shiftKey) toggleSel(g.id); else selectOnly(g.id); }
       /* Snapshot membership at grab time so cards can't join mid-drag. */
       const kids = containedNodes(g).map(n => ({ id:n.id, x0:n.x, y0:n.y }));
@@ -1171,7 +1248,7 @@ $('viewport').addEventListener('pointerdown', ev => {
   const hitEl    = ev.target.closest('path.hit');
 
   /* start a connection */
-  if (anchorEl && nodeEl){
+  if (anchorEl && nodeEl && !ro){
     ev.preventDefault(); ev.stopPropagation();
     const n = nodeById(nodeEl.dataset.id);
     drag = { kind:'link', from:n.id, side:anchorEl.dataset.side, preview:null };
@@ -1181,7 +1258,7 @@ $('viewport').addEventListener('pointerdown', ev => {
   }
 
   /* resize */
-  if (gripEl && nodeEl){
+  if (gripEl && nodeEl && !ro){
     ev.preventDefault(); ev.stopPropagation();
     const n = nodeById(nodeEl.dataset.id);
     drag = { kind:'resize', id:n.id, ox:ev.clientX, oy:ev.clientY, w0:n.width, h0:n.height };
@@ -1198,7 +1275,7 @@ $('viewport').addEventListener('pointerdown', ev => {
     if (ev.shiftKey) toggleSel(n.id);
     else if (!isSel(n.id)) selectOnly(n.id);
 
-    if (!nodeEl.classList.contains('editing') && isSel(n.id)){
+    if (!nodeEl.classList.contains('editing') && isSel(n.id) && !ro){
       ev.preventDefault();
       drag = { kind:'move', ox:ev.clientX, oy:ev.clientY, kids:movingSet(), moved:false };
       $('viewport').setPointerCapture(ev.pointerId);
@@ -1358,6 +1435,7 @@ $('viewport').addEventListener('pointerup', endDrag);
 $('viewport').addEventListener('pointercancel', endDrag);
 
 $('viewport').addEventListener('dblclick', ev => {
+  if (readOnly()) return;
   const labelEl = ev.target.closest('.glabel');
   if (labelEl){
     const g = nodeById(labelEl.parentElement.dataset.id);
@@ -1419,7 +1497,7 @@ function hydrate(text){
 
 async function refreshBoards(){
   const { data, error } = await sb.from('reports')
-    .select('id,title,updated_at').order('updated_at', { ascending: false });
+    .select('id,title,updated_at,owner_id').order('updated_at', { ascending: false });
   if (error){ toast('Could not list boards: ' + error.message, true); return; }
   state.boards = data || [];
   const sel = $('boardPicker');
@@ -1438,9 +1516,11 @@ async function refreshBoards(){
 }
 
 async function openBoard(id){
-  const { data, error } = await sb.from('reports').select('id,title,body').eq('id', id).single();
+  const { data, error } = await sb.from('reports').select('id,title,body,owner_id').eq('id', id).single();
   if (error){ toast('Could not open board: ' + error.message, true); return; }
   state.boardId = data.id;
+  state.ownerId = data.owner_id;
+  state.role = roleForBoard(data);
   hydrate(data.body || '');
   state.tab = TABS[0];
   clearSel();
@@ -1454,7 +1534,7 @@ async function openBoard(id){
 }
 
 async function saveBoard(quiet){
-  if (!state.user) return;
+  if (!state.user || readOnly()) return;
   const el = $('saveState');
   el.textContent = 'Saving…'; el.className = 'save-state';
   const payload = { title: state.client + ' Strategy Board', body: serialize() };
@@ -1481,6 +1561,8 @@ async function saveBoard(quiet){
 
 function newBoard(){
   state.boardId = null;
+  state.ownerId = state.user ? state.user.id : null;
+  state.role = 'admin';
   state.client = 'New client';
   state.tabs = blankTabs();
   state.tab = TABS[0];
@@ -1711,6 +1793,7 @@ function docCard(f){
 
 /* Swap an element for an input, commit on blur or Enter. */
 function inlineRename(el, current, done){
+  if (readOnly()) return;
   const input = document.createElement('input');
   input.value = current;
   el.replaceWith(input);
@@ -1730,12 +1813,14 @@ function inlineRename(el, current, done){
 }
 
 function addColumn(){
+  if (readOnly()) return;
   const m = docsMeta();
   m.columns.push({ id: uid(), name: 'New column' });
   markDirty();
   refreshDocs();
 }
 function removeColumn(id){
+  if (readOnly()) return;
   const m = docsMeta();
   if (m.columns.length <= 1){ toast('Keep at least one column.', true); return; }
   if (!confirm('Delete this column? Its files move to the first column.')) return;
@@ -1754,6 +1839,7 @@ async function openDoc(name){
 }
 
 async function removeDoc(name){
+  if (readOnly()) return;
   if (!confirm('Remove ' + displayName(name) + ' permanently?')) return;
   const { error } = await sb.storage.from(BUCKET).remove([docsFolder() + '/' + name]);
   if (error){ toast('Could not remove it: ' + error.message, true); return; }
@@ -1762,6 +1848,7 @@ async function removeDoc(name){
 }
 
 async function uploadFiles(list, targetCol){
+  if (readOnly()){ toast('You have view-only access to this board.', true); return; }
   const files = Array.from(list || []);
   if (!files.length) return;
   /* Documents are filed under the board, so it needs an id first. */
@@ -1796,6 +1883,18 @@ async function uploadFiles(list, targetCol){
 
 /* Swap the canvas out for the gallery on that one tab. */
 function applyTabMode(){
+  const onClients = state.screen === 'clients';
+  $('clientsPane').hidden = !onClients;
+  $('clientsTab').classList.toggle('active', onClients);
+  renderTabs();
+  if (onClients){
+    $('viewport').hidden = true; $('docsPane').hidden = true;
+    $('chanPane').hidden = true; $('kwPane').hidden = true;
+    ['btnZoomIn','btnZoomOut','btnFit','zoomLabel'].forEach(id => { $(id).hidden = true; });
+    $('tabTitle').textContent = 'Clients';
+    applyRole();
+    return;
+  }
   const isDocs = state.tab === DOCS_TAB;
   const isChan = state.tab === CHANNELS_TAB;
   const isKw   = state.tab === KEYWORDS_TAB;
@@ -1809,6 +1908,192 @@ function applyTabMode(){
   if (isDocs && state.user) refreshDocs();
   if (isChan) renderChannels();
   if (isKw && state.user) refreshKeywords();
+  applyRole();
+}
+
+/* ===================================================================
+   CLIENTS & ACCESS
+   =================================================================== */
+const readOnly = () => state.role !== 'admin';
+
+/* A board you did not create is one you may only read. */
+function roleForBoard(row){
+  return (row && row.owner_id && state.user && row.owner_id === state.user.id) ? 'admin' : 'viewer';
+}
+
+function openClients(){
+  state.screen = 'clients';
+  applyTabMode();
+  renderClients();
+}
+function openBoardScreen(){
+  state.screen = 'board';
+  applyTabMode();
+}
+
+async function renderClients(){
+  const grid = $('clientGrid');
+  grid.innerHTML = '';
+
+  for (const b of state.boards){
+    const card = document.createElement('button');
+    card.className = 'card';
+    card.onclick = () => { openBoardScreen(); openBoard(b.id); };
+
+    const ic = document.createElement('div');
+    ic.className = 'ic';
+    ic.textContent = (b.title || '?').trim().charAt(0).toUpperCase();
+
+    const h = document.createElement('h3');
+    h.textContent = b.title || 'Untitled board';
+
+    const meta = document.createElement('div');
+    meta.className = 'meta';
+    meta.textContent = b.updated_at ? 'Updated ' + new Date(b.updated_at).toLocaleDateString() : '';
+
+    const row = document.createElement('div');
+    row.className = 'row';
+    const mine = b.owner_id === state.user.id;
+    const tag = document.createElement('span');
+    tag.className = 'badge ' + (mine ? 'uni' : 'off');
+    tag.textContent = mine ? 'Owner' : 'View only';
+    row.append(tag);
+
+    if (mine){
+      const manage = document.createElement('button');
+      manage.className = 'btn sm';
+      manage.style.cssText = 'padding:4px 9px;font-size:11.5px';
+      manage.textContent = 'Access';
+      manage.onclick = ev => { ev.stopPropagation(); openAccessModal(b); };
+      row.append(manage);
+    }
+
+    card.append(ic, h, meta, row);
+    grid.append(card);
+  }
+
+  if (state.role === 'admin' || !state.boards.length){
+    const add = document.createElement('button');
+    add.className = 'card add';
+    add.textContent = '+ New client';
+    add.onclick = newBoard;
+    grid.append(add);
+  }
+}
+
+/* ---- who may read one board ---- */
+function closeModal(){ $('modalHost').innerHTML = ''; }
+
+async function openAccessModal(board){
+  const host = $('modalHost');
+  host.innerHTML = '';
+
+  const overlay = document.createElement('div');
+  overlay.className = 'overlay';
+  overlay.onclick = closeModal;
+
+  const modal = document.createElement('div');
+  modal.className = 'modal';
+  modal.onclick = ev => ev.stopPropagation();
+
+  const h = document.createElement('h3');
+  h.textContent = 'Access to ' + (board.title || 'this board');
+  const p = document.createElement('p');
+  p.textContent = 'These people can open this board and read every tab. They cannot change anything.';
+
+  const list = document.createElement('div');
+  list.className = 'acc-list';
+
+  const add = document.createElement('div');
+  add.className = 'inline-add';
+  const input = document.createElement('input');
+  input.type = 'email';
+  input.placeholder = 'name@company.com';
+  const addBtn = document.createElement('button');
+  addBtn.className = 'primary';
+  addBtn.textContent = 'Give access';
+  add.append(input, addBtn);
+
+  const foot = document.createElement('div');
+  foot.className = 'mrow';
+  const done = document.createElement('button');
+  done.textContent = 'Done';
+  done.onclick = closeModal;
+  foot.append(done);
+
+  modal.append(h, p, list, add, foot);
+  overlay.append(modal);
+  host.append(overlay);
+  input.focus();
+
+  async function refresh(){
+    list.innerHTML = '';
+    const { data, error } = await sb.from('board_access')
+      .select('id,email').eq('board_id', board.id).order('email');
+    if (error){
+      const e = document.createElement('div');
+      e.className = 'acc-empty';
+      e.textContent = 'Could not read the access list. Has supabase-access.sql been run? (' + error.message + ')';
+      list.append(e);
+      return;
+    }
+    if (!data.length){
+      const e = document.createElement('div');
+      e.className = 'acc-empty';
+      e.textContent = 'Nobody else can see this board yet.';
+      list.append(e);
+      return;
+    }
+    data.forEach(r => {
+      const row = document.createElement('div');
+      row.className = 'acc';
+      const em = document.createElement('span');
+      em.textContent = r.email;
+      const rm = document.createElement('button');
+      rm.textContent = 'Remove';
+      rm.onclick = async () => {
+        const res = await sb.from('board_access').delete().eq('id', r.id);
+        if (res.error) toast('Could not remove: ' + res.error.message, true);
+        refresh();
+      };
+      row.append(em, rm);
+      list.append(row);
+    });
+  }
+
+  async function grant(){
+    const email = input.value.trim().toLowerCase();
+    if (!email || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)){
+      toast('That does not look like an email address.', true);
+      return;
+    }
+    const { error } = await sb.from('board_access')
+      .insert({ board_id: board.id, email: email });
+    if (error){
+      toast(/duplicate|unique/i.test(error.message)
+        ? email + ' already has access.'
+        : 'Could not grant access: ' + error.message, true);
+      return;
+    }
+    input.value = '';
+    toast(email + ' can now view this board.');
+    refresh();
+  }
+  addBtn.onclick = grant;
+  input.onkeydown = ev => { if (ev.key === 'Enter') grant(); };
+
+  refresh();
+}
+
+/* Hide every control a viewer must not have. */
+function applyRole(){
+  const ro = readOnly();
+  ['btnSave','btnNewBoard','dock','btnAddColumn','btnAddChannel','dropzone']
+    .forEach(id => { const el = $(id); if (el) el.hidden = ro; });
+
+  const note = $('roNote');
+  if (note) note.hidden = !ro;
+  $('clientsTab').hidden = false;   /* everyone gets the client list */
 }
 
 /* ===================================================================
@@ -1934,6 +2219,7 @@ function renderKeywordTables(overrideEmpty){
 }
 
 async function moveKeyword(id, selected){
+  if (readOnly()){ toast('You have view-only access to this board.', true); return; }
   const row = kwRows.find(r => r.id === id);
   if (row) row.selected = selected;          /* optimistic, so it feels instant */
   renderKeywordTables();
@@ -1972,7 +2258,7 @@ function renderChannels(){
   t.items.forEach(item => {
     const card = document.createElement('div');
     card.className = 'chan-card' + (item.on ? ' on' : '');
-    card.onclick = () => { item.on = !item.on; markDirty(); renderChannels(); };
+    card.onclick = () => { if (readOnly()) return; item.on = !item.on; markDirty(); renderChannels(); };
 
     const tick = document.createElement('div');
     tick.className = 'chan-tick';
@@ -2017,6 +2303,7 @@ function renderChannels(){
 }
 
 function addChannel(){
+  if (readOnly()) return;
   const t = channelState();
   const item = { id: uid(), name: 'New channel', on: false };
   t.items.push(item);
@@ -2060,7 +2347,13 @@ async function enterApp(user){
   if (pic) $('userPic').src = pic; else $('userPic').hidden = true;
 
   await refreshBoards();
-  if (state.boards.length){
+  if (state.boards.length > 1){
+    openClients();
+    await openBoard(state.boards[0].id);
+    state.screen = 'clients';
+    applyTabMode();
+    renderClients();
+  } else if (state.boards.length){
     await openBoard(state.boards[0].id);
   } else {
     state.tabs = blankTabs();
@@ -2124,6 +2417,17 @@ $('fileInput').onchange = ev => { uploadFiles(ev.target.files); ev.target.value 
 $('dropzone').addEventListener('drop', ev => {
   if (ev.dataTransfer && ev.dataTransfer.files) uploadFiles(ev.dataTransfer.files);
 });
+(function(){
+  const b = $('clientsTab');
+  const svg = document.createElementNS('http://www.w3.org/2000/svg','svg');
+  svg.setAttribute('viewBox','0 0 24 24');
+  svg.innerHTML = '<path d="M17 20v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9.5" cy="7" r="4"/><path d="M22 20v-2a4 4 0 0 0-3-3.9"/><path d="M16 3.1a4 4 0 0 1 0 7.8"/>';
+  b.append(svg);
+  const lab = document.createElement('span');
+  lab.textContent = 'Clients';
+  b.append(lab);
+  b.onclick = openClients;
+})();
 $('btnAddColumn').onclick = addColumn;
 $('btnKwRefresh').onclick = refreshKeywords;
 $('kwSearch').oninput = ev => { kwFilter = ev.target.value; renderKeywordTables(); };
@@ -2144,7 +2448,7 @@ $('btnSave').onclick = () => saveBoard(false);
 $('btnNewBoard').onclick = newBoard;
 $('btnSignOut').onclick = signOut;
 $('boardPicker').onchange = e => { if (e.target.value) openBoard(e.target.value); };
-$('clientName').oninput = e => { state.client = e.target.value.trim() || 'Untitled'; markDirty(); };
+$('clientName').oninput = e => { if (readOnly()) return; state.client = e.target.value.trim() || 'Untitled'; markDirty(); };
 $('palette').addEventListener('pointerdown', e => e.stopPropagation());
 window.addEventListener('resize', () => { applyView(); });
 window.addEventListener('beforeunload', e => { if (state.dirty){ e.preventDefault(); e.returnValue = ''; } });

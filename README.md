@@ -68,6 +68,20 @@ just defaults written into the board on first use — nothing is hardcoded.
 Run `supabase-storage.sql` once to create the bucket and its policies. Until you
 do, the gallery says so plainly rather than failing on upload.
 
+## Clients and access
+
+**Clients** is the first item in the sidebar: a card per board, with **+ New
+client** to start another. Each client's board carries the same nine tabs.
+
+Whoever creates a board owns it and can edit everything. **Access** on an owned
+card opens a list of email addresses; anyone on it can open that board and read
+every tab, and change nothing. Their view hides Save, the canvas dock, upload,
+and the add buttons, and shows a "View only" strip instead.
+
+That is enforced in Postgres, not in JavaScript. `can_view_board()` decides every
+read; writes stay restricted to `owner_id = auth.uid()`. Hiding the buttons is
+courtesy — the database is the boundary. Run `supabase-access.sql` to set it up.
+
 ## Data
 
 Boards live in Supabase, one row per board, with every tab serialised into it.
