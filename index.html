@@ -491,7 +491,17 @@
             font-variant-numeric:tabular-nums; flex:none}
   .mx-kw.on{background:#f4f7ff}
   .mx-kw.on span{font-weight:600; color:var(--accent)}
-  .mx-none{height:30px}
+  /* the cell's own tick: "we are writing this article", with or without a
+     keyword behind it. Green, so it never reads as a keyword selection. */
+  .mx-plan{display:flex; align-items:center; gap:8px; height:30px; flex:none;
+           padding:0 10px; cursor:pointer; border-bottom:1px solid var(--line-2);
+           font-size:11.5px; font-weight:600; color:#b9bdc6; letter-spacing:.01em}
+  .mx-plan:hover{background:#f6f7f9}
+  .mx-plan input{margin:0; accent-color:#15803d; width:14px; height:14px; flex:none}
+  .mx-cell.planned{background:#f4fbf6}
+  .mx-cell.planned .mx-plan{color:var(--ok)}
+  .mx-cell.planned .mx-kw{background:transparent}
+  .mx-cell.planned .mx-kw:hover{background:var(--accent-soft)}
 
   /* ================= keyword repo ================= */
   .kw{flex:1; min-height:0; overflow-y:auto; padding:18px 22px 40px; background:var(--bg);
@@ -2490,6 +2500,7 @@ const DEFAULT_TYPES = [
 function matrixState(){
   const t = state.tabs[CONTENT_TAB] || (state.tabs[CONTENT_TAB] = { nodes: [], edges: [] });
   if (!Array.isArray(t.competitors)) t.competitors = [];
+  if (!t.cells || typeof t.cells !== 'object') t.cells = {};   /* "<comp>|<type>": true */
   if (!Array.isArray(t.types) || !t.types.length){
     t.types = DEFAULT_TYPES.map(function(d){
       return { id: uid(), name: d.name, terms: d.terms.slice() };
@@ -2640,14 +2651,29 @@ function renderMatrix(){
     m.types.forEach(function(ty){
       const td = document.createElement('td');
       const rows = cellKeywords(comp, ty);
-      td.className = 'mx-cell' + (rows.length ? '' : ' empty-cell');
+      const cellKey = comp.id + '|' + ty.id;
+      const planned = !!m.cells[cellKey];
+      td.className = 'mx-cell' + (planned ? ' planned' : '') + (rows.length ? '' : ' empty-cell');
 
-      if (!rows.length){
-        /* keep the row height, show nothing */
-        const none = document.createElement('div');
-        none.className = 'mx-none';
-        td.append(none);
-      } else {
+      /* Always present, whether or not a keyword landed here. */
+      const plan = document.createElement('label');
+      plan.className = 'mx-plan';
+      const pcb = document.createElement('input');
+      pcb.type = 'checkbox';
+      pcb.checked = planned;
+      pcb.disabled = ro;
+      pcb.onchange = function(){
+        if (pcb.checked) m.cells[cellKey] = true; else delete m.cells[cellKey];
+        markDirty();
+        renderMatrix();
+      };
+      const ptx = document.createElement('span');
+      ptx.textContent = 'Write this';
+      plan.append(pcb, ptx);
+      plan.title = 'Mark this article as one you are writing, keyword or not';
+      td.append(plan);
+
+      if (rows.length){
         const list = document.createElement('div');
         list.className = 'mx-kws';
         rows.forEach(function(r){
