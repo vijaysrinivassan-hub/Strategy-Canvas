@@ -693,9 +693,20 @@ window.onGsiLoad = function(){
   });
 };
 
-window.onGsiError = function(){
-  gateMessage('Google sign-in could not be reached. Check your connection and reload.');
-};
+const BLOCKED_MSG =
+  'Google sign-in did not load. This is nearly always an ad blocker or privacy ' +
+  'extension blocking accounts.google.com. Allow this site in that extension, or ' +
+  'open the page in an Incognito window to confirm.';
+
+window.onGsiError = function(){ gateMessage(BLOCKED_MSG); };
+
+/* Some blockers let the request "succeed" with an empty body, so onerror never
+   fires and the button silently never appears. Catch that case too. */
+setTimeout(function(){
+  const stillOnGate = !$('gate').hidden;
+  const noGoogle = !(window.google && google.accounts && google.accounts.id);
+  if (stillOnGate && noGoogle) gateMessage(BLOCKED_MSG);
+}, 5000);
 
 (function boot(){
   if (!(window.supabase && window.supabase.createClient)){
