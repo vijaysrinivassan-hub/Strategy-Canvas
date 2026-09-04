@@ -129,6 +129,23 @@
 
   /* In the dashboard `.who` is the row wrapper; here it is the text column,
      so the row lives on .side-foot itself. */
+  .nav-spacer{flex:1; min-height:12px}
+  .mcp{flex:1; min-height:0; overflow-y:auto; padding:24px 30px 40px; background:var(--bg)}
+  .mcp h3{margin:0 0 4px; font-size:15px; font-weight:700}
+  .mcp .pane{background:#fff; border:1px solid var(--line); border-radius:14px;
+             box-shadow:var(--shadow); padding:18px; margin-bottom:16px; max-width:820px}
+  .mcp .pane h4{margin:0 0 12px; font-size:11px; font-weight:700; letter-spacing:.05em;
+                text-transform:uppercase; color:var(--muted)}
+  .mcp dl{display:grid; grid-template-columns:170px 1fr; gap:9px 16px; margin:0}
+  .mcp dt{font-size:12.5px; color:var(--muted)}
+  .mcp dd{margin:0; font-size:12.5px; color:var(--ink); word-break:break-all}
+  .mcp code{background:#f4f5f7; border:1px solid var(--line); border-radius:5px;
+            padding:1px 6px; font-size:11.5px; font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+  .mcp pre{margin:0; background:#f8f9fb; border:1px solid var(--line); border-radius:9px;
+           padding:12px 14px; overflow-x:auto; font-size:11.5px; line-height:1.65;
+           font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; color:var(--ink-2)}
+  .mcp .note{font-size:12.5px; color:var(--muted); margin:0 0 14px; max-width:680px}
+
   .side-foot{padding:12px; border-top:1px solid var(--line-2);
              display:flex; align-items:center; gap:9px}
   .side-foot img{width:32px; height:32px; border-radius:50%; background:var(--accent);
@@ -529,10 +546,10 @@
   .mx-cell.planned{background:#f4fbf6}
   /* SEO / AEO segmented switch, one per cell */
   .mx-mode{display:inline-flex; flex:none; border:1px solid var(--line);
-           border-radius:6px; overflow:hidden; background:#fff; margin-left:auto}
+           border-radius:5px; overflow:hidden; background:#fff; margin-left:auto}
   .mx-mode button{
-    padding:0 6px; height:18px; font-size:9.5px; font-weight:700; letter-spacing:.03em;
-    border:none; border-radius:0; background:transparent; color:var(--faint);
+    padding:0 4px; height:14px; font-size:8px; font-weight:700; letter-spacing:.02em;
+    border:none; border-radius:0; background:transparent; color:var(--faint); line-height:1;
   }
   .mx-mode button + button{border-left:1px solid var(--line)}
   .mx-mode button:hover:not(:disabled){background:#f5f5f6; color:var(--ink)}
@@ -543,7 +560,7 @@
   .mx-cell.planned .mx-kw:hover{background:var(--accent-soft)}
 
   /* free-form data grids: Category, ICP, Value */
-  .gr-num{position:sticky; left:0; z-index:2; background:#f9fafb; width:46px;
+  .gr-num{position:sticky; left:0; z-index:3; background:#f9fafb; width:46px;
           text-align:center; font-size:11px; color:var(--faint);
           font-variant-numeric:tabular-nums; padding:0}
   .gr-numwrap{display:flex; align-items:center; justify-content:center; height:32px; gap:2px}
@@ -552,6 +569,8 @@
   tr:hover .gr-del{opacity:1}
   .gr-del:hover{color:var(--danger); background:var(--danger-bg); border-color:transparent}
   .gr-cell{padding:0}
+  .gr-mode{position:sticky; left:46px; z-index:2; background:#fff; padding:0 8px}
+  .gr-mode .mx-mode{margin:0}
   .gr-cell input{
     width:100%; height:32px; border:none; outline:none; background:transparent;
     font:inherit; font-size:12.5px; color:var(--ink); padding:0 10px;
@@ -691,7 +710,6 @@
       <div class="sub">Strategy Board</div>
     </div>
 
-    <div style="padding:10px 10px 0"><button class="tab" id="clientsTab"></button></div>
     <nav class="tabs" id="tabs"></nav>
 
     <div class="save-line" id="saveState"></div>
@@ -786,6 +804,38 @@
       <div class="chan-grid" id="chanGrid"></div>
     </div>
 
+    <!-- MCP: what a server needs to know to push data into this board -->
+    <div class="mcp" id="mcpPane" hidden>
+      <p class="note">Everything an MCP server needs to write keywords into the board you
+        have open. The server itself is not built yet &mdash; these are the details it will use.</p>
+
+      <div class="pane">
+        <h4>Connection</h4>
+        <dl>
+          <dt>Supabase URL</dt><dd id="mcpUrl"></dd>
+          <dt>Table</dt><dd><code>public.keywords</code></dd>
+          <dt>Board</dt><dd id="mcpBoard"></dd>
+          <dt>Owner</dt><dd id="mcpOwner"></dd>
+          <dt>Table reachable</dt><dd id="mcpStatus">checking&hellip;</dd>
+        </dl>
+      </div>
+
+      <div class="pane">
+        <h4>Inserting a keyword</h4>
+        <pre id="mcpSample"></pre>
+      </div>
+
+      <div class="pane">
+        <h4>Avoiding duplicates</h4>
+        <p class="note">The table has a unique index on
+          <code>(board_id, lower(keyword), country)</code>. PostgREST cannot target an
+          expression index with <code>on_conflict</code>, so a server should either read
+          the board's existing keywords and split its batch into inserts and updates &mdash;
+          which is what <strong>Paste rows</strong> does &mdash; or add a plain unique index on
+          <code>(board_id, keyword, country)</code> and lowercase keywords on the way in.</p>
+      </div>
+    </div>
+
     <!-- Clients: admin-only list of boards and who may read them -->
     <div class="clients" id="clientsPane" hidden>
       <p class="page-intro">Every client gets their own board with all the same tabs.
@@ -847,7 +897,7 @@ const SUPABASE_URL = 'https://cskamgfvebryahkljlll.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_MdkD-TxMCIwlu69seSHA3Q_A39GADsK';
 const CLIENT_ID    = '1059013355751-6g50dsgm7df37htl2fdqrtlkh5hmrc0c.apps.googleusercontent.com';
 const ALLOWED      = ['vijaysrinivassan@gmail.com'];
-const BUILD        = 'v3.7';
+const BUILD        = 'v3.8';
 
 const TABS = [
   'Product Architecture',
@@ -870,11 +920,15 @@ const BRAND_TABS = [
   'Growth Strategy'
 ];
 const NAV = [
-  { kind: 'group', id: 'brand',   label: 'Brand Strategy',   children: BRAND_TABS },
-  { kind: 'tab',   name: 'Channel Strategy' },
-  { kind: 'group', id: 'content', label: 'Content Strategy', tab: 'Content Strategy' },
-  { kind: 'tab',   name: 'Keyword Repo' },
-  { kind: 'tab',   name: 'Document Gallery' }
+  { kind: 'group',  id: 'brand',   label: 'Brand Strategy', children: BRAND_TABS },
+  { kind: 'tab',    name: 'Channel Strategy' },
+  { kind: 'group',  id: 'content', label: 'Content Strategy', tab: 'Content Strategy' },
+  { kind: 'tab',    name: 'Keyword Repo' },
+  { kind: 'tab',    name: 'Document Gallery' },
+  { kind: 'screen', id: 'mcp',     label: 'MCP' },
+  { kind: 'spacer' },
+  { kind: 'group',  id: 'settings', label: 'Settings',
+    screens: [{ id: 'clients', label: 'Clients' }] }
 ];
 
 const $ = id => document.getElementById(id);
@@ -895,6 +949,7 @@ const state = {
   role: 'admin',                  /* 'admin' owns the board, 'viewer' may only read */
   screen: 'board',                /* 'board' | 'clients' */
   contentView: 'competitor',      /* which axis the content matrix is showing */
+  navOpen: { brand: false, content: false, settings: false },
   ownerId: null,                  /* owner_id of the loaded board */
   view: { x: 0, y: 0, z: 1 },
   dirty: false
@@ -1060,7 +1115,9 @@ const TAB_ICONS = {
   'Content Strategy': '<path d="M4 5h16v14H4z"/><path d="M8 9h8M8 13h5"/>',
   'Keyword Repo': '<circle cx="8.5" cy="8.5" r="4.5"/><path d="M12 12l7 7"/><path d="M17 17l2-2"/>',
   'Document Gallery': '<path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>',
-  'Brand Strategy': '<path d="M12 3l2.6 5.6 6.1.8-4.5 4.2 1.2 6L12 16.8 6.6 19.6l1.2-6L3.3 9.4l6.1-.8z"/>'
+  'Brand Strategy': '<path d="M12 3l2.6 5.6 6.1.8-4.5 4.2 1.2 6L12 16.8 6.6 19.6l1.2-6L3.3 9.4l6.1-.8z"/>',
+  'MCP': '<path d="M5 7h14M5 12h14M5 17h9"/><circle cx="18" cy="17" r="2.2"/>',
+  'Settings': '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1A1.7 1.7 0 0 0 9 19.4a1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1A1.7 1.7 0 0 0 4.6 9a1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.9.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/>'
 };
 function tabIcon(name){
   const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
@@ -1074,7 +1131,6 @@ function renderTabs(){
   box.innerHTML = '';
   const onBoard = state.screen === 'board';
 
-  /* a plain nav row */
   function tabButton(name){
     const t = state.tabs[name] || { nodes: [] };
     const b = document.createElement('button');
@@ -1085,16 +1141,15 @@ function renderTabs(){
     b.append(label);
     const isPanel = [DOCS_TAB, CHANNELS_TAB, KEYWORDS_TAB, CONTENT_TAB].indexOf(name) > -1;
     if (!isPanel){
-      const n = document.createElement('span');
-      n.className = 'n';
-      n.textContent = (t.nodes || []).filter(x => x.type !== 'group').length;
-      b.append(n);
+      const c = document.createElement('span');
+      c.className = 'n';
+      c.textContent = (t.nodes || []).filter(x => x.type !== 'group').length;
+      b.append(c);
     }
     b.onclick = () => switchTab(name);
     return b;
   }
 
-  /* a section header that opens into its children */
   function groupButton(label, iconName, open, onClick){
     const b = document.createElement('button');
     b.className = 'tab' + (open ? ' open' : '');
@@ -1106,76 +1161,139 @@ function renderTabs(){
     chev.className = 'chev';
     chev.textContent = '\u25b6';
     b.append(chev);
+    b.title = open ? 'Collapse' : 'Expand';
+    b.onclick = onClick;
+    return b;
+  }
+
+  function subButton(label, active, onClick, count){
+    const b = document.createElement('button');
+    b.className = 'tab-sub' + (active ? ' active' : '');
+    const lab = document.createElement('span');
+    lab.textContent = label;
+    b.append(lab);
+    if (count){
+      const c = document.createElement('span');
+      c.className = 'n';
+      c.textContent = String(count);
+      b.append(c);
+    }
     b.onclick = onClick;
     return b;
   }
 
   NAV.forEach(item => {
-    if (item.kind === 'tab'){ box.append(tabButton(item.name)); return; }
-
-    /* ---- Brand Strategy: its children are ordinary canvas tabs ---- */
-    if (item.id === 'brand'){
-      const open = onBoard && item.children.indexOf(state.tab) > -1;
-      box.append(groupButton(item.label, 'Brand Strategy', open, () => {
-        switchTab(open ? state.tab : item.children[0]);
-      }));
-      if (open){
-        item.children.forEach(name => {
-          const t = state.tabs[name] || { nodes: [] };
-          const sb2 = document.createElement('button');
-          sb2.className = 'tab-sub' + (name === state.tab ? ' active' : '');
-          const lab = document.createElement('span');
-          lab.textContent = name;
-          sb2.append(lab);
-          const cards = (t.nodes || []).filter(x => x.type !== 'group').length;
-          if (cards){
-            const cnt = document.createElement('span');
-            cnt.className = 'n';
-            cnt.textContent = String(cards);
-            sb2.append(cnt);
-          }
-          sb2.onclick = () => switchTab(name);
-          box.append(sb2);
-        });
-      }
+    if (item.kind === 'spacer'){
+      const sp = document.createElement('div');
+      sp.className = 'nav-spacer';
+      box.append(sp);
       return;
     }
 
-    /* ---- Content Strategy: its children are the four axes ---- */
+    if (item.kind === 'tab'){ box.append(tabButton(item.name)); return; }
+
+    if (item.kind === 'screen'){
+      const b = document.createElement('button');
+      b.className = 'tab' + (state.screen === item.id ? ' active' : '');
+      b.append(tabIcon(item.label));
+      const lab = document.createElement('span');
+      lab.textContent = item.label;
+      b.append(lab);
+      b.onclick = () => goScreen(item.id);
+      box.append(b);
+      return;
+    }
+
+    /* ---- groups: open state is explicit, so a second click closes them ---- */
+    const open = !!state.navOpen[item.id];
+    box.append(groupButton(item.label, item.label, open, () => {
+      state.navOpen[item.id] = !state.navOpen[item.id];
+      renderTabs();
+    }));
+    if (!open) return;
+
+    if (item.id === 'brand'){
+      item.children.forEach(name => {
+        const t = state.tabs[name] || { nodes: [] };
+        const cards = (t.nodes || []).filter(x => x.type !== 'group').length;
+        box.append(subButton(name, onBoard && name === state.tab, () => switchTab(name), cards));
+      });
+      return;
+    }
+
     if (item.id === 'content'){
-      const open = onBoard && state.tab === CONTENT_TAB;
-      box.append(groupButton(item.label, CONTENT_TAB, open, () => switchTab(CONTENT_TAB)));
-      if (open){
-        const root = contentRoot();
-        CONTENT_VIEWS.forEach(v => {
-          const sb2 = document.createElement('button');
-          sb2.className = 'tab-sub' + (state.contentView === v.id ? ' active' : '');
-          const lab = document.createElement('span');
-          lab.textContent = v.label;
-          sb2.append(lab);
-          const view = root.views[v.id];
-          /* a cell can hold a mode with the tick off, so count only the ticked */
-          const planned = view && view.cells
-            ? Object.keys(view.cells).filter(function(k){
-                const c = view.cells[k];
-                return c === true || (c && c.on);
-              }).length
-            : 0;
-          if (planned){
-            const cnt = document.createElement('span');
-            cnt.className = 'n';
-            cnt.textContent = String(planned);
-            sb2.append(cnt);
-          }
-          sb2.onclick = () => switchContentView(v.id);
-          box.append(sb2);
-        });
-      }
+      const root = contentRoot();
+      CONTENT_VIEWS.forEach(v => {
+        const view = root.views[v.id];
+        let planned = 0;
+        if (view && view.cells){
+          planned = Object.keys(view.cells).filter(k => {
+            const c = view.cells[k];
+            return c === true || (c && c.on);
+          }).length;
+        }
+        const active = onBoard && state.tab === CONTENT_TAB && state.contentView === v.id;
+        box.append(subButton(v.label, active, () => switchContentView(v.id), planned));
+      });
+      return;
+    }
+
+    if (item.id === 'settings'){
+      item.screens.forEach(sc => {
+        box.append(subButton(sc.label, state.screen === sc.id, () => goScreen(sc.id), 0));
+      });
       return;
     }
   });
 
-  $('tabTitle').textContent = state.tab;
+  /* off-board screens set their own title in applyTabMode */
+  if (onBoard) $('tabTitle').textContent = state.tab;
+}
+
+/* Screens that are not board tabs: Clients, MCP. */
+function goScreen(id){
+  state.screen = id;
+  if (id === 'clients'){ state.navOpen.settings = true; }
+  applyTabMode();
+  if (id === 'clients') renderClients();
+  if (id === 'mcp') renderMcp();
+  renderTabs();
+}
+
+function renderMcp(){
+  $('mcpUrl').textContent = SUPABASE_URL;
+  $('mcpBoard').textContent = state.boardId || 'no board open \u2014 open one from Settings \u203a Clients';
+  $('mcpOwner').textContent = state.user ? state.user.id : 'not signed in';
+  $('mcpSample').textContent =
+    [
+      'POST ' + SUPABASE_URL + '/rest/v1/keywords',
+      'apikey: <publishable key>',
+      'Authorization: Bearer <session token>',
+      'Content-Type: application/json',
+      ''
+    ].join('\n') + '\n' +
+    JSON.stringify([{
+      owner_id: state.user ? state.user.id : '<user uuid>',
+      board_id: state.boardId || '<board uuid>',
+      keyword: 'triple whale pricing',
+      volume: 2400, kd: 12, cpc: 3.2,
+      traffic_potential: 3100,
+      parent_topic: 'triple whale',
+      intent: 'Commercial',
+      country: 'us',
+      source: 'ahrefs-2026-09'
+    }], null, 2);
+
+  const el = $('mcpStatus');
+  el.textContent = 'checking\u2026';
+  if (!sb){ el.textContent = 'no database client'; return; }
+  sb.from('keywords').select('id').limit(1).then(function(res){
+    if (res.error){
+      el.innerHTML = 'no \u2014 <code>' + res.error.message + '</code>';
+    } else {
+      el.textContent = 'yes';
+    }
+  });
 }
 
 function renderGroups(){
@@ -1438,6 +1556,8 @@ function deleteSelection(){
 function switchTab(name){
   state.tab = name;
   state.screen = 'board';
+  if (BRAND_TABS.indexOf(name) > -1) state.navOpen.brand = true;
+  if (name === CONTENT_TAB) state.navOpen.content = true;
   clearSel();
   render();
   applyTabMode();
@@ -2142,14 +2262,14 @@ async function uploadFiles(list, targetCol){
 /* Swap the canvas out for the gallery on that one tab. */
 function applyTabMode(){
   const onClients = state.screen === 'clients';
+  const onMcp = state.screen === 'mcp';
   $('clientsPane').hidden = !onClients;
-  $('clientsTab').classList.toggle('active', onClients);
-  renderTabs();
-  if (onClients){
+  $('mcpPane').hidden = !onMcp;
+  if (onClients || onMcp){
     $('viewport').hidden = true; $('docsPane').hidden = true;
     $('chanPane').hidden = true; $('kwPane').hidden = true; $('mxPane').hidden = true;
     ['btnZoomIn','btnZoomOut','btnFit','zoomLabel'].forEach(id => { $(id).hidden = true; });
-    $('tabTitle').textContent = 'Clients';
+    $('tabTitle').textContent = onClients ? 'Clients' : 'MCP';
     applyRole();
     return;
   }
@@ -2732,13 +2852,30 @@ function cellKeywords(comp, type){
    old boards are read forward rather than reset. */
 function cellState(m, key){
   const raw = m.cells[key];
-  if (raw === true) return { on: true, mode: 'seo' };
-  if (raw && typeof raw === 'object') return { on: !!raw.on, mode: raw.mode === 'aeo' ? 'aeo' : 'seo' };
-  return { on: false, mode: 'seo' };
+  if (raw === true) return { on: true, mode: 'aeo' };
+  if (raw && typeof raw === 'object') return { on: !!raw.on, mode: raw.mode === 'seo' ? 'seo' : 'aeo' };
+  return { on: false, mode: 'aeo' };
 }
 function setCellState(m, key, st){
-  if (!st.on && st.mode === 'seo') delete m.cells[key];
+  /* AEO with the tick off is the default, so it need not be stored */
+  if (!st.on && st.mode === 'aeo') delete m.cells[key];
   else m.cells[key] = { on: st.on, mode: st.mode };
+}
+
+/* One switch, used by the matrix cells and by the table rows. */
+function modeSwitch(current, disabled, onPick){
+  const wrap = document.createElement('div');
+  wrap.className = 'mx-mode';
+  ['aeo', 'seo'].forEach(function(kind){
+    const btn = document.createElement('button');
+    btn.textContent = kind.toUpperCase();
+    btn.className = current === kind ? 'on' : '';
+    btn.disabled = disabled;
+    btn.title = kind === 'aeo' ? 'Written for answer engines' : 'Written for search engines';
+    btn.onclick = function(ev){ ev.stopPropagation(); onPick(kind); };
+    wrap.append(btn);
+  });
+  return wrap;
 }
 
 function renderMatrix(){
@@ -2936,22 +3073,10 @@ function renderMatrix(){
       ptx.textContent = (ty.name || '').trim() || 'Write this';
       ptx.style.cssText = 'overflow:hidden;text-overflow:ellipsis;white-space:nowrap';
 
-      const mode = document.createElement('div');
-      mode.className = 'mx-mode';
-      ['seo', 'aeo'].forEach(function(kind){
-        const btn = document.createElement('button');
-        btn.textContent = kind.toUpperCase();
-        btn.className = st.mode === kind ? 'on' : '';
-        btn.disabled = ro;
-        btn.title = kind === 'seo' ? 'Written for search engines'
-                                   : 'Written for answer engines';
-        btn.onclick = function(ev){
-          ev.stopPropagation();
-          setCellState(m, cellKey, { on: st.on, mode: kind });
-          markDirty();
-          renderMatrix();
-        };
-        mode.append(btn);
+      const mode = modeSwitch(st.mode, ro, function(kind){
+        setCellState(m, cellKey, { on: st.on, mode: kind });
+        markDirty();
+        renderMatrix();
       });
 
       plan.append(pcb, ptx, mode);
@@ -3012,13 +3137,16 @@ function renderGrid(){
   $('btnAddType').textContent = '+ Column';
   $('btnAddType').hidden = ro || v.columns.length >= GRID_MAX_COLS;
 
-  const NUM_W = 46, COL_W = 210;
-  table.style.width = (NUM_W + COL_W * v.columns.length) + 'px';
+  const NUM_W = 46, MODE_W = 62, COL_W = 210;
+  table.style.width = (NUM_W + MODE_W + COL_W * v.columns.length) + 'px';
 
   const cg = document.createElement('colgroup');
   const c0 = document.createElement('col');
   c0.style.width = NUM_W + 'px';
   cg.append(c0);
+  const cm = document.createElement('col');
+  cm.style.width = MODE_W + 'px';
+  cg.append(cm);
   v.columns.forEach(function(){
     const c = document.createElement('col');
     c.style.width = COL_W + 'px';
@@ -3029,8 +3157,17 @@ function renderGrid(){
   const thead = document.createElement('thead');
   const hr = document.createElement('tr');
   const corner = document.createElement('th');
-  corner.className = 'mx-corner';
+  corner.className = 'mx-corner-num';
   hr.append(corner);
+  const modeHead = document.createElement('th');
+  modeHead.className = 'mx-corner';
+  const mLab = document.createElement('div');
+  mLab.className = 'mx-lab';
+  const mName = document.createElement('b');
+  mName.textContent = 'Mode';
+  mLab.append(mName);
+  modeHead.append(mLab);
+  hr.append(modeHead);
 
   v.columns.forEach(function(col){
     const th = document.createElement('th');
@@ -3089,6 +3226,16 @@ function renderGrid(){
     }
     num.append(wrap);
     tr.append(num);
+
+    /* every row is a piece of content, so it carries the same choice */
+    const md = document.createElement('td');
+    md.className = 'gr-mode';
+    md.append(modeSwitch(row.mode === 'seo' ? 'seo' : 'aeo', ro, function(kind){
+      row.mode = kind;
+      markDirty();
+      renderGrid();
+    }));
+    tr.append(md);
 
     v.columns.forEach(function(col, ci){
       const td = document.createElement('td');
@@ -3161,6 +3308,7 @@ function switchContentView(id){
   state.contentView = id;
   state.tab = CONTENT_TAB;
   state.screen = 'board';
+  state.navOpen.content = true;
   renderTabs();
   applyTabMode();
 }
@@ -3204,10 +3352,12 @@ function roleForBoard(row){
   return (row && row.owner_id && state.user && row.owner_id === state.user.id) ? 'admin' : 'viewer';
 }
 
-function openClients(){
+function openClients(){   /* kept for callers that open the list directly */
   state.screen = 'clients';
+  state.navOpen.settings = true;
   applyTabMode();
   renderClients();
+  renderTabs();
 }
 function openBoardScreen(){
   state.screen = 'board';
@@ -3393,7 +3543,6 @@ function applyRole(){
 
   const note = $('roNote');
   if (note) note.hidden = !ro;
-  $('clientsTab').hidden = false;   /* everyone gets the client list */
 }
 
 /* ===================================================================
@@ -3735,17 +3884,6 @@ $('fileInput').onchange = ev => { uploadFiles(ev.target.files); ev.target.value 
 $('dropzone').addEventListener('drop', ev => {
   if (ev.dataTransfer && ev.dataTransfer.files) uploadFiles(ev.dataTransfer.files);
 });
-(function(){
-  const b = $('clientsTab');
-  const svg = document.createElementNS('http://www.w3.org/2000/svg','svg');
-  svg.setAttribute('viewBox','0 0 24 24');
-  svg.innerHTML = '<path d="M17 20v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9.5" cy="7" r="4"/><path d="M22 20v-2a4 4 0 0 0-3-3.9"/><path d="M16 3.1a4 4 0 0 1 0 7.8"/>';
-  b.append(svg);
-  const lab = document.createElement('span');
-  lab.textContent = 'Clients';
-  b.append(lab);
-  b.onclick = openClients;
-})();
 $('brandLogo').onclick = openClientSettings;
 $('btnAddCompetitor').onclick = function(){
   if (viewDef(state.contentView).kind === 'grid') addGridRow(); else addCompetitor();
