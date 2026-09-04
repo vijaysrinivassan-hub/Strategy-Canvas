@@ -36,7 +36,16 @@ Product Architecture · Market Research Frame · Messaging Framework ·
 Positioning Document · Growth Strategy · Channel Strategy · Content Strategy ·
 Document Gallery
 
-Each holds an independent canvas. The count beside each tab is its note count.
+The first seven hold an independent canvas each; the count beside a tab is its
+card count.
+
+**Document Gallery** is not a canvas. It is a plain file screen: drag files onto
+it (or browse) and they upload to Supabase Storage, filed under the current
+board. Word, Excel, PDF, PowerPoint and images are recognised and badged; each
+file can be opened through a short-lived signed URL, or removed.
+
+Run `supabase-storage.sql` once to create the bucket and its policies. Until you
+do, the gallery says so plainly rather than failing on upload.
 
 ## Data
 
