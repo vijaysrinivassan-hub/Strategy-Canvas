@@ -32,12 +32,19 @@ automatically from the relative position of the two notes.
 
 ## Tabs
 
-Product Architecture · Market Research Frame · Messaging Framework ·
-Positioning Document · Growth Strategy · Channel Strategy · Content Strategy ·
-Keyword Repo · Document Gallery
+The sidebar groups them:
 
-The first seven hold an independent canvas each; the count beside a tab is its
-card count.
+- **Brand Strategy** opens into Product Architecture, Market Research Frame,
+  Messaging Framework, Positioning Document and Growth Strategy. Each is its own
+  canvas; the count beside one is its card count.
+- **Channel Strategy** — a scope checklist.
+- **Content Strategy** opens into Category, Competitor, ICP and Value.
+- **Keyword Repo** and **Document Gallery**.
+
+The toolbar carries only the page title and the canvas zoom controls. Boards are
+chosen and created on the Clients screen, saving happens on its own a couple of
+seconds after any change (`Ctrl/Cmd+S` forces it), and the save state sits at the
+foot of the sidebar.
 
 **Document Gallery** is not a canvas. It is a column board for files. Drag files
 onto it (or straight into a column) and they upload to Supabase Storage, filed

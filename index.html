@@ -151,14 +151,15 @@
   .tool-sep{width:1px; height:20px; background:var(--line); margin:0 4px}
   .zoom-label{font-size:12px; color:var(--muted); font-variant-numeric:tabular-nums;
               min-width:44px; text-align:center}
-  /* mirrors the dashboard's .savestate dot in the sidebar footer */
-  .save-state{margin-left:auto; font-size:11px; color:var(--muted);
-              display:flex; align-items:center; gap:6px}
-  .save-state::before{content:""; width:7px; height:7px; border-radius:50%;
-                      background:#22c55e; flex-shrink:0}
-  .save-state.dirty::before{background:#eab308}
-  .save-state.bad{color:var(--danger)}
-  .save-state.bad::before{background:#ef4444}
+  /* the dashboard keeps its save state in the sidebar, not the toolbar */
+  .save-line{padding:0 14px 10px; font-size:10.5px; color:var(--muted);
+             display:flex; align-items:center; gap:6px}
+  .save-line:empty{display:none}
+  .save-line::before{content:""; width:7px; height:7px; border-radius:50%;
+                     background:#22c55e; flex-shrink:0}
+  .save-line.dirty::before{background:#eab308}
+  .save-line.bad{color:var(--danger)}
+  .save-line.bad::before{background:#ef4444}
   select{font:inherit; font-size:13px; font-weight:600; color:var(--ink-2); background:#fff;
          border:1px solid var(--line); border-radius:9px; padding:8px 10px; max-width:210px}
 
@@ -669,6 +670,8 @@
     <div style="padding:10px 10px 0"><button class="tab" id="clientsTab"></button></div>
     <nav class="tabs" id="tabs"></nav>
 
+    <div class="save-line" id="saveState"></div>
+
     <div class="side-foot">
       <img id="userPic" alt="">
       <div class="who">
@@ -688,11 +691,6 @@
       <span class="zoom-label" id="zoomLabel">100%</span>
       <button id="btnZoomIn" title="Zoom in">+</button>
       <button id="btnFit" title="Zoom to fit">Fit</button>
-      <div class="tool-sep"></div>
-      <select id="boardPicker" title="Your boards"></select>
-      <button id="btnNewBoard">New board</button>
-      <button id="btnSave" class="primary">Save</button>
-      <span class="save-state" id="saveState"></span>
     </div>
 
     <div class="viewport" id="viewport">
@@ -825,7 +823,7 @@ const SUPABASE_URL = 'https://cskamgfvebryahkljlll.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_MdkD-TxMCIwlu69seSHA3Q_A39GADsK';
 const CLIENT_ID    = '1059013355751-6g50dsgm7df37htl2fdqrtlkh5hmrc0c.apps.googleusercontent.com';
 const ALLOWED      = ['vijaysrinivassan@gmail.com'];
-const BUILD        = 'v3.3';
+const BUILD        = 'v3.4';
 
 const TABS = [
   'Product Architecture',
@@ -837,6 +835,22 @@ const TABS = [
   'Content Strategy',
   'Keyword Repo',
   'Document Gallery'
+];
+
+/* The sidebar is grouped: two expanding sections and four plain entries. */
+const BRAND_TABS = [
+  'Product Architecture',
+  'Market Research Frame',
+  'Messaging Framework',
+  'Positioning Document',
+  'Growth Strategy'
+];
+const NAV = [
+  { kind: 'group', id: 'brand',   label: 'Brand Strategy',   children: BRAND_TABS },
+  { kind: 'tab',   name: 'Channel Strategy' },
+  { kind: 'group', id: 'content', label: 'Content Strategy', tab: 'Content Strategy' },
+  { kind: 'tab',   name: 'Keyword Repo' },
+  { kind: 'tab',   name: 'Document Gallery' }
 ];
 
 const $ = id => document.getElementById(id);
@@ -913,7 +927,7 @@ function markDirty(){
   state.dirty = true;
   const el = $('saveState');
   el.textContent = 'Unsaved changes';
-  el.className = 'save-state dirty';
+  el.className = 'save-line dirty';
   scheduleAutosave();
 }
 let autosaveTimer = null;
@@ -1021,7 +1035,8 @@ const TAB_ICONS = {
   'Channel Strategy': '<path d="M4 6h16M4 12h16M4 18h9"/><circle cx="19" cy="18" r="2"/>',
   'Content Strategy': '<path d="M4 5h16v14H4z"/><path d="M8 9h8M8 13h5"/>',
   'Keyword Repo': '<circle cx="8.5" cy="8.5" r="4.5"/><path d="M12 12l7 7"/><path d="M17 17l2-2"/>',
-  'Document Gallery': '<path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>'
+  'Document Gallery': '<path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>',
+  'Brand Strategy': '<path d="M12 3l2.6 5.6 6.1.8-4.5 4.2 1.2 6L12 16.8 6.6 19.6l1.2-6L3.3 9.4l6.1-.8z"/>'
 };
 function tabIcon(name){
   const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
@@ -1033,16 +1048,18 @@ function tabIcon(name){
 function renderTabs(){
   const box = $('tabs');
   box.innerHTML = '';
-  TABS.forEach(name => {
+  const onBoard = state.screen === 'board';
+
+  /* a plain nav row */
+  function tabButton(name){
     const t = state.tabs[name] || { nodes: [] };
     const b = document.createElement('button');
-    b.className = 'tab' + (state.screen === 'board' && name === state.tab ? ' active' : '');
+    b.className = 'tab' + (onBoard && name === state.tab ? ' active' : '');
     b.append(tabIcon(name));
     const label = document.createElement('span');
     label.textContent = name;
-    const isPanel = [DOCS_TAB, CHANNELS_TAB, KEYWORDS_TAB, CONTENT_TAB].indexOf(name) > -1;
     b.append(label);
-    /* an empty badge still draws its padded pill, so only make one when it says something */
+    const isPanel = [DOCS_TAB, CHANNELS_TAB, KEYWORDS_TAB, CONTENT_TAB].indexOf(name) > -1;
     if (!isPanel){
       const n = document.createElement('span');
       n.className = 'n';
@@ -1050,55 +1067,85 @@ function renderTabs(){
       b.append(n);
     }
     b.onclick = () => switchTab(name);
+    return b;
+  }
 
-    /* Content Strategy opens into its four axes, the way a WordPress menu
-       item opens into its own pages. */
-    if (name === CONTENT_TAB){
-      const open = state.screen === 'board' && state.tab === CONTENT_TAB;
-      if (open) b.classList.add('open');
-      const chev = document.createElement('span');
-      chev.className = 'chev';
-      chev.textContent = '\u25b6';
-      b.append(chev);
-      box.append(b);
+  /* a section header that opens into its children */
+  function groupButton(label, iconName, open, onClick){
+    const b = document.createElement('button');
+    b.className = 'tab' + (open ? ' open' : '');
+    b.append(tabIcon(iconName));
+    const lab = document.createElement('span');
+    lab.textContent = label;
+    b.append(lab);
+    const chev = document.createElement('span');
+    chev.className = 'chev';
+    chev.textContent = '\u25b6';
+    b.append(chev);
+    b.onclick = onClick;
+    return b;
+  }
 
+  NAV.forEach(item => {
+    if (item.kind === 'tab'){ box.append(tabButton(item.name)); return; }
+
+    /* ---- Brand Strategy: its children are ordinary canvas tabs ---- */
+    if (item.id === 'brand'){
+      const open = onBoard && item.children.indexOf(state.tab) > -1;
+      box.append(groupButton(item.label, 'Brand Strategy', open, () => {
+        switchTab(open ? state.tab : item.children[0]);
+      }));
       if (open){
-        const root = contentRoot();
-        CONTENT_VIEWS.forEach(function(v){
+        item.children.forEach(name => {
+          const t = state.tabs[name] || { nodes: [] };
           const sb2 = document.createElement('button');
-          sb2.className = 'tab-sub' + (state.contentView === v.id ? ' active' : '');
+          sb2.className = 'tab-sub' + (name === state.tab ? ' active' : '');
           const lab = document.createElement('span');
-          lab.textContent = v.label;
+          lab.textContent = name;
           sb2.append(lab);
-          const view = root.views[v.id];
-          const planned = view ? Object.keys(view.cells || {}).length : 0;
-          if (planned){
+          const cards = (t.nodes || []).filter(x => x.type !== 'group').length;
+          if (cards){
             const cnt = document.createElement('span');
             cnt.className = 'n';
-            cnt.textContent = String(planned);
+            cnt.textContent = String(cards);
             sb2.append(cnt);
           }
-          sb2.onclick = function(){ switchContentView(v.id); };
+          sb2.onclick = () => switchTab(name);
           box.append(sb2);
         });
       }
       return;
     }
 
-    box.append(b);
+    /* ---- Content Strategy: its children are the four axes ---- */
+    if (item.id === 'content'){
+      const open = onBoard && state.tab === CONTENT_TAB;
+      box.append(groupButton(item.label, CONTENT_TAB, open, () => switchTab(CONTENT_TAB)));
+      if (open){
+        const root = contentRoot();
+        CONTENT_VIEWS.forEach(v => {
+          const sb2 = document.createElement('button');
+          sb2.className = 'tab-sub' + (state.contentView === v.id ? ' active' : '');
+          const lab = document.createElement('span');
+          lab.textContent = v.label;
+          sb2.append(lab);
+          const view = root.views[v.id];
+          const planned = view && view.cells ? Object.keys(view.cells).length : 0;
+          if (planned){
+            const cnt = document.createElement('span');
+            cnt.className = 'n';
+            cnt.textContent = String(planned);
+            sb2.append(cnt);
+          }
+          sb2.onclick = () => switchContentView(v.id);
+          box.append(sb2);
+        });
+      }
+      return;
+    }
   });
-  $('tabTitle').textContent = state.tab;
-}
 
-/* A card belongs to a group when its centre falls inside the group's box —
-   the same containment rule Obsidian uses, so there is no membership to
-   maintain: drag a card in and it is in. */
-function containedNodes(g){
-  return cur().nodes.filter(n => {
-    if (n.type === 'group') return false;
-    const cx = n.x + n.width / 2, cy = n.y + n.height / 2;
-    return cx > g.x && cx < g.x + g.width && cy > g.y && cy < g.y + g.height;
-  });
+  $('tabTitle').textContent = state.tab;
 }
 
 function renderGroups(){
@@ -1659,6 +1706,7 @@ document.addEventListener('keydown', ev => {
   if (ev.code === 'Space' && !ev.repeat){ spaceHeld = true; ev.preventDefault(); }
   if (ev.key === 'Delete' || ev.key === 'Backspace'){ ev.preventDefault(); deleteSelection(); }
   if (ev.key === 'Escape'){ clearSel(); render(); }
+  if ((ev.ctrlKey || ev.metaKey) && ev.key.toLowerCase() === 's'){ ev.preventDefault(); saveBoard(false); }
   if ((ev.ctrlKey || ev.metaKey) && ev.key.toLowerCase() === 'a'){ ev.preventDefault(); selectAll(); }
   if ((ev.ctrlKey || ev.metaKey) && ev.key.toLowerCase() === 'g'){ ev.preventDefault(); groupSelection(); }
 });
@@ -1692,19 +1740,7 @@ async function refreshBoards(){
     .select('id,title,updated_at,owner_id').order('updated_at', { ascending: false });
   if (error){ toast('Could not list boards: ' + error.message, true); return; }
   state.boards = data || [];
-  const sel = $('boardPicker');
-  sel.innerHTML = '';
-  if (!state.boardId){
-    const o = document.createElement('option');
-    o.value = ''; o.textContent = '(unsaved board)';
-    sel.append(o);
-  }
-  state.boards.forEach(b => {
-    const o = document.createElement('option');
-    o.value = b.id; o.textContent = b.title;
-    if (b.id === state.boardId) o.selected = true;
-    sel.append(o);
-  });
+  /* boards are chosen on the Clients screen now, so nothing to fill here */
 }
 
 async function openBoard(id){
@@ -1718,7 +1754,7 @@ async function openBoard(id){
   clearSel();
   state.dirty = false;
   $('saveState').textContent = 'Saved';
-  $('saveState').className = 'save-state';
+  $('saveState').className = 'save-line';
   await refreshBoards();
   render();
   applyTabMode();
@@ -1728,7 +1764,7 @@ async function openBoard(id){
 async function saveBoard(quiet){
   if (!state.user || readOnly()) return;
   const el = $('saveState');
-  el.textContent = 'Saving…'; el.className = 'save-state';
+  el.textContent = 'Saving…'; el.className = 'save-line';
   const payload = { title: state.client + ' Strategy Board', body: serialize() };
 
   let error;
@@ -1741,12 +1777,12 @@ async function saveBoard(quiet){
     if (!error) state.boardId = res.data.id;
   }
   if (error){
-    el.textContent = 'Save failed'; el.className = 'save-state bad';
+    el.textContent = 'Save failed'; el.className = 'save-line bad';
     toast('Save failed: ' + error.message, true);
     return;
   }
   state.dirty = false;
-  el.textContent = 'Saved'; el.className = 'save-state';
+  el.textContent = 'Saved'; el.className = 'save-line';
   await refreshBoards();
   if (!quiet) toast('Board saved.');
 }
@@ -3241,7 +3277,7 @@ async function openAccessModal(board){
 /* Hide every control a viewer must not have. */
 function applyRole(){
   const ro = readOnly();
-  ['btnSave','btnNewBoard','dock','btnAddColumn','btnAddChannel','dropzone',
+  ['dock','btnAddColumn','btnAddChannel','dropzone',
    'btnAddCompetitor','btnAddType','btnKwAdd','btnKwPaste']
     .forEach(id => { const el = $(id); if (el) el.hidden = ro; });
 
@@ -3625,10 +3661,9 @@ $('btnZoomOut').onclick = () => {
   zoomAt(r.left + r.width / 2, r.top + r.height / 2, 1 / 1.2);
 };
 $('btnFit').onclick = zoomToFit;
-$('btnSave').onclick = () => saveBoard(false);
-$('btnNewBoard').onclick = newBoard;
+
 $('btnSignOut').onclick = signOut;
-$('boardPicker').onchange = e => { if (e.target.value) openBoard(e.target.value); };
+
 $('clientName').oninput = e => { if (readOnly()) return; state.client = e.target.value.trim() || 'Untitled'; markDirty(); };
 $('palette').addEventListener('pointerdown', e => e.stopPropagation());
 window.addEventListener('resize', () => { applyView(); });
