@@ -210,12 +210,27 @@
   .node[data-color="5"]{border-color:var(--n5)}
   .node[data-color="6"]{border-color:var(--n6)}
 
-  /* floating palette when a node is selected */
+  /* rubber-band selection rectangle */
+  .marquee{
+    position:absolute; z-index:60; pointer-events:none;
+    border:1.5px solid var(--accent); border-radius:3px;
+    background:rgba(84,104,232,.10);
+  }
+
+  /* floating toolbar for the current selection */
   .palette{
-    position:absolute; z-index:40; display:flex; gap:5px; padding:6px;
+    position:absolute; z-index:40; display:flex; align-items:center; gap:4px; padding:6px;
     background:var(--panel); border:1px solid var(--border); border-radius:10px;
     box-shadow:var(--shadow);
   }
+  .palette .tool{
+    width:28px; height:26px; padding:0; display:grid; place-items:center;
+    background:transparent; border:1px solid transparent; border-radius:7px; color:var(--muted);
+  }
+  .palette .tool:hover{background:var(--accent-soft); border-color:transparent; color:var(--accent)}
+  .palette .tool svg{width:16px; height:16px; fill:none; stroke:currentColor;
+                     stroke-width:1.7; stroke-linecap:round; stroke-linejoin:round}
+  .pal-sep{width:1px; height:18px; background:var(--border); margin:0 3px; flex:none}
   .swatch{width:19px; height:19px; border-radius:50%; border:2px solid var(--border);
           padding:0; background:var(--panel)}
   .swatch:hover{transform:scale(1.12)}
@@ -253,7 +268,8 @@
             border:1px solid var(--border); border-bottom-width:2px; border-radius:5px;
             padding:1px 6px; color:var(--ink)}
 
-  .toast{position:fixed; left:50%; bottom:24px; transform:translateX(-50%); z-index:200;
+  /* clear of the dock, which sits at bottom:22px */
+  .toast{position:fixed; left:50%; bottom:80px; transform:translateX(-50%); z-index:200;
          font-size:13px; font-weight:500; border-radius:10px; padding:10px 16px;
          box-shadow:var(--shadow); color:var(--ok); background:var(--ok-bg);
          border:1px solid var(--ok-border)}
@@ -330,6 +346,7 @@
         <div id="nodes"></div>
       </div>
       <div class="hint" id="hint" hidden></div>
+      <div class="marquee" id="marquee" hidden></div>
       <div class="palette" id="palette" hidden></div>
 
       <div class="dock" id="dock">
@@ -387,11 +404,12 @@ const state = {
   tab: TABS[0],
   tabs: {},                    /* tabName -> { nodes:[], edges:[] } */
   boards: [],                  /* [{id,title,updated_at}] */
-  sel: null,                   /* {kind:'node'|'edge', id} */
+  sel: { ids: [], edge: null },   /* many cards/groups, or one edge */
   view: { x: 0, y: 0, z: 1 },
   dirty: false
 };
 let sb = null;
+let spaceHeld = false;
 
 function blankTabs(){
   const t = {};
@@ -400,6 +418,21 @@ function blankTabs(){
 }
 const cur = () => state.tabs[state.tab] || (state.tabs[state.tab] = { nodes: [], edges: [] });
 const nodeById = id => cur().nodes.find(n => n.id === id);
+
+/* ---- selection ---- */
+const isSel      = id => state.sel.ids.indexOf(id) !== -1;
+const selNodes   = () => state.sel.ids.map(nodeById).filter(Boolean);
+const clearSel   = () => { state.sel = { ids: [], edge: null }; };
+const selectOnly = id => { state.sel = { ids: [id], edge: null }; };
+function toggleSel(id){
+  const i = state.sel.ids.indexOf(id);
+  if (i === -1) state.sel.ids.push(id); else state.sel.ids.splice(i, 1);
+  state.sel.edge = null;
+}
+function selectAll(){
+  state.sel = { ids: cur().nodes.map(n => n.id), edge: null };
+  render();
+}
 
 /* ===================================================================
    HELPERS
@@ -559,7 +592,7 @@ function renderGroups(){
   box.innerHTML = '';
   cur().nodes.filter(n => n.type === 'group').forEach(g => {
     const el = document.createElement('div');
-    el.className = 'group' + (state.sel && state.sel.id === g.id ? ' sel' : '');
+    el.className = 'group' + (isSel(g.id) ? ' sel' : '');
     el.style.left = g.x + 'px';
     el.style.top = g.y + 'px';
     el.style.width = g.width + 'px';
@@ -605,7 +638,7 @@ function renderNodes(){
   box.innerHTML = '';
   cur().nodes.filter(n => n.type !== 'group').forEach(n => {
     const el = document.createElement('div');
-    el.className = 'node' + (state.sel && state.sel.kind === 'node' && state.sel.id === n.id ? ' sel' : '');
+    el.className = 'node' + (isSel(n.id) ? ' sel' : '');
     el.style.left = n.x + 'px';
     el.style.top = n.y + 'px';
     el.style.width = n.width + 'px';
@@ -651,7 +684,7 @@ function renderEdges(){
     if (!a || !b) return;
     const p1 = anchorPoint(a, e.fromSide), p2 = anchorPoint(b, e.toSide);
     const d = bezier(p1, e.fromSide, p2, e.toSide);
-    const selected = state.sel && state.sel.kind === 'edge' && state.sel.id === e.id;
+    const selected = state.sel.edge === e.id;
 
     const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
     if (selected) g.setAttribute('class', 'sel');
@@ -689,37 +722,89 @@ function renderHint(){
   h.innerHTML =
     '<div><b>' + state.tab + '</b> is empty</div>' +
     '<div>Double-click anywhere, or use the bar below, to add a card</div>' +
-    '<div>Drag a note’s edge dot to connect it to another</div>' +
-    '<div>Scroll to zoom · drag the background to pan</div>';
+    '<div>Drag a card’s edge dot to connect it to another</div>' +
+    '<div>Drag across the canvas to select · <kbd>Space</kbd>+drag to pan · scroll to zoom</div>';
+}
+
+function buildPalette(){
+  const p = $('palette');
+  if (p.children.length) return;
+
+  const del = document.createElement('button');
+  del.className = 'tool';
+  del.title = 'Delete selection';
+  del.innerHTML = '<svg viewBox="0 0 24 24"><path d="M4 7h16M9 7V5h6v2M6 7l1 13h10l1-13"/></svg>';
+  del.onclick = ev => { ev.stopPropagation(); deleteSelection(); };
+  p.append(del);
+
+  const grp = document.createElement('button');
+  grp.className = 'tool';
+  grp.id = 'palGroup';
+  grp.title = 'Group selection';
+  grp.innerHTML = '<svg viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="14" rx="2.5" stroke-dasharray="3.5 3"/><path d="M3 10h18"/></svg>';
+  grp.onclick = ev => { ev.stopPropagation(); groupSelection(); };
+  p.append(grp);
+
+  const sep = document.createElement('span');
+  sep.className = 'pal-sep';
+  p.append(sep);
+
+  [0,1,2,3,4,5,6].forEach(c => {
+    const b = document.createElement('button');
+    b.className = 'swatch';
+    b.dataset.c = c;
+    b.title = c === 0 ? 'Default' : 'Colour ' + c;
+    b.onclick = ev => {
+      ev.stopPropagation();
+      selNodes().forEach(n => { if (c === 0) delete n.color; else n.color = String(c); });
+      markDirty(); renderGroups(); renderNodes();
+    };
+    p.append(b);
+  });
 }
 
 function positionPalette(){
   const p = $('palette');
-  if (!state.sel || state.sel.kind !== 'node'){ p.hidden = true; return; }
-  const n = nodeById(state.sel.id);
-  if (!n){ p.hidden = true; return; }
+  const ns = selNodes();
+  if (!ns.length || (drag && drag.kind === 'marquee')){ p.hidden = true; return; }
+  buildPalette();
   p.hidden = false;
-  if (!p.children.length){
-    [0,1,2,3,4,5,6].forEach(c => {
-      const b = document.createElement('button');
-      b.className = 'swatch';
-      b.dataset.c = c;
-      b.title = c === 0 ? 'Default' : 'Colour ' + c;
-      b.onclick = ev => {
-        ev.stopPropagation();
-        const nn = nodeById(state.sel.id);
-        if (!nn) return;
-        if (c === 0) delete nn.color; else nn.color = String(c);
-        markDirty(); renderNodes();
-      };
-      p.append(b);
-    });
-  }
+  const grp = $('palGroup');
+  if (grp) grp.hidden = ns.filter(n => n.type !== 'group').length < 2;
+
+  /* sit above the bounding box of everything currently selected */
+  let x0 = Infinity, y0 = Infinity, anyGroup = false;
+  ns.forEach(n => {
+    x0 = Math.min(x0, n.x); y0 = Math.min(y0, n.y);
+    if (n.type === 'group') anyGroup = true;
+  });
   const v = state.view;
-  /* Groups carry a label above their top edge, so lift the palette clear of it. */
-  const lift = n.type === 'group' ? 74 : 44;
-  p.style.left = (n.x * v.z + v.x) + 'px';
-  p.style.top  = (n.y * v.z + v.y - lift) + 'px';
+  /* Groups carry a label above their top edge, so lift the bar clear of it. */
+  const lift = anyGroup ? 74 : 44;
+  p.style.left = (x0 * v.z + v.x) + 'px';
+  p.style.top  = (y0 * v.z + v.y - lift) + 'px';
+}
+
+/* Wrap everything selected in a new group, the Obsidian way. */
+function groupSelection(){
+  const ns = selNodes().filter(n => n.type !== 'group');
+  if (ns.length < 2){ toast('Select two or more cards to group them.', true); return; }
+  let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+  ns.forEach(n => {
+    x0 = Math.min(x0, n.x); y0 = Math.min(y0, n.y);
+    x1 = Math.max(x1, n.x + n.width); y1 = Math.max(y1, n.y + n.height);
+  });
+  const pad = 36;
+  const g = {
+    id: uid(), type: 'group', label: 'Group',
+    x: Math.round(x0 - pad), y: Math.round(y0 - pad),
+    width: Math.round(x1 - x0 + pad * 2), height: Math.round(y1 - y0 + pad * 2)
+  };
+  cur().nodes.unshift(g);
+  selectOnly(g.id);
+  markDirty();
+  render();
+  toast('Grouped ' + ns.length + ' cards.');
 }
 
 /* ===================================================================
@@ -737,27 +822,27 @@ function addNode(wx, wy, text, opts){
   else if (n.type === 'group') n.label = opts.label || 'Group';
   else n.text = text || '';
   cur().nodes.push(n);
-  state.sel = { kind: 'node', id: n.id };
+  selectOnly(n.id);
   markDirty();
   render();
   return n;
 }
 function deleteSelection(){
-  if (!state.sel) return;
   const c = cur();
-  if (state.sel.kind === 'node'){
-    c.nodes = c.nodes.filter(n => n.id !== state.sel.id);
-    c.edges = c.edges.filter(e => e.fromNode !== state.sel.id && e.toNode !== state.sel.id);
-  } else {
-    c.edges = c.edges.filter(e => e.id !== state.sel.id);
-  }
-  state.sel = null;
+  if (state.sel.edge){
+    c.edges = c.edges.filter(e => e.id !== state.sel.edge);
+  } else if (state.sel.ids.length){
+    const ids = state.sel.ids;
+    c.nodes = c.nodes.filter(n => ids.indexOf(n.id) === -1);
+    c.edges = c.edges.filter(e => ids.indexOf(e.fromNode) === -1 && ids.indexOf(e.toNode) === -1);
+  } else return;
+  clearSel();
   markDirty();
   render();
 }
 function switchTab(name){
   state.tab = name;
-  state.sel = null;
+  clearSel();
   render();
   zoomToFit();
 }
@@ -794,7 +879,7 @@ function beginEdit(nodeEl, n){
 let drag = null;
 
 $('viewport').addEventListener('pointerdown', ev => {
-  if (ev.button !== 0 && ev.button !== 1) return;
+  if (ev.button !== 0 && ev.button !== 1 && ev.button !== 2) return;
 
   /* ---- groups first: only their label and corner are grabbable ---- */
   const groupEl = ev.target.closest('.group');
@@ -802,7 +887,7 @@ $('viewport').addEventListener('pointerdown', ev => {
     const g = nodeById(groupEl.dataset.id);
     if (g && ev.target.closest('.ggrip')){
       ev.preventDefault(); ev.stopPropagation();
-      state.sel = { kind:'node', id:g.id };
+      if (!isSel(g.id)) selectOnly(g.id);
       drag = { kind:'gresize', id:g.id, ox:ev.clientX, oy:ev.clientY, w0:g.width, h0:g.height };
       render();
       $('viewport').setPointerCapture(ev.pointerId);
@@ -810,7 +895,7 @@ $('viewport').addEventListener('pointerdown', ev => {
     }
     if (g && ev.target.closest('.glabel')){
       ev.preventDefault(); ev.stopPropagation();
-      state.sel = { kind:'node', id:g.id };
+      if (!isSel(g.id)) { if (ev.shiftKey) toggleSel(g.id); else selectOnly(g.id); }
       /* Snapshot membership at grab time so cards can't join mid-drag. */
       const kids = containedNodes(g).map(n => ({ id:n.id, x0:n.x, y0:n.y }));
       drag = { kind:'gmove', id:g.id, ox:ev.clientX, oy:ev.clientY,
@@ -841,41 +926,64 @@ $('viewport').addEventListener('pointerdown', ev => {
     ev.preventDefault(); ev.stopPropagation();
     const n = nodeById(nodeEl.dataset.id);
     drag = { kind:'resize', id:n.id, ox:ev.clientX, oy:ev.clientY, w0:n.width, h0:n.height };
-    state.sel = { kind:'node', id:n.id };
+    if (!isSel(n.id)) selectOnly(n.id);
     renderNodes(); positionPalette();
     $('viewport').setPointerCapture(ev.pointerId);
     return;
   }
 
-  /* move a node */
+  /* move a node — and everything else that is selected with it */
   if (nodeEl){
     const n = nodeById(nodeEl.dataset.id);
     if (!n) return;
-    state.sel = { kind:'node', id:n.id };
-    if (!nodeEl.classList.contains('editing')){
+    if (ev.shiftKey) toggleSel(n.id);
+    else if (!isSel(n.id)) selectOnly(n.id);
+
+    if (!nodeEl.classList.contains('editing') && isSel(n.id)){
       ev.preventDefault();
-      drag = { kind:'move', id:n.id, ox:ev.clientX, oy:ev.clientY, x0:n.x, y0:n.y, moved:false };
+      drag = { kind:'move', ox:ev.clientX, oy:ev.clientY, kids:movingSet(), moved:false };
       $('viewport').setPointerCapture(ev.pointerId);
     }
-    renderNodes(); renderEdges(); positionPalette();
+    render();
     return;
   }
 
   /* select an edge */
   if (hitEl){
-    state.sel = { kind:'edge', id:hitEl.dataset.edge };
+    state.sel = { ids: [], edge: hitEl.dataset.edge };
     render();
     return;
   }
 
-  /* pan the canvas */
+  /* empty canvas: middle button or held Space pans, anything else rubber-bands */
   ev.preventDefault();
-  state.sel = null;
-  drag = { kind:'pan', ox:ev.clientX, oy:ev.clientY, vx:state.view.x, vy:state.view.y };
-  $('viewport').classList.add('panning');
+  if (ev.button === 1 || spaceHeld){
+    drag = { kind:'pan', ox:ev.clientX, oy:ev.clientY, vx:state.view.x, vy:state.view.y };
+    $('viewport').classList.add('panning');
+  } else {
+    if (!ev.shiftKey) clearSel();
+    const w = toWorld(ev.clientX, ev.clientY);
+    drag = { kind:'marquee', x0:w.x, y0:w.y, sx:ev.clientX, sy:ev.clientY,
+             base: ev.shiftKey ? state.sel.ids.slice() : [] };
+    $('marquee').hidden = false;
+    $('marquee').style.width = '0px';
+    $('marquee').style.height = '0px';
+  }
   $('viewport').setPointerCapture(ev.pointerId);
   render();
 });
+
+/* Everything that should travel with a drag: the selection, plus the
+   contents of any selected group. */
+function movingSet(){
+  const kids = selNodes().map(m => ({ id:m.id, x0:m.x, y0:m.y }));
+  selNodes().filter(m => m.type === 'group').forEach(g => {
+    containedNodes(g).forEach(k => {
+      if (!kids.some(z => z.id === k.id)) kids.push({ id:k.id, x0:k.x, y0:k.y });
+    });
+  });
+  return kids;
+}
 
 $('viewport').addEventListener('pointermove', ev => {
   if (!drag) return;
@@ -884,13 +992,34 @@ $('viewport').addEventListener('pointermove', ev => {
     state.view.y = drag.vy + (ev.clientY - drag.oy);
     applyView();
   } else if (drag.kind === 'move'){
-    const n = nodeById(drag.id); if (!n) return;
-    n.x = Math.round(drag.x0 + (ev.clientX - drag.ox) / state.view.z);
-    n.y = Math.round(drag.y0 + (ev.clientY - drag.oy) / state.view.z);
+    const dx = (ev.clientX - drag.ox) / state.view.z;
+    const dy = (ev.clientY - drag.oy) / state.view.z;
+    drag.kids.forEach(k => {
+      const n = nodeById(k.id);
+      if (n){ n.x = Math.round(k.x0 + dx); n.y = Math.round(k.y0 + dy); }
+    });
     drag.moved = true;
-    const el = $('nodes').querySelector('[data-id="' + n.id + '"]');
-    if (el){ el.style.left = n.x + 'px'; el.style.top = n.y + 'px'; }
-    renderEdges(); positionPalette();
+    renderGroups(); renderNodes(); renderEdges(); positionPalette();
+  } else if (drag.kind === 'marquee'){
+    const w = toWorld(ev.clientX, ev.clientY);
+    const r = $('viewport').getBoundingClientRect();
+    const m = $('marquee');
+    m.style.left   = (Math.min(drag.sx, ev.clientX) - r.left) + 'px';
+    m.style.top    = (Math.min(drag.sy, ev.clientY) - r.top) + 'px';
+    m.style.width  = Math.abs(ev.clientX - drag.sx) + 'px';
+    m.style.height = Math.abs(ev.clientY - drag.sy) + 'px';
+
+    /* anything the box touches counts, same as Obsidian */
+    const x0 = Math.min(drag.x0, w.x), x1 = Math.max(drag.x0, w.x);
+    const y0 = Math.min(drag.y0, w.y), y1 = Math.max(drag.y0, w.y);
+    const hit = cur().nodes
+      .filter(n => n.x < x1 && n.x + n.width > x0 && n.y < y1 && n.y + n.height > y0)
+      .map(n => n.id);
+    state.sel = {
+      ids: drag.base.concat(hit.filter(id => drag.base.indexOf(id) === -1)),
+      edge: null
+    };
+    renderGroups(); renderNodes(); renderEdges();
   } else if (drag.kind === 'resize'){
     const n = nodeById(drag.id); if (!n) return;
     n.width  = Math.max(120, Math.round(drag.w0 + (ev.clientX - drag.ox) / state.view.z));
@@ -957,9 +1086,14 @@ function endDrag(ev){
   } else if (drag.kind === 'resize' || drag.kind === 'gresize'){
     markDirty();
   }
+  const wasMarquee = drag.kind === 'marquee';
   drag = null;
+  $('marquee').hidden = true;
   $('viewport').classList.remove('panning', 'connecting');
   render();
+  if (wasMarquee && state.sel.ids.length > 1){
+    toast(state.sel.ids.length + ' selected — drag to move together, or group them.');
+  }
 }
 $('viewport').addEventListener('pointerup', endDrag);
 $('viewport').addEventListener('pointercancel', endDrag);
@@ -988,13 +1122,21 @@ $('viewport').addEventListener('wheel', ev => {
   zoomAt(ev.clientX, ev.clientY, ev.deltaY < 0 ? 1.12 : 1 / 1.12);
 }, { passive: false });
 
+/* Right-drag rubber-bands, so the browser menu has to stay out of the way. */
+$('viewport').addEventListener('contextmenu', ev => ev.preventDefault());
+
 document.addEventListener('keydown', ev => {
   if ($('shell').hidden) return;
   const t = ev.target.tagName;
   if (t === 'TEXTAREA' || t === 'INPUT') return;
+  if (ev.code === 'Space' && !ev.repeat){ spaceHeld = true; ev.preventDefault(); }
   if (ev.key === 'Delete' || ev.key === 'Backspace'){ ev.preventDefault(); deleteSelection(); }
-  if (ev.key === 'Escape'){ state.sel = null; render(); }
+  if (ev.key === 'Escape'){ clearSel(); render(); }
+  if ((ev.ctrlKey || ev.metaKey) && ev.key.toLowerCase() === 'a'){ ev.preventDefault(); selectAll(); }
+  if ((ev.ctrlKey || ev.metaKey) && ev.key.toLowerCase() === 'g'){ ev.preventDefault(); groupSelection(); }
 });
+document.addEventListener('keyup', ev => { if (ev.code === 'Space') spaceHeld = false; });
+window.addEventListener('blur', () => { spaceHeld = false; });
 
 /* ===================================================================
    PERSISTENCE
@@ -1042,7 +1184,7 @@ async function openBoard(id){
   state.boardId = data.id;
   hydrate(data.body || '');
   state.tab = TABS[0];
-  state.sel = null;
+  clearSel();
   state.dirty = false;
   $('saveState').textContent = 'Saved';
   $('saveState').className = 'save-state';
@@ -1082,7 +1224,7 @@ function newBoard(){
   state.client = 'New client';
   state.tabs = blankTabs();
   state.tab = TABS[0];
-  state.sel = null;
+  clearSel();
   $('clientName').value = state.client;
   markDirty();
   render();
