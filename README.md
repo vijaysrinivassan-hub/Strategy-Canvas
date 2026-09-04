@@ -13,7 +13,10 @@ per client, eight tabs per board, each tab its own canvas.
 | Resize a note | Drag the corner grip |
 | Connect two notes | Hover a note, drag from one of its four edge dots onto another note |
 | Colour a note | Select it, pick from the palette above it |
-| Delete | Select a note or a connection, press `Delete` |
+| Add a group | The fourth dock button. Drag cards inside it |
+| Move a group | Drag its label — every card inside travels with it |
+| Rename a group | Double-click its label |
+| Delete | Select a note, connection or group, press `Delete` |
 | Pan | Drag the background |
 | Zoom | Scroll, or the toolbar buttons |
 | Frame everything | **Fit** |

@@ -140,6 +140,37 @@
   .edges path.wire{stroke:var(--line); stroke-width:2; fill:none; pointer-events:none}
   .edges g.sel path.wire{stroke:var(--accent); stroke-width:2.6}
 
+  /* ---------- groups ---------- */
+  /* The box itself ignores the pointer so you can still pan and click cards
+     through it; only the label and the resize corner are grabbable. */
+  .group{
+    position:absolute; border:2px solid var(--border); border-radius:12px;
+    background:rgba(120,120,140,.045); pointer-events:none;
+  }
+  .group.sel{border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-soft)}
+  .group .glabel{
+    position:absolute; left:-2px; top:-25px; max-width:100%;
+    font-size:12px; font-weight:500; color:var(--muted); white-space:nowrap;
+    overflow:hidden; text-overflow:ellipsis; padding:2px 7px; border-radius:6px;
+    pointer-events:auto; cursor:grab; user-select:none;
+  }
+  .group .glabel:hover{background:var(--panel); color:var(--ink)}
+  .group.sel .glabel{color:var(--accent)}
+  .group .glabel input{
+    font:inherit; font-size:12px; color:var(--ink); background:var(--panel);
+    border:1px solid var(--accent); border-radius:5px; padding:1px 5px; outline:none;
+  }
+  .group .ggrip{
+    position:absolute; right:-3px; bottom:-3px; width:18px; height:18px;
+    cursor:nwse-resize; pointer-events:auto;
+  }
+  .group[data-color="1"]{border-color:var(--n1)}
+  .group[data-color="2"]{border-color:var(--n2)}
+  .group[data-color="3"]{border-color:var(--n3)}
+  .group[data-color="4"]{border-color:var(--n4)}
+  .group[data-color="5"]{border-color:var(--n5)}
+  .group[data-color="6"]{border-color:var(--n6)}
+
   .node{
     position:absolute; background:var(--panel); border:1px solid var(--border);
     border-radius:8px; box-shadow:var(--shadow); display:flex; flex-direction:column;
@@ -283,6 +314,7 @@
 
     <div class="viewport" id="viewport">
       <div class="world" id="world">
+        <div id="groups"></div>
         <svg class="edges" id="edges">
           <defs>
             <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5"
@@ -309,6 +341,9 @@
         </button>
         <button id="dockMedia" title="Add image from a URL">
           <svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2.5"/><circle cx="9" cy="10.5" r="1.4"/><path d="M4.5 17.5l4.5-4 3 2.5 3-2.5 4.5 4"/></svg>
+        </button>
+        <button id="dockGroup" title="Add group">
+          <svg viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="14" rx="2.5" stroke-dasharray="3.5 3"/><path d="M3 10h18"/></svg>
         </button>
       </div>
     </div>
@@ -482,6 +517,7 @@ function zoomToFit(){
    =================================================================== */
 function render(){
   renderTabs();
+  renderGroups();
   renderNodes();
   renderEdges();
   renderHint();
@@ -499,7 +535,7 @@ function renderTabs(){
     label.textContent = name;
     const n = document.createElement('span');
     n.className = 'n';
-    n.textContent = (t.nodes || []).length;
+    n.textContent = (t.nodes || []).filter(x => x.type !== 'group').length;
     b.append(label, n);
     b.onclick = () => switchTab(name);
     box.append(b);
@@ -507,10 +543,67 @@ function renderTabs(){
   $('tabTitle').textContent = state.tab;
 }
 
+/* A card belongs to a group when its centre falls inside the group's box —
+   the same containment rule Obsidian uses, so there is no membership to
+   maintain: drag a card in and it is in. */
+function containedNodes(g){
+  return cur().nodes.filter(n => {
+    if (n.type === 'group') return false;
+    const cx = n.x + n.width / 2, cy = n.y + n.height / 2;
+    return cx > g.x && cx < g.x + g.width && cy > g.y && cy < g.y + g.height;
+  });
+}
+
+function renderGroups(){
+  const box = $('groups');
+  box.innerHTML = '';
+  cur().nodes.filter(n => n.type === 'group').forEach(g => {
+    const el = document.createElement('div');
+    el.className = 'group' + (state.sel && state.sel.id === g.id ? ' sel' : '');
+    el.style.left = g.x + 'px';
+    el.style.top = g.y + 'px';
+    el.style.width = g.width + 'px';
+    el.style.height = g.height + 'px';
+    if (g.color) el.dataset.color = g.color;
+    el.dataset.id = g.id;
+
+    const label = document.createElement('div');
+    label.className = 'glabel';
+    label.textContent = g.label || 'Group';
+    el.append(label);
+
+    const grip = document.createElement('div');
+    grip.className = 'ggrip';
+    el.append(grip);
+
+    box.append(el);
+  });
+}
+
+function renameGroup(labelEl, g){
+  const input = document.createElement('input');
+  input.value = g.label || '';
+  labelEl.textContent = '';
+  labelEl.append(input);
+  input.focus();
+  input.select();
+  const commit = () => {
+    const v = input.value.trim();
+    if (v !== (g.label || '')){ g.label = v || 'Group'; markDirty(); }
+    render();
+  };
+  input.addEventListener('blur', commit);
+  input.addEventListener('keydown', ev => {
+    ev.stopPropagation();
+    if (ev.key === 'Enter') input.blur();
+    if (ev.key === 'Escape'){ input.value = g.label || ''; input.blur(); }
+  });
+}
+
 function renderNodes(){
   const box = $('nodes');
   box.innerHTML = '';
-  cur().nodes.forEach(n => {
+  cur().nodes.filter(n => n.type !== 'group').forEach(n => {
     const el = document.createElement('div');
     el.className = 'node' + (state.sel && state.sel.kind === 'node' && state.sel.id === n.id ? ' sel' : '');
     el.style.left = n.x + 'px';
@@ -623,8 +716,10 @@ function positionPalette(){
     });
   }
   const v = state.view;
+  /* Groups carry a label above their top edge, so lift the palette clear of it. */
+  const lift = n.type === 'group' ? 74 : 44;
   p.style.left = (n.x * v.z + v.x) + 'px';
-  p.style.top  = (n.y * v.z + v.y - 44) + 'px';
+  p.style.top  = (n.y * v.z + v.y - lift) + 'px';
 }
 
 /* ===================================================================
@@ -639,6 +734,7 @@ function addNode(wx, wy, text, opts){
     width: w, height: h
   };
   if (n.type === 'link') n.url = opts.url || '';
+  else if (n.type === 'group') n.label = opts.label || 'Group';
   else n.text = text || '';
   cur().nodes.push(n);
   state.sel = { kind: 'node', id: n.id };
@@ -699,6 +795,32 @@ let drag = null;
 
 $('viewport').addEventListener('pointerdown', ev => {
   if (ev.button !== 0 && ev.button !== 1) return;
+
+  /* ---- groups first: only their label and corner are grabbable ---- */
+  const groupEl = ev.target.closest('.group');
+  if (groupEl){
+    const g = nodeById(groupEl.dataset.id);
+    if (g && ev.target.closest('.ggrip')){
+      ev.preventDefault(); ev.stopPropagation();
+      state.sel = { kind:'node', id:g.id };
+      drag = { kind:'gresize', id:g.id, ox:ev.clientX, oy:ev.clientY, w0:g.width, h0:g.height };
+      render();
+      $('viewport').setPointerCapture(ev.pointerId);
+      return;
+    }
+    if (g && ev.target.closest('.glabel')){
+      ev.preventDefault(); ev.stopPropagation();
+      state.sel = { kind:'node', id:g.id };
+      /* Snapshot membership at grab time so cards can't join mid-drag. */
+      const kids = containedNodes(g).map(n => ({ id:n.id, x0:n.x, y0:n.y }));
+      drag = { kind:'gmove', id:g.id, ox:ev.clientX, oy:ev.clientY,
+               x0:g.x, y0:g.y, kids:kids, moved:false };
+      render();
+      $('viewport').setPointerCapture(ev.pointerId);
+      return;
+    }
+  }
+
   const anchorEl = ev.target.closest('.anchor');
   const gripEl   = ev.target.closest('.grip');
   const nodeEl   = ev.target.closest('.node');
@@ -776,6 +898,23 @@ $('viewport').addEventListener('pointermove', ev => {
     const el = $('nodes').querySelector('[data-id="' + n.id + '"]');
     if (el){ el.style.width = n.width + 'px'; el.style.height = n.height + 'px'; }
     renderEdges();
+  } else if (drag.kind === 'gmove'){
+    const g = nodeById(drag.id); if (!g) return;
+    const dx = (ev.clientX - drag.ox) / state.view.z;
+    const dy = (ev.clientY - drag.oy) / state.view.z;
+    g.x = Math.round(drag.x0 + dx);
+    g.y = Math.round(drag.y0 + dy);
+    drag.kids.forEach(k => {
+      const n = nodeById(k.id);
+      if (n){ n.x = Math.round(k.x0 + dx); n.y = Math.round(k.y0 + dy); }
+    });
+    drag.moved = true;
+    renderGroups(); renderNodes(); renderEdges(); positionPalette();
+  } else if (drag.kind === 'gresize'){
+    const g = nodeById(drag.id); if (!g) return;
+    g.width  = Math.max(180, Math.round(drag.w0 + (ev.clientX - drag.ox) / state.view.z));
+    g.height = Math.max(130, Math.round(drag.h0 + (ev.clientY - drag.oy) / state.view.z));
+    renderGroups(); positionPalette();
   } else if (drag.kind === 'link'){
     const a = nodeById(drag.from); if (!a) return;
     const p1 = anchorPoint(a, drag.side);
@@ -813,7 +952,9 @@ function endDrag(ev){
     }
   } else if (drag.kind === 'move' && drag.moved){
     markDirty();
-  } else if (drag.kind === 'resize'){
+  } else if (drag.kind === 'gmove' && drag.moved){
+    markDirty();
+  } else if (drag.kind === 'resize' || drag.kind === 'gresize'){
     markDirty();
   }
   drag = null;
@@ -824,6 +965,12 @@ $('viewport').addEventListener('pointerup', endDrag);
 $('viewport').addEventListener('pointercancel', endDrag);
 
 $('viewport').addEventListener('dblclick', ev => {
+  const labelEl = ev.target.closest('.glabel');
+  if (labelEl){
+    const g = nodeById(labelEl.parentElement.dataset.id);
+    if (g) renameGroup(labelEl, g);
+    return;
+  }
   const nodeEl = ev.target.closest('.node');
   if (nodeEl){
     const n = nodeById(nodeEl.dataset.id);
@@ -1011,6 +1158,12 @@ $('dockMedia').onclick = () => {
   const url = prompt('Image URL');
   if (!url || !url.trim()) return;
   addAtCentre({ type: 'link', url: url.trim(), width: 320, height: 200 });
+};
+$('dockGroup').onclick = () => {
+  const g = addAtCentre({ type: 'group', width: 460, height: 320 });
+  g.label = 'Group';
+  render();
+  toast('Group added — drag cards into it, then drag its label to move them together.');
 };
 /* the dock sits inside the viewport, so stop clicks becoming pans */
 $('dock').addEventListener('pointerdown', e => e.stopPropagation());
