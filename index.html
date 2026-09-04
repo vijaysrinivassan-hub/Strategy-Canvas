@@ -76,7 +76,17 @@
   .board-name{display:flex; align-items:center; gap:10px}
   .board-name .logo{width:32px; height:32px; border-radius:9px; background:var(--accent);
                     display:grid; place-items:center; color:#fff; font-weight:700; font-size:13px;
-                    flex:none}
+                    flex:none; padding:0; border:none; overflow:hidden; cursor:pointer}
+  .board-name .logo:hover{background:var(--accent-d)}
+  .board-name .logo img{width:100%; height:100%; object-fit:cover; display:block}
+  .card .ic img{width:100%; height:100%; object-fit:cover; display:block; border-radius:11px}
+  .card .ic{overflow:hidden; padding:0}
+  .logo-row{display:flex; align-items:center; gap:14px; margin:4px 0 2px}
+  .logo-prev{width:56px; height:56px; border-radius:12px; background:var(--accent-soft);
+             color:var(--accent); display:grid; place-items:center; font-weight:700;
+             font-size:20px; flex:none; overflow:hidden; border:1px solid var(--line)}
+  .logo-prev img{width:100%; height:100%; object-fit:cover; display:block}
+  .logo-acts{display:flex; gap:8px; flex-wrap:wrap}
   #clientName{
     font:inherit; font-size:14px; font-weight:700; letter-spacing:-.01em; line-height:1.25;
     color:var(--ink); background:transparent; border:1px solid transparent;
@@ -528,7 +538,7 @@
   <aside class="sidebar">
     <div class="side-head">
       <div class="board-name">
-        <div class="logo">SB</div>
+        <button class="logo" id="brandLogo" title="Client name and logo">SB</button>
         <input id="clientName" value="XYZ" spellcheck="false" aria-label="Client name">
       </div>
       <div class="sub">Strategy Board</div>
@@ -701,6 +711,7 @@ const state = {
   user: null,
   boardId: null,               /* uuid of the Supabase row, null = unsaved */
   client: 'XYZ',
+  logo: '',
   tab: TABS[0],
   tabs: {},                    /* tabName -> { nodes:[], edges:[] } */
   boards: [],                  /* [{id,title,updated_at}] */
@@ -1479,7 +1490,7 @@ window.addEventListener('blur', () => { spaceHeld = false; });
    PERSISTENCE
    =================================================================== */
 function serialize(){
-  return JSON.stringify({ version: 1, client: state.client, tabs: state.tabs });
+  return JSON.stringify({ version: 1, client: state.client, logo: state.logo || '', tabs: state.tabs });
 }
 function hydrate(text){
   let d = null;
@@ -1492,7 +1503,9 @@ function hydrate(text){
     });
   }
   state.client = (d && d.client) || 'XYZ';
+  state.logo = (d && d.logo) || '';
   $('clientName').value = state.client;
+  renderBrand();
 }
 
 async function refreshBoards(){
@@ -1912,6 +1925,173 @@ function applyTabMode(){
 }
 
 /* ===================================================================
+   CLIENT NAME & LOGO
+   =================================================================== */
+
+/* Logos are stored inside the board record as a downscaled data URI. That
+   keeps them working with no bucket, no public URL and nothing to expire —
+   at the cost of a few tens of KB in the row, which is a fair trade here. */
+const LOGO_MAX_PX = 256;
+
+function downscaleImage(file){
+  return new Promise(function(resolve, reject){
+    if (!/^image\//.test(file.type || '')) { reject(new Error('That is not an image file.')); return; }
+    const fr = new FileReader();
+    fr.onerror = function(){ reject(new Error('Could not read that file.')); };
+    fr.onload = function(){
+      const img = new Image();
+      img.onerror = function(){ reject(new Error('The browser could not decode that image.')); };
+      img.onload = function(){
+        const scale = Math.min(1, LOGO_MAX_PX / Math.max(img.width, img.height));
+        const w = Math.max(1, Math.round(img.width * scale));
+        const h = Math.max(1, Math.round(img.height * scale));
+        const c = document.createElement('canvas');
+        c.width = w; c.height = h;
+        c.getContext('2d').drawImage(img, 0, 0, w, h);
+        resolve(c.toDataURL('image/png'));
+      };
+      img.src = fr.result;
+    };
+    fr.readAsDataURL(file);
+  });
+}
+
+function renderBrand(){
+  const el = $('brandLogo');
+  if (!el) return;
+  el.innerHTML = '';
+  if (state.logo){
+    const img = document.createElement('img');
+    img.src = state.logo;
+    img.alt = '';
+    el.append(img);
+  } else {
+    el.textContent = (state.client || '?').trim().charAt(0).toUpperCase() || '?';
+  }
+}
+
+function openClientSettings(){
+  if (readOnly()){ toast('You have view-only access to this board.', true); return; }
+  const host = $('modalHost');
+  host.innerHTML = '';
+
+  let pendingLogo = state.logo || '';
+
+  const overlay = document.createElement('div');
+  overlay.className = 'overlay';
+  overlay.onclick = closeModal;
+  const modal = document.createElement('div');
+  modal.className = 'modal';
+  modal.onclick = function(ev){ ev.stopPropagation(); };
+
+  const h = document.createElement('h3');
+  h.textContent = 'Client';
+  const p = document.createElement('p');
+  p.textContent = 'The name shows in the sidebar and titles this board everywhere it is listed.';
+
+  const nameLabel = document.createElement('label');
+  nameLabel.className = 'fl';
+  nameLabel.textContent = 'Client name';
+  const nameIn = document.createElement('input');
+  nameIn.className = 'modal-in';
+  nameIn.value = state.client || '';
+  nameIn.placeholder = 'Acme';
+
+  const logoLabel = document.createElement('label');
+  logoLabel.className = 'fl';
+  logoLabel.style.marginTop = '16px';
+  logoLabel.textContent = 'Logo';
+
+  const row = document.createElement('div');
+  row.className = 'logo-row';
+  const prev = document.createElement('div');
+  prev.className = 'logo-prev';
+  const acts = document.createElement('div');
+  acts.className = 'logo-acts';
+
+  const fileIn = document.createElement('input');
+  fileIn.type = 'file';
+  fileIn.accept = 'image/*';
+  fileIn.hidden = true;
+
+  const upload = document.createElement('button');
+  upload.textContent = 'Upload image';
+  upload.onclick = function(){ fileIn.click(); };
+
+  const fromUrl = document.createElement('button');
+  fromUrl.textContent = 'Use a URL';
+  fromUrl.onclick = function(){
+    const u = prompt('Image URL', /^https?:/.test(pendingLogo) ? pendingLogo : '');
+    if (u === null) return;
+    pendingLogo = u.trim();
+    paint();
+  };
+
+  const clear = document.createElement('button');
+  clear.textContent = 'Remove';
+  clear.onclick = function(){ pendingLogo = ''; paint(); };
+
+  acts.append(upload, fromUrl, clear);
+  row.append(prev, acts);
+
+  function paint(){
+    prev.innerHTML = '';
+    if (pendingLogo){
+      const img = document.createElement('img');
+      img.src = pendingLogo;
+      img.alt = '';
+      prev.append(img);
+    } else {
+      prev.textContent = (nameIn.value || '?').trim().charAt(0).toUpperCase() || '?';
+    }
+    clear.disabled = !pendingLogo;
+  }
+  nameIn.oninput = paint;
+
+  fileIn.onchange = async function(ev){
+    const f = ev.target.files && ev.target.files[0];
+    ev.target.value = '';
+    if (!f) return;
+    try {
+      pendingLogo = await downscaleImage(f);
+      paint();
+      toast('Logo ready, press Save.');
+    } catch (e){
+      toast(e.message, true);
+    }
+  };
+
+  const foot = document.createElement('div');
+  foot.className = 'mrow';
+  const cancel = document.createElement('button');
+  cancel.textContent = 'Cancel';
+  cancel.onclick = closeModal;
+  const save = document.createElement('button');
+  save.className = 'primary';
+  save.textContent = 'Save';
+  save.onclick = async function(){
+    const nm = nameIn.value.trim();
+    state.client = nm || 'Untitled';
+    state.logo = pendingLogo;
+    $('clientName').value = state.client;
+    renderBrand();
+    markDirty();
+    closeModal();
+    await saveBoard(true);
+    if (state.screen === 'clients') renderClients();
+    toast('Client updated.');
+  };
+  foot.append(cancel, save);
+
+  modal.append(h, p, nameLabel, nameIn, logoLabel, row, fileIn, foot);
+  overlay.append(modal);
+  host.append(overlay);
+  paint();
+  nameIn.focus();
+  nameIn.select();
+}
+
+/* ===================================================================
    CLIENTS & ACCESS
    =================================================================== */
 const readOnly = () => state.role !== 'admin';
@@ -1942,7 +2122,13 @@ async function renderClients(){
 
     const ic = document.createElement('div');
     ic.className = 'ic';
-    ic.textContent = (b.title || '?').trim().charAt(0).toUpperCase();
+    if (b.id === state.boardId && state.logo){
+      const img = document.createElement('img');
+      img.src = state.logo; img.alt = '';
+      ic.append(img);
+    } else {
+      ic.textContent = (b.title || '?').trim().charAt(0).toUpperCase();
+    }
 
     const h = document.createElement('h3');
     h.textContent = b.title || 'Untitled board';
@@ -1960,6 +2146,16 @@ async function renderClients(){
     row.append(tag);
 
     if (mine){
+      const edit = document.createElement('button');
+      edit.style.cssText = 'padding:4px 9px;font-size:11.5px';
+      edit.textContent = 'Edit';
+      edit.onclick = async function(ev){
+        ev.stopPropagation();
+        if (b.id !== state.boardId) await openBoard(b.id);
+        openClientSettings();
+      };
+      row.append(edit);
+
       const manage = document.createElement('button');
       manage.className = 'btn sm';
       manage.style.cssText = 'padding:4px 9px;font-size:11.5px';
@@ -2428,6 +2624,7 @@ $('dropzone').addEventListener('drop', ev => {
   b.append(lab);
   b.onclick = openClients;
 })();
+$('brandLogo').onclick = openClientSettings;
 $('btnAddColumn').onclick = addColumn;
 $('btnKwRefresh').onclick = refreshKeywords;
 $('kwSearch').oninput = ev => { kwFilter = ev.target.value; renderKeywordTables(); };
