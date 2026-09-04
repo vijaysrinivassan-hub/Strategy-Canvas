@@ -34,7 +34,7 @@ automatically from the relative position of the two notes.
 
 Product Architecture · Market Research Frame · Messaging Framework ·
 Positioning Document · Growth Strategy · Channel Strategy · Content Strategy ·
-Document Gallery
+Keyword Repo · Document Gallery
 
 The first seven hold an independent canvas each; the count beside a tab is its
 card count.
@@ -48,6 +48,16 @@ Columns start as Inbox / Research / Working / Final and are yours to change:
 **+ Column** adds one, double-click a heading to rename it, and drag a file card
 from one column to another. Double-click a file's name to rename it — that is a
 display name only, so the stored object is never touched.
+
+**Keyword Repo** is two stacked tables. The lower one holds everything pulled
+from Ahrefs; the upper one holds what you have chosen. `+` on a repo row
+promotes it, `−` on a selected row sends it back — the only thing that changes is
+a `selected` flag on the row. A filter box narrows the repo.
+
+Keywords live in their own Postgres table rather than in the board JSON, so an
+MCP server (or any script) can write them directly. Run `supabase-keywords.sql`
+once to create it. The unique index on `(board_id, lower(keyword), country)` means
+a re-import can upsert instead of duplicating.
 
 **Channel Strategy** is not a canvas either. It is a scope checklist: one card
 per channel, ticked for in-scope and greyed for "not doing", so a client can see

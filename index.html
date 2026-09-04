@@ -347,6 +347,56 @@
                   background:var(--bg); border:1px solid var(--accent); border-radius:5px;
                   padding:1px 5px; outline:none; width:100%}
 
+  /* ================= keyword repo ================= */
+  .kw{flex:1; min-height:0; overflow-y:auto; padding:18px 22px 40px; background:var(--bg);
+      display:flex; flex-direction:column; gap:20px}
+  .kw-block{display:flex; flex-direction:column; min-height:0}
+  .kw-head{display:flex; align-items:center; gap:10px; margin:0 2px 9px}
+  .kw-head h3{margin:0; font-size:13px; font-weight:600; letter-spacing:.05em;
+              text-transform:uppercase; color:var(--muted)}
+  .kw-head > span:first-of-type{font-size:11px; font-weight:600; color:var(--accent);
+              background:var(--accent-soft); border-radius:999px; padding:1px 8px}
+  .kw-hint{font-size:11.5px; color:var(--muted)}
+  .kw-head input[type=search]{
+    margin-left:auto; font:inherit; font-size:12.5px; color:var(--ink);
+    background:var(--panel); border:1px solid var(--border); border-radius:8px;
+    padding:5px 10px; width:230px; outline:none;
+  }
+  .kw-head input[type=search]:focus{border-color:var(--accent)}
+  .kw-head button{padding:5px 10px; font-size:12px}
+  .kw-head input[type=search] + button{margin-left:0}
+
+  .kw-table-wrap{
+    border:1px solid var(--border); border-radius:11px; background:var(--panel);
+    box-shadow:var(--shadow); overflow:auto; max-height:38vh;
+  }
+  .kw-table{width:100%; border-collapse:collapse; font-size:12.5px}
+  .kw-table thead th{
+    position:sticky; top:0; z-index:2; background:var(--panel);
+    text-align:left; font-size:10.5px; font-weight:600; letter-spacing:.06em;
+    text-transform:uppercase; color:var(--muted); white-space:nowrap;
+    padding:9px 10px; border-bottom:1px solid var(--border);
+  }
+  .kw-table td{padding:8px 10px; border-bottom:1px solid var(--border); white-space:nowrap}
+  .kw-table tbody tr:last-child td{border-bottom:none}
+  .kw-table tbody tr:hover{background:var(--accent-soft)}
+  .kw-table td.kw-term{white-space:normal; font-weight:500; min-width:200px}
+  .kw-table td.num{text-align:right; font-variant-numeric:tabular-nums}
+  .kw-table td.act{width:38px; padding:5px 8px}
+  .kw-move{
+    width:24px; height:24px; padding:0; display:grid; place-items:center;
+    font-size:15px; line-height:1; font-weight:600; border-radius:7px;
+    border:1px solid var(--border); background:var(--panel); color:var(--muted);
+  }
+  .kw-move:hover{border-color:var(--accent); background:var(--accent-soft); color:var(--accent)}
+  .kw-empty{padding:22px 12px; text-align:center; color:var(--muted); font-size:12.5px}
+  .kw-setup{
+    border:1px solid var(--danger-border); background:var(--danger-bg); color:var(--danger);
+    border-radius:12px; padding:14px 16px; font-size:13px; line-height:1.6;
+  }
+  .kw-setup b{display:block; margin-bottom:4px}
+  .kw-setup code{background:rgba(0,0,0,.06); border-radius:4px; padding:1px 5px; font-size:12px}
+
   /* ================= channel strategy ================= */
   .chan{flex:1; min-height:0; overflow-y:auto; padding:22px 22px 40px; background:var(--bg)}
   .chan-head{display:flex; align-items:flex-start; gap:16px; margin-bottom:18px}
@@ -507,6 +557,30 @@
       </div>
       <div class="chan-grid" id="chanGrid"></div>
     </div>
+
+    <!-- Keyword Repo: selected keywords on top, the full pull underneath -->
+    <div class="kw" id="kwPane" hidden>
+      <div class="kw-setup" id="kwSetup" hidden></div>
+
+      <section class="kw-block">
+        <div class="kw-head">
+          <h3>Selected keywords</h3>
+          <span id="kwSelCount">0</span>
+          <span class="kw-hint">Press &minus; to send one back to the repo</span>
+        </div>
+        <div class="kw-table-wrap"><table class="kw-table" id="kwSelTable"></table></div>
+      </section>
+
+      <section class="kw-block">
+        <div class="kw-head">
+          <h3>Keyword repo</h3>
+          <span id="kwRepoCount">0</span>
+          <input id="kwSearch" type="search" placeholder="Filter keywords…" autocomplete="off">
+          <button id="btnKwRefresh">Refresh</button>
+        </div>
+        <div class="kw-table-wrap"><table class="kw-table" id="kwRepoTable"></table></div>
+      </section>
+    </div>
   </div>
 </div>
 
@@ -531,6 +605,7 @@ const TABS = [
   'Growth Strategy',
   'Channel Strategy',
   'Content Strategy',
+  'Keyword Repo',
   'Document Gallery'
 ];
 
@@ -1686,14 +1761,151 @@ async function uploadFiles(list, targetCol){
 function applyTabMode(){
   const isDocs = state.tab === DOCS_TAB;
   const isChan = state.tab === CHANNELS_TAB;
-  const isCanvas = !isDocs && !isChan;
+  const isKw   = state.tab === KEYWORDS_TAB;
+  const isCanvas = !isDocs && !isChan && !isKw;
   $('viewport').hidden = !isCanvas;
   $('docsPane').hidden = !isDocs;
   $('chanPane').hidden = !isChan;
+  $('kwPane').hidden   = !isKw;
   ['btnZoomIn','btnZoomOut','btnFit'].forEach(id => { $(id).hidden = !isCanvas; });
   $('zoomLabel').hidden = !isCanvas;
   if (isDocs && state.user) refreshDocs();
   if (isChan) renderChannels();
+  if (isKw && state.user) refreshKeywords();
+}
+
+/* ===================================================================
+   KEYWORD REPO  —  two tables, one flag between them
+   =================================================================== */
+const KEYWORDS_TAB = 'Keyword Repo';
+const KW_COLS = [
+  { key: 'keyword',           label: 'Keyword',  cls: 'kw-term' },
+  { key: 'volume',            label: 'Volume',   cls: 'num', fmt: v => v == null ? '' : Number(v).toLocaleString() },
+  { key: 'kd',                label: 'KD',       cls: 'num' },
+  { key: 'cpc',               label: 'CPC',      cls: 'num', fmt: v => v == null ? '' : '$' + Number(v).toFixed(2) },
+  { key: 'traffic_potential', label: 'TP',       cls: 'num', fmt: v => v == null ? '' : Number(v).toLocaleString() },
+  { key: 'parent_topic',      label: 'Parent topic' },
+  { key: 'intent',            label: 'Intent' },
+  { key: 'country',           label: 'Country' }
+];
+
+let kwRows = [];
+let kwFilter = '';
+
+function showKwSetup(msg){
+  const el = $('kwSetup');
+  el.hidden = false;
+  el.innerHTML =
+    '<b>The keywords table does not exist yet</b>' +
+    'Run <code>supabase-keywords.sql</code> in your Supabase SQL Editor to create it. ' +
+    'Until then this tab has nowhere to read from.' +
+    (msg ? '<br><br>Supabase said: <code>' + msg + '</code>' : '');
+}
+
+async function refreshKeywords(){
+  if (!state.boardId){
+    kwRows = [];
+    renderKeywordTables('Save this board first — keywords are filed under it.');
+    return;
+  }
+  const { data, error } = await sb
+    .from('keywords')
+    .select('id,keyword,selected,volume,kd,cpc,traffic_potential,parent_topic,intent,country')
+    .eq('board_id', state.boardId)
+    .order('volume', { ascending: false, nullsFirst: false })
+    .limit(2000);
+
+  if (error){
+    kwRows = [];
+    renderKeywordTables('');
+    showKwSetup(error.message);
+    return;
+  }
+  $('kwSetup').hidden = true;
+  kwRows = data || [];
+  renderKeywordTables();
+}
+
+function kwTable(tableEl, rows, isSelected, emptyMsg){
+  tableEl.innerHTML = '';
+
+  const thead = document.createElement('thead');
+  const hr = document.createElement('tr');
+  const th0 = document.createElement('th');
+  th0.textContent = '';
+  hr.append(th0);
+  KW_COLS.forEach(c => {
+    const th = document.createElement('th');
+    th.textContent = c.label;
+    hr.append(th);
+  });
+  thead.append(hr);
+  tableEl.append(thead);
+
+  const tbody = document.createElement('tbody');
+  if (!rows.length){
+    const tr = document.createElement('tr');
+    const td = document.createElement('td');
+    td.className = 'kw-empty';
+    td.colSpan = KW_COLS.length + 1;
+    td.textContent = emptyMsg;
+    tr.append(td);
+    tbody.append(tr);
+  }
+  rows.forEach(r => {
+    const tr = document.createElement('tr');
+
+    const act = document.createElement('td');
+    act.className = 'act';
+    const btn = document.createElement('button');
+    btn.className = 'kw-move';
+    btn.textContent = isSelected ? '−' : '+';
+    btn.title = isSelected ? 'Move back to the repo' : 'Move up to selected';
+    btn.onclick = () => moveKeyword(r.id, !isSelected);
+    act.append(btn);
+    tr.append(act);
+
+    KW_COLS.forEach(c => {
+      const td = document.createElement('td');
+      if (c.cls) td.className = c.cls;
+      const v = r[c.key];
+      td.textContent = c.fmt ? c.fmt(v) : (v == null ? '' : String(v));
+      tr.append(td);
+    });
+
+    tbody.append(tr);
+  });
+  tableEl.append(tbody);
+}
+
+function renderKeywordTables(overrideEmpty){
+  const q = kwFilter.trim().toLowerCase();
+  const match = r => !q || String(r.keyword || '').toLowerCase().includes(q)
+                     || String(r.parent_topic || '').toLowerCase().includes(q);
+
+  const chosen = kwRows.filter(r => r.selected);
+  const repo   = kwRows.filter(r => !r.selected && match(r));
+
+  $('kwSelCount').textContent = chosen.length;
+  $('kwRepoCount').textContent = repo.length;
+
+  kwTable($('kwSelTable'), chosen, true,
+    overrideEmpty || 'Nothing selected yet. Press + on a row below.');
+  kwTable($('kwRepoTable'), repo, false,
+    overrideEmpty || (kwRows.length ? 'No keywords match that filter.'
+                                    : 'The repo is empty. Push keywords in and they appear here.'));
+}
+
+async function moveKeyword(id, selected){
+  const row = kwRows.find(r => r.id === id);
+  if (row) row.selected = selected;          /* optimistic, so it feels instant */
+  renderKeywordTables();
+  const { error } = await sb.from('keywords').update({ selected: selected }).eq('id', id);
+  if (error){
+    if (row) row.selected = !selected;
+    renderKeywordTables();
+    toast('Could not move that keyword: ' + error.message, true);
+  }
 }
 
 /* ===================================================================
@@ -1876,6 +2088,8 @@ $('dropzone').addEventListener('drop', ev => {
   if (ev.dataTransfer && ev.dataTransfer.files) uploadFiles(ev.dataTransfer.files);
 });
 $('btnAddColumn').onclick = addColumn;
+$('btnKwRefresh').onclick = refreshKeywords;
+$('kwSearch').oninput = ev => { kwFilter = ev.target.value; renderKeywordTables(); };
 $('btnAddChannel').onclick = addChannel;
 /* stop the browser opening a file dropped anywhere else on the page */
 ['dragover','drop'].forEach(t =>
