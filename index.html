@@ -517,6 +517,23 @@
   .mx-cell.planned .mx-kw{background:transparent}
   .mx-cell.planned .mx-kw:hover{background:var(--accent-soft)}
 
+  /* free-form data grids: Category, ICP, Value */
+  .gr-num{position:sticky; left:0; z-index:2; background:#f9fafb; width:46px;
+          text-align:center; font-size:11px; color:var(--faint);
+          font-variant-numeric:tabular-nums; padding:0}
+  .gr-numwrap{display:flex; align-items:center; justify-content:center; height:32px; gap:2px}
+  .gr-del{opacity:0; padding:0 4px; font-size:12px; line-height:1; color:var(--faint);
+          border-color:transparent; background:transparent}
+  tr:hover .gr-del{opacity:1}
+  .gr-del:hover{color:var(--danger); background:var(--danger-bg); border-color:transparent}
+  .gr-cell{padding:0}
+  .gr-cell input{
+    width:100%; height:32px; border:none; outline:none; background:transparent;
+    font:inherit; font-size:12.5px; color:var(--ink); padding:0 10px;
+  }
+  .gr-cell input:focus{background:#fff; box-shadow:inset 0 0 0 2px var(--accent)}
+  .gr-cell input::placeholder{color:#d5d7dd}
+
   /* ================= keyword repo ================= */
   .kw{flex:1; min-height:0; overflow-y:auto; padding:18px 22px 40px; background:var(--bg);
       display:flex; flex-direction:column; gap:20px}
@@ -759,8 +776,7 @@
       <div class="mx-head">
         <div>
           <h3 id="mxHeading">Competitor &times; article matrix</h3>
-          <p>Keywords from the repo drop into the cell they fit. Tick the ones worth writing &mdash;
-             they become your selected keywords. Hover a heading to rename it or change what it matches.</p>
+          <p id="mxIntro"></p>
         </div>
         <button class="sp" id="btnAddCompetitor">+ Competitor</button>
         <button id="btnAddType">+ Article type</button>
@@ -809,7 +825,7 @@ const SUPABASE_URL = 'https://cskamgfvebryahkljlll.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_MdkD-TxMCIwlu69seSHA3Q_A39GADsK';
 const CLIENT_ID    = '1059013355751-6g50dsgm7df37htl2fdqrtlkh5hmrc0c.apps.googleusercontent.com';
 const ALLOWED      = ['vijaysrinivassan@gmail.com'];
-const BUILD        = 'v3.2';
+const BUILD        = 'v3.3';
 
 const TABS = [
   'Product Architecture',
@@ -2086,7 +2102,7 @@ function applyTabMode(){
   if (isDocs && state.user) refreshDocs();
   if (isChan) renderChannels();
   if (isKw && state.user) refreshKeywords();
-  if (isMx && state.user) refreshMatrix();
+  if (isMx) refreshMatrix();   /* grids need no database, so no user check */
   applyRole();
 }
 
@@ -2390,7 +2406,7 @@ async function saveKeywords(rows, source){
 async function repaintFromDb(){
   await loadKeywords();
   if (state.tab === KEYWORDS_TAB) renderKeywordTables();
-  if (state.tab === CONTENT_TAB) renderMatrix();
+  if (state.tab === CONTENT_TAB) renderContent();
 }
 
 /* ---- one keyword at a time ---- */
@@ -2560,11 +2576,20 @@ const GENERIC_TYPES = [
 
 /* Four ways to slice the same article plan. Rows differ; the columns are
    article types and belong to each view separately. */
+/* Competitor is a matrix of rows x article types. The other three are plain
+   tables you type into, so they start blank and ready rather than empty. */
+const GRID_ROWS = 20;
+const GRID_MAX_COLS = 10;
+
 const CONTENT_VIEWS = [
-  { id: 'category',   label: 'Category',   noun: 'category',   types: GENERIC_TYPES },
-  { id: 'competitor', label: 'Competitor', noun: 'competitor', types: COMPETITOR_TYPES },
-  { id: 'icp',        label: 'ICP',        noun: 'ICP',        types: GENERIC_TYPES },
-  { id: 'value',      label: 'Value',      noun: 'value',      types: GENERIC_TYPES }
+  { id: 'category', label: 'Category', noun: 'category', kind: 'grid',
+    columns: ['Category name', 'Category synonyms', 'Features', 'Reviews', 'Pricing'] },
+  { id: 'competitor', label: 'Competitor', noun: 'competitor', kind: 'matrix',
+    types: COMPETITOR_TYPES },
+  { id: 'icp', label: 'ICP', noun: 'ICP', kind: 'grid',
+    columns: ['ICP', 'Synonyms', 'Pains', 'Use cases', 'Content angles'] },
+  { id: 'value', label: 'Value', noun: 'value', kind: 'grid',
+    columns: ['Value proposition', 'Synonyms', 'Proof points', 'Objections', 'Content angles'] }
 ];
 const viewDef = function(id){
   return CONTENT_VIEWS.filter(function(v){ return v.id === id; })[0] || CONTENT_VIEWS[1];
@@ -2589,13 +2614,25 @@ function contentRoot(){
 
   CONTENT_VIEWS.forEach(function(v){
     const cur = t.views[v.id] || (t.views[v.id] = {});
-    if (!Array.isArray(cur.rows)) cur.rows = [];
-    if (!cur.cells || typeof cur.cells !== 'object') cur.cells = {};
-    if (!Array.isArray(cur.types) || !cur.types.length){
-      cur.types = v.types.map(function(d){
-        return { id: uid(), name: d.name, terms: d.terms.slice() };
-      });
+    cur.kind = v.kind;
+
+    if (v.kind === 'matrix'){
+      if (!Array.isArray(cur.rows)) cur.rows = [];
+      if (!cur.cells || typeof cur.cells !== 'object') cur.cells = {};
+      if (!Array.isArray(cur.types) || !cur.types.length){
+        cur.types = v.types.map(function(d){
+          return { id: uid(), name: d.name, terms: d.terms.slice() };
+        });
+      }
+      return;
     }
+
+    /* a plain table: named columns, and blank rows waiting to be filled */
+    if (!Array.isArray(cur.columns) || !cur.columns.length){
+      cur.columns = v.columns.map(function(name){ return { id: uid(), name: name }; });
+    }
+    if (!Array.isArray(cur.rows)) cur.rows = [];
+    while (cur.rows.length < GRID_ROWS) cur.rows.push({ id: uid(), cells: {} });
   });
   return t;
 }
@@ -2626,8 +2663,13 @@ function renderMatrix(){
   const vd = viewDef(state.contentView);
   const heading = $('mxHeading');
   if (heading) heading.textContent = vd.label + ' \u00d7 article matrix';
+  $('mxIntro').textContent = 'Keywords from the repo drop into the cell they fit. '
+    + 'Tick a cell to mark that article as one you are writing. '
+    + 'Hover a heading to rename it or change what it matches.';
   const addBtn = $('btnAddCompetitor');
   if (addBtn) addBtn.textContent = '+ ' + vd.label;
+  $('btnAddType').textContent = '+ Article type';
+  $('btnAddType').hidden = readOnly();
   const table = $('mxTable');
   const setup = $('mxSetup');
   table.innerHTML = '';
@@ -2809,7 +2851,153 @@ function renderMatrix(){
   table.append(tbody);
 }
 
+
+/* ---- plain tables (Category, ICP, Value) ---------------------------- */
+function renderGrid(){
+  const v = matrixState();
+  const vd = viewDef(state.contentView);
+  const ro = readOnly();
+  const table = $('mxTable');
+  table.innerHTML = '';
+
+  const heading = $('mxHeading');
+  if (heading) heading.textContent = vd.label;
+  $('mxIntro').textContent = 'Type straight into the table. Double-click a heading to rename it, '
+    + 'and use + Row or + Column to grow it.';
+  $('mxSetup').hidden = true;
+  $('btnAddCompetitor').textContent = '+ Row';
+  $('btnAddType').textContent = '+ Column';
+  $('btnAddType').hidden = ro || v.columns.length >= GRID_MAX_COLS;
+
+  const NUM_W = 46, COL_W = 210;
+  table.style.width = (NUM_W + COL_W * v.columns.length) + 'px';
+
+  const cg = document.createElement('colgroup');
+  const c0 = document.createElement('col');
+  c0.style.width = NUM_W + 'px';
+  cg.append(c0);
+  v.columns.forEach(function(){
+    const c = document.createElement('col');
+    c.style.width = COL_W + 'px';
+    cg.append(c);
+  });
+  table.append(cg);
+
+  const thead = document.createElement('thead');
+  const hr = document.createElement('tr');
+  const corner = document.createElement('th');
+  corner.className = 'mx-corner';
+  hr.append(corner);
+
+  v.columns.forEach(function(col){
+    const th = document.createElement('th');
+    const lab = document.createElement('div');
+    lab.className = 'mx-lab';
+    const b = document.createElement('b');
+    b.textContent = col.name;
+    b.title = 'Double-click to rename';
+    b.ondblclick = function(){
+      inlineRename(b, col.name, function(nv){
+        col.name = nv || 'Column'; markDirty(); renderGrid();
+      });
+    };
+    lab.append(b);
+    if (!ro && v.columns.length > 1){
+      const x = document.createElement('button');
+      x.className = 'x';
+      x.innerHTML = '&times;';
+      x.title = 'Remove column';
+      x.onclick = function(){
+        if (!confirm('Remove the "' + col.name + '" column and everything in it?')) return;
+        v.columns = v.columns.filter(function(z){ return z.id !== col.id; });
+        v.rows.forEach(function(r){ delete r.cells[col.id]; });
+        markDirty(); renderGrid();
+      };
+      lab.append(x);
+    }
+    th.append(lab);
+    hr.append(th);
+  });
+  thead.append(hr);
+  table.append(thead);
+
+  const tbody = document.createElement('tbody');
+  v.rows.forEach(function(row, i){
+    const tr = document.createElement('tr');
+
+    const num = document.createElement('th');
+    num.className = 'gr-num';
+    const wrap = document.createElement('div');
+    wrap.className = 'gr-numwrap';
+    const idx = document.createElement('span');
+    idx.textContent = String(i + 1);
+    wrap.append(idx);
+    if (!ro){
+      const del = document.createElement('button');
+      del.className = 'gr-del';
+      del.innerHTML = '&times;';
+      del.title = 'Delete row';
+      del.onclick = function(){
+        v.rows.splice(i, 1);
+        while (v.rows.length < GRID_ROWS) v.rows.push({ id: uid(), cells: {} });
+        markDirty(); renderGrid();
+      };
+      wrap.append(del);
+    }
+    num.append(wrap);
+    tr.append(num);
+
+    v.columns.forEach(function(col, ci){
+      const td = document.createElement('td');
+      td.className = 'gr-cell';
+      const inp = document.createElement('input');
+      inp.type = 'text';
+      inp.value = row.cells[col.id] || '';
+      inp.disabled = ro;
+      if (i === 0 && ci === 0) inp.placeholder = 'Type here\u2026';
+      inp.oninput = function(){
+        row.cells[col.id] = inp.value;
+        markDirty();
+      };
+      td.append(inp);
+      tr.append(td);
+    });
+
+    tbody.append(tr);
+  });
+  table.append(tbody);
+}
+
+function addGridRow(){
+  if (readOnly()) return;
+  const v = matrixState();
+  v.rows.push({ id: uid(), cells: {} });
+  markDirty();
+  renderGrid();
+}
+
+function addGridColumn(){
+  if (readOnly()) return;
+  const v = matrixState();
+  if (v.columns.length >= GRID_MAX_COLS){
+    toast('Ten columns is the limit.', true);
+    return;
+  }
+  const name = prompt('Column name');
+  if (name === null) return;
+  v.columns.push({ id: uid(), name: name.trim() || 'Column' });
+  markDirty();
+  renderGrid();
+}
+
+/* One entry point; the view decides which shape it is. */
+function renderContent(){
+  const vd = viewDef(state.contentView);
+  if (vd.kind === 'grid') renderGrid(); else renderMatrix();
+}
+
 async function refreshMatrix(){
+  if (viewDef(state.contentView).kind === 'grid'){ renderGrid(); return; }
   const err = await loadKeywords();
   if (err && err !== 'no-board'){
     $('mxSetup').hidden = false;
@@ -3413,8 +3601,12 @@ $('dropzone').addEventListener('drop', ev => {
   b.onclick = openClients;
 })();
 $('brandLogo').onclick = openClientSettings;
-$('btnAddCompetitor').onclick = addCompetitor;
-$('btnAddType').onclick = addArticleType;
+$('btnAddCompetitor').onclick = function(){
+  if (viewDef(state.contentView).kind === 'grid') addGridRow(); else addCompetitor();
+};
+$('btnAddType').onclick = function(){
+  if (viewDef(state.contentView).kind === 'grid') addGridColumn(); else addArticleType();
+};
 $('btnAddColumn').onclick = addColumn;
 $('btnKwRefresh').onclick = refreshKeywords;
 $('btnKwAdd').onclick = function(){ openKeywordModal(''); };
