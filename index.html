@@ -12,6 +12,7 @@
     --bg:#f5f7fb; --panel:#ffffff; --ink:#0f172a; --muted:#64748b;
     --accent:#2563eb; --accent-soft:#eff4ff; --border:#e2e8f0;
     --danger:#b42318; --danger-bg:#fef3f2; --danger-border:#fecdca;
+    --ok:#067647; --ok-bg:#ecfdf3; --ok-border:#abefc6;
     --shadow:0 1px 2px rgba(15,23,42,.06), 0 8px 24px rgba(15,23,42,.05);
   }
   @media (prefers-color-scheme: dark){
@@ -19,6 +20,7 @@
       --bg:#0b1120; --panel:#111a2e; --ink:#e8eefb; --muted:#93a3bd;
       --accent:#60a5fa; --accent-soft:#16243f; --border:#22304d;
       --danger:#fda29b; --danger-bg:#2b1512; --danger-border:#5b2320;
+      --ok:#75e0a7; --ok-bg:#0d2a1c; --ok-border:#1f5138;
       --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.35);
     }
   }
@@ -48,30 +50,45 @@
 
   /* ---------- header ---------- */
   header{
-    display:flex; align-items:center; gap:16px; flex-wrap:wrap;
-    padding:14px 22px; background:var(--panel); border-bottom:1px solid var(--border);
+    display:flex; align-items:center; gap:12px; flex-wrap:wrap;
+    padding:12px 22px; background:var(--panel); border-bottom:1px solid var(--border);
     position:sticky; top:0; z-index:20;
   }
-  .brand{display:flex; align-items:center; gap:10px; margin-right:auto}
+  .brand{display:flex; align-items:center; gap:10px}
   .dot{width:26px;height:26px;border-radius:8px;background:var(--accent);
        display:grid;place-items:center;color:#fff;font-weight:700;font-size:13px}
   .brand h1{font-size:15px; font-weight:600; margin:0; letter-spacing:-.01em}
   .brand span{display:block; font-size:12px; color:var(--muted); font-weight:400}
+  .spacer{margin-left:auto}
   button{
     font:inherit; font-weight:500; cursor:pointer; border-radius:8px;
     border:1px solid var(--border); background:var(--panel); color:var(--ink);
     padding:7px 13px; transition:background .15s, border-color .15s;
   }
-  button:hover{background:var(--accent-soft); border-color:var(--accent)}
+  button:hover:not(:disabled){background:var(--accent-soft); border-color:var(--accent)}
   button.primary{background:var(--accent); border-color:var(--accent); color:#fff}
-  button.primary:hover{filter:brightness(1.08)}
+  button.primary:hover:not(:disabled){filter:brightness(1.08)}
+  button:disabled{opacity:.5; cursor:default}
+  select{
+    font:inherit; font-weight:500; color:var(--ink); background:var(--panel);
+    border:1px solid var(--border); border-radius:8px; padding:7px 10px;
+    max-width:230px; cursor:pointer;
+  }
+  select:focus{outline:2px solid var(--accent); outline-offset:-1px}
 
   /* ---------- signed-in user chip ---------- */
-  .user{display:flex; align-items:center; gap:9px; padding-right:4px}
+  .user{display:flex; align-items:center; gap:9px}
   .user img{width:28px; height:28px; border-radius:50%; border:1px solid var(--border);
             background:var(--accent-soft); object-fit:cover}
   .user-name{font-size:13px; font-weight:500; line-height:1.25}
   .user-mail{font-size:11px; color:var(--muted); line-height:1.25}
+
+  /* ---------- toast ---------- */
+  .toast{position:fixed; left:50%; bottom:26px; transform:translateX(-50%);
+         z-index:200; font-size:13px; font-weight:500; border-radius:10px;
+         padding:10px 16px; box-shadow:var(--shadow);
+         color:var(--ok); background:var(--ok-bg); border:1px solid var(--ok-border)}
+  .toast.bad{color:var(--danger); background:var(--danger-bg); border-color:var(--danger-border)}
 
   /* ---------- layout ---------- */
   main{
@@ -118,22 +135,24 @@
   #detailBody{font-size:13px; color:var(--muted); margin:0}
   canvas{width:100%; height:120px; display:block; margin-top:10px}
 
-  /* ---------- paste drawer ---------- */
+  /* ---------- editor drawer ---------- */
   .drawer{grid-column:1/-1; background:var(--panel); border:1px solid var(--border);
           border-radius:12px; box-shadow:var(--shadow); padding:16px}
   .drawer p{margin:0 0 10px; font-size:12px; color:var(--muted)}
   .drawer code{background:var(--accent-soft); color:var(--accent);
                padding:1px 5px; border-radius:4px; font-size:11px}
   textarea{
-    width:100%; min-height:190px; resize:vertical; padding:11px 12px;
+    width:100%; min-height:230px; resize:vertical; padding:11px 12px;
     border-radius:9px; border:1px solid var(--border); background:var(--bg);
     color:var(--ink); font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
     font-size:12px; line-height:1.6;
   }
   textarea:focus{outline:2px solid var(--accent); outline-offset:-1px; border-color:var(--accent)}
-  .drawer-actions{display:flex; gap:8px; margin-top:10px}
+  .drawer-actions{display:flex; gap:8px; margin-top:10px; flex-wrap:wrap}
   .drawer h2{margin:0 0 4px; font-size:11px; font-weight:600; letter-spacing:.08em;
              text-transform:uppercase; color:var(--muted)}
+  .danger-btn{color:var(--danger); border-color:var(--danger-border)}
+  .danger-btn:hover:not(:disabled){background:var(--danger-bg); border-color:var(--danger)}
 </style>
 </head>
 <body>
@@ -143,7 +162,7 @@
   <div class="gate-card">
     <div class="dot">SC</div>
     <h2>Strategy Canvas</h2>
-    <p>Sign in with your Google account to open the board.</p>
+    <p>Sign in with your Google account to open your boards.</p>
     <div id="gsiButton"></div>
     <div class="gate-msg" id="gateMsg" hidden></div>
   </div>
@@ -158,6 +177,13 @@
       <span id="reportMeta">Loading…</span>
     </div>
   </div>
+
+  <select id="reportPicker" title="Your saved reports"></select>
+  <button id="btnNew">New</button>
+  <button id="btnEdit">Edit</button>
+  <button id="btnSave" class="primary">Save</button>
+
+  <div class="spacer"></div>
   <div class="user" id="userChip">
     <img id="userPic" alt="">
     <div>
@@ -165,8 +191,6 @@
       <div class="user-mail" id="userMail"></div>
     </div>
   </div>
-  <button id="btnPaste">Paste a report</button>
-  <button id="btnSample" class="primary">Load sample</button>
   <button id="btnSignOut">Sign out</button>
 </header>
 
@@ -187,36 +211,43 @@
   </aside>
 
   <div class="drawer" id="drawer" hidden>
-    <h2>Paste your strategy report</h2>
+    <h2>Edit this report</h2>
     <p>Use <code># Title</code> for the report name, <code>## Section</code> for each column, and <code>- bullets</code> for cards. Put a long dash inside a bullet to split it into a heading and a note.</p>
     <textarea id="input" spellcheck="false"></textarea>
     <div class="drawer-actions">
-      <button class="primary" id="btnApply">Render it</button>
-      <button id="btnClose">Cancel</button>
+      <button class="primary" id="btnApply">Preview</button>
+      <button id="btnLoadSample">Insert sample text</button>
+      <button id="btnClose">Close</button>
+      <button id="btnDelete" class="danger-btn">Delete report</button>
     </div>
   </div>
 </main>
+
+<div class="toast" id="toast" hidden></div>
+
+<!-- Supabase client library, loaded before our code so createClient exists. -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <script>
 /* ===================================================================
    CONFIG
    =================================================================== */
 
-/* Public by design — a Google Client ID is meant to be readable in page
-   source. The client SECRET is a different value and must never go here. */
-const CLIENT_ID = '1059013355751-6g50dsgm7df37htl2fdqrtlkh5hmrc0c.apps.googleusercontent.com';
+/* All three of these are public by design and safe in page source.
+   The Google client SECRET and the Supabase SERVICE_ROLE key are
+   different values entirely and must never appear in this file. */
+const SUPABASE_URL = 'https://cskamgfvebryahkljlll.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_MdkD-TxMCIwlu69seSHA3Q_A39GADsK';
+const CLIENT_ID    = '1059013355751-6g50dsgm7df37htl2fdqrtlkh5hmrc0c.apps.googleusercontent.com';
 
-/* Who may open the board. Entries are either a full address, or a domain
-   written with a leading @ to admit everyone on it:
-       'vijaysrinivassan@gmail.com'  -> just that person
-       '@maximuslabs.ai'             -> anyone with that domain
-   Leave the array empty to admit any Google account. */
+/* An extra front-door check. The real protection is Row Level Security
+   in Postgres — this list only decides who gets past the gate at all.
+   Entries are a full address, or a domain with a leading @. Empty = anyone. */
 const ALLOWED = [
   'vijaysrinivassan@gmail.com',
 ];
 
-const AUTH_KEY = 'strategy-canvas-auth';
-const BUILD = 'v1.3';
+const BUILD = 'v2.0';
 
 /* ===================================================================
    SAMPLE REPORT
@@ -249,34 +280,35 @@ const SAMPLE = `# Q3 Growth Strategy
 `;
 
 const $ = id => document.getElementById(id);
-const state = { report: null, sel: null };
+
+const state = {
+  report: null,      /* parsed board */
+  sel: null,         /* [columnIndex, cardIndex] */
+  reportId: null,    /* uuid of the row we are editing, null = unsaved */
+  text: '',          /* raw markdown of the current report */
+  list: [],          /* [{id,title,updated_at}] */
+  user: null
+};
+
+let sb = null;
 
 /* ===================================================================
-   AUTH
+   SMALL HELPERS
    =================================================================== */
-
-/* Decode the payload half of a JWT. Handles base64url and non-ASCII names. */
-function decodeJwt(token){
-  try {
-    const part = String(token).split('.')[1];
-    if (!part) return null;
-    const b64 = part.replace(/-/g, '+').replace(/_/g, '/');
-    const padded = b64 + '='.repeat((4 - b64.length % 4) % 4);
-    const json = decodeURIComponent(
-      atob(padded).split('').map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join('')
-    );
-    return JSON.parse(json);
-  } catch (e) { return null; }
+let toastTimer = null;
+function toast(msg, bad){
+  const el = $('toast');
+  el.textContent = msg;
+  el.classList.toggle('bad', !!bad);
+  el.hidden = false;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { el.hidden = true; }, bad ? 6000 : 2600);
 }
 
-/* Returns the profile only while Google's own token is still inside its
-   expiry window, so a stale localStorage entry cannot let anyone back in. */
-function profileFromToken(token){
-  const p = decodeJwt(token);
-  if (!p || !p.exp) return null;
-  if (p.exp * 1000 <= Date.now()) return null;
-  if (p.aud !== CLIENT_ID) return null;
-  return p;
+function gateMessage(msg){
+  const el = $('gateMsg');
+  el.textContent = msg;
+  el.hidden = false;
 }
 
 function isAllowed(email){
@@ -288,87 +320,195 @@ function isAllowed(email){
   });
 }
 
-function gateMessage(msg){
-  const el = $('gateMsg');
-  el.textContent = msg;
-  el.hidden = false;
+/* Pull "# Title" out of the markdown so the row has a useful name. */
+function titleOf(text){
+  for (const raw of String(text).split('\n')){
+    const line = raw.trim();
+    if (line.startsWith('# ')) return line.slice(2).trim().slice(0, 120);
+  }
+  return 'Untitled report';
 }
 
-/* Called by Google once the user picks an account. */
-function onCredential(response){
-  const p = profileFromToken(response && response.credential);
-  if (!p){
-    gateMessage('That sign-in response could not be read. Please try again.');
+/* ===================================================================
+   AUTH  —  Google button -> Supabase session -> RLS does the rest
+   =================================================================== */
+async function onCredential(response){
+  if (!sb){
+    gateMessage('The database client did not load. Check your connection and reload.');
     return;
   }
-  if (p.email_verified === false){
-    gateMessage('That Google account does not have a verified email address.');
-    return;
+  try {
+    const { data, error } = await sb.auth.signInWithIdToken({
+      provider: 'google',
+      token: response.credential
+    });
+    if (error){
+      gateMessage('Sign-in failed: ' + error.message);
+      return;
+    }
+    const user = data.user;
+    if (!isAllowed(user.email)){
+      await sb.auth.signOut();
+      gateMessage(user.email + ' is not on the access list for this board.');
+      return;
+    }
+    await enterApp(user);
+  } catch (e) {
+    gateMessage('Sign-in failed: ' + (e && e.message ? e.message : String(e)));
   }
-  if (!isAllowed(p.email)){
-    gateMessage(p.email + ' is not on the access list for this board.');
-    return;
-  }
-  try { localStorage.setItem(AUTH_KEY, response.credential); } catch (e) {}
-  enterApp(p);
 }
 
-function enterApp(profile){
+async function enterApp(user){
+  state.user = user;
+  const meta = user.user_metadata || {};
+
   $('gate').hidden = true;
   $('appHeader').hidden = false;
   $('appMain').hidden = false;
 
-  $('userName').textContent = profile.name || profile.email || '';
-  $('userMail').textContent = profile.email || '';
-  if (profile.picture){
-    $('userPic').src = profile.picture;
-    $('userPic').alt = profile.name ? profile.name + ' profile photo' : 'Profile photo';
-  } else {
-    $('userPic').hidden = true;
-  }
+  $('userName').textContent = meta.full_name || meta.name || user.email || '';
+  $('userMail').textContent = user.email || '';
+  const pic = meta.avatar_url || meta.picture;
+  if (pic){ $('userPic').src = pic; $('userPic').alt = 'Profile photo'; }
+  else { $('userPic').hidden = true; }
 
-  /* Load the board only now — the canvas needs a laid-out width to draw into. */
-  let saved = '';
-  try { saved = localStorage.getItem('strategy-canvas') || ''; } catch (e) {}
-  load(saved || SAMPLE, false);
+  await refreshList();
+
+  if (state.list.length){
+    await openReport(state.list[0].id);
+  } else {
+    /* First run for this account — start them on the sample, unsaved. */
+    state.reportId = null;
+    setText(SAMPLE);
+    toast('No saved reports yet — press Save to keep this one.');
+  }
 }
 
-function signOut(){
-  try { localStorage.removeItem(AUTH_KEY); } catch (e) {}
+async function signOut(){
+  if (sb) await sb.auth.signOut();
   if (window.google && google.accounts && google.accounts.id){
     google.accounts.id.disableAutoSelect();
   }
   location.reload();
 }
 
-/* Google's script calls this once it has finished loading. */
-window.onGsiLoad = function(){
-  if (!(window.google && google.accounts && google.accounts.id)){
-    gateMessage('Google sign-in could not start. A browser extension or network block may be preventing it.');
-    return;
-  }
-  google.accounts.id.initialize({ client_id: CLIENT_ID, callback: onCredential });
-  const dark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-  google.accounts.id.renderButton($('gsiButton'), {
-    theme: dark ? 'filled_black' : 'outline',
-    size: 'large',
-    text: 'signin_with',
-    shape: 'pill',
-    width: 280
-  });
-};
+/* ===================================================================
+   DATA  —  every call below is filtered by RLS server-side
+   =================================================================== */
+async function refreshList(){
+  const { data, error } = await sb
+    .from('reports')
+    .select('id,title,updated_at')
+    .order('updated_at', { ascending: false });
 
-window.onGsiError = function(){
-  gateMessage('Google sign-in could not be reached. Check your connection and reload.');
-};
+  if (error){ toast('Could not load your reports: ' + error.message, true); return; }
+  state.list = data || [];
+  renderPicker();
+}
+
+async function openReport(id){
+  const { data, error } = await sb
+    .from('reports')
+    .select('id,title,body')
+    .eq('id', id)
+    .single();
+
+  if (error){ toast('Could not open that report: ' + error.message, true); return; }
+  state.reportId = data.id;
+  setText(data.body || '');
+  renderPicker();
+}
+
+async function saveCurrent(){
+  const text = state.text.trim();
+  if (!text){ toast('Nothing to save.', true); return; }
+
+  $('btnSave').disabled = true;
+  const payload = { title: titleOf(text), body: text };
+
+  let error;
+  if (state.reportId){
+    ({ error } = await sb.from('reports').update(payload).eq('id', state.reportId));
+  } else {
+    payload.owner_id = state.user.id;   /* required by the insert RLS policy */
+    const res = await sb.from('reports').insert(payload).select('id').single();
+    error = res.error;
+    if (!error) state.reportId = res.data.id;
+  }
+  $('btnSave').disabled = false;
+
+  if (error){ toast('Save failed: ' + error.message, true); return; }
+  await refreshList();
+  renderPicker();
+  toast('Saved.');
+}
+
+async function deleteCurrent(){
+  if (!state.reportId){ toast('This report was never saved.', true); return; }
+  if (!confirm('Delete this report permanently? This cannot be undone.')) return;
+
+  const { error } = await sb.from('reports').delete().eq('id', state.reportId);
+  if (error){ toast('Delete failed: ' + error.message, true); return; }
+
+  state.reportId = null;
+  await refreshList();
+  if (state.list.length) await openReport(state.list[0].id);
+  else setText(SAMPLE);
+  $('drawer').hidden = true;
+  toast('Report deleted.');
+}
+
+function newReport(){
+  state.reportId = null;
+  setText('# New report\n\n## Section one\n- First card — a note about it\n');
+  renderPicker();
+  $('drawer').hidden = false;
+  $('input').value = state.text;
+  $('input').focus();
+  toast('New report started — press Save to keep it.');
+}
 
 /* ===================================================================
-   REPORT PARSING + BOARD
+   RENDERING
    =================================================================== */
+function renderPicker(){
+  const sel = $('reportPicker');
+  sel.innerHTML = '';
+
+  if (!state.reportId){
+    const o = document.createElement('option');
+    o.value = '';
+    o.textContent = '(unsaved report)';
+    sel.append(o);
+  }
+  state.list.forEach(r => {
+    const o = document.createElement('option');
+    o.value = r.id;
+    o.textContent = r.title;
+    if (r.id === state.reportId) o.selected = true;
+    sel.append(o);
+  });
+  if (!state.list.length && state.reportId) {
+    const o = document.createElement('option');
+    o.value = state.reportId;
+    o.textContent = titleOf(state.text);
+    o.selected = true;
+    sel.append(o);
+  }
+  sel.disabled = state.list.length === 0 && !state.reportId;
+}
+
+function setText(text){
+  state.text = text;
+  state.report = parseReport(text);
+  state.sel = null;
+  render();
+}
+
 function parseReport(text){
   const report = { title: 'Strategy Canvas', columns: [] };
   let col = null;
-  for (const raw of text.split('\n')){
+  for (const raw of String(text).split('\n')){
     const line = raw.trim();
     if (!line) continue;
     if (line.startsWith('## ')){
@@ -390,7 +530,9 @@ function render(){
   const r = state.report;
   $('reportTitle').textContent = r.title;
   const cards = r.columns.reduce((n, c) => n + c.cards.length, 0);
-  $('reportMeta').textContent = r.columns.length + ' columns · ' + cards + ' cards · ' + BUILD;
+  const saved = state.reportId ? 'saved' : 'unsaved';
+  $('reportMeta').textContent =
+    r.columns.length + ' columns · ' + cards + ' cards · ' + saved + ' · ' + BUILD;
 
   const board = $('board');
   board.innerHTML = '';
@@ -507,49 +649,66 @@ function drawChart(){
   });
 }
 
-function load(text, remember){
-  state.report = parseReport(text);
-  state.sel = null;
-  if (remember){ try { localStorage.setItem('strategy-canvas', text); } catch (e) {} }
-  render();
-}
-
 /* ===================================================================
    WIRING
    =================================================================== */
-$('btnSample').onclick = () => {
-  try { localStorage.removeItem('strategy-canvas'); } catch (e) {}
-  load(SAMPLE, false);
-  $('drawer').hidden = true;
-};
-$('btnPaste').onclick = () => {
+$('reportPicker').onchange = e => { if (e.target.value) openReport(e.target.value); };
+$('btnNew').onclick    = newReport;
+$('btnSave').onclick   = saveCurrent;
+$('btnDelete').onclick = deleteCurrent;
+$('btnSignOut').onclick = signOut;
+
+$('btnEdit').onclick = () => {
   const d = $('drawer');
   d.hidden = !d.hidden;
-  if (!d.hidden){
-    let saved = '';
-    try { saved = localStorage.getItem('strategy-canvas') || ''; } catch (e) {}
-    $('input').value = saved || SAMPLE;
-    $('input').focus();
-  }
+  if (!d.hidden){ $('input').value = state.text; $('input').focus(); }
 };
 $('btnClose').onclick = () => { $('drawer').hidden = true; };
 $('btnApply').onclick = () => {
   const v = $('input').value.trim();
-  if (!v) return;
-  load(v, true);
-  $('drawer').hidden = true;
+  if (!v){ toast('Nothing to preview.', true); return; }
+  setText(v);
+  toast('Previewed — press Save to store it.');
 };
-$('btnSignOut').onclick = signOut;
+$('btnLoadSample').onclick = () => { $('input').value = SAMPLE; $('input').focus(); };
+
 window.addEventListener('resize', drawChart);
 
-/* Restore a still-valid session so a refresh does not force a new sign-in. */
-(function restoreSession(){
-  let token = '';
-  try { token = localStorage.getItem(AUTH_KEY) || ''; } catch (e) {}
-  if (!token) return;
-  const p = profileFromToken(token);
-  if (p && isAllowed(p.email)) enterApp(p);
-  else { try { localStorage.removeItem(AUTH_KEY); } catch (e) {} }
+/* ===================================================================
+   BOOT
+   =================================================================== */
+window.onGsiLoad = function(){
+  if (!(window.google && google.accounts && google.accounts.id)){
+    gateMessage('Google sign-in could not start. A browser extension or network block may be preventing it.');
+    return;
+  }
+  google.accounts.id.initialize({ client_id: CLIENT_ID, callback: onCredential });
+  const dark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+  google.accounts.id.renderButton($('gsiButton'), {
+    theme: dark ? 'filled_black' : 'outline',
+    size: 'large',
+    text: 'signin_with',
+    shape: 'pill',
+    width: 280
+  });
+};
+
+window.onGsiError = function(){
+  gateMessage('Google sign-in could not be reached. Check your connection and reload.');
+};
+
+(function boot(){
+  if (!(window.supabase && window.supabase.createClient)){
+    gateMessage('The Supabase library failed to load. Check your connection and reload.');
+    return;
+  }
+  sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+  /* supabase-js persists the session itself, so a refresh stays signed in. */
+  sb.auth.getSession().then(({ data }) => {
+    const user = data && data.session && data.session.user;
+    if (user && isAllowed(user.email)) enterApp(user);
+  });
 })();
 </script>
 
