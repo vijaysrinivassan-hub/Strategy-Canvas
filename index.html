@@ -478,6 +478,13 @@
   .mx-lab{display:flex; align-items:center; gap:5px; min-width:0; height:40px}
   .mx-lab b{font-size:12.5px; font-weight:700; color:var(--ink); cursor:text;
             overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+  .mx-lab input.hd{
+    flex:1; min-width:0; border:none; outline:none; background:transparent;
+    font:inherit; font-size:12.5px; font-weight:700; color:var(--ink); padding:2px 0;
+  }
+  .mx-lab input.hd::placeholder{color:#c9ccd3; font-weight:600}
+  .mx-lab input.hd:focus{background:#fff; box-shadow:inset 0 0 0 2px var(--accent);
+                         border-radius:5px; padding:2px 6px}
   .mx-lab .x{margin-left:auto; padding:0 5px; font-size:13px; line-height:1.4;
              color:var(--faint); border-color:transparent; background:transparent; flex:none;
              opacity:0; transition:opacity .12s}
@@ -823,7 +830,7 @@ const SUPABASE_URL = 'https://cskamgfvebryahkljlll.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_MdkD-TxMCIwlu69seSHA3Q_A39GADsK';
 const CLIENT_ID    = '1059013355751-6g50dsgm7df37htl2fdqrtlkh5hmrc0c.apps.googleusercontent.com';
 const ALLOWED      = ['vijaysrinivassan@gmail.com'];
-const BUILD        = 'v3.4';
+const BUILD        = 'v3.5';
 
 const TABS = [
   'Product Architecture',
@@ -2660,6 +2667,10 @@ function contentRoot(){
           return { id: uid(), name: d.name, terms: d.terms.slice() };
         });
       }
+      /* Stand the whole grid up so it is there to type into. Unnamed rows and
+         columns match nothing, so the padding is inert until you fill it. */
+      while (cur.rows.length < GRID_ROWS) cur.rows.push({ id: uid(), name: '', aliases: [] });
+      while (cur.types.length < GRID_MAX_COLS) cur.types.push({ id: uid(), name: '', terms: [] });
       return;
     }
 
@@ -2710,10 +2721,11 @@ function renderMatrix(){
   const setup = $('mxSetup');
   table.innerHTML = '';
 
-  if (!m.rows.length){
+  const namedRows = m.rows.filter(function(r){ return (r.name || '').trim(); }).length;
+  if (!namedRows){
     setup.hidden = false;
-    setup.textContent = 'Add a ' + vd.noun + ' to start. Every keyword in the repo that mentions '
-      + 'it and matches an article type will appear in that cell.';
+    setup.textContent = 'Type a ' + vd.noun + ' name into the first column to start. Keywords in '
+      + 'the repo that mention it and match an article type will appear in that row.';
   } else if (!kwRows.length){
     setup.hidden = false;
     setup.textContent = 'The matrix is built. Push keywords into the repo and they will fill '
@@ -2725,7 +2737,7 @@ function renderMatrix(){
   const ro = readOnly();
 
   /* Explicit widths, so the header and body can never disagree. */
-  const RH_W = 190, COL_W = 250;
+  const RH_W = 190, COL_W = 232;
   const cg = document.createElement('colgroup');
   const c0 = document.createElement('col');
   c0.style.width = RH_W + 'px';
@@ -2749,11 +2761,19 @@ function renderMatrix(){
     const th = document.createElement('th');
     const lab = document.createElement('div');
     lab.className = 'mx-lab';
-    const b = document.createElement('b');
-    b.textContent = ty.name;
-    b.title = 'Double-click to rename';
-    b.ondblclick = function(){
-      inlineRename(b, ty.name, function(v){ ty.name = v || 'Type'; markDirty(); renderMatrix(); });
+    const b = document.createElement('input');
+    b.className = 'hd';
+    b.value = ty.name || '';
+    b.placeholder = 'Article type';
+    b.disabled = ro;
+    b.oninput = function(){ ty.name = b.value; markDirty(); };
+    b.onchange = function(){
+      /* a fresh column matches on its own name until you widen it */
+      if (!ty.terms || !ty.terms.length){
+        const t = b.value.trim().toLowerCase();
+        if (t) ty.terms = [t];
+      }
+      renderMatrix();
     };
     lab.append(b);
     if (!ro){
@@ -2773,8 +2793,9 @@ function renderMatrix(){
       x.innerHTML = '&times;';
       x.title = 'Remove column';
       x.onclick = function(){
-        if (!confirm('Remove the "' + ty.name + '" column?')) return;
+        if (ty.name && !confirm('Remove the "' + ty.name + '" column?')) return;
         m.types = m.types.filter(function(z){ return z.id !== ty.id; });
+        while (m.types.length < GRID_MAX_COLS) m.types.push({ id: uid(), name: '', terms: [] });
         markDirty(); renderMatrix();
       };
       lab.append(cog, x);
@@ -2793,12 +2814,13 @@ function renderMatrix(){
     rh.className = 'mx-rh';
     const lab = document.createElement('div');
     lab.className = 'mx-lab';
-    const b = document.createElement('b');
-    b.textContent = comp.name;
-    b.title = 'Double-click to rename';
-    b.ondblclick = function(){
-      inlineRename(b, comp.name, function(v){ comp.name = v || 'Competitor'; markDirty(); renderMatrix(); });
-    };
+    const b = document.createElement('input');
+    b.className = 'hd';
+    b.value = comp.name || '';
+    b.placeholder = vd.label;
+    b.disabled = ro;
+    b.oninput = function(){ comp.name = b.value; markDirty(); };
+    b.onchange = function(){ renderMatrix(); };
     lab.append(b);
     if (!ro){
       const cog = document.createElement('button');
@@ -2817,8 +2839,9 @@ function renderMatrix(){
       x.innerHTML = '&times;';
       x.title = 'Remove ' + vd.noun;
       x.onclick = function(){
-        if (!confirm('Remove "' + comp.name + '" from the matrix?')) return;
+        if (comp.name && !confirm('Remove "' + comp.name + '" from the matrix?')) return;
         m.rows = m.rows.filter(function(z){ return z.id !== comp.id; });
+        while (m.rows.length < GRID_ROWS) m.rows.push({ id: uid(), name: '', aliases: [] });
         markDirty(); renderMatrix();
       };
       lab.append(cog, x);
@@ -2868,7 +2891,8 @@ function renderMatrix(){
         });
         td.append(list);
       }
-      if (!ro){
+      /* seeding a keyword needs both names, so only offer it once they exist */
+      if (!ro && (comp.name || '').trim() && (ty.name || '').trim()){
         const add = document.createElement('button');
         add.className = 'kw-add-row';
         add.textContent = '+ keyword';
@@ -3066,7 +3090,8 @@ function addCompetitor(){
   if (name === null) return;
   const v = name.trim();
   if (!v) return;
-  m.rows.push({ id: uid(), name: v, aliases: [] });
+  const blank = m.rows.filter(function(r){ return !(r.name || '').trim(); })[0];
+  if (blank) blank.name = v; else m.rows.push({ id: uid(), name: v, aliases: [] });
   markDirty();
   renderMatrix();
 }
@@ -3078,7 +3103,9 @@ function addArticleType(){
   if (name === null) return;
   const v = name.trim();
   if (!v) return;
-  m.types.push({ id: uid(), name: v, terms: [v.toLowerCase()] });
+  const blankT = m.types.filter(function(t){ return !(t.name || '').trim(); })[0];
+  if (blankT){ blankT.name = v; blankT.terms = [v.toLowerCase()]; }
+  else m.types.push({ id: uid(), name: v, terms: [v.toLowerCase()] });
   markDirty();
   renderMatrix();
   toast('Added. Use "terms" on the column to widen what it matches.');
