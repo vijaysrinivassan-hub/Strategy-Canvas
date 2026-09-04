@@ -471,8 +471,14 @@
     position:sticky; top:0; z-index:3; height:40px;
     background:#f9fafb; padding:0 10px;
   }
-  .mx-corner{position:sticky; left:0; top:0; z-index:5; background:#f9fafb !important}
-  .mx-rh{position:sticky; left:0; z-index:2; background:#fff; padding:0 10px; height:auto}
+  /* two frozen columns: the number gutter, then the row name */
+  .mx-corner-num{position:sticky; left:0; top:0; z-index:6; background:#f9fafb !important}
+  .mx-corner{position:sticky; left:46px; top:0; z-index:5; background:#f9fafb !important}
+  .mx-num{position:sticky; left:0; z-index:3; background:#f9fafb; padding:0}
+  .mx-numwrap{display:flex; align-items:center; justify-content:center; gap:2px;
+              height:30px; font-size:11px; color:var(--faint);
+              font-variant-numeric:tabular-nums}
+  .mx-rh{position:sticky; left:46px; z-index:2; background:#fff; padding:0 10px; height:auto}
   .mx-table tbody tr:hover td, .mx-table tbody tr:hover th{background:#fafbfc}
 
   .mx-lab{display:flex; align-items:center; gap:5px; min-width:0; height:40px}
@@ -830,7 +836,7 @@ const SUPABASE_URL = 'https://cskamgfvebryahkljlll.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_MdkD-TxMCIwlu69seSHA3Q_A39GADsK';
 const CLIENT_ID    = '1059013355751-6g50dsgm7df37htl2fdqrtlkh5hmrc0c.apps.googleusercontent.com';
 const ALLOWED      = ['vijaysrinivassan@gmail.com'];
-const BUILD        = 'v3.5';
+const BUILD        = 'v3.6';
 
 const TABS = [
   'Product Architecture',
@@ -2737,8 +2743,11 @@ function renderMatrix(){
   const ro = readOnly();
 
   /* Explicit widths, so the header and body can never disagree. */
-  const RH_W = 190, COL_W = 232;
+  const NUM_W = 46, RH_W = 190, COL_W = 232;
   const cg = document.createElement('colgroup');
+  const cn = document.createElement('col');
+  cn.style.width = NUM_W + 'px';
+  cg.append(cn);
   const c0 = document.createElement('col');
   c0.style.width = RH_W + 'px';
   cg.append(c0);
@@ -2747,14 +2756,16 @@ function renderMatrix(){
     c.style.width = COL_W + 'px';
     cg.append(c);
   });
-  table.style.width = (RH_W + COL_W * m.types.length) + 'px';
+  table.style.width = (NUM_W + RH_W + COL_W * m.types.length) + 'px';
   table.append(cg);
 
   const thead = document.createElement('thead');
   const hr = document.createElement('tr');
+  const cornerNum = document.createElement('th');
+  cornerNum.className = 'mx-corner-num';
+  hr.append(cornerNum);
   const corner = document.createElement('th');
   corner.className = 'mx-corner';
-  corner.textContent = '';
   hr.append(corner);
 
   m.types.forEach(function(ty){
@@ -2807,8 +2818,31 @@ function renderMatrix(){
   table.append(thead);
 
   const tbody = document.createElement('tbody');
-  m.rows.forEach(function(comp){
+  m.rows.forEach(function(comp, ri){
     const tr = document.createElement('tr');
+
+    const num = document.createElement('th');
+    num.className = 'mx-num';
+    const nw = document.createElement('div');
+    nw.className = 'mx-numwrap';
+    const idx = document.createElement('span');
+    idx.textContent = String(ri + 1);
+    nw.append(idx);
+    if (!ro){
+      const del = document.createElement('button');
+      del.className = 'gr-del';
+      del.innerHTML = '&times;';
+      del.title = 'Delete row';
+      del.onclick = function(){
+        if (comp.name && !confirm('Remove "' + comp.name + '" from the matrix?')) return;
+        m.rows = m.rows.filter(function(z){ return z.id !== comp.id; });
+        while (m.rows.length < GRID_ROWS) m.rows.push({ id: uid(), name: '', aliases: [] });
+        markDirty(); renderMatrix();
+      };
+      nw.append(del);
+    }
+    num.append(nw);
+    tr.append(num);
 
     const rh = document.createElement('th');
     rh.className = 'mx-rh';
@@ -2834,17 +2868,7 @@ function renderMatrix(){
         comp.aliases = v.split(',').map(function(x){ return x.trim(); }).filter(Boolean);
         markDirty(); renderMatrix();
       };
-      const x = document.createElement('button');
-      x.className = 'x';
-      x.innerHTML = '&times;';
-      x.title = 'Remove ' + vd.noun;
-      x.onclick = function(){
-        if (comp.name && !confirm('Remove "' + comp.name + '" from the matrix?')) return;
-        m.rows = m.rows.filter(function(z){ return z.id !== comp.id; });
-        while (m.rows.length < GRID_ROWS) m.rows.push({ id: uid(), name: '', aliases: [] });
-        markDirty(); renderMatrix();
-      };
-      lab.append(cog, x);
+      lab.append(cog);   /* delete lives in the number gutter, as it does in the other tables */
     }
     rh.append(lab);
     tr.append(rh);
