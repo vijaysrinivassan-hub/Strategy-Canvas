@@ -80,6 +80,16 @@ own. Run `supabase-setup.sql` once to create the table and its policies.
 
 Autosaves a couple of seconds after any change; **Save** forces it.
 
+## Look and feel
+
+The UI follows the Maximus Labs Content Dashboard design system so the two read
+as one product: Inter, `#2563eb` accent, `#f6f7f9` app background, white 252px
+sidebar with icon nav and an `--accent-soft` active pill, 1px `#e9eaee` borders
+with a soft shadow, 14px card corners, 9px buttons, uppercase pill badges.
+
+The dashboard is light-only, so this is too — the previous dark theme was dropped
+rather than left to drift out of step.
+
 ## Config
 
 The Supabase URL, the publishable key and the Google client ID at the top of

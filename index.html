@@ -8,28 +8,28 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
+  /* Tokens lifted from the Maximus Labs Content Dashboard so this tool reads
+     as part of the same product. The dashboard is light-only, so this is too. */
   :root{
-    --bg:#fafafa; --panel:#ffffff; --sidebar:#f4f4f6;
-    --ink:#202124; --muted:#8b8f98;
-    --accent:#5468e8; --accent-soft:#eef0fd; --border:#e4e4e7; --line:#a9adb8;
-    --danger:#b42318; --danger-bg:#fef3f2; --danger-border:#fecdca;
-    --ok:#067647; --ok-bg:#ecfdf3; --ok-border:#abefc6;
-    --grid:#d2d2d8;
+    --bg:#f6f7f9; --panel:#ffffff; --ink:#181a20; --ink-2:#3f4451;
+    --muted:#6b7280; --faint:#9aa1ac;
+    --line:#e9eaee; --line-2:#f1f2f4;
+    --accent:#2563eb; --accent-d:#1d4ed8; --accent-soft:#eaf1fe;
+    --ok:#15803d; --ok-bg:#e7f6ec; --ok-border:#c3e6cf;
+    --danger:#dc2626; --danger-bg:#fef2f2; --danger-border:#fecaca;
+    --cli:#b45309; --cli-bg:#fdf0dc;
+    --shadow:0 1px 2px rgba(16,24,40,.04),0 1px 3px rgba(16,24,40,.05);
+    --shadow-lift:0 6px 18px rgba(16,24,40,.09);
+    --dock-shadow:0 6px 20px rgba(16,24,40,.12);
+
+    /* aliases so the canvas code keeps reading naturally */
+    --border:#e9eaee;
+    --sidebar:#ffffff;
+    --wire:#9aa1ac;
+    --grid:#dfe1e6;
+
+    /* Obsidian card colours, kept */
     --n1:#e5484d; --n2:#f76b15; --n3:#e0b700; --n4:#30a46c; --n5:#00a2c7; --n6:#8e4ec6;
-    --shadow:0 1px 2px rgba(0,0,0,.05), 0 4px 14px rgba(0,0,0,.05);
-    --dock-shadow:0 4px 18px rgba(0,0,0,.12);
-  }
-  @media (prefers-color-scheme: dark){
-    :root{
-      --bg:#1e1e20; --panel:#262629; --sidebar:#1a1a1c;
-      --ink:#dcddde; --muted:#888a90;
-      --accent:#7b8cf5; --accent-soft:#2b2f45; --border:#36363a; --line:#6a6d78;
-      --danger:#fda29b; --danger-bg:#2b1512; --danger-border:#5b2320;
-      --ok:#75e0a7; --ok-bg:#0d2a1c; --ok-border:#1f5138;
-      --grid:#333338;
-      --shadow:0 1px 2px rgba(0,0,0,.4), 0 4px 14px rgba(0,0,0,.3);
-      --dock-shadow:0 4px 18px rgba(0,0,0,.5);
-    }
   }
   *{box-sizing:border-box}
   [hidden]{display:none !important}
@@ -39,13 +39,17 @@
     font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
     font-size:14px; line-height:1.5; -webkit-font-smoothing:antialiased;
   }
-  button{font:inherit; cursor:pointer; border-radius:8px; border:1px solid var(--border);
-         background:var(--panel); color:var(--ink); padding:6px 11px; font-weight:500;
-         transition:background .13s, border-color .13s}
-  button:hover:not(:disabled){background:var(--accent-soft); border-color:var(--accent)}
+  /* .btn metrics from the dashboard */
+  button{font:inherit; cursor:pointer; border:1px solid var(--line); background:#fff;
+         color:var(--ink-2); padding:8px 14px; border-radius:9px; font-size:13px;
+         font-weight:600; display:inline-flex; align-items:center; gap:7px;
+         transition:.12s; white-space:nowrap}
+  button:hover:not(:disabled){background:#fafafa; border-color:#dcdce0}
   button.primary{background:var(--accent); border-color:var(--accent); color:#fff}
-  button.primary:hover:not(:disabled){filter:brightness(1.08)}
-  button:disabled{opacity:.45; cursor:default}
+  button.primary:hover:not(:disabled){background:var(--accent-d); border-color:var(--accent-d)}
+  button:disabled{opacity:.5; cursor:not-allowed}
+  ::-webkit-scrollbar{width:10px;height:10px}
+  ::-webkit-scrollbar-thumb{background:#dcdce0;border-radius:8px;border:3px solid var(--bg)}
 
   /* ================= sign-in gate ================= */
   .gate{position:fixed; inset:0; z-index:300; display:grid; place-items:center;
@@ -63,65 +67,76 @@
             border:1px solid var(--danger-border)}
 
   /* ================= shell ================= */
-  .shell{display:grid; grid-template-columns:248px minmax(0,1fr); height:100vh}
+  .shell{display:grid; grid-template-columns:252px minmax(0,1fr); height:100vh}
 
   /* ================= sidebar ================= */
-  .sidebar{background:var(--sidebar); border-right:1px solid var(--border);
+  .sidebar{background:#fff; border-right:1px solid var(--line);
            display:flex; flex-direction:column; min-height:0}
-  .side-head{padding:16px 14px 12px; border-bottom:1px solid var(--border)}
-  .board-name{display:flex; align-items:center; gap:8px}
-  .board-name .logo{width:26px; height:26px; border-radius:8px; background:var(--accent);
-                    display:grid; place-items:center; color:#fff; font-weight:700; font-size:12px;
+  .side-head{padding:16px 16px 14px; border-bottom:1px solid var(--line-2)}
+  .board-name{display:flex; align-items:center; gap:10px}
+  .board-name .logo{width:32px; height:32px; border-radius:9px; background:var(--accent);
+                    display:grid; place-items:center; color:#fff; font-weight:700; font-size:13px;
                     flex:none}
   #clientName{
-    font:inherit; font-size:15px; font-weight:600; letter-spacing:-.01em;
+    font:inherit; font-size:14px; font-weight:700; letter-spacing:-.01em; line-height:1.25;
     color:var(--ink); background:transparent; border:1px solid transparent;
-    border-radius:6px; padding:2px 5px; width:100%; min-width:0;
+    border-radius:7px; padding:2px 5px; width:100%; min-width:0;
   }
-  #clientName:hover{border-color:var(--border)}
-  #clientName:focus{outline:none; border-color:var(--accent); background:var(--panel)}
-  .side-head .sub{font-size:11px; color:var(--muted); margin:5px 0 0 34px;
-                  letter-spacing:.06em; text-transform:uppercase; font-weight:600}
+  #clientName:hover{border-color:var(--line)}
+  #clientName:focus{outline:none; border-color:var(--accent); background:#fff;
+                    box-shadow:0 0 0 3px var(--accent-soft)}
+  .side-head .sub{font-size:11px; color:var(--faint); margin:2px 0 0 42px; font-weight:500}
 
-  .tabs{flex:1; overflow-y:auto; padding:10px 8px; display:flex; flex-direction:column; gap:2px}
+  .tabs{padding:10px; flex:1; overflow-y:auto}
   .tab{
-    display:flex; align-items:center; gap:9px; width:100%; text-align:left;
-    padding:8px 10px; border-radius:8px; border:1px solid transparent;
-    background:transparent; color:var(--muted); font-size:13px; font-weight:500;
+    display:flex; align-items:center; gap:10px; width:100%; text-align:left;
+    padding:8px 10px; border-radius:8px; border:none; background:transparent;
+    color:var(--ink-2); font-size:13.5px; font-weight:500; margin-bottom:1px;
   }
-  .tab:hover{background:var(--panel); color:var(--ink); border-color:var(--border)}
-  .tab.active{background:var(--accent-soft); color:var(--accent); border-color:transparent; font-weight:600}
-  /* Obsidian tags the file type on the right of each row in muted small caps. */
-  .tab .n{margin-left:auto; font-size:9.5px; font-weight:600; color:var(--muted);
-          letter-spacing:.09em; text-transform:uppercase; flex:none}
-  .tab.active .n{color:var(--accent)}
+  .tab svg{color:var(--faint); flex-shrink:0; width:16px; height:16px;
+           fill:none; stroke:currentColor; stroke-width:1.7;
+           stroke-linecap:round; stroke-linejoin:round}
+  .tab:hover{background:#f5f5f6; border-color:transparent}
+  .tab.active{background:var(--accent-soft); color:var(--accent); font-weight:600}
+  .tab.active svg{color:var(--accent)}
+  .tab .n{margin-left:auto; font-size:9.5px; font-weight:700; letter-spacing:.04em;
+          color:var(--faint); background:#f0f0f1; padding:2px 6px; border-radius:5px; flex:none}
+  .tab.active .n{color:var(--accent); background:#fff}
 
-  .side-foot{border-top:1px solid var(--border); padding:10px 12px;
+  /* In the dashboard `.who` is the row wrapper; here it is the text column,
+     so the row lives on .side-foot itself. */
+  .side-foot{padding:12px; border-top:1px solid var(--line-2);
              display:flex; align-items:center; gap:9px}
-  .side-foot img{width:28px; height:28px; border-radius:50%; border:1px solid var(--border);
-                 background:var(--accent-soft); object-fit:cover; flex:none}
-  .who{min-width:0; flex:1}
-  .who b{display:block; font-size:12.5px; font-weight:600; overflow:hidden;
-         text-overflow:ellipsis; white-space:nowrap}
-  .who span{display:block; font-size:11px; color:var(--muted); overflow:hidden;
-            text-overflow:ellipsis; white-space:nowrap}
-  .icon-btn{padding:5px 8px; font-size:12px}
+  .side-foot img{width:32px; height:32px; border-radius:50%; background:var(--accent);
+                 object-fit:cover; flex:none}
+  .who{min-width:0; flex:1; display:block}
+  .who b{display:block; font-weight:600; color:var(--ink); font-size:13px;
+         overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+  .who span{display:block; color:var(--muted); font-size:11px;
+            overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+  .icon-btn{padding:5px 10px; font-size:12px; flex:none}
 
   /* ================= main ================= */
   .main{display:flex; flex-direction:column; min-width:0; min-height:0}
   .toolbar{
-    display:flex; align-items:center; gap:8px; padding:9px 14px;
-    background:var(--panel); border-bottom:1px solid var(--border); flex-wrap:wrap; flex:none;
+    display:flex; align-items:center; gap:8px; padding:13px 30px; flex-wrap:wrap; flex:none;
+    background:rgba(246,247,249,.85); backdrop-filter:blur(8px);
+    border-bottom:1px solid var(--line);
   }
-  .toolbar h2{margin:0; font-size:14px; font-weight:600; letter-spacing:-.01em}
-  .tool-sep{width:1px; height:20px; background:var(--border); margin:0 2px}
+  .toolbar h2{margin:0; font-size:20px; font-weight:800; letter-spacing:-.02em; color:var(--ink)}
+  .tool-sep{width:1px; height:20px; background:var(--line); margin:0 4px}
   .zoom-label{font-size:12px; color:var(--muted); font-variant-numeric:tabular-nums;
               min-width:44px; text-align:center}
-  .save-state{margin-left:auto; font-size:12px; color:var(--muted)}
-  .save-state.dirty{color:var(--accent)}
+  /* mirrors the dashboard's .savestate dot in the sidebar footer */
+  .save-state{margin-left:auto; font-size:11px; color:var(--muted);
+              display:flex; align-items:center; gap:6px}
+  .save-state::before{content:""; width:7px; height:7px; border-radius:50%;
+                      background:#22c55e; flex-shrink:0}
+  .save-state.dirty::before{background:#eab308}
   .save-state.bad{color:var(--danger)}
-  select{font:inherit; font-size:13px; font-weight:500; color:var(--ink); background:var(--panel);
-         border:1px solid var(--border); border-radius:8px; padding:6px 9px; max-width:210px}
+  .save-state.bad::before{background:#ef4444}
+  select{font:inherit; font-size:13px; font-weight:600; color:var(--ink-2); background:#fff;
+         border:1px solid var(--line); border-radius:9px; padding:8px 10px; max-width:210px}
 
   /* ================= canvas ================= */
   .viewport{
@@ -137,7 +152,7 @@
   .edges{position:absolute; left:0; top:0; width:1px; height:1px; overflow:visible;
          pointer-events:none}
   .edges path.hit{stroke:transparent; stroke-width:16; fill:none; pointer-events:stroke; cursor:pointer}
-  .edges path.wire{stroke:var(--line); stroke-width:2; fill:none; pointer-events:none}
+  .edges path.wire{stroke:var(--wire); stroke-width:2; fill:none; pointer-events:none}
   .edges g.sel path.wire{stroke:var(--accent); stroke-width:2.6}
 
   /* ---------- groups ---------- */
@@ -301,8 +316,9 @@
   /* columns of files */
   .doc-cols{display:flex; gap:12px; align-items:flex-start; overflow-x:auto; padding-bottom:10px}
   .doc-col{
-    flex:0 0 268px; background:var(--sidebar); border:1px solid var(--border);
-    border-radius:12px; display:flex; flex-direction:column; max-height:62vh;
+    flex:0 0 268px; background:#fff; border:1px solid var(--line);
+    border-radius:14px; display:flex; flex-direction:column; max-height:62vh;
+    box-shadow:var(--shadow);
   }
   .doc-col.over{border-color:var(--accent); background:var(--accent-soft)}
   .doc-col-head{display:flex; align-items:center; gap:7px; padding:10px 11px;
@@ -405,11 +421,11 @@
   .chan-head button{margin-left:auto; flex:none}
   .chan-grid{display:grid; grid-template-columns:repeat(auto-fill, minmax(230px,1fr)); gap:12px}
   .chan-card{
-    display:flex; align-items:center; gap:11px; padding:15px 14px;
-    background:var(--panel); border:1.5px solid var(--border); border-radius:12px;
-    box-shadow:var(--shadow); cursor:pointer; transition:border-color .14s, background .14s;
+    display:flex; align-items:center; gap:11px; padding:16px 15px;
+    background:#fff; border:1px solid var(--line); border-radius:14px;
+    box-shadow:var(--shadow); cursor:pointer; transition:.13s;
   }
-  .chan-card:hover{border-color:var(--accent)}
+  .chan-card:hover{border-color:#d4d9e2; box-shadow:var(--shadow-lift); transform:translateY(-2px)}
   .chan-card.on{border-color:var(--ok); background:var(--ok-bg)}
   .chan-tick{
     width:22px; height:22px; border-radius:6px; flex:none; display:grid; place-items:center;
@@ -420,9 +436,10 @@
   .chan-name{flex:1; min-width:0; font-size:13.5px; font-weight:600;
              overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
   .chan-card:not(.on) .chan-name{color:var(--muted); font-weight:500}
-  .chan-scope{font-size:10.5px; font-weight:600; letter-spacing:.06em;
-              text-transform:uppercase; color:var(--muted)}
-  .chan-card.on .chan-scope{color:var(--ok)}
+  .chan-scope{display:inline-block; margin-top:4px; font-size:10px; font-weight:800;
+              letter-spacing:.03em; text-transform:uppercase; border-radius:20px;
+              padding:3px 8px; color:var(--muted); background:#f1f2f4}
+  .chan-card.on .chan-scope{color:var(--ok); background:var(--ok-bg)}
   .chan-card input{font:inherit; font-size:13.5px; font-weight:600; color:var(--ink);
                    background:var(--bg); border:1px solid var(--accent); border-radius:5px;
                    padding:1px 5px; outline:none; width:100%}
@@ -496,7 +513,7 @@
           <defs>
             <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5"
                     markerWidth="7" markerHeight="7" orient="auto-start-reverse">
-              <path d="M 0 0 L 10 5 L 0 10 z" fill="var(--line)"></path>
+              <path d="M 0 0 L 10 5 L 0 10 z" fill="var(--wire)"></path>
             </marker>
             <marker id="arrowSel" viewBox="0 0 10 10" refX="9" refY="5"
                     markerWidth="7" markerHeight="7" orient="auto-start-reverse">
@@ -775,6 +792,25 @@ function render(){
   positionPalette();
 }
 
+/* Sidebar icons, drawn in the dashboard's stroke style. */
+const TAB_ICONS = {
+  'Product Architecture': '<rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/>',
+  'Market Research Frame': '<circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/>',
+  'Messaging Framework': '<path d="M21 11.5a8.4 8.4 0 0 1-9 8.4 8.9 8.9 0 0 1-3.8-.9L3 21l1.9-5.1A8.4 8.4 0 0 1 12 3a8.4 8.4 0 0 1 9 8.5z"/>',
+  'Positioning Document': '<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h4"/>',
+  'Growth Strategy': '<path d="M3 17l6-6 4 4 7-7"/><path d="M14 8h6v6"/>',
+  'Channel Strategy': '<path d="M4 6h16M4 12h16M4 18h9"/><circle cx="19" cy="18" r="2"/>',
+  'Content Strategy': '<path d="M4 5h16v14H4z"/><path d="M8 9h8M8 13h5"/>',
+  'Keyword Repo': '<circle cx="8.5" cy="8.5" r="4.5"/><path d="M12 12l7 7"/><path d="M17 17l2-2"/>',
+  'Document Gallery': '<path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>'
+};
+function tabIcon(name){
+  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  svg.setAttribute('viewBox', '0 0 24 24');
+  svg.innerHTML = TAB_ICONS[name] || '<circle cx="12" cy="12" r="8"/>';
+  return svg;
+}
+
 function renderTabs(){
   const box = $('tabs');
   box.innerHTML = '';
@@ -782,6 +818,7 @@ function renderTabs(){
     const t = state.tabs[name] || { nodes: [] };
     const b = document.createElement('button');
     b.className = 'tab' + (name === state.tab ? ' active' : '');
+    b.append(tabIcon(name));
     const label = document.createElement('span');
     label.textContent = name;
     const n = document.createElement('span');
