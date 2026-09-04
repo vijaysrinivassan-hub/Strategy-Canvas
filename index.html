@@ -453,24 +453,27 @@
 
   /* header band */
   .mx-table thead th{
-    position:sticky; top:0; z-index:3; height:52px;
-    background:#f9fafb; padding:8px 10px;
+    position:sticky; top:0; z-index:3; height:40px;
+    background:#f9fafb; padding:0 10px;
   }
   .mx-corner{position:sticky; left:0; top:0; z-index:5; background:#f9fafb !important}
-  .mx-rh{position:sticky; left:0; z-index:2; background:#fff; padding:9px 10px}
+  .mx-rh{position:sticky; left:0; z-index:2; background:#fff; padding:0 10px; height:auto}
   .mx-table tbody tr:hover td, .mx-table tbody tr:hover th{background:#fafbfc}
 
-  .mx-lab{display:flex; align-items:center; gap:5px; min-width:0}
+  .mx-lab{display:flex; align-items:center; gap:5px; min-width:0; height:40px}
   .mx-lab b{font-size:12.5px; font-weight:700; color:var(--ink); cursor:text;
             overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
   .mx-lab .x{margin-left:auto; padding:0 5px; font-size:13px; line-height:1.4;
-             color:var(--faint); border-color:transparent; background:transparent; flex:none}
+             color:var(--faint); border-color:transparent; background:transparent; flex:none;
+             opacity:0; transition:opacity .12s}
   .mx-lab .x:hover{color:var(--danger); background:var(--danger-bg); border-color:transparent}
   .mx-lab .cog{padding:0 5px; font-size:10.5px; line-height:1.6; color:var(--faint);
-               border-color:transparent; background:transparent; flex:none; font-weight:600}
+               border-color:transparent; background:transparent; flex:none; font-weight:600;
+               opacity:0; transition:opacity .12s}
+  th:hover .mx-lab .cog, th:hover .mx-lab .x,
+  .mx-lab .cog:focus, .mx-lab .x:focus{opacity:1}
   .mx-lab .cog:hover{color:var(--accent); background:var(--accent-soft); border-color:transparent}
-  .mx-terms{font-size:10.5px; color:var(--faint); margin-top:3px; line-height:1.4;
-            overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+  /* match terms and aliases are still editable, just not printed in the grid */
 
   /* cells: a fixed-height scroller so every row in a band lines up */
   .mx-cell{padding:0}
@@ -488,8 +491,7 @@
             font-variant-numeric:tabular-nums; flex:none}
   .mx-kw.on{background:#f4f7ff}
   .mx-kw.on span{font-weight:600; color:var(--accent)}
-  .mx-none{height:30px; display:flex; align-items:center; padding:0 10px;
-           font-size:12px; color:#c9ccd3}
+  .mx-none{height:30px}
 
   /* ================= keyword repo ================= */
   .kw{flex:1; min-height:0; overflow-y:auto; padding:18px 22px 40px; background:var(--bg);
@@ -718,7 +720,7 @@
         <div>
           <h3>Competitor &times; article matrix</h3>
           <p>Keywords from the repo drop into the cell they fit. Tick the ones worth writing &mdash;
-             they become your selected keywords.</p>
+             they become your selected keywords. Hover a heading to rename it or change what it matches.</p>
         </div>
         <button class="sp" id="btnAddCompetitor">+ Competitor</button>
         <button id="btnAddType">+ Article type</button>
@@ -2267,7 +2269,7 @@ function renderMatrix(){
     if (!ro){
       const cog = document.createElement('button');
       cog.className = 'cog';
-      cog.textContent = 'terms';
+      cog.textContent = '⋯';
       cog.title = 'Words a keyword must contain to land in this column';
       cog.onclick = function(){
         const v = prompt('Match terms for "' + ty.name + '", comma separated',
@@ -2287,10 +2289,7 @@ function renderMatrix(){
       };
       lab.append(cog, x);
     }
-    const terms = document.createElement('div');
-    terms.className = 'mx-terms';
-    terms.textContent = (ty.terms || []).join(', ');
-    th.append(lab, terms);
+    th.append(lab);
     hr.append(th);
   });
   thead.append(hr);
@@ -2314,7 +2313,7 @@ function renderMatrix(){
     if (!ro){
       const cog = document.createElement('button');
       cog.className = 'cog';
-      cog.textContent = 'aliases';
+      cog.textContent = '⋯';
       cog.title = 'Other spellings that also mean this competitor';
       cog.onclick = function(){
         const v = prompt('Aliases for "' + comp.name + '", comma separated',
@@ -2334,10 +2333,7 @@ function renderMatrix(){
       };
       lab.append(cog, x);
     }
-    const al = document.createElement('div');
-    al.className = 'mx-terms';
-    al.textContent = (comp.aliases || []).join(', ');
-    rh.append(lab, al);
+    rh.append(lab);
     tr.append(rh);
 
     m.types.forEach(function(ty){
@@ -2346,9 +2342,9 @@ function renderMatrix(){
       td.className = 'mx-cell' + (rows.length ? '' : ' empty-cell');
 
       if (!rows.length){
+        /* keep the row height, show nothing */
         const none = document.createElement('div');
         none.className = 'mx-none';
-        none.textContent = '—';
         td.append(none);
       } else {
         const list = document.createElement('div');
