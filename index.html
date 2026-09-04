@@ -181,6 +181,7 @@ const SAMPLE = `# Q3 Growth Strategy
 `;
 
 const $ = id => document.getElementById(id);
+const BUILD = "v1.1";
 const state = { report: null, sel: null };
 
 /* ---------- parse a markdown-ish report into columns ---------- */
@@ -210,7 +211,7 @@ function render(){
   const r = state.report;
   $('reportTitle').textContent = r.title;
   const cards = r.columns.reduce((n, c) => n + c.cards.length, 0);
-  $('reportMeta').textContent = r.columns.length + ' columns · ' + cards + ' cards';
+  $('reportMeta').textContent = r.columns.length + ' columns · ' + cards + ' cards · ' + BUILD;
 
   const board = $('board');
   board.innerHTML = '';
