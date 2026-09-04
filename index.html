@@ -527,6 +527,17 @@
   .mx-plan:hover{background:#f6f7f9}
   .mx-plan input{margin:0; accent-color:#15803d; width:14px; height:14px; flex:none}
   .mx-cell.planned{background:#f4fbf6}
+  /* SEO / AEO segmented switch, one per cell */
+  .mx-mode{display:inline-flex; flex:none; border:1px solid var(--line);
+           border-radius:6px; overflow:hidden; background:#fff; margin-left:auto}
+  .mx-mode button{
+    padding:0 6px; height:18px; font-size:9.5px; font-weight:700; letter-spacing:.03em;
+    border:none; border-radius:0; background:transparent; color:var(--faint);
+  }
+  .mx-mode button + button{border-left:1px solid var(--line)}
+  .mx-mode button:hover:not(:disabled){background:#f5f5f6; color:var(--ink)}
+  .mx-mode button.on{background:var(--accent); color:#fff}
+  .mx-mode button.on:hover:not(:disabled){background:var(--accent-d); color:#fff}
   .mx-cell.planned .mx-plan{color:var(--ok)}
   .mx-cell.planned .mx-kw{background:transparent}
   .mx-cell.planned .mx-kw:hover{background:var(--accent-soft)}
@@ -836,7 +847,7 @@ const SUPABASE_URL = 'https://cskamgfvebryahkljlll.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_MdkD-TxMCIwlu69seSHA3Q_A39GADsK';
 const CLIENT_ID    = '1059013355751-6g50dsgm7df37htl2fdqrtlkh5hmrc0c.apps.googleusercontent.com';
 const ALLOWED      = ['vijaysrinivassan@gmail.com'];
-const BUILD        = 'v3.6';
+const BUILD        = 'v3.7';
 
 const TABS = [
   'Product Architecture',
@@ -1143,7 +1154,13 @@ function renderTabs(){
           lab.textContent = v.label;
           sb2.append(lab);
           const view = root.views[v.id];
-          const planned = view && view.cells ? Object.keys(view.cells).length : 0;
+          /* a cell can hold a mode with the tick off, so count only the ticked */
+          const planned = view && view.cells
+            ? Object.keys(view.cells).filter(function(k){
+                const c = view.cells[k];
+                return c === true || (c && c.on);
+              }).length
+            : 0;
           if (planned){
             const cnt = document.createElement('span');
             cnt.className = 'n';
@@ -2711,6 +2728,19 @@ function cellKeywords(comp, type){
   });
 }
 
+/* A cell used to be a bare `true`. It now carries the SEO/AEO choice too, so
+   old boards are read forward rather than reset. */
+function cellState(m, key){
+  const raw = m.cells[key];
+  if (raw === true) return { on: true, mode: 'seo' };
+  if (raw && typeof raw === 'object') return { on: !!raw.on, mode: raw.mode === 'aeo' ? 'aeo' : 'seo' };
+  return { on: false, mode: 'seo' };
+}
+function setCellState(m, key, st){
+  if (!st.on && st.mode === 'seo') delete m.cells[key];
+  else m.cells[key] = { on: st.on, mode: st.mode };
+}
+
 function renderMatrix(){
   const m = matrixState();
   const vd = viewDef(state.contentView);
@@ -2766,6 +2796,12 @@ function renderMatrix(){
   hr.append(cornerNum);
   const corner = document.createElement('th');
   corner.className = 'mx-corner';
+  const cLab = document.createElement('div');
+  cLab.className = 'mx-lab';
+  const cName = document.createElement('b');
+  cName.textContent = vd.label + ' Name';
+  cLab.append(cName);
+  corner.append(cLab);
   hr.append(corner);
 
   m.types.forEach(function(ty){
@@ -2877,25 +2913,48 @@ function renderMatrix(){
       const td = document.createElement('td');
       const rows = cellKeywords(comp, ty);
       const cellKey = comp.id + '|' + ty.id;
-      const planned = !!m.cells[cellKey];
-      td.className = 'mx-cell' + (planned ? ' planned' : '') + (rows.length ? '' : ' empty-cell');
+      const st = cellState(m, cellKey);
+      td.className = 'mx-cell' + (st.on ? ' planned' : '') + (rows.length ? '' : ' empty-cell');
 
-      /* Always present, whether or not a keyword landed here. */
-      const plan = document.createElement('label');
+      /* One row per cell: the tick, the article type it stands for, and
+         whether the piece is aimed at search or at answer engines. */
+      const plan = document.createElement('div');
       plan.className = 'mx-plan';
+
       const pcb = document.createElement('input');
       pcb.type = 'checkbox';
-      pcb.checked = planned;
+      pcb.checked = st.on;
       pcb.disabled = ro;
+      pcb.title = 'Mark this article as one you are writing, keyword or not';
       pcb.onchange = function(){
-        if (pcb.checked) m.cells[cellKey] = true; else delete m.cells[cellKey];
+        setCellState(m, cellKey, { on: pcb.checked, mode: st.mode });
         markDirty();
         renderMatrix();
       };
+
       const ptx = document.createElement('span');
-      ptx.textContent = 'Write this';
-      plan.append(pcb, ptx);
-      plan.title = 'Mark this article as one you are writing, keyword or not';
+      ptx.textContent = (ty.name || '').trim() || 'Write this';
+      ptx.style.cssText = 'overflow:hidden;text-overflow:ellipsis;white-space:nowrap';
+
+      const mode = document.createElement('div');
+      mode.className = 'mx-mode';
+      ['seo', 'aeo'].forEach(function(kind){
+        const btn = document.createElement('button');
+        btn.textContent = kind.toUpperCase();
+        btn.className = st.mode === kind ? 'on' : '';
+        btn.disabled = ro;
+        btn.title = kind === 'seo' ? 'Written for search engines'
+                                   : 'Written for answer engines';
+        btn.onclick = function(ev){
+          ev.stopPropagation();
+          setCellState(m, cellKey, { on: st.on, mode: kind });
+          markDirty();
+          renderMatrix();
+        };
+        mode.append(btn);
+      });
+
+      plan.append(pcb, ptx, mode);
       td.append(plan);
 
       if (rows.length){
