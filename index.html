@@ -1,0 +1,367 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Strategy Canvas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#f5f7fb; --panel:#ffffff; --ink:#0f172a; --muted:#64748b;
+    --accent:#2563eb; --accent-soft:#eff4ff; --border:#e2e8f0;
+    --shadow:0 1px 2px rgba(15,23,42,.06), 0 8px 24px rgba(15,23,42,.05);
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#0b1120; --panel:#111a2e; --ink:#e8eefb; --muted:#93a3bd;
+      --accent:#60a5fa; --accent-soft:#16243f; --border:#22304d;
+      --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.35);
+    }
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0; background:var(--bg); color:var(--ink);
+    font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    font-size:14px; line-height:1.5; -webkit-font-smoothing:antialiased;
+  }
+
+  /* ---------- header ---------- */
+  header{
+    display:flex; align-items:center; gap:16px; flex-wrap:wrap;
+    padding:14px 22px; background:var(--panel); border-bottom:1px solid var(--border);
+    position:sticky; top:0; z-index:20;
+  }
+  .brand{display:flex; align-items:center; gap:10px; margin-right:auto}
+  .dot{width:26px;height:26px;border-radius:8px;background:var(--accent);
+       display:grid;place-items:center;color:#fff;font-weight:700;font-size:13px}
+  .brand h1{font-size:15px; font-weight:600; margin:0; letter-spacing:-.01em}
+  .brand span{display:block; font-size:12px; color:var(--muted); font-weight:400}
+  button{
+    font:inherit; font-weight:500; cursor:pointer; border-radius:8px;
+    border:1px solid var(--border); background:var(--panel); color:var(--ink);
+    padding:7px 13px; transition:background .15s, border-color .15s;
+  }
+  button:hover{background:var(--accent-soft); border-color:var(--accent)}
+  button.primary{background:var(--accent); border-color:var(--accent); color:#fff}
+  button.primary:hover{filter:brightness(1.08)}
+
+  /* ---------- layout ---------- */
+  main{
+    display:grid; grid-template-columns:minmax(0,1fr) 320px;
+    gap:18px; padding:18px 22px 40px; align-items:start;
+  }
+  @media (max-width:1000px){ main{grid-template-columns:minmax(0,1fr)} }
+
+  /* ---------- the 4-column board ---------- */
+  .board{display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:14px}
+  @media (max-width:900px){ .board{grid-template-columns:repeat(2,minmax(0,1fr))} }
+  @media (max-width:560px){ .board{grid-template-columns:minmax(0,1fr)} }
+
+  .col{background:var(--panel); border:1px solid var(--border); border-radius:12px;
+       box-shadow:var(--shadow); overflow:hidden; display:flex; flex-direction:column}
+  .col-head{padding:12px 14px; border-bottom:1px solid var(--border);
+            display:flex; align-items:center; gap:8px}
+  .col-head b{font-size:13px; font-weight:600; letter-spacing:-.01em}
+  .count{margin-left:auto; font-size:11px; font-weight:600; color:var(--accent);
+         background:var(--accent-soft); border-radius:999px; padding:2px 8px}
+  .col-body{padding:10px; display:flex; flex-direction:column; gap:8px; min-height:60px}
+
+  .card{
+    text-align:left; width:100%; padding:10px 11px; border-radius:9px;
+    border:1px solid var(--border); background:transparent; color:var(--ink);
+    display:block; line-height:1.45;
+  }
+  .card:hover{background:var(--accent-soft); border-color:var(--accent)}
+  .card.active{background:var(--accent-soft); border-color:var(--accent);
+               box-shadow:inset 3px 0 0 var(--accent)}
+  .card strong{display:block; font-size:13px; font-weight:600; letter-spacing:-.005em}
+  .card em{display:block; font-style:normal; font-size:12px; color:var(--muted); margin-top:3px}
+  .empty{font-size:12px; color:var(--muted); padding:8px 4px}
+
+  /* ---------- right panel ---------- */
+  aside{position:sticky; top:76px; display:flex; flex-direction:column; gap:14px}
+  .panel{background:var(--panel); border:1px solid var(--border); border-radius:12px;
+         box-shadow:var(--shadow); padding:16px}
+  .panel h2{margin:0 0 4px; font-size:11px; font-weight:600; letter-spacing:.08em;
+            text-transform:uppercase; color:var(--muted)}
+  .badge{display:inline-block; font-size:11px; font-weight:600; color:var(--accent);
+         background:var(--accent-soft); border-radius:999px; padding:2px 9px; margin-bottom:9px}
+  #detailTitle{font-size:15px; font-weight:600; margin:0 0 6px; letter-spacing:-.01em}
+  #detailBody{font-size:13px; color:var(--muted); margin:0}
+  canvas{width:100%; height:120px; display:block; margin-top:10px}
+
+  /* ---------- paste drawer ---------- */
+  .drawer{grid-column:1/-1; background:var(--panel); border:1px solid var(--border);
+          border-radius:12px; box-shadow:var(--shadow); padding:16px}
+  .drawer p{margin:0 0 10px; font-size:12px; color:var(--muted)}
+  .drawer code{background:var(--accent-soft); color:var(--accent);
+               padding:1px 5px; border-radius:4px; font-size:11px}
+  textarea{
+    width:100%; min-height:190px; resize:vertical; padding:11px 12px;
+    border-radius:9px; border:1px solid var(--border); background:var(--bg);
+    color:var(--ink); font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+    font-size:12px; line-height:1.6;
+  }
+  textarea:focus{outline:2px solid var(--accent); outline-offset:-1px; border-color:var(--accent)}
+  .drawer-actions{display:flex; gap:8px; margin-top:10px}
+  .drawer h2{margin:0 0 4px; font-size:11px; font-weight:600; letter-spacing:.08em;
+             text-transform:uppercase; color:var(--muted)}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <div class="dot">SC</div>
+    <div>
+      <h1 id="reportTitle">Strategy Canvas</h1>
+      <span id="reportMeta">Loading…</span>
+    </div>
+  </div>
+  <button id="btnPaste">Paste a report</button>
+  <button id="btnSample" class="primary">Load sample</button>
+</header>
+
+<main>
+  <section class="board" id="board"></section>
+
+  <aside>
+    <div class="panel">
+      <h2>Detail</h2>
+      <div id="detailBadge"></div>
+      <p id="detailTitle">Nothing selected</p>
+      <p id="detailBody">Click any card on the board to read it here.</p>
+    </div>
+    <div class="panel">
+      <h2>Weight by column</h2>
+      <canvas id="chart"></canvas>
+    </div>
+  </aside>
+
+  <div class="drawer" id="drawer" hidden>
+    <h2>Paste your strategy report</h2>
+    <p>Use <code># Title</code> for the report name, <code>## Section</code> for each column, and <code>- bullets</code> for cards. Put a long dash inside a bullet to split it into a heading and a note.</p>
+    <textarea id="input" spellcheck="false"></textarea>
+    <div class="drawer-actions">
+      <button class="primary" id="btnApply">Render it</button>
+      <button id="btnClose">Cancel</button>
+    </div>
+  </div>
+</main>
+
+<script>
+const SAMPLE = `# Q3 Growth Strategy
+
+## Situation
+- Traffic is flat — Organic sessions have hovered at ~42k/mo for three quarters despite doubling publishing volume.
+- Answer engines now matter — Roughly 18% of qualified demo requests cite an AI assistant as first touch.
+- Thin middle funnel — We rank for definitions but almost nothing for comparison or pricing intent.
+- Sales has no ammo — Reps rebuild the same competitor objections by hand on every call.
+
+## Objectives
+- Own comparison intent — Rank top-3 for the twelve highest-value "vs" and "alternatives" queries.
+- Get cited, not just ranked — Appear in AI answers for our core category questions.
+- Shorten the first call — Give reps a page to send instead of a paragraph to write.
+- Prove the channel — Attribute pipeline to content, not just sessions.
+
+## Plays
+- Comparison page system — One templated page per competitor, built from a shared block library.
+- Rewrite the top 20 — Add first-person practitioner detail to pages already ranking 4-10.
+- Structured answers — Add FAQ and summary blocks so engines can lift clean passages.
+- Sales enablement loop — Ship every new page into the CRM the day it goes live.
+
+## Metrics
+- Comparison keywords in top 3 — Baseline 1, target 12 by end of quarter.
+- AI citation share — Baseline unmeasured, target 25% of tracked prompts.
+- Content-sourced pipeline — Baseline $180k, target $450k.
+- Time to first send — Baseline 40 min per rep per deal, target under 5.
+`;
+
+const $ = id => document.getElementById(id);
+const state = { report: null, sel: null };
+
+/* ---------- parse a markdown-ish report into columns ---------- */
+function parseReport(text){
+  const report = { title: 'Strategy Canvas', columns: [] };
+  let col = null;
+  for (const raw of text.split('\n')){
+    const line = raw.trim();
+    if (!line) continue;
+    if (line.startsWith('## ')){
+      col = { name: line.slice(3).trim(), cards: [] };
+      report.columns.push(col);
+    } else if (line.startsWith('# ')){
+      report.title = line.slice(2).trim();
+    } else if (/^[-*]\s+/.test(line)){
+      if (!col){ col = { name: 'Notes', cards: [] }; report.columns.push(col); }
+      const body = line.replace(/^[-*]\s+/, '').replace(/\*\*/g, '');
+      const bits = body.split(/\s+[—–]\s+/);
+      col.cards.push({ title: bits[0].trim(), body: bits.slice(1).join(' — ').trim() });
+    }
+  }
+  return report;
+}
+
+/* ---------- render the board ---------- */
+function render(){
+  const r = state.report;
+  $('reportTitle').textContent = r.title;
+  const cards = r.columns.reduce((n, c) => n + c.cards.length, 0);
+  $('reportMeta').textContent = r.columns.length + ' columns · ' + cards + ' cards';
+
+  const board = $('board');
+  board.innerHTML = '';
+  r.columns.forEach((c, ci) => {
+    const col = document.createElement('div');
+    col.className = 'col';
+
+    const head = document.createElement('div');
+    head.className = 'col-head';
+    const name = document.createElement('b');
+    name.textContent = c.name;
+    const count = document.createElement('span');
+    count.className = 'count';
+    count.textContent = c.cards.length;
+    head.append(name, count);
+
+    const body = document.createElement('div');
+    body.className = 'col-body';
+    if (!c.cards.length){
+      const e = document.createElement('div');
+      e.className = 'empty';
+      e.textContent = 'No cards';
+      body.append(e);
+    }
+    c.cards.forEach((card, ki) => {
+      const btn = document.createElement('button');
+      btn.className = 'card';
+      if (state.sel && state.sel[0] === ci && state.sel[1] === ki) btn.classList.add('active');
+      const t = document.createElement('strong');
+      t.textContent = card.title;
+      btn.append(t);
+      if (card.body){
+        const b = document.createElement('em');
+        b.textContent = card.body;
+        btn.append(b);
+      }
+      btn.onclick = () => { state.sel = [ci, ki]; render(); };
+      body.append(btn);
+    });
+
+    col.append(head, body);
+    board.append(col);
+  });
+
+  renderDetail();
+  drawChart();
+}
+
+function renderDetail(){
+  const badge = $('detailBadge');
+  badge.innerHTML = '';
+  if (!state.sel){
+    $('detailTitle').textContent = 'Nothing selected';
+    $('detailBody').textContent = 'Click any card on the board to read it here.';
+    return;
+  }
+  const col = state.report.columns[state.sel[0]];
+  const card = col.cards[state.sel[1]];
+  const b = document.createElement('span');
+  b.className = 'badge';
+  b.textContent = col.name;
+  badge.append(b);
+  $('detailTitle').textContent = card.title;
+  $('detailBody').textContent = card.body || 'No further detail in the report.';
+}
+
+/* ---------- the <canvas> bit: cards per column ---------- */
+function drawChart(){
+  const cv = $('chart');
+  const dpr = window.devicePixelRatio || 1;
+  const w = cv.clientWidth, h = cv.clientHeight;
+  if (!w || !h) return;
+  cv.width = w * dpr; cv.height = h * dpr;
+  const ctx = cv.getContext('2d');
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.clearRect(0, 0, w, h);
+
+  const cols = state.report.columns;
+  if (!cols.length) return;
+  const max = Math.max(1, ...cols.map(c => c.cards.length));
+  const css = getComputedStyle(document.documentElement);
+  const accent = css.getPropertyValue('--accent').trim();
+  const soft = css.getPropertyValue('--accent-soft').trim();
+  const muted = css.getPropertyValue('--muted').trim();
+
+  const pad = 4, labelH = 18;
+  const slot = (w - pad * 2) / cols.length;
+  const barW = Math.min(34, Math.max(8, slot - 8));
+  const plotH = h - labelH - 6;
+
+  ctx.font = '600 10px Inter, system-ui, sans-serif';
+  ctx.textAlign = 'center';
+
+  cols.forEach((c, i) => {
+    const cx = pad + slot * i + slot / 2;
+    const bh = Math.max(3, (c.cards.length / max) * plotH);
+    const isSel = state.sel && state.sel[0] === i;
+
+    ctx.fillStyle = soft;
+    ctx.beginPath();
+    ctx.roundRect(cx - barW / 2, 2, barW, plotH, 5);
+    ctx.fill();
+
+    ctx.fillStyle = accent;
+    ctx.globalAlpha = isSel ? 1 : 0.62;
+    ctx.beginPath();
+    ctx.roundRect(cx - barW / 2, 2 + plotH - bh, barW, bh, 5);
+    ctx.fill();
+    ctx.globalAlpha = 1;
+
+    ctx.fillStyle = muted;
+    const label = c.name.length > 9 ? c.name.slice(0, 8) + '…' : c.name;
+    ctx.fillText(label, cx, h - 5);
+  });
+}
+
+/* ---------- load / save ---------- */
+function load(text, remember){
+  state.report = parseReport(text);
+  state.sel = null;
+  if (remember){ try { localStorage.setItem('strategy-canvas', text); } catch (e) {} }
+  render();
+}
+
+$('btnSample').onclick = () => {
+  try { localStorage.removeItem('strategy-canvas'); } catch (e) {}
+  load(SAMPLE, false);
+  $('drawer').hidden = true;
+};
+$('btnPaste').onclick = () => {
+  const d = $('drawer');
+  d.hidden = !d.hidden;
+  if (!d.hidden){
+    let saved = '';
+    try { saved = localStorage.getItem('strategy-canvas') || ''; } catch (e) {}
+    $('input').value = saved || SAMPLE;
+    $('input').focus();
+  }
+};
+$('btnClose').onclick = () => { $('drawer').hidden = true; };
+$('btnApply').onclick = () => {
+  const v = $('input').value.trim();
+  if (!v) return;
+  load(v, true);
+  $('drawer').hidden = true;
+};
+window.addEventListener('resize', drawChart);
+
+let boot = '';
+try { boot = localStorage.getItem('strategy-canvas') || ''; } catch (e) {}
+load(boot || SAMPLE, false);
+</script>
+</body>
+</html>
