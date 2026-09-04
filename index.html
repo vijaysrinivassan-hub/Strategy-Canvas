@@ -109,6 +109,20 @@
   .tab:hover{background:#f5f5f6; border-color:transparent}
   .tab.active{background:var(--accent-soft); color:var(--accent); font-weight:600}
   .tab.active svg{color:var(--accent)}
+  .tab .chev{margin-left:auto; font-size:9px; color:var(--faint); flex:none;
+             transition:transform .15s}
+  .tab.open .chev{transform:rotate(90deg)}
+  .tab-sub{
+    display:flex; align-items:center; gap:9px; width:100%; text-align:left;
+    padding:6px 10px 6px 34px; border-radius:8px; border:none; background:transparent;
+    color:var(--muted); font-size:12.5px; font-weight:500; margin-bottom:1px;
+  }
+  .tab-sub:hover{background:#f5f5f6; color:var(--ink); border-color:transparent}
+  .tab-sub.active{background:var(--accent-soft); color:var(--accent); font-weight:600}
+  .tab-sub .n{margin-left:auto; font-size:9.5px; font-weight:700; letter-spacing:.04em;
+              color:var(--faint); flex:none}
+  .tab-sub.active .n{color:var(--accent)}
+
   .tab .n{margin-left:auto; font-size:9.5px; font-weight:700; letter-spacing:.04em;
           color:var(--faint); background:#f0f0f1; padding:2px 6px; border-radius:5px; flex:none}
   .tab.active .n{color:var(--accent); background:#fff}
@@ -744,7 +758,7 @@
     <div class="mx" id="mxPane" hidden>
       <div class="mx-head">
         <div>
-          <h3>Competitor &times; article matrix</h3>
+          <h3 id="mxHeading">Competitor &times; article matrix</h3>
           <p>Keywords from the repo drop into the cell they fit. Tick the ones worth writing &mdash;
              they become your selected keywords. Hover a heading to rename it or change what it matches.</p>
         </div>
@@ -795,7 +809,7 @@ const SUPABASE_URL = 'https://cskamgfvebryahkljlll.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_MdkD-TxMCIwlu69seSHA3Q_A39GADsK';
 const CLIENT_ID    = '1059013355751-6g50dsgm7df37htl2fdqrtlkh5hmrc0c.apps.googleusercontent.com';
 const ALLOWED      = ['vijaysrinivassan@gmail.com'];
-const BUILD        = 'v3.1';
+const BUILD        = 'v3.2';
 
 const TABS = [
   'Product Architecture',
@@ -826,6 +840,7 @@ const state = {
   sel: { ids: [], edge: null },   /* many cards/groups, or one edge */
   role: 'admin',                  /* 'admin' owns the board, 'viewer' may only read */
   screen: 'board',                /* 'board' | 'clients' */
+  contentView: 'competitor',      /* which axis the content matrix is showing */
   ownerId: null,                  /* owner_id of the loaded board */
   view: { x: 0, y: 0, z: 1 },
   dirty: false
@@ -1009,11 +1024,51 @@ function renderTabs(){
     b.append(tabIcon(name));
     const label = document.createElement('span');
     label.textContent = name;
-    const n = document.createElement('span');
-    n.className = 'n';
-    n.textContent = (t.nodes || []).filter(x => x.type !== 'group').length;
-    b.append(label, n);
+    const isPanel = [DOCS_TAB, CHANNELS_TAB, KEYWORDS_TAB, CONTENT_TAB].indexOf(name) > -1;
+    b.append(label);
+    /* an empty badge still draws its padded pill, so only make one when it says something */
+    if (!isPanel){
+      const n = document.createElement('span');
+      n.className = 'n';
+      n.textContent = (t.nodes || []).filter(x => x.type !== 'group').length;
+      b.append(n);
+    }
     b.onclick = () => switchTab(name);
+
+    /* Content Strategy opens into its four axes, the way a WordPress menu
+       item opens into its own pages. */
+    if (name === CONTENT_TAB){
+      const open = state.screen === 'board' && state.tab === CONTENT_TAB;
+      if (open) b.classList.add('open');
+      const chev = document.createElement('span');
+      chev.className = 'chev';
+      chev.textContent = '\u25b6';
+      b.append(chev);
+      box.append(b);
+
+      if (open){
+        const root = contentRoot();
+        CONTENT_VIEWS.forEach(function(v){
+          const sb2 = document.createElement('button');
+          sb2.className = 'tab-sub' + (state.contentView === v.id ? ' active' : '');
+          const lab = document.createElement('span');
+          lab.textContent = v.label;
+          sb2.append(lab);
+          const view = root.views[v.id];
+          const planned = view ? Object.keys(view.cells || {}).length : 0;
+          if (planned){
+            const cnt = document.createElement('span');
+            cnt.className = 'n';
+            cnt.textContent = String(planned);
+            sb2.append(cnt);
+          }
+          sb2.onclick = function(){ switchContentView(v.id); };
+          box.append(sb2);
+        });
+      }
+      return;
+    }
+
     box.append(b);
   });
   $('tabTitle').textContent = state.tab;
@@ -2490,23 +2545,63 @@ function openPasteModal(){
    =================================================================== */
 const CONTENT_TAB = 'Content Strategy';
 
-const DEFAULT_TYPES = [
+const COMPETITOR_TYPES = [
   { name: 'Alternatives', terms: ['alternative', 'alternatives', 'vs', 'versus'] },
   { name: 'Pricing',      terms: ['pricing', 'price', 'cost', 'how much'] },
   { name: 'Reviews',      terms: ['review', 'reviews', 'rating', 'ratings'] },
   { name: 'Features',     terms: ['feature', 'features', 'capabilities'] }
 ];
+const GENERIC_TYPES = [
+  { name: 'Guides',      terms: ['guide', 'guides', 'what is', 'how to'] },
+  { name: 'Comparisons', terms: ['vs', 'versus', 'compare', 'comparison'] },
+  { name: 'Listicles',   terms: ['best', 'top', 'tools', 'examples'] },
+  { name: 'How-to',      terms: ['how to', 'steps', 'tutorial'] }
+];
+
+/* Four ways to slice the same article plan. Rows differ; the columns are
+   article types and belong to each view separately. */
+const CONTENT_VIEWS = [
+  { id: 'category',   label: 'Category',   noun: 'category',   types: GENERIC_TYPES },
+  { id: 'competitor', label: 'Competitor', noun: 'competitor', types: COMPETITOR_TYPES },
+  { id: 'icp',        label: 'ICP',        noun: 'ICP',        types: GENERIC_TYPES },
+  { id: 'value',      label: 'Value',      noun: 'value',      types: GENERIC_TYPES }
+];
+const viewDef = function(id){
+  return CONTENT_VIEWS.filter(function(v){ return v.id === id; })[0] || CONTENT_VIEWS[1];
+};
+
+function contentRoot(){
+  const t = state.tabs[CONTENT_TAB] || (state.tabs[CONTENT_TAB] = { nodes: [], edges: [] });
+  if (!t.views || typeof t.views !== 'object') t.views = {};
+
+  /* Boards saved before the split kept one competitor matrix at the top
+     level. Move it into the competitor view rather than losing it. */
+  if (Array.isArray(t.competitors) && (t.competitors.length || Array.isArray(t.types))){
+    if (!t.views.competitor){
+      t.views.competitor = {
+        rows: t.competitors,
+        types: Array.isArray(t.types) ? t.types : [],
+        cells: t.cells && typeof t.cells === 'object' ? t.cells : {}
+      };
+    }
+    delete t.competitors; delete t.types; delete t.cells;
+  }
+
+  CONTENT_VIEWS.forEach(function(v){
+    const cur = t.views[v.id] || (t.views[v.id] = {});
+    if (!Array.isArray(cur.rows)) cur.rows = [];
+    if (!cur.cells || typeof cur.cells !== 'object') cur.cells = {};
+    if (!Array.isArray(cur.types) || !cur.types.length){
+      cur.types = v.types.map(function(d){
+        return { id: uid(), name: d.name, terms: d.terms.slice() };
+      });
+    }
+  });
+  return t;
+}
 
 function matrixState(){
-  const t = state.tabs[CONTENT_TAB] || (state.tabs[CONTENT_TAB] = { nodes: [], edges: [] });
-  if (!Array.isArray(t.competitors)) t.competitors = [];
-  if (!t.cells || typeof t.cells !== 'object') t.cells = {};   /* "<comp>|<type>": true */
-  if (!Array.isArray(t.types) || !t.types.length){
-    t.types = DEFAULT_TYPES.map(function(d){
-      return { id: uid(), name: d.name, terms: d.terms.slice() };
-    });
-  }
-  return t;
+  return contentRoot().views[state.contentView] || contentRoot().views.competitor;
 }
 
 /* Loose containment is the right call here: Ahrefs keywords are messy and a
@@ -2528,14 +2623,19 @@ function cellKeywords(comp, type){
 
 function renderMatrix(){
   const m = matrixState();
+  const vd = viewDef(state.contentView);
+  const heading = $('mxHeading');
+  if (heading) heading.textContent = vd.label + ' \u00d7 article matrix';
+  const addBtn = $('btnAddCompetitor');
+  if (addBtn) addBtn.textContent = '+ ' + vd.label;
   const table = $('mxTable');
   const setup = $('mxSetup');
   table.innerHTML = '';
 
-  if (!m.competitors.length){
+  if (!m.rows.length){
     setup.hidden = false;
-    setup.textContent = 'Add a competitor to start. Every keyword in the repo that mentions '
-      + 'them and matches an article type will appear in that cell.';
+    setup.textContent = 'Add a ' + vd.noun + ' to start. Every keyword in the repo that mentions '
+      + 'it and matches an article type will appear in that cell.';
   } else if (!kwRows.length){
     setup.hidden = false;
     setup.textContent = 'The matrix is built. Push keywords into the repo and they will fill '
@@ -2608,7 +2708,7 @@ function renderMatrix(){
   table.append(thead);
 
   const tbody = document.createElement('tbody');
-  m.competitors.forEach(function(comp){
+  m.rows.forEach(function(comp){
     const tr = document.createElement('tr');
 
     const rh = document.createElement('th');
@@ -2637,10 +2737,10 @@ function renderMatrix(){
       const x = document.createElement('button');
       x.className = 'x';
       x.innerHTML = '&times;';
-      x.title = 'Remove competitor';
+      x.title = 'Remove ' + vd.noun;
       x.onclick = function(){
         if (!confirm('Remove "' + comp.name + '" from the matrix?')) return;
-        m.competitors = m.competitors.filter(function(z){ return z.id !== comp.id; });
+        m.rows = m.rows.filter(function(z){ return z.id !== comp.id; });
         markDirty(); renderMatrix();
       };
       lab.append(cog, x);
@@ -2676,21 +2776,17 @@ function renderMatrix(){
       if (rows.length){
         const list = document.createElement('div');
         list.className = 'mx-kws';
+        /* The cell carries the single approval; keywords are shown as evidence. */
         rows.forEach(function(r){
-          const lbl = document.createElement('label');
-          lbl.className = 'mx-kw' + (r.selected ? ' on' : '');
-          const cb = document.createElement('input');
-          cb.type = 'checkbox';
-          cb.checked = !!r.selected;
-          cb.disabled = ro;
-          cb.onchange = function(){ moveKeyword(r.id, cb.checked); };
+          const line = document.createElement('div');
+          line.className = 'mx-kw';
           const nm = document.createElement('span');
           nm.textContent = r.keyword;
           nm.title = r.keyword;
           const vol = document.createElement('em');
           vol.textContent = r.volume == null ? '' : Number(r.volume).toLocaleString();
-          lbl.append(cb, nm, vol);
-          list.append(lbl);
+          line.append(nm, vol);
+          list.append(line);
         });
         td.append(list);
       }
@@ -2730,14 +2826,23 @@ function repaintKeywordViews(){
   if (state.tab === CONTENT_TAB) renderMatrix();
 }
 
+function switchContentView(id){
+  state.contentView = id;
+  state.tab = CONTENT_TAB;
+  state.screen = 'board';
+  renderTabs();
+  applyTabMode();
+}
+
 function addCompetitor(){
   if (readOnly()) return;
   const m = matrixState();
-  const name = prompt('Competitor name');
+  const vd = viewDef(state.contentView);
+  const name = prompt(vd.label + ' name');
   if (name === null) return;
   const v = name.trim();
   if (!v) return;
-  m.competitors.push({ id: uid(), name: v, aliases: [] });
+  m.rows.push({ id: uid(), name: v, aliases: [] });
   markDirty();
   renderMatrix();
 }

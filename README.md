@@ -49,7 +49,11 @@ Columns start as Inbox / Research / Working / Final and are yours to change:
 from one column to another. Double-click a file's name to rename it — that is a
 display name only, so the stored object is never touched.
 
-**Content Strategy** is a matrix: competitors down the side, article types across
+**Content Strategy** opens into four axes in the sidebar — Category, Competitor,
+ICP and Value. Each is its own matrix with its own rows and its own article-type
+columns, so the plan can be sliced four ways without four tabs.
+
+Each matrix has rows down the side, article types across
 the top (Alternatives, Pricing, Reviews, Features to start). Every keyword in the
 repo drops into the cells it fits — a keyword matches a row when it mentions that
 competitor or one of its aliases, and a column when it contains one of that
@@ -57,13 +61,12 @@ column's match terms. Both lists are editable: **+ Competitor**, **+ Article
 type**, double-click any heading to rename, and the small *terms* / *aliases*
 buttons widen what a row or column catches.
 
-Every cell carries its own **Write this** tick, present whether or not a keyword
-landed there — plenty of articles get written without one. It is green, and tints
+Each cell carries one **Write this** tick — a single approval for the article,
+present whether or not a keyword — plenty of articles get written without one. It is green, and tints
 the cell, so it never reads as a keyword selection.
 
-The keyword checkbox below it is the same `selected` flag the Keyword Repo uses, so
-ticking here promotes the keyword there and pressing − there clears it here.
-One flag, two views.
+Keywords beneath it are shown as evidence, not as separate choices: the cell is
+what you approve. Selecting individual keywords stays in the Keyword Repo.
 
 **Keyword Repo** is two stacked tables. The lower one holds everything pulled
 from Ahrefs; the upper one holds what you have chosen. `+` on a repo row
