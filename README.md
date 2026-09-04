@@ -66,6 +66,12 @@ from Ahrefs; the upper one holds what you have chosen. `+` on a repo row
 promotes it, `−` on a selected row sends it back — the only thing that changes is
 a `selected` flag on the row. A filter box narrows the repo.
 
+Enter keywords three ways: **+ Keyword** for one with its metrics, **Paste rows**
+for a whole Ahrefs export (tab- or comma-separated, header optional), or the
+**+ keyword** line inside any matrix cell, which pre-fills the competitor and
+article type. A re-paste updates rows it has seen before rather than duplicating
+them, and repeats inside one paste are collapsed first.
+
 Keywords live in their own Postgres table rather than in the board JSON, so an
 MCP server (or any script) can write them directly. Run `supabase-keywords.sql`
 once to create it. The unique index on `(board_id, lower(keyword), country)` means

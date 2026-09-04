@@ -543,6 +543,22 @@
   .kw-setup b{display:block; margin-bottom:4px}
   .kw-setup code{background:rgba(0,0,0,.06); border-radius:4px; padding:1px 5px; font-size:12px}
 
+  /* keyword entry */
+  .kw-add-row{display:flex; align-items:center; gap:8px; height:28px; padding:0 10px;
+              font-size:12px; font-weight:600; color:var(--faint); cursor:pointer;
+              background:transparent; border:none; width:100%; justify-content:flex-start}
+  .kw-add-row:hover{background:var(--accent-soft); color:var(--accent); border:none}
+  .kv{display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:4px}
+  .kv label{display:block}
+  .kv .fl{margin-bottom:5px}
+  .kv.full{grid-template-columns:1fr}
+  .paste-ta{width:100%; min-height:190px; border:1px solid var(--line); border-radius:9px;
+            padding:10px 11px; font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+            font-size:12px; line-height:1.6; resize:vertical; outline:none; color:var(--ink)}
+  .paste-ta:focus{border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-soft)}
+  .paste-hint{font-size:12px; color:var(--muted); margin-top:8px}
+  .paste-hint b{color:var(--ink)}
+
   /* ================= channel strategy ================= */
   .chan{flex:1; min-height:0; overflow-y:auto; padding:22px 22px 40px; background:var(--bg)}
   .chan-head{display:flex; align-items:flex-start; gap:16px; margin-bottom:18px}
@@ -747,6 +763,8 @@
           <h3>Keyword repo</h3>
           <span id="kwRepoCount">0</span>
           <input id="kwSearch" type="search" placeholder="Filter keywords…" autocomplete="off">
+          <button id="btnKwAdd">+ Keyword</button>
+          <button id="btnKwPaste">Paste rows</button>
           <button id="btnKwRefresh">Refresh</button>
         </div>
         <div class="kw-table-wrap"><table class="kw-table" id="kwRepoTable"></table></div>
@@ -2175,6 +2193,289 @@ function openClientSettings(){
 }
 
 /* ===================================================================
+   ENTERING KEYWORDS BY HAND
+   =================================================================== */
+
+/* Accepts what you get from an Ahrefs export: a header row plus tab- or
+   comma-separated values. Falls back to "keyword, volume" per line when
+   there is no header it recognises. */
+const KW_HEADERS = {
+  keyword:           ['keyword', 'keywords', 'term', 'query'],
+  volume:            ['volume', 'search volume', 'vol', 'sv'],
+  kd:                ['kd', 'difficulty', 'keyword difficulty'],
+  cpc:               ['cpc'],
+  traffic_potential: ['traffic potential', 'tp', 'traffic'],
+  parent_topic:      ['parent topic', 'parent'],
+  intent:            ['intent', 'search intent'],
+  country:           ['country', 'location', 'market']
+};
+
+function parseKeywordPaste(text){
+  const lines = String(text || '').split(/\r?\n/).map(function(l){ return l.trim(); }).filter(Boolean);
+  if (!lines.length) return [];
+  const delim = lines[0].indexOf('\t') > -1 ? '\t' : ',';
+  const split = function(l){
+    return l.split(delim).map(function(c){ return c.trim().replace(/^"|"$/g, ''); });
+  };
+
+  const head = split(lines[0]).map(function(h){ return h.toLowerCase(); });
+  const idx = {};
+  Object.keys(KW_HEADERS).forEach(function(k){
+    idx[k] = head.findIndex(function(h){ return KW_HEADERS[k].indexOf(h) > -1; });
+  });
+
+  let start = 1;
+  if (idx.keyword === -1){ idx.keyword = 0; idx.volume = 1; start = 0; }
+
+  const num = function(cells, j){
+    if (j == null || j < 0) return null;
+    const raw = String(cells[j] == null ? '' : cells[j]).replace(/[^0-9.\-]/g, '');
+    if (raw === '' || isNaN(Number(raw))) return null;
+    return Number(raw);
+  };
+  const str = function(cells, j){
+    if (j == null || j < 0) return null;
+    const v = String(cells[j] == null ? '' : cells[j]).trim();
+    return v || null;
+  };
+
+  const out = [];
+  for (let i = start; i < lines.length; i++){
+    const c = split(lines[i]);
+    const kw = (c[idx.keyword] || '').trim();
+    if (!kw) continue;
+    const vol = num(c, idx.volume);
+    const tp  = num(c, idx.traffic_potential);
+    out.push({
+      keyword: kw,
+      volume: vol == null ? null : Math.round(vol),
+      kd: num(c, idx.kd),
+      cpc: num(c, idx.cpc),
+      traffic_potential: tp == null ? null : Math.round(tp),
+      parent_topic: str(c, idx.parent_topic),
+      intent: str(c, idx.intent),
+      country: (str(c, idx.country) || 'us').toLowerCase()
+    });
+  }
+  return out;
+}
+
+/* Insert what is new, update what already exists. Avoids ON CONFLICT, which
+   PostgREST cannot target at this table's expression-based unique index. */
+async function saveKeywords(rows, source){
+  if (readOnly()){ toast('You have view-only access to this board.', true); return; }
+  if (!rows.length){ toast('Nothing to add.', true); return; }
+  if (!state.boardId){
+    toast('Saving the board first\u2026');
+    await saveBoard(true);
+    if (!state.boardId) return;
+  }
+
+  const keyOf = function(r){
+    return String(r.keyword || '').trim().toLowerCase() + '|' + String(r.country || 'us').toLowerCase();
+  };
+
+  /* the paste itself may repeat a keyword; last one wins */
+  const unique = {};
+  rows.forEach(function(r){ unique[keyOf(r)] = r; });
+
+  await loadKeywords();
+  const existing = {};
+  kwRows.forEach(function(r){ existing[keyOf(r)] = r.id; });
+
+  const toInsert = [], toUpdate = [];
+  Object.keys(unique).forEach(function(k){
+    const r = unique[k];
+    const payload = {
+      keyword: r.keyword,
+      volume: r.volume, kd: r.kd, cpc: r.cpc,
+      traffic_potential: r.traffic_potential,
+      parent_topic: r.parent_topic, intent: r.intent,
+      country: r.country || 'us',
+      source: source || 'manual'
+    };
+    if (existing[k]) toUpdate.push({ id: existing[k], payload: payload });
+    else toInsert.push(Object.assign({ owner_id: state.user.id, board_id: state.boardId }, payload));
+  });
+
+  let added = 0, updated = 0;
+  const problems = [];
+
+  if (toInsert.length){
+    const res = await sb.from('keywords').insert(toInsert);
+    if (res.error) problems.push(res.error.message); else added = toInsert.length;
+  }
+  for (let i = 0; i < toUpdate.length; i++){
+    const res = await sb.from('keywords').update(toUpdate[i].payload).eq('id', toUpdate[i].id);
+    if (res.error) problems.push(res.error.message); else updated++;
+  }
+
+  await repaintFromDb();
+
+  if (problems.length){
+    toast('Some rows failed: ' + problems[0], true);
+  } else {
+    const bits = [];
+    if (added) bits.push(added + ' added');
+    if (updated) bits.push(updated + ' updated');
+    toast(bits.join(', ') || 'Nothing changed.');
+  }
+}
+
+async function repaintFromDb(){
+  await loadKeywords();
+  if (state.tab === KEYWORDS_TAB) renderKeywordTables();
+  if (state.tab === CONTENT_TAB) renderMatrix();
+}
+
+/* ---- one keyword at a time ---- */
+function openKeywordModal(seedText){
+  if (readOnly()){ toast('You have view-only access to this board.', true); return; }
+  const host = $('modalHost');
+  host.innerHTML = '';
+
+  const overlay = document.createElement('div');
+  overlay.className = 'overlay';
+  overlay.onclick = closeModal;
+  const modal = document.createElement('div');
+  modal.className = 'modal';
+  modal.onclick = function(ev){ ev.stopPropagation(); };
+
+  const h = document.createElement('h3');
+  h.textContent = 'Add a keyword';
+  const sub = document.createElement('p');
+  sub.textContent = 'Only the keyword is required. Everything else can come later from Ahrefs.';
+
+  const fields = [
+    { k: 'keyword',           label: 'Keyword',           full: true,  type: 'text' },
+    { k: 'volume',            label: 'Volume',            type: 'number' },
+    { k: 'kd',                label: 'KD',                type: 'number' },
+    { k: 'cpc',               label: 'CPC',               type: 'number' },
+    { k: 'traffic_potential', label: 'Traffic potential', type: 'number' },
+    { k: 'parent_topic',      label: 'Parent topic',      type: 'text' },
+    { k: 'intent',            label: 'Intent',            type: 'text' },
+    { k: 'country',           label: 'Country',           type: 'text' }
+  ];
+  const inputs = {};
+  const gridFull = document.createElement('div');
+  gridFull.className = 'kv full';
+  const grid = document.createElement('div');
+  grid.className = 'kv';
+
+  fields.forEach(function(f){
+    const wrap = document.createElement('label');
+    const lab = document.createElement('span');
+    lab.className = 'fl';
+    lab.textContent = f.label;
+    const inp = document.createElement('input');
+    inp.className = 'modal-in';
+    inp.type = f.type;
+    if (f.type === 'number') inp.step = 'any';
+    if (f.k === 'country') inp.value = 'us';
+    if (f.k === 'keyword' && seedText) inp.value = seedText;
+    inputs[f.k] = inp;
+    wrap.append(lab, inp);
+    (f.full ? gridFull : grid).append(wrap);
+  });
+
+  const foot = document.createElement('div');
+  foot.className = 'mrow';
+  const cancel = document.createElement('button');
+  cancel.textContent = 'Cancel';
+  cancel.onclick = closeModal;
+  const save = document.createElement('button');
+  save.className = 'primary';
+  save.textContent = 'Add keyword';
+  save.onclick = async function(){
+    const kw = inputs.keyword.value.trim();
+    if (!kw){ toast('A keyword is required.', true); inputs.keyword.focus(); return; }
+    const numOf = function(k){
+      const v = inputs[k].value.trim();
+      return v === '' ? null : Number(v);
+    };
+    save.disabled = true;
+    closeModal();
+    await saveKeywords([{
+      keyword: kw,
+      volume: numOf('volume') == null ? null : Math.round(numOf('volume')),
+      kd: numOf('kd'), cpc: numOf('cpc'),
+      traffic_potential: numOf('traffic_potential') == null ? null : Math.round(numOf('traffic_potential')),
+      parent_topic: inputs.parent_topic.value.trim() || null,
+      intent: inputs.intent.value.trim() || null,
+      country: (inputs.country.value.trim() || 'us').toLowerCase()
+    }], 'manual');
+  };
+  foot.append(cancel, save);
+
+  modal.append(h, sub, gridFull, grid, foot);
+  overlay.append(modal);
+  host.append(overlay);
+  inputs.keyword.focus();
+  if (seedText) inputs.keyword.setSelectionRange(seedText.length, seedText.length);
+}
+
+/* ---- a whole export at once ---- */
+function openPasteModal(){
+  if (readOnly()){ toast('You have view-only access to this board.', true); return; }
+  const host = $('modalHost');
+  host.innerHTML = '';
+
+  const overlay = document.createElement('div');
+  overlay.className = 'overlay';
+  overlay.onclick = closeModal;
+  const modal = document.createElement('div');
+  modal.className = 'modal';
+  modal.style.width = '620px';
+  modal.onclick = function(ev){ ev.stopPropagation(); };
+
+  const h = document.createElement('h3');
+  h.textContent = 'Paste keywords';
+  const sub = document.createElement('p');
+  sub.textContent = 'Copy straight out of an Ahrefs export or a spreadsheet. Keep the header row if you have one.';
+
+  const ta = document.createElement('textarea');
+  ta.className = 'paste-ta';
+  ta.spellcheck = false;
+  ta.placeholder = 'Keyword\tVolume\tKD\tCPC\ntriple whale pricing\t2400\t12\t3.20\ntriple whale alternatives\t1300\t18\t5.10';
+
+  const hint = document.createElement('div');
+  hint.className = 'paste-hint';
+  hint.textContent = 'Nothing pasted yet.';
+
+  ta.oninput = function(){
+    const rows = parseKeywordPaste(ta.value);
+    if (!rows.length){ hint.textContent = 'Nothing recognised yet.'; return; }
+    hint.innerHTML = '';
+    const b = document.createElement('b');
+    b.textContent = rows.length + (rows.length === 1 ? ' keyword' : ' keywords');
+    hint.append(b, document.createTextNode(' ready \u2014 first: "' + rows[0].keyword + '"'
+      + (rows[0].volume == null ? '' : ' at ' + Number(rows[0].volume).toLocaleString())));
+  };
+
+  const foot = document.createElement('div');
+  foot.className = 'mrow';
+  const cancel = document.createElement('button');
+  cancel.textContent = 'Cancel';
+  cancel.onclick = closeModal;
+  const go = document.createElement('button');
+  go.className = 'primary';
+  go.textContent = 'Import';
+  go.onclick = async function(){
+    const rows = parseKeywordPaste(ta.value);
+    if (!rows.length){ toast('Nothing to import.', true); return; }
+    go.disabled = true;
+    closeModal();
+    await saveKeywords(rows, 'paste');
+  };
+  foot.append(cancel, go);
+
+  modal.append(h, sub, ta, hint, foot);
+  overlay.append(modal);
+  host.append(overlay);
+  ta.focus();
+}
+
+/* ===================================================================
    CONTENT MATRIX  —  competitors x article types
    =================================================================== */
 const CONTENT_TAB = 'Content Strategy';
@@ -2366,6 +2667,17 @@ function renderMatrix(){
           list.append(lbl);
         });
         td.append(list);
+      }
+      if (!ro){
+        const add = document.createElement('button');
+        add.className = 'kw-add-row';
+        add.textContent = '+ keyword';
+        add.title = 'Add a keyword that lands in this cell';
+        add.onclick = function(){
+          const seed = comp.name.toLowerCase() + ' ' + ((ty.terms && ty.terms[0]) || ty.name.toLowerCase());
+          openKeywordModal(seed);
+        };
+        td.append(add);
       }
       tr.append(td);
     });
@@ -2611,7 +2923,7 @@ async function openAccessModal(board){
 function applyRole(){
   const ro = readOnly();
   ['btnSave','btnNewBoard','dock','btnAddColumn','btnAddChannel','dropzone',
-   'btnAddCompetitor','btnAddType']
+   'btnAddCompetitor','btnAddType','btnKwAdd','btnKwPaste']
     .forEach(id => { const el = $(id); if (el) el.hidden = ro; });
 
   const note = $('roNote');
@@ -2640,11 +2952,15 @@ let kwFilter = '';
 function showKwSetup(msg){
   const el = $('kwSetup');
   el.hidden = false;
-  el.innerHTML =
-    '<b>The keywords table does not exist yet</b>' +
-    'Run <code>supabase-keywords.sql</code> in your Supabase SQL Editor to create it. ' +
-    'Until then this tab has nowhere to read from.' +
-    (msg ? '<br><br>Supabase said: <code>' + msg + '</code>' : '');
+  /* Only claim the table is missing when that is what Supabase actually said;
+     anything else gets reported as itself. */
+  const missing = /PGRST205|could not find the table/i.test(String(msg || ''));
+  el.innerHTML = missing
+    ? '<b>The keywords table does not exist yet</b>'
+      + 'Run <code>supabase-keywords.sql</code> in your Supabase SQL Editor to create it. '
+      + 'Until then this tab has nowhere to read from.'
+    : '<b>Could not read keywords</b>Supabase said: <code>'
+      + String(msg || 'unknown error') + '</code>';
 }
 
 /* Fetch once; both the repo tables and the content matrix read kwRows. */
@@ -2970,6 +3286,8 @@ $('btnAddCompetitor').onclick = addCompetitor;
 $('btnAddType').onclick = addArticleType;
 $('btnAddColumn').onclick = addColumn;
 $('btnKwRefresh').onclick = refreshKeywords;
+$('btnKwAdd').onclick = function(){ openKeywordModal(''); };
+$('btnKwPaste').onclick = openPasteModal;
 $('kwSearch').oninput = ev => { kwFilter = ev.target.value; renderKeywordTables(); };
 $('btnAddChannel').onclick = addChannel;
 /* stop the browser opening a file dropped anywhere else on the page */
