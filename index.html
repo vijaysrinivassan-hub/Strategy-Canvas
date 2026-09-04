@@ -9,24 +9,26 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   :root{
-    --bg:#f7f8fb; --panel:#ffffff; --sidebar:#f2f4f8;
-    --ink:#0f172a; --muted:#64748b;
-    --accent:#2563eb; --accent-soft:#eff4ff; --border:#e2e8f0; --line:#94a3b8;
+    --bg:#fafafa; --panel:#ffffff; --sidebar:#f4f4f6;
+    --ink:#202124; --muted:#8b8f98;
+    --accent:#5468e8; --accent-soft:#eef0fd; --border:#e4e4e7; --line:#a9adb8;
     --danger:#b42318; --danger-bg:#fef3f2; --danger-border:#fecdca;
     --ok:#067647; --ok-bg:#ecfdf3; --ok-border:#abefc6;
-    --grid:#e3e7ef;
+    --grid:#d2d2d8;
     --n1:#e5484d; --n2:#f76b15; --n3:#e0b700; --n4:#30a46c; --n5:#00a2c7; --n6:#8e4ec6;
-    --shadow:0 1px 2px rgba(15,23,42,.06), 0 8px 24px rgba(15,23,42,.06);
+    --shadow:0 1px 2px rgba(0,0,0,.05), 0 4px 14px rgba(0,0,0,.05);
+    --dock-shadow:0 4px 18px rgba(0,0,0,.12);
   }
   @media (prefers-color-scheme: dark){
     :root{
-      --bg:#0d1424; --panel:#151d31; --sidebar:#101828;
-      --ink:#e8eefb; --muted:#93a3bd;
-      --accent:#60a5fa; --accent-soft:#16243f; --border:#243149; --line:#5b6b8a;
+      --bg:#1e1e20; --panel:#262629; --sidebar:#1a1a1c;
+      --ink:#dcddde; --muted:#888a90;
+      --accent:#7b8cf5; --accent-soft:#2b2f45; --border:#36363a; --line:#6a6d78;
       --danger:#fda29b; --danger-bg:#2b1512; --danger-border:#5b2320;
       --ok:#75e0a7; --ok-bg:#0d2a1c; --ok-border:#1f5138;
-      --grid:#1a2338;
-      --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.35);
+      --grid:#333338;
+      --shadow:0 1px 2px rgba(0,0,0,.4), 0 4px 14px rgba(0,0,0,.3);
+      --dock-shadow:0 4px 18px rgba(0,0,0,.5);
     }
   }
   *{box-sizing:border-box}
@@ -89,10 +91,10 @@
   }
   .tab:hover{background:var(--panel); color:var(--ink); border-color:var(--border)}
   .tab.active{background:var(--accent-soft); color:var(--accent); border-color:transparent; font-weight:600}
-  .tab .n{margin-left:auto; font-size:10.5px; font-weight:600; color:var(--muted);
-          background:var(--panel); border:1px solid var(--border);
-          border-radius:999px; padding:1px 7px; min-width:22px; text-align:center}
-  .tab.active .n{color:var(--accent); border-color:transparent}
+  /* Obsidian tags the file type on the right of each row in muted small caps. */
+  .tab .n{margin-left:auto; font-size:9.5px; font-weight:600; color:var(--muted);
+          letter-spacing:.09em; text-transform:uppercase; flex:none}
+  .tab.active .n{color:var(--accent)}
 
   .side-foot{border-top:1px solid var(--border); padding:10px 12px;
              display:flex; align-items:center; gap:9px}
@@ -139,10 +141,11 @@
   .edges g.sel path.wire{stroke:var(--accent); stroke-width:2.6}
 
   .node{
-    position:absolute; background:var(--panel); border:1.5px solid var(--border);
-    border-radius:10px; box-shadow:var(--shadow); display:flex; flex-direction:column;
+    position:absolute; background:var(--panel); border:1px solid var(--border);
+    border-radius:8px; box-shadow:var(--shadow); display:flex; flex-direction:column;
     overflow:hidden; user-select:none;
   }
+  .node img.media{width:100%; height:100%; object-fit:cover; display:block; pointer-events:none}
   .node.sel{border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-soft), var(--shadow)}
   .node .body{
     flex:1; padding:10px 12px; font-size:13px; line-height:1.5;
@@ -192,6 +195,23 @@
   .swatch[data-c="4"]{background:var(--n4)}
   .swatch[data-c="5"]{background:var(--n5)}
   .swatch[data-c="6"]{background:var(--n6)}
+
+  /* Obsidian's floating add-bar, centred at the bottom of the canvas. */
+  .dock{
+    position:absolute; left:50%; bottom:22px; transform:translateX(-50%);
+    display:flex; align-items:center; gap:2px; padding:5px; z-index:50;
+    background:var(--panel); border:1px solid var(--border); border-radius:12px;
+    box-shadow:var(--dock-shadow);
+  }
+  .dock button{
+    width:40px; height:34px; padding:0; display:grid; place-items:center;
+    background:transparent; border:1px solid transparent; border-radius:8px;
+    color:var(--muted);
+  }
+  .dock button:hover{background:var(--accent-soft); border-color:transparent; color:var(--accent)}
+  .dock svg{width:19px; height:19px; display:block;
+            fill:none; stroke:currentColor; stroke-width:1.7;
+            stroke-linecap:round; stroke-linejoin:round}
 
   .hint{
     position:absolute; left:50%; top:50%; transform:translate(-50%,-50%);
@@ -250,8 +270,6 @@
     <div class="toolbar">
       <h2 id="tabTitle">Product Architecture</h2>
       <div class="tool-sep"></div>
-      <button id="btnAdd">+ Note</button>
-      <div class="tool-sep"></div>
       <button id="btnZoomOut" title="Zoom out">−</button>
       <span class="zoom-label" id="zoomLabel">100%</span>
       <button id="btnZoomIn" title="Zoom in">+</button>
@@ -281,6 +299,18 @@
       </div>
       <div class="hint" id="hint" hidden></div>
       <div class="palette" id="palette" hidden></div>
+
+      <div class="dock" id="dock">
+        <button id="dockCard" title="Add card">
+          <svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2.5"/></svg>
+        </button>
+        <button id="dockText" title="Add card with text">
+          <svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="M7 10h10M7 14h6"/></svg>
+        </button>
+        <button id="dockMedia" title="Add image from a URL">
+          <svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2.5"/><circle cx="9" cy="10.5" r="1.4"/><path d="M4.5 17.5l4.5-4 3 2.5 3-2.5 4.5 4"/></svg>
+        </button>
+      </div>
     </div>
   </div>
 </div>
@@ -490,10 +520,18 @@ function renderNodes(){
     if (n.color) el.dataset.color = n.color;
     el.dataset.id = n.id;
 
-    const body = document.createElement('div');
-    body.className = 'body';
-    body.textContent = n.text || '';
-    el.append(body);
+    if (n.type === 'link'){
+      const img = document.createElement('img');
+      img.className = 'media';
+      img.src = n.url || '';
+      img.alt = '';
+      el.append(img);
+    } else {
+      const body = document.createElement('div');
+      body.className = 'body';
+      body.textContent = n.text || '';
+      el.append(body);
+    }
 
     ['top','right','bottom','left'].forEach(side => {
       const a = document.createElement('div');
@@ -557,7 +595,7 @@ function renderHint(){
   h.hidden = false;
   h.innerHTML =
     '<div><b>' + state.tab + '</b> is empty</div>' +
-    '<div>Double-click anywhere to add a note</div>' +
+    '<div>Double-click anywhere, or use the bar below, to add a card</div>' +
     '<div>Drag a note’s edge dot to connect it to another</div>' +
     '<div>Scroll to zoom · drag the background to pan</div>';
 }
@@ -592,13 +630,16 @@ function positionPalette(){
 /* ===================================================================
    MUTATIONS
    =================================================================== */
-function addNode(wx, wy, text){
+function addNode(wx, wy, text, opts){
+  opts = opts || {};
+  const w = opts.width || 220, h = opts.height || 90;
   const n = {
-    id: uid(), type: 'text',
-    x: Math.round(wx - 110), y: Math.round(wy - 45),
-    width: 220, height: 90,
-    text: text || ''
+    id: uid(), type: opts.type || 'text',
+    x: Math.round(wx - w / 2), y: Math.round(wy - h / 2),
+    width: w, height: h
   };
+  if (n.type === 'link') n.url = opts.url || '';
+  else n.text = text || '';
   cur().nodes.push(n);
   state.sel = { kind: 'node', id: n.id };
   markDirty();
@@ -625,6 +666,12 @@ function switchTab(name){
   zoomToFit();
 }
 function beginEdit(nodeEl, n){
+  /* Image cards have no text to edit — offer the URL instead. */
+  if (n.type === 'link'){
+    const url = prompt('Image URL', n.url || '');
+    if (url !== null && url.trim() !== n.url){ n.url = url.trim(); markDirty(); render(); }
+    return;
+  }
   if (nodeEl.classList.contains('editing')) return;
   nodeEl.classList.add('editing');
   const body = nodeEl.querySelector('.body');
@@ -948,13 +995,25 @@ async function signOut(){
 /* ===================================================================
    WIRING
    =================================================================== */
-$('btnAdd').onclick = () => {
+function addAtCentre(opts){
   const r = $('viewport').getBoundingClientRect();
   const w = toWorld(r.left + r.width / 2, r.top + r.height / 2);
-  const n = addNode(w.x, w.y, '');
+  return addNode(w.x, w.y, '', opts);
+}
+function addAndEdit(opts){
+  const n = addAtCentre(opts);
   const el = $('nodes').querySelector('[data-id="' + n.id + '"]');
   if (el) beginEdit(el, n);
+}
+$('dockCard').onclick  = () => addAndEdit();
+$('dockText').onclick  = () => addAndEdit({ width: 300, height: 180 });
+$('dockMedia').onclick = () => {
+  const url = prompt('Image URL');
+  if (!url || !url.trim()) return;
+  addAtCentre({ type: 'link', url: url.trim(), width: 320, height: 200 });
 };
+/* the dock sits inside the viewport, so stop clicks becoming pans */
+$('dock').addEventListener('pointerdown', e => e.stopPropagation());
 $('btnZoomIn').onclick = () => {
   const r = $('viewport').getBoundingClientRect();
   zoomAt(r.left + r.width / 2, r.top + r.height / 2, 1.2);
