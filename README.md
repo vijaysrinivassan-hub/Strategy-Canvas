@@ -55,6 +55,26 @@ The sidebar groups them:
 
 Only one group stands open at a time: expanding one closes the rest.
 
+## Two views
+
+The chip at the top right — your name, next to the frame picker — is where you
+switch between two views of the same board, the way Google switches accounts:
+
+- **Admin view** is everything: every tab, the keyword repo, the frames, Settings.
+- **Client view** is the strategy work and nothing behind it. Keyword Repo,
+  Frames and Settings are gone from the sidebar, the frame picker is gone from
+  the toolbar, and the board is read-only.
+
+Somebody given viewer access by email is always in client view, and only sees
+the boards they were given — a Luca client sees Luca's board and nothing else.
+An admin can step into client view to see exactly what a client will see; it is
+read-only there too, so the look is an honest one, and the choice is remembered
+on that browser. Sign out lives in the same chip, and so does a board switcher
+whenever more than one board is to hand.
+
+There is no logo or client name in the sidebar any more. A client's name and
+logo are edited from the Clients screen — **Edit** on the card.
+
 ## Frames
 
 `Frames` mirrors the `Frames` folder of the Obsidian vault. Obsidian's `.canvas`
@@ -90,7 +110,7 @@ there, with its groups and connections intact. The copy gets fresh ids, so the
 same frame can be dropped in twice, and it is yours to edit — the frame itself is
 never touched.
 
-The toolbar carries only the page title, with the frame picker at its far end.
+The toolbar carries the page title, the frame picker and the account chip.
 The canvas itself stays bare: no add-bar, no hint text, no zoom buttons — just
 the dashed-square Fit button in the bottom-right corner. Boards are
 chosen and created on the Clients screen, saving happens on its own a couple of

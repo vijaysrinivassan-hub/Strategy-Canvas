@@ -75,22 +75,6 @@
   /* ================= sidebar ================= */
   .sidebar{background:#fff; border-right:1px solid var(--line);
            display:flex; flex-direction:column; min-height:0}
-  .side-head{padding:16px 16px 14px; border-bottom:1px solid var(--line-2)}
-  .board-name{display:flex; align-items:center; gap:10px}
-  .board-name .logo{width:32px; height:32px; border-radius:9px; background:var(--accent);
-                    display:grid; place-items:center; color:#fff; font-weight:700; font-size:13px;
-                    flex:none; padding:0; border:none; overflow:hidden; cursor:pointer}
-  .board-name .logo:hover{background:var(--accent-d)}
-  /* A logo is shown whole, never cropped, and the tile widens to suit it —
-     most brand marks are wider than they are tall, and `cover` on a square
-     tile would slice the ends off. */
-  .board-name .logo img{width:100%; height:100%; object-fit:contain; display:block}
-  .board-name .logo.has-img{
-    width:auto; min-width:32px; height:32px;
-    background:transparent; border-radius:6px; padding:0;
-  }
-  .board-name .logo.has-img img{width:auto; height:100%; max-width:96px}
-  .board-name .logo.has-img:hover{background:var(--line-2)}
 
   .card .ic img{width:100%; height:100%; object-fit:contain; display:block}
   .card .ic{overflow:hidden; padding:0}
@@ -108,17 +92,7 @@
   .logo-prev.has-img{width:auto; min-width:56px; padding:5px; background:#fff}
   .logo-prev.has-img img{width:auto; height:100%; max-width:180px}
   .logo-acts{display:flex; gap:8px; flex-wrap:wrap}
-  #clientName{
-    font:inherit; font-size:14px; font-weight:700; letter-spacing:-.01em; line-height:1.25;
-    color:var(--ink); background:transparent; border:1px solid transparent;
-    border-radius:7px; padding:2px 5px; width:100%; min-width:0;
-  }
-  #clientName:hover{border-color:var(--line)}
-  #clientName:focus{outline:none; border-color:var(--accent); background:#fff;
-                    box-shadow:0 0 0 3px var(--accent-soft)}
-  .side-head .sub{font-size:11px; color:var(--faint); margin:2px 0 0 42px; font-weight:500}
-
-  .tabs{padding:10px; flex:1; overflow-y:auto}
+  .tabs{padding:14px 10px 10px; flex:1; overflow-y:auto}
   .tab{
     display:flex; align-items:center; gap:10px; width:100%; text-align:left;
     padding:8px 10px; border-radius:8px; border:none; background:transparent;
@@ -183,16 +157,39 @@
            font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; color:var(--ink-2)}
   .mcp .note{font-size:12.5px; color:var(--muted); margin:0 0 14px; max-width:680px}
 
-  .side-foot{padding:12px; border-top:1px solid var(--line-2);
-             display:flex; align-items:center; gap:9px}
-  .side-foot img{width:32px; height:32px; border-radius:50%; background:var(--accent);
-                 object-fit:cover; flex:none}
-  .who{min-width:0; flex:1; display:block}
-  .who b{display:block; font-weight:600; color:var(--ink); font-size:13px;
-         overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
-  .who span{display:block; color:var(--muted); font-size:11px;
-            overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
-  .icon-btn{padding:5px 10px; font-size:12px; flex:none}
+  /* ---- the account chip, top right: who you are and which view you are in ---- */
+  .acct{position:relative; margin-left:8px; flex:none}
+  .acct-btn{display:flex; align-items:center; gap:8px; padding:4px 8px 4px 11px;
+            background:var(--panel); border:1px solid var(--border); border-radius:999px;
+            font:inherit; cursor:pointer; color:var(--ink-2)}
+  .acct-btn:hover{border-color:var(--accent); background:var(--panel); color:var(--ink)}
+  .acct-view{font-size:12px; font-weight:600}
+  .acct.client .acct-view{color:var(--cli)}
+  .acct.client .acct-btn{border-color:#f1d9b5; background:var(--cli-bg)}
+  .acct-face{width:26px; height:26px; border-radius:50%; overflow:hidden; background:var(--accent);
+             display:grid; place-items:center; color:#fff; font-size:12px; font-weight:700; flex:none}
+  .acct-face img{width:100%; height:100%; object-fit:cover; display:block}
+  .acct-face img:not([hidden]) + span{display:none}
+  .acct-chev{font-size:10px; color:var(--faint)}
+  .acct-menu{position:absolute; right:0; top:calc(100% + 8px); width:264px; z-index:120;
+             background:var(--panel); border:1px solid var(--border); border-radius:12px;
+             box-shadow:var(--shadow-lift); padding:6px; text-align:left}
+  .acct-who{padding:8px 10px 10px; border-bottom:1px solid var(--line-2); margin-bottom:6px}
+  .acct-who b{display:block; font-size:13px; font-weight:600; color:var(--ink);
+              overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+  .acct-who span{display:block; font-size:11.5px; color:var(--muted);
+                 overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+  .acct-opt{display:block; width:100%; text-align:left; padding:8px 10px; border:1px solid transparent;
+            border-radius:8px; background:transparent; font:inherit; cursor:pointer}
+  .acct-opt:hover{background:var(--line-2); border-color:transparent; color:inherit}
+  .acct-opt b{display:block; font-size:13px; font-weight:600; color:var(--ink)}
+  .acct-opt span{display:block; font-size:11.5px; color:var(--muted); margin-top:1px}
+  .acct-opt.on{background:var(--accent-soft)}
+  .acct-opt.on b{color:var(--accent)}
+  .acct-views, .acct-boards{border-bottom:1px solid var(--line-2); padding-bottom:6px; margin-bottom:6px}
+  .acct-boards small{display:block; padding:4px 10px 2px; font-size:10.5px; font-weight:600;
+                     letter-spacing:.05em; text-transform:uppercase; color:var(--faint)}
+  .acct-out b{color:var(--danger)}
 
   /* ================= main ================= */
   .main{display:flex; flex-direction:column; min-width:0; min-height:0}
@@ -200,6 +197,9 @@
     display:flex; align-items:center; gap:8px; padding:13px 30px; flex-wrap:wrap; flex:none;
     background:rgba(246,247,249,.85); backdrop-filter:blur(8px);
     border-bottom:1px solid var(--line);
+    /* backdrop-filter makes this its own stacking layer; without a z-index the
+       canvas that follows paints over anything hanging below it, menu included */
+    position:relative; z-index:100;
   }
   .toolbar h2{margin:0; font-size:20px; font-weight:800; letter-spacing:-.02em; color:var(--ink)}
   .tool-sep{width:1px; height:20px; background:var(--line); margin:0 4px}
@@ -894,26 +894,8 @@
 <div class="shell" id="shell" hidden>
 
   <aside class="sidebar">
-    <div class="side-head">
-      <div class="board-name">
-        <button class="logo" id="brandLogo" title="Client name and logo">SB</button>
-        <input id="clientName" value="XYZ" spellcheck="false" aria-label="Client name">
-      </div>
-      <div class="sub">Strategy Board</div>
-    </div>
-
     <nav class="tabs" id="tabs"></nav>
-
     <div class="save-line" id="saveState"></div>
-
-    <div class="side-foot">
-      <img id="userPic" alt="">
-      <div class="who">
-        <b id="userName"></b>
-        <span id="userMail"></span>
-      </div>
-      <button class="icon-btn" id="btnSignOut" title="Sign out">Exit</button>
-    </div>
   </aside>
 
   <div class="main">
@@ -932,6 +914,28 @@
               title="Drop one of your Obsidian frames onto this canvas">
         <option value="">Insert a frame&hellip;</option>
       </select>
+
+      <!-- who you are, and which view you are looking through -->
+      <div class="acct" id="acct">
+        <button class="acct-btn" id="acctBtn" type="button" title="Account and view">
+          <span class="acct-view" id="acctView">Admin view</span>
+          <span class="acct-face"><img id="userPic" alt="" hidden><span id="acctInitial">?</span></span>
+          <span class="acct-chev">&#9662;</span>
+        </button>
+        <div class="acct-menu" id="acctMenu" hidden>
+          <div class="acct-who"><b id="userName"></b><span id="userMail"></span></div>
+          <div class="acct-views" id="acctViews">
+            <button class="acct-opt" id="viewAdmin" type="button">
+              <b>Admin view</b><span>Everything &mdash; repo, frames, settings</span>
+            </button>
+            <button class="acct-opt" id="viewClient" type="button">
+              <b>Client view</b><span>What a client sees, read-only</span>
+            </button>
+          </div>
+          <div class="acct-boards" id="acctBoards" hidden></div>
+          <button class="acct-opt acct-out" id="btnSignOut" type="button"><b>Sign out</b></button>
+        </div>
+      </div>
     </div>
 
     <div class="viewport" id="viewport">
@@ -1120,7 +1124,7 @@ const SUPABASE_URL = 'https://cskamgfvebryahkljlll.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_MdkD-TxMCIwlu69seSHA3Q_A39GADsK';
 const CLIENT_ID    = '1059013355751-6g50dsgm7df37htl2fdqrtlkh5hmrc0c.apps.googleusercontent.com';
 const ALLOWED      = ['vijaysrinivassan@gmail.com'];
-const BUILD        = 'v5.5';
+const BUILD        = 'v5.6';
 
 const TABS = [
   'Product Architecture',
@@ -1206,6 +1210,7 @@ const state = {
   boards: [],                  /* [{id,title,updated_at}] */
   sel: { ids: [], edge: null },   /* many cards/groups, or one edge */
   role: 'admin',                  /* 'admin' owns the board, 'viewer' may only read */
+  viewMode: 'admin',              /* 'admin' sees everything; 'client' sees what a client gets */
   screen: 'board',                /* 'board' | 'clients' */
   contentView: 'competitor',      /* which axis the content matrix is showing */
   navOpen: { brand: false, content: false, settings: false, frames: false },
@@ -1536,6 +1541,10 @@ function renderTabs(){
   }
 
   NAV.forEach(item => {
+    if (clientView()){
+      if (item.kind === 'tab' && CLIENT_HIDDEN_TABS.indexOf(item.name) !== -1) return;
+      if (item.kind === 'group' && CLIENT_HIDDEN_GROUPS.indexOf(item.id) !== -1) return;
+    }
     if (item.kind === 'spacer'){
       const sp = document.createElement('div');
       sp.className = 'nav-spacer';
@@ -1682,6 +1691,7 @@ function renderTabs(){
 
 /* Screens that are not board tabs: Clients, MCP. */
 function goScreen(id){
+  if (clientView() && id !== 'board') return;   /* nothing behind the board in client view */
   captureFrame();
   state.screen = id;
   if (id === 'clients' || id === 'mcp') openNav('settings');
@@ -2759,7 +2769,7 @@ function hydrate(text){
   }
   state.client = (d && d.client) || 'XYZ';
   state.logo = (d && d.logo) || '';
-  $('clientName').value = state.client;
+  void 0;   /* the client name is edited on the Clients screen */
   renderBrand();
 }
 
@@ -2777,6 +2787,7 @@ async function openBoard(id){
   state.boardId = data.id;
   state.ownerId = data.owner_id;
   state.role = roleForBoard(data);
+  renderAccount();
   hydrate(data.body || '');
   state.tab = TABS[0];
   clearSel();
@@ -2827,7 +2838,7 @@ function newBoard(){
   state.frameIndex = -1;
   state.tab = TABS[0];
   clearSel();
-  $('clientName').value = state.client;
+  void 0;   /* the client name is edited on the Clients screen */
   markDirty();
   render();
   applyTabMode();
@@ -3508,7 +3519,7 @@ function openClientSettings(){
     const nm = nameIn.value.trim();
     state.client = nm || 'Untitled';
     state.logo = pendingLogo;
-    $('clientName').value = state.client;
+    void 0;   /* the client name is edited on the Clients screen */
     renderBrand();
     markDirty();
     closeModal();
@@ -4860,7 +4871,66 @@ function insertFrame(i){
 /* ===================================================================
    CLIENTS & ACCESS
    =================================================================== */
-const readOnly = () => state.role !== 'admin';
+/* Two views of the same board. A client gets the strategy work and nothing
+   behind it: no keyword repo, no frames, no settings. A viewer is always in
+   client view; an admin can step into it to see exactly what a client sees,
+   and that look is read-only so it is an honest one. */
+const clientView = () => state.role !== 'admin' || state.viewMode === 'client';
+const readOnly = () => clientView();
+const CLIENT_HIDDEN_TABS = ['Keyword Repo'];
+const CLIENT_HIDDEN_GROUPS = ['frames', 'settings'];
+
+function setView(mode){
+  if (state.role !== 'admin') mode = 'client';
+  state.viewMode = mode === 'client' ? 'client' : 'admin';
+  try { localStorage.setItem('sb-view', state.viewMode); } catch (e) {}
+  /* a client cannot be left standing on a screen they do not get */
+  const kicked = clientView() &&
+    (state.screen !== 'board' || state.tab === KEYWORDS_TAB || inFrame());
+  if (clientView()) closeNav();
+  renderAccount();
+  if (kicked){ state.screen = 'board'; state.frameIndex = -1; switchTab(TABS[0]); }
+  else { render(); applyTabMode(); }
+}
+
+function renderAccount(){
+  const chip = $('acct');
+  if (!chip) return;
+  const isAdmin = state.role === 'admin';
+  const client = clientView();
+  chip.classList.toggle('client', client);
+  $('acctView').textContent = client ? 'Client view' : 'Admin view';
+  $('acctViews').hidden = !isAdmin;          /* a viewer has the one view */
+  $('viewAdmin').classList.toggle('on', !client);
+  $('viewClient').classList.toggle('on', client);
+  const m = (state.user && state.user.user_metadata) || {};
+  const name = m.full_name || m.name || (state.user && state.user.email) || '';
+  $('acctInitial').textContent = (String(name).trim().charAt(0) || '?').toUpperCase();
+  $('userName').textContent = name;
+  $('userMail').textContent = (state.user && state.user.email) || '';
+
+  /* more than one board to hand: offer the switch here, since the Clients
+     screen is out of reach in client view */
+  const boards = $('acctBoards');
+  boards.innerHTML = '';
+  const many = state.boards.length > 1;
+  boards.hidden = !many;
+  if (many){
+    const head = document.createElement('small');
+    head.textContent = 'Boards';
+    boards.append(head);
+    state.boards.forEach(b => {
+      const o = document.createElement('button');
+      o.className = 'acct-opt' + (b.id === state.boardId ? ' on' : '');
+      o.type = 'button';
+      const t = document.createElement('b');
+      t.textContent = b.title || 'Untitled';
+      o.append(t);
+      o.onclick = () => { $('acctMenu').hidden = true; openBoardScreen(); openBoard(b.id); };
+      boards.append(o);
+    });
+  }
+}
 
 /* A board you did not create is one you may only read. */
 function roleForBoard(row){
@@ -5058,8 +5128,13 @@ function applyRole(){
     .forEach(id => { const el = $(id); if (el) el.hidden = ro; });
 
   const note = $('roNote');
-  /* a frame is read-only too, but that is not the same as somebody else's board */
-  if (note) note.hidden = state.role === 'admin';
+  if (note){
+    const preview = state.role === 'admin' && state.viewMode === 'client';
+    note.hidden = !ro;
+    note.textContent = preview
+      ? 'Client view \u2014 a read-only look at what a client sees'
+      : 'View only \u2014 this board belongs to someone else';
+  }
 }
 
 /* ===================================================================
@@ -5328,7 +5403,11 @@ async function enterApp(user){
   $('userName').textContent = m.full_name || m.name || user.email || '';
   $('userMail').textContent = user.email || '';
   const pic = m.avatar_url || m.picture;
-  if (pic) $('userPic').src = pic; else $('userPic').hidden = true;
+  if (pic){ $('userPic').src = pic; $('userPic').hidden = false; } else $('userPic').hidden = true;
+  let remembered = 'admin';
+  try { remembered = localStorage.getItem('sb-view') || 'admin'; } catch (e) {}
+  state.viewMode = remembered === 'client' ? 'client' : 'admin';
+  renderAccount();
 
   await refreshBoards();
   if (state.boards.length > 1){
@@ -5346,6 +5425,9 @@ async function enterApp(user){
     zoomToFit();
     toast('No boards yet — add notes, then press Save.');
   }
+  /* the chip knows the boards now, and a remembered client view takes hold */
+  renderAccount();
+  if (state.viewMode === 'client') setView('client');
 }
 
 async function signOut(){
@@ -5408,7 +5490,6 @@ $('framePick').onchange = ev => {
   if (i !== '') insertFrame(Number(i));
 };
 
-$('brandLogo').onclick = openClientSettings;
 $('btnAddCompetitor').onclick = function(){
   if (viewDef(state.contentView).kind === 'grid') addGridRow(); else addCompetitor();
 };
@@ -5431,8 +5512,14 @@ $('btnFit').onclick = zoomToFit;
 $('btnFit').addEventListener('pointerdown', e => e.stopPropagation());
 
 $('btnSignOut').onclick = signOut;
+$('acctBtn').onclick = ev => { ev.stopPropagation(); $('acctMenu').hidden = !$('acctMenu').hidden; };
+$('viewAdmin').onclick = () => { $('acctMenu').hidden = true; setView('admin'); };
+$('viewClient').onclick = () => { $('acctMenu').hidden = true; setView('client'); };
+/* the menu closes when you click anywhere else */
+document.addEventListener('pointerdown', e => {
+  if (!e.target.closest('#acct')) $('acctMenu').hidden = true;
+}, true);
 
-$('clientName').oninput = e => { if (readOnly()) return; state.client = e.target.value.trim() || 'Untitled'; markDirty(); };
 $('palette').addEventListener('pointerdown', e => e.stopPropagation());
 /* clicking anywhere else puts the open choices away */
 document.addEventListener('pointerdown', e => {
