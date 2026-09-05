@@ -62,7 +62,6 @@ Restart Claude Desktop. The tools appear under the connectors icon.
 claude mcp add strategy-board \
   --env SUPABASE_URL=https://YOUR-PROJECT.supabase.co \
   --env SUPABASE_SERVICE_ROLE_KEY=your-service-role-key \
-  --env STRATEGY_BOARD_OWNER_ID=your-user-uuid \
   -- node /absolute/path/to/mcp-server/dist/index.js
 ```
 
