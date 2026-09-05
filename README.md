@@ -11,7 +11,7 @@ per client, eight tabs per board, each tab its own canvas.
 | Edit a note | Double-click it. `Esc` cancels, `Ctrl/Cmd+Enter` commits |
 | Move a note | Drag it |
 | Resize a note | Drag the corner grip |
-| Connect two notes | Hover a note, drag from one of its four edge dots onto another note |
+| Connect two notes | Drag from anywhere along a card's edge onto another card. Nothing is drawn on the edge — the cursor turns to a crosshair — and the wire leaves from the middle of whichever side you grabbed |
 | Colour a note | Select it, pick from the palette above it |
 | Select several | Drag a box across the canvas — anything it touches is selected |
 | Add to a selection | `Shift`-drag another box, or `Shift`-click a card |

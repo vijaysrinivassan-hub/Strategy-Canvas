@@ -228,12 +228,16 @@
   .group[data-color="5"]{border-color:var(--n5)}
   .group[data-color="6"]{border-color:var(--n6)}
 
+  /* No overflow:hidden here — it would clip the edge connectors back to the
+     card's own box, which is what used to slice the anchor dots into half
+     circles. Anything that needs clipping rounds its own corners instead. */
   .node{
     position:absolute; background:var(--panel); border:1px solid var(--border);
     border-radius:8px; box-shadow:var(--shadow); display:flex; flex-direction:column;
-    overflow:hidden; user-select:none;
+    user-select:none;
   }
-  .node img.media{width:100%; height:100%; object-fit:cover; display:block; pointer-events:none}
+  .node img.media{width:100%; height:100%; object-fit:cover; display:block;
+                  pointer-events:none; border-radius:7px}
   .node.sel{border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-soft), var(--shadow)}
   .node .body{
     flex:1; padding:10px 12px; font-size:13px; line-height:1.5;
@@ -248,20 +252,18 @@
     position:absolute; right:0; bottom:0; width:15px; height:15px; cursor:nwse-resize;
     background:linear-gradient(135deg, transparent 48%, var(--border) 48%, var(--border) 72%, transparent 72%);
   }
+  /* The whole of each side is the connector. No dot is drawn — the crosshair
+     cursor is the only hint — but the wire still leaves from the middle of
+     whichever side you grabbed. Mostly outside the card, so there is still
+     plenty of body left to drag the card by. */
   .node .anchor{
-    position:absolute; width:11px; height:11px; border-radius:50%;
-    background:var(--panel); border:2px solid var(--accent); opacity:0;
-    transition:opacity .12s; cursor:crosshair; z-index:3;
+    position:absolute; background:transparent; border:none;
+    cursor:crosshair; z-index:3;
   }
-  .node:hover .anchor, .node.sel .anchor{opacity:1}
-  .node .anchor:hover{transform:scale(1.35)}
-  /* an invisible collar, so the dot does not have to be hit precisely */
-  .node .anchor::before{content:""; position:absolute; left:-7px; top:-7px;
-                        width:25px; height:25px; border-radius:50%}
-  .anchor.top{left:50%; top:-6px; margin-left:-5.5px}
-  .anchor.bottom{left:50%; bottom:-6px; margin-left:-5.5px}
-  .anchor.left{top:50%; left:-6px; margin-top:-5.5px}
-  .anchor.right{top:50%; right:-6px; margin-top:-5.5px}
+  .anchor.top{left:0; right:0; top:-7px; height:11px}
+  .anchor.bottom{left:0; right:0; bottom:-7px; height:11px}
+  .anchor.left{top:0; bottom:0; left:-7px; width:11px}
+  .anchor.right{top:0; bottom:0; right:-7px; width:11px}
 
   .node[data-color="1"]{border-color:var(--n1)}
   .node[data-color="2"]{border-color:var(--n2)}
@@ -927,7 +929,7 @@ const SUPABASE_URL = 'https://cskamgfvebryahkljlll.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_MdkD-TxMCIwlu69seSHA3Q_A39GADsK';
 const CLIENT_ID    = '1059013355751-6g50dsgm7df37htl2fdqrtlkh5hmrc0c.apps.googleusercontent.com';
 const ALLOWED      = ['vijaysrinivassan@gmail.com'];
-const BUILD        = 'v4.2';
+const BUILD        = 'v4.3';
 
 const TABS = [
   'Product Architecture',
@@ -1448,7 +1450,7 @@ function renderHint(){
   h.innerHTML =
     '<div><b>' + state.tab + '</b> is empty</div>' +
     '<div>Double-click anywhere, or use the bar below, to add a card</div>' +
-    '<div>Drag a card’s edge dot to connect it to another</div>' +
+    '<div>Drag from a card’s edge to connect it to another</div>' +
     '<div>Drag across the canvas to select · two fingers to pan · pinch to zoom</div>';
 }
 
