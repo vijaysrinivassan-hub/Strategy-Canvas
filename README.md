@@ -12,20 +12,27 @@ per client, eight tabs per board, each tab its own canvas.
 | Move a note | Drag it |
 | Resize a note | Drag the corner grip |
 | Connect two notes | Drag from anywhere along a card's edge onto another card. Nothing is drawn on the edge — the cursor turns to a crosshair — and the wire leaves from the middle of whichever side you grabbed |
-| Colour a note | Select it, pick from the palette above it |
+| Colour a note | Select it, then **Colour** on the bar above it |
 | Select several | Drag a box across the canvas — anything it touches is selected |
 | Add to a selection | `Shift`-drag another box, or `Shift`-click a card |
 | Select everything | `Ctrl/Cmd`+`A` |
 | Move many at once | Drag any selected card; the whole selection follows |
-| Group a selection | The group button on the floating bar, or `Ctrl/Cmd`+`G` |
+| Group a selection | **Create group** on the bar above it, or `Ctrl/Cmd`+`G` |
 | Add an empty group | The fourth dock button. Drag cards inside it |
 | Move a group | Drag its label — every card inside travels with it |
 | Rename a group | Double-click its label |
 | Delete | Select a note, connection or group, press `Delete` |
 | Pan | Two-finger swipe on a trackpad, two fingers on a touchscreen, `Space`+drag, or middle-mouse drag |
 | Zoom | Pinch, `Ctrl`+scroll, a mouse wheel, or the toolbar buttons |
+| Line cards up | **Align** on the bar above them: six edges and centres |
 | Align while dragging | Automatic — edges and centres snap to nearby cards and a guide line shows the match |
 | Frame everything | **Fit** |
+| Frame just the selection | **Zoom to selection** on the bar above it |
+
+Selecting anything raises a small bar above it — **Delete**, **Colour**, **Zoom
+to selection**, **Create group**, **Align** — each named as you hover it. Nothing
+on it happens on its own: grouping is offered as a choice and waits to be asked.
+A group of one card is allowed; Align needs two.
 
 Connections are cubic bezier curves that leave each anchor perpendicular to its
 side, which is what gives them their shape, and the target side is chosen

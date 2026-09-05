@@ -333,19 +333,44 @@
 
   /* floating toolbar for the current selection */
   .palette{
-    position:absolute; z-index:40; display:flex; align-items:center; gap:4px; padding:6px;
-    background:var(--panel); border:1px solid var(--border); border-radius:10px;
-    box-shadow:var(--shadow);
+    position:absolute; z-index:40; display:flex; align-items:center; gap:2px; padding:5px;
+    background:var(--panel); border:1px solid var(--border); border-radius:11px;
+    box-shadow:var(--shadow-lift);
   }
   .palette .tool{
-    width:28px; height:26px; padding:0; display:grid; place-items:center;
-    background:transparent; border:1px solid transparent; border-radius:7px; color:var(--muted);
+    position:relative; width:32px; height:30px; padding:0; display:grid; place-items:center;
+    background:transparent; border:1px solid transparent; border-radius:8px; color:var(--ink-2);
   }
-  .palette .tool:hover{background:var(--accent-soft); border-color:transparent; color:var(--accent)}
-  .palette .tool svg{width:16px; height:16px; fill:none; stroke:currentColor;
+  .palette .tool:hover{background:var(--line-2); border-color:transparent; color:var(--ink)}
+  .palette .tool.on{background:var(--accent-soft); color:var(--accent)}
+  .palette .tool svg{width:17px; height:17px; fill:none; stroke:currentColor;
                      stroke-width:1.7; stroke-linecap:round; stroke-linejoin:round}
+
+  /* the dark label that names each tool, so the choice is readable at a glance */
+  .palette .tool::after{
+    content:attr(data-tip); position:absolute; bottom:calc(100% + 9px); left:50%;
+    transform:translateX(-50%); background:#17181c; color:#fff; font-size:11.5px;
+    font-weight:500; letter-spacing:.01em; white-space:nowrap; padding:5px 9px;
+    border-radius:7px; opacity:0; pointer-events:none; transition:opacity .12s .2s;
+  }
+  .palette .tool::before{
+    content:''; position:absolute; bottom:calc(100% + 3px); left:50%; margin-left:-5px;
+    border:5px solid transparent; border-top-color:#17181c;
+    opacity:0; pointer-events:none; transition:opacity .12s .2s;
+  }
+  .palette .tool:hover::after, .palette .tool:hover::before{opacity:1}
+
+  /* what a tool opens: colours, or the alignment choices */
+  .pal-pop{
+    position:absolute; top:calc(100% + 7px); left:0; z-index:41; padding:7px;
+    background:var(--panel); border:1px solid var(--border); border-radius:11px;
+    box-shadow:var(--shadow-lift); display:flex; align-items:center; gap:5px;
+  }
+  .pal-pop.grid{display:grid; grid-template-columns:repeat(3,1fr); gap:3px}
+  .pal-pop .tool::after, .pal-pop .tool::before{display:none}
+  .pal-pop .tool{width:30px; height:28px}
   .pal-sep{width:1px; height:18px; background:var(--border); margin:0 3px; flex:none}
-  .swatch{width:19px; height:19px; border-radius:50%; border:2px solid var(--border);
+  .swatch{width:21px; height:21px; border-radius:50%; border:2px solid var(--border);
           padding:0; background:var(--panel)}
   .swatch:hover{transform:scale(1.12)}
   .swatch[data-c="0"]{background:var(--muted)}
@@ -1047,7 +1072,7 @@ const SUPABASE_URL = 'https://cskamgfvebryahkljlll.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_MdkD-TxMCIwlu69seSHA3Q_A39GADsK';
 const CLIENT_ID    = '1059013355751-6g50dsgm7df37htl2fdqrtlkh5hmrc0c.apps.googleusercontent.com';
 const ALLOWED      = ['vijaysrinivassan@gmail.com'];
-const BUILD        = 'v4.9';
+const BUILD        = 'v5.0';
 
 const TABS = [
   'Product Architecture',
@@ -1707,51 +1732,124 @@ function renderHint(){
     '<div>Drag across the canvas to select · two fingers to pan · pinch to zoom</div>';
 }
 
+/* One toolbar, one row of choices, each named. Grouping is offered whenever
+   there is anything to group — it is a choice, not something that happens to
+   you, so nothing here acts until it is asked to. */
+const PAL_ICONS = {
+  trash: '<path d="M4 7h16M9 7V5h6v2M6 7l1 13h10l1-13"/>',
+  paint: '<path d="M12 3.2a8.8 8.8 0 1 0 0 17.6c1 0 1.7-.8 1.7-1.7 0-.5-.2-.9-.5-1.2a1.7 1.7 0 0 1 1.2-2.9h1.7a5 5 0 0 0 5-5c0-3.8-4.1-6.8-9.1-6.8z"/>'
+       + '<circle cx="7.4" cy="11.6" r="1.15"/><circle cx="10.4" cy="7.6" r="1.15"/>'
+       + '<circle cx="15" cy="8.4" r="1.15"/>',
+  zoom:  '<circle cx="10.5" cy="10.5" r="6.5"/><path d="M20 20l-4.6-4.6"/><path d="M8 10.5h5M10.5 8v5"/>',
+  group: '<rect x="2.5" y="5.5" width="19" height="15" rx="2.5" stroke-dasharray="3.5 3"/>'
+       + '<rect x="6" y="9" width="5.5" height="8" rx="1.2"/><rect x="13.5" y="9" width="5" height="4.5" rx="1.2"/>',
+  align: '<path d="M4 3.5v17"/><path d="M8 7h10M8 12h13M8 17h7"/>'
+};
+
+function palTool(tip, icon, onClick, id){
+  const b = document.createElement('button');
+  b.className = 'tool';
+  b.dataset.tip = tip;
+  if (id) b.id = id;
+  b.innerHTML = '<svg viewBox="0 0 24 24">' + icon + '</svg>';
+  b.onclick = ev => { ev.stopPropagation(); onClick(b); };
+  return b;
+}
+
+function closePalPop(){
+  const pop = $('palPop');
+  if (!pop) return;
+  pop.hidden = true;
+  pop.dataset.owner = '';
+  const p = $('palette');
+  [].forEach.call(p.querySelectorAll('.tool.on'), t => t.classList.remove('on'));
+}
+
+/* A tool either opens its choices or closes them again. */
+function togglePalPop(owner, btn, fill){
+  const pop = $('palPop');
+  const wasOpen = !pop.hidden && pop.dataset.owner === owner;
+  closePalPop();
+  if (wasOpen) return;
+  pop.innerHTML = '';
+  pop.className = 'pal-pop' + (owner === 'align' ? ' grid' : '');
+  fill(pop);
+  pop.dataset.owner = owner;
+  pop.style.left = Math.max(0, btn.offsetLeft - 6) + 'px';
+  pop.hidden = false;
+  btn.classList.add('on');
+}
+
 function buildPalette(){
   const p = $('palette');
   if (p.children.length) return;
 
-  const del = document.createElement('button');
-  del.className = 'tool';
-  del.title = 'Delete selection';
-  del.innerHTML = '<svg viewBox="0 0 24 24"><path d="M4 7h16M9 7V5h6v2M6 7l1 13h10l1-13"/></svg>';
-  del.onclick = ev => { ev.stopPropagation(); deleteSelection(); };
-  p.append(del);
+  p.append(palTool('Delete', PAL_ICONS.trash, () => deleteSelection(), 'palDelete'));
 
-  const grp = document.createElement('button');
-  grp.className = 'tool';
-  grp.id = 'palGroup';
-  grp.title = 'Group selection';
-  grp.innerHTML = '<svg viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="14" rx="2.5" stroke-dasharray="3.5 3"/><path d="M3 10h18"/></svg>';
-  grp.onclick = ev => { ev.stopPropagation(); groupSelection(); };
-  p.append(grp);
+  p.append(palTool('Colour', PAL_ICONS.paint, btn => togglePalPop('colour', btn, pop => {
+    [0,1,2,3,4,5,6].forEach(c => {
+      const b = document.createElement('button');
+      b.className = 'swatch';
+      b.dataset.c = c;
+      b.title = c === 0 ? 'No colour' : 'Colour ' + c;
+      b.onclick = ev => {
+        ev.stopPropagation();
+        selNodes().forEach(x => { if (c === 0) delete x.color; else x.color = String(c); });
+        markDirty(); renderGroups(); renderNodes();
+        closePalPop();
+      };
+      pop.append(b);
+    });
+  }), 'palColour'));
 
-  const sep = document.createElement('span');
-  sep.className = 'pal-sep';
-  p.append(sep);
+  p.append(palTool('Zoom to selection', PAL_ICONS.zoom, () => zoomToSelection()));
 
-  [0,1,2,3,4,5,6].forEach(c => {
-    const b = document.createElement('button');
-    b.className = 'swatch';
-    b.dataset.c = c;
-    b.title = c === 0 ? 'Default' : 'Colour ' + c;
-    b.onclick = ev => {
-      ev.stopPropagation();
-      selNodes().forEach(n => { if (c === 0) delete n.color; else n.color = String(c); });
-      markDirty(); renderGroups(); renderNodes();
-    };
-    p.append(b);
-  });
+  p.append(palTool('Create group', PAL_ICONS.group, () => groupSelection(), 'palGroup'));
+
+  p.append(palTool('Align', PAL_ICONS.align, btn => togglePalPop('align', btn, pop => {
+    [['left','Align left','<path d="M4 3.5v17"/><rect x="7" y="6" width="12" height="4" rx="1"/><rect x="7" y="14" width="8" height="4" rx="1"/>'],
+     ['hcentre','Centre across','<path d="M12 3.5v17"/><rect x="6" y="6" width="12" height="4" rx="1"/><rect x="8" y="14" width="8" height="4" rx="1"/>'],
+     ['right','Align right','<path d="M20 3.5v17"/><rect x="5" y="6" width="12" height="4" rx="1"/><rect x="9" y="14" width="8" height="4" rx="1"/>'],
+     ['top','Align top','<path d="M3.5 4h17"/><rect x="6" y="7" width="4" height="12" rx="1"/><rect x="14" y="7" width="4" height="8" rx="1"/>'],
+     ['vcentre','Centre down','<path d="M3.5 12h17"/><rect x="6" y="6" width="4" height="12" rx="1"/><rect x="14" y="8" width="4" height="8" rx="1"/>'],
+     ['bottom','Align bottom','<path d="M3.5 20h17"/><rect x="6" y="5" width="4" height="12" rx="1"/><rect x="14" y="9" width="4" height="8" rx="1"/>']
+    ].forEach(row => {
+      const b = palTool(row[1], row[2], () => { alignSelection(row[0]); closePalPop(); });
+      b.title = row[1];
+      pop.append(b);
+    });
+  }), 'palAlign'));
+
+  const pop = document.createElement('div');
+  pop.className = 'pal-pop';
+  pop.id = 'palPop';
+  pop.hidden = true;
+  pop.addEventListener('pointerdown', ev => ev.stopPropagation());
+  p.append(pop);
 }
 
 function positionPalette(){
   const p = $('palette');
   const ns = selNodes();
-  if (!ns.length || (drag && drag.kind === 'marquee')){ p.hidden = true; return; }
+  if (!ns.length || (drag && drag.kind === 'marquee')){
+    if (!p.hidden) closePalPop();
+    p.hidden = true;
+    return;
+  }
   buildPalette();
   p.hidden = false;
-  const grp = $('palGroup');
-  if (grp) grp.hidden = ns.filter(n => n.type !== 'group').length < 2;
+
+  /* a new selection is a new question, so any open choices close */
+  const sig = state.sel.ids.join(',');
+  if (p.dataset.sel !== sig){ closePalPop(); p.dataset.sel = sig; }
+
+  const cards = ns.filter(x => x.type !== 'group').length;
+  const ro = readOnly();
+  $('palDelete').hidden = ro;
+  $('palColour').hidden = ro;
+  $('palAlign').hidden = ro || cards < 2;
+  /* offered for one card as much as for ten; a group of one is a real thing */
+  $('palGroup').hidden = ro || cards < 1;
 
   /* sit above the bounding box of everything currently selected */
   let x0 = Infinity, y0 = Infinity, anyGroup = false;
@@ -1770,7 +1868,7 @@ function positionPalette(){
 function groupSelection(){
   if (readOnly()) return;
   const ns = selNodes().filter(n => n.type !== 'group');
-  if (ns.length < 2){ toast('Select two or more cards to group them.', true); return; }
+  if (!ns.length){ toast('Select a card or two first, then Create group.', true); return; }
   let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
   ns.forEach(n => {
     x0 = Math.min(x0, n.x); y0 = Math.min(y0, n.y);
@@ -1786,7 +1884,51 @@ function groupSelection(){
   selectOnly(g.id);
   markDirty();
   render();
-  toast('Grouped ' + ns.length + ' cards.');
+  toast('Grouped ' + ns.length + ' card' + (ns.length === 1 ? '' : 's') +
+        ' \u2014 double-click the label to name it.');
+}
+
+/* Frame the selection on its own, the way Fit frames the whole canvas. */
+function zoomToSelection(){
+  const ns = selNodes();
+  if (!ns.length) return;
+  const vp = $('viewport').getBoundingClientRect();
+  let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+  ns.forEach(n => {
+    x0 = Math.min(x0, n.x); y0 = Math.min(y0, n.y);
+    x1 = Math.max(x1, n.x + n.width); y1 = Math.max(y1, n.y + n.height);
+  });
+  const pad = 100;
+  const z = Math.max(0.15, Math.min(1.6, Math.min(
+    (vp.width  - pad * 2) / Math.max(1, x1 - x0),
+    (vp.height - pad * 2) / Math.max(1, y1 - y0))));
+  state.view.z = z;
+  state.view.x = vp.width / 2 - ((x0 + x1) / 2) * z;
+  state.view.y = vp.height / 2 - ((y0 + y1) / 2) * z;
+  applyView();
+  positionPalette();
+}
+
+/* Line the selected cards up against whichever edge you picked. Groups keep
+   out of it: they follow their contents rather than leading them. */
+function alignSelection(how){
+  if (readOnly()) return;
+  const ns = selNodes().filter(n => n.type !== 'group');
+  if (ns.length < 2){ toast('Select two or more cards to line them up.', true); return; }
+  const L = Math.min.apply(null, ns.map(n => n.x));
+  const R = Math.max.apply(null, ns.map(n => n.x + n.width));
+  const T = Math.min.apply(null, ns.map(n => n.y));
+  const B = Math.max.apply(null, ns.map(n => n.y + n.height));
+  ns.forEach(n => {
+    if      (how === 'left')    n.x = Math.round(L);
+    else if (how === 'right')   n.x = Math.round(R - n.width);
+    else if (how === 'hcentre') n.x = Math.round((L + R) / 2 - n.width / 2);
+    else if (how === 'top')     n.y = Math.round(T);
+    else if (how === 'bottom')  n.y = Math.round(B - n.height);
+    else if (how === 'vcentre') n.y = Math.round((T + B) / 2 - n.height / 2);
+  });
+  markDirty();
+  render();
 }
 
 /* ===================================================================
@@ -4842,6 +4984,10 @@ $('btnSignOut').onclick = signOut;
 
 $('clientName').oninput = e => { if (readOnly()) return; state.client = e.target.value.trim() || 'Untitled'; markDirty(); };
 $('palette').addEventListener('pointerdown', e => e.stopPropagation());
+/* clicking anywhere else puts the open choices away */
+document.addEventListener('pointerdown', e => {
+  if (!e.target.closest('#palette')) closePalPop();
+}, true);
 window.addEventListener('resize', () => { applyView(); });
 window.addEventListener('beforeunload', e => { if (state.dirty){ e.preventDefault(); e.returnValue = ''; } });
 
