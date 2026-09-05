@@ -937,7 +937,7 @@
 
   /* ---- the content panel, inset from the edges like a sheet on a desk ---- */
   .main > .viewport, .main > .repo, .main > .chan, .main > .kw, .main > .mx,
-  .main > .frame-note, .main > .clients, .main > .mcp{
+  .main > .frame-note, .main > .clients, .main > .mcp, .main > .settings{
     margin:0 16px 16px 2px; border-radius:14px; border:1px solid var(--line);
     background:var(--surface); box-shadow:var(--shadow);
   }
@@ -1015,6 +1015,16 @@
   .acct-face{background:var(--ink)}
   .sub-dot{color:var(--cli)}
   ::-webkit-scrollbar-thumb{background:#d6d7dc; border-color:var(--surface)}
+
+  /* ---- Settings: a footer button in the sidebar, and one page for all of it ---- */
+  .side-footer{flex:none; padding:8px 12px 8px; border-top:1px solid var(--line-2)}
+  .side-footer .tab{margin:0}
+  .side-footer .save-line{padding:6px 10px 2px}
+  .settings{flex:1; min-height:0; overflow-y:auto; padding:26px 32px 48px}
+  .set-sec + .set-sec{margin-top:36px; padding-top:30px; border-top:1px solid var(--line)}
+  .set-h{margin:0 0 8px; font-size:22px; font-weight:700; letter-spacing:-.02em; color:var(--ink)}
+  .settings .clients, .settings .mcp{flex:none; min-height:0; overflow:visible; padding:0; margin:0;
+                                    background:transparent; border:none; box-shadow:none; border-radius:0}
 </style>
 </head>
 <body>
@@ -1040,7 +1050,11 @@
       <div class="sub">Strategy Board</div>
     </div>
     <nav class="tabs" id="tabs"></nav>
-    <div class="save-line" id="saveState"></div>
+    <!-- Settings lives in the footer, one button, one page -->
+    <div class="side-footer" id="sideFooter">
+      <button class="tab" id="navSettings" type="button"><span>Settings</span></button>
+      <div class="save-line" id="saveState"></div>
+    </div>
   </aside>
 
   <div class="main">
@@ -1205,6 +1219,9 @@
       <div class="grid" id="clientGrid"></div>
     </div>
 
+    <!-- Settings: Clients, Article Types and MCP, one page. Filled at boot. -->
+    <div class="settings" id="settingsPane" hidden></div>
+
     <!-- Settings: the article types every table cell can choose from -->
     <div class="clients" id="typesPane" hidden>
       <p class="page-intro">The kinds of article a keyword can become. Every cell in the
@@ -1271,7 +1288,7 @@ const SUPABASE_URL = 'https://cskamgfvebryahkljlll.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_MdkD-TxMCIwlu69seSHA3Q_A39GADsK';
 const CLIENT_ID    = '1059013355751-6g50dsgm7df37htl2fdqrtlkh5hmrc0c.apps.googleusercontent.com';
 const ALLOWED      = ['vijaysrinivassan@gmail.com'];
-const BUILD        = 'v5.8';
+const BUILD        = 'v5.9';
 
 const TABS = [
   'Product Architecture',
@@ -1326,12 +1343,7 @@ const NAV = [
   { kind: 'tab',    name: 'Keyword Repo' },
   { kind: 'tab',    name: 'Grounded Evidences' },
   { kind: 'group',  id: 'frames',   label: 'Frames' },
-  { kind: 'spacer' },
-  { kind: 'label',  text: 'Account' },
-  { kind: 'group',  id: 'settings', label: 'Settings',
-    screens: [{ id: 'clients', label: 'Clients' },
-              { id: 'atypes',  label: 'Article Types' },
-              { id: 'mcp',     label: 'MCP' }] }
+  { kind: 'spacer' }
 ];
 
 /* Only one sidebar group stands open at a time. */
@@ -1637,6 +1649,13 @@ function renderTabs(){
   box.innerHTML = '';
   const onBoard = state.screen === 'board';
 
+  /* the footer button: lit while Settings is open, gone in client view */
+  const foot = $('navSettings');
+  if (foot){
+    foot.hidden = clientView();
+    foot.classList.toggle('active', state.screen === 'settings');
+  }
+
   function tabButton(name){
     const t = state.tabs[name] || { nodes: [] };
     const b = document.createElement('button');
@@ -1694,7 +1713,6 @@ function renderTabs(){
     if (clientView()){
       if (item.kind === 'tab' && CLIENT_HIDDEN_TABS.indexOf(item.name) !== -1) return;
       if (item.kind === 'group' && CLIENT_HIDDEN_GROUPS.indexOf(item.id) !== -1) return;
-      if (item.kind === 'label' && item.text === 'Account') return;   /* nothing under it */
     }
     if (item.kind === 'label'){
       const l = document.createElement('div');
@@ -1835,12 +1853,6 @@ function renderTabs(){
       return;
     }
 
-    if (item.id === 'settings'){
-      item.screens.forEach(sc => {
-        box.append(subButton(sc.label, state.screen === sc.id, () => goScreen(sc.id), 0));
-      });
-      return;
-    }
   });
 
   /* off-board screens set their own title in applyTabMode */
@@ -1854,13 +1866,14 @@ function renderTabs(){
 function goScreen(id){
   if (clientView() && id !== 'board') return;   /* nothing behind the board in client view */
   captureFrame();
-  state.screen = id;
-  if (id === 'clients' || id === 'mcp') openNav('settings');
+  /* Clients, Article Types and MCP are one page now; an old id scrolls to its part */
+  state.screen = 'settings';
   applyTabMode();
-  if (id === 'clients') renderClients();
-  if (id === 'atypes') renderArticleTypes();
-  if (id === 'mcp') renderMcp();
   renderTabs();
+  const part = { clients: 'setClients', atypes: 'setTypes', mcp: 'setMcp' }[id];
+  const el = part ? $(part) : null;
+  if (el) el.scrollIntoView({ block: 'start' });
+  else $('settingsPane').scrollTop = 0;
 }
 
 function renderMcp(){
@@ -3474,20 +3487,26 @@ async function uploadFiles(list, targetSection){
 
 /* Swap the canvas out for the gallery on that one tab. */
 function applyTabMode(){
-  const onClients = state.screen === 'clients';
-  const onMcp = state.screen === 'mcp';
-  const onTypes = state.screen === 'atypes';
-  $('clientsPane').hidden = !onClients;
-  $('mcpPane').hidden = !onMcp;
-  $('typesPane').hidden = !onTypes;
-  if (onClients || onMcp || onTypes){
+  /* the three settings screens are one page; old ids still land on it */
+  if (state.screen === 'clients' || state.screen === 'atypes' || state.screen === 'mcp'){
+    state.screen = 'settings';
+  }
+  const onSettings = state.screen === 'settings';
+  $('settingsPane').hidden = !onSettings;
+  $('clientsPane').hidden = !onSettings;
+  $('typesPane').hidden = !onSettings;
+  $('mcpPane').hidden = !onSettings;
+  if (onSettings){
     $('viewport').hidden = true; $('docsPane').hidden = true;
     $('chanPane').hidden = true; $('kwPane').hidden = true; $('mxPane').hidden = true;
     $('framePane').hidden = true; $('roFrame').hidden = true;
     $('btnFrameExport').hidden = true;
     ['btnFit','framePick','btnFrameExport'].forEach(id => { $(id).hidden = true; });
-    $('tabTitle').textContent = onClients ? 'Clients' : onTypes ? 'Article Types' : 'MCP';
+    $('tabTitle').textContent = 'Settings';
     renderCrumb();
+    renderClients();
+    renderArticleTypes();
+    renderMcp();
     applyRole();
     return;
   }
@@ -3679,7 +3698,7 @@ function openClientSettings(){
     markDirty();
     closeModal();
     await saveBoard(true);
-    if (state.screen === 'clients') renderClients();
+    if (state.screen === 'settings') renderClients();   /* the list lives on the settings page now */
     toast('Client updated.');
   };
   foot.append(cancel, save);
@@ -5093,10 +5112,8 @@ function roleForBoard(row){
 }
 
 function openClients(){   /* kept for callers that open the list directly */
-  state.screen = 'clients';
-  openNav('settings');
+  state.screen = 'settings';
   applyTabMode();
-  renderClients();
   renderTabs();
 }
 function openBoardScreen(){
@@ -5280,7 +5297,7 @@ function renderCrumb(){
   const el = $('crumb');
   if (!el) return;
   let c = 'Strategy';
-  if (state.screen !== 'board') c = 'Settings';
+  if (state.screen !== 'board') c = 'Account';
   else if (inFrame()) c = 'Frames';
   else if (isBrandTab(state.tab)) c = 'Brand Strategy';
   else if (state.tab === CONTENT_TAB) c = 'Content Strategy';
@@ -5581,9 +5598,8 @@ async function enterApp(user){
   if (state.boards.length > 1){
     openClients();
     await openBoard(state.boards[0].id);
-    state.screen = 'clients';
+    state.screen = 'settings';
     applyTabMode();
-    renderClients();
   } else if (state.boards.length){
     await openBoard(state.boards[0].id);
   } else {
@@ -5718,6 +5734,27 @@ window.onGsiError = function(){ gateMessage(BLOCKED_MSG); };
 setTimeout(function(){
   if (!$('gate').hidden && !(window.google && google.accounts && google.accounts.id)) gateMessage(BLOCKED_MSG);
 }, 5000);
+
+/* Settings is one page: the three panes move under one scrolling container,
+   each beneath its own heading, and the footer button opens it. */
+(function buildSettingsPage(){
+  const page = $('settingsPane');
+  [['setClients', 'Clients',       'clientsPane'],
+   ['setTypes',   'Article Types', 'typesPane'],
+   ['setMcp',     'MCP',           'mcpPane']].forEach(([id, label, pane]) => {
+    const sec = document.createElement('section');
+    sec.className = 'set-sec';
+    sec.id = id;
+    const h = document.createElement('h3');
+    h.className = 'set-h';
+    h.textContent = label;
+    sec.append(h, $(pane));
+    page.append(sec);
+  });
+  const nav = $('navSettings');
+  nav.prepend(tabIcon('Settings'));
+  nav.onclick = () => goScreen('settings');
+})();
 
 state.tabs = blankTabs();
 render();

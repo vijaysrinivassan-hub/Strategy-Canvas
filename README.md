@@ -72,9 +72,10 @@ read-only there too, so the look is an honest one, and the choice is remembered
 on that browser. Sign out lives in the same chip, and so does a board switcher
 whenever more than one board is to hand.
 
-The client's name heads the sidebar, with no logo beside it, and Settings sits
-at the very foot. Name and logo are edited from the Clients screen — **Edit** on
-the card, or double-click the name.
+The client's name heads the sidebar, with no logo beside it. **Settings** is the
+sidebar's footer: one button that opens one page with Clients, Article Types and
+MCP stacked on it. Name and logo are edited there — **Edit** on a client's card,
+or double-click the name at the top of the sidebar.
 
 ## Frames
 
