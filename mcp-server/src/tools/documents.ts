@@ -10,21 +10,29 @@ const display = (n: string) => n.replace(/^\d{13}-/, "");
 /** Text-ish files can be handed back inline; binaries cannot. */
 const TEXTUAL = /\.(txt|md|csv|tsv|json|xml|ya?ml|html?|js|ts|css|sql)$/i;
 
+/** The Repo tab, under its current name or the Document Gallery name older
+ *  boards were saved with. Creates it if the board has never had one. */
+function repoSlot(body: any): any {
+  const slot = body.tabs["Repo"] || body.tabs["Document Gallery"];
+  if (slot) return slot;
+  return (body.tabs["Repo"] = { nodes: [], edges: [], sections: [], files: {} });
+}
+
 export function registerDocumentTools(server: McpServer) {
   server.registerTool(
     "document_list",
     {
       title: "List documents",
       description:
-        "List the files attached to a board, with the column each is filed under in the " +
-        "Document Gallery, its size and when it was uploaded.",
+        "List the files attached to a board, with the Repo row each is filed under, its " +
+        "size and when it was uploaded. Files with no row sit in the repo column itself.",
       inputSchema: { board_id: z.string() },
       annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true }
     },
     async ({ board_id }) => {
       const { body } = await loadBoard(board_id);
-      const gallery = body.tabs["Document Gallery"] || {};
-      const columns: any[] = gallery.columns || [];
+      const gallery = repoSlot(body);
+      const sections: any[] = gallery.sections || [];
       const meta: Record<string, any> = gallery.files || {};
 
       const { data, error } = await db()
@@ -40,16 +48,16 @@ export function registerDocumentTools(server: McpServer) {
       const files = (data || []).filter((f: any) => f.id);
       const documents = files.map((f: any) => {
         const m = meta[f.name] || {};
-        const col = columns.find((c) => c.id === m.col);
+        const sec = sections.find((c) => c.id === m.col);
         return {
           storage_name: f.name,
           name: m.title || display(f.name),
-          column: col ? col.name : columns[0]?.name ?? null,
+          row: sec ? sec.name : null,
           size_bytes: f.metadata?.size ?? null,
           uploaded_at: f.created_at ?? null
         };
       });
-      return ok({ count: documents.length, columns: columns.map((c) => c.name), documents });
+      return ok({ count: documents.length, rows: sections.map((c) => c.name), documents });
     }
   );
 
@@ -116,17 +124,18 @@ export function registerDocumentTools(server: McpServer) {
     {
       title: "Upload a document",
       description:
-        "Upload a local file to a board's Document Gallery and file it under a column. " +
-        "Give the column by name; it must already exist on that board.",
+        "Upload a local file to a board's Repo. Leave row out and it lands in the repo " +
+        "column, where the user drags it wherever it belongs; give a row name to file it " +
+        "straight away.",
       inputSchema: {
         board_id: z.string(),
         file_path: z.string().describe("Absolute path to a file on this machine"),
-        column: z.string().optional().describe("Column name; defaults to the first column"),
+        row: z.string().optional().describe("Repo row name; omit to leave it in the repo column"),
         name: z.string().optional().describe("Display name; defaults to the file name")
       },
       annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false }
     },
-    async ({ board_id, file_path, column, name }) => {
+    async ({ board_id, file_path, row, name }) => {
       let bytes: Buffer;
       try {
         bytes = await readFile(file_path);
@@ -138,21 +147,18 @@ export function registerDocumentTools(server: McpServer) {
       }
 
       const { body } = await loadBoard(board_id);
-      const gallery = body.tabs["Document Gallery"] || (body.tabs["Document Gallery"] = { nodes: [], edges: [] });
-      if (!Array.isArray(gallery.columns) || !gallery.columns.length) {
-        throw new ToolError(
-          `That board has no Document Gallery columns yet. Open the board's Document ` +
-            `Gallery tab once so the default columns are created, then retry.`
-        );
-      }
-      const target = column
-        ? gallery.columns.find((c: any) => c.name.toLowerCase() === column.toLowerCase())
-        : gallery.columns[0];
-      if (!target) {
-        throw new ToolError(
-          `No column called "${column}". Columns on this board: ` +
-            gallery.columns.map((c: any) => c.name).join(", ")
-        );
+      const gallery = repoSlot(body);
+      const sections: any[] = gallery.sections || [];
+      let target: any = null;
+      if (row) {
+        target = sections.find((c: any) => String(c.name).toLowerCase() === row.toLowerCase());
+        if (!target) {
+          throw new ToolError(
+            `No Repo row called "${row}". Rows on this board: ` +
+              (sections.length ? sections.map((c: any) => c.name).join(", ") : "(none yet)") +
+              `. Leave row out to drop the file in the repo column instead.`
+          );
+        }
       }
 
       const safe = basename(file_path).replace(/[^\w.\- ]+/g, "_");
@@ -163,10 +169,16 @@ export function registerDocumentTools(server: McpServer) {
       if (error) throw new ToolError(`Upload failed: ${error.message}`);
 
       if (!gallery.files || typeof gallery.files !== "object") gallery.files = {};
-      gallery.files[storageName] = { col: target.id, title: name || basename(file_path) };
+      const entry: any = { title: name || basename(file_path) };
+      if (target) entry.col = target.id;
+      gallery.files[storageName] = entry;
       await saveBoard(board_id, body);
 
-      return ok({ storage_name: storageName, name: name || basename(file_path), column: target.name });
+      return ok({
+        storage_name: storageName,
+        name: name || basename(file_path),
+        row: target ? target.name : null
+      });
     }
   );
 }

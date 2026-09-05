@@ -95,7 +95,7 @@ SEO), `channel_set`.
 
 Things worth asking for:
 
-- *"Read the audit in Luca's Document Gallery and turn its findings into a
+- *"Read the audit in Luca's Repo and turn its findings into a
   Product Architecture canvas, grouped by theme."*
 - *"Import these 200 Ahrefs rows into the Luca board, then select everything
   above 500 volume with KD under 20."*

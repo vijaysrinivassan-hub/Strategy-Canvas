@@ -95,16 +95,26 @@ export const TABS = [
   "Channel Strategy",
   "Content Strategy",
   "Keyword Repo",
-  "Document Gallery"
+  "Repo"
 ] as const;
 
-/** Tabs that hold a canvas. The rest are panels with their own shapes. */
+/** The five canvases every board starts with. A board can carry more:
+ *  anything under Brand Strategy that the user added is a canvas too, so the
+ *  canvas tools take a plain name and check it against the board itself. */
 export const CANVAS_TABS = [
   "Product Architecture",
   "Market Research Frame",
   "Messaging Framework",
   "Positioning Document",
   "Growth Strategy"
+] as const;
+
+/** Tabs that are panels, not canvases. Everything else on a board is one. */
+export const PANEL_TABS = [
+  "Channel Strategy",
+  "Content Strategy",
+  "Keyword Repo",
+  "Repo"
 ] as const;
 
 export const CONTENT_VIEWS = ["category", "competitor", "icp", "value"] as const;
@@ -178,11 +188,28 @@ export function tabSlot(body: BoardBody, tab: string): any {
 }
 
 export function assertCanvasTab(tab: string): void {
-  if (!(CANVAS_TABS as readonly string[]).includes(tab)) {
+  if ((PANEL_TABS as readonly string[]).includes(tab)) {
     throw new ToolError(
-      `"${tab}" is not a canvas tab. Canvas tabs are: ${CANVAS_TABS.join(", ")}. ` +
-        `Content Strategy uses content_* tools, Keyword Repo uses keyword_* tools, ` +
-        `Document Gallery uses document_* tools.`
+      `"${tab}" is a panel, not a canvas. Content Strategy uses content_* tools, ` +
+        `Keyword Repo uses keyword_* tools, Repo uses document_* tools.`
+    );
+  }
+}
+
+/** Canvas tabs on one board: the five defaults plus whatever the user added
+ *  under Brand Strategy, which board_get also lists. */
+export function canvasTabsOf(body: BoardBody): string[] {
+  const extra = Array.isArray((body as any).extra) ? ((body as any).extra as string[]) : [];
+  return (CANVAS_TABS as readonly string[]).concat(extra.filter((x) => typeof x === "string"));
+}
+
+export function assertCanvasOnBoard(body: BoardBody, tab: string): void {
+  assertCanvasTab(tab);
+  const known = canvasTabsOf(body);
+  if (!known.includes(tab)) {
+    throw new ToolError(
+      `No canvas called "${tab}" on this board. Canvases are: ${known.join(", ")}. ` +
+        `Add one in the app under Brand Strategy, then retry.`
     );
   }
 }

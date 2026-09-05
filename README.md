@@ -37,11 +37,15 @@ The sidebar groups them:
 
 - **Brand Strategy** opens into Product Architecture, Market Research Frame,
   Messaging Framework, Positioning Document and Growth Strategy. Each is its own
-  canvas; the count beside one is its card count.
+  canvas; the count beside one is its card count. Those five always exist —
+  **+ New canvas** adds as many more as you like, double-click one to rename it,
+  and the × beside it removes it. Added canvases are saved with the board.
 - **Channel Strategy** — a scope checklist.
 - **Content Strategy** opens into Category, Competitor, ICP and Value.
-- **Keyword Repo** and **Document Gallery**.
+- **Keyword Repo** and **Repo**.
 - **Frames** — the reference frames from the Obsidian vault, read-only.
+
+Only one group stands open at a time: expanding one closes the rest.
 
 ## Frames
 
@@ -63,20 +67,40 @@ node tools/import-frames.mjs
 That rewrites `frames.json`, which the app fetches at load. Pass a path as the
 first argument if the vault is not at `~/OneDrive/Documents/Obsidian Vault/Frames`.
 
+### Frames as templates
+
+Every canvas carries an **Insert a frame…** dropdown in its toolbar. Pick a frame
+and a copy of it lands on the canvas you are on, clear of whatever is already
+there, with its groups and connections intact. The copy gets fresh ids, so the
+same frame can be dropped in twice, and it is yours to edit — the frame itself is
+never touched.
+
 The toolbar carries only the page title and the canvas zoom controls. Boards are
 chosen and created on the Clients screen, saving happens on its own a couple of
 seconds after any change (`Ctrl/Cmd+S` forces it), and the save state sits at the
 foot of the sidebar.
 
-**Document Gallery** is not a canvas. It is a column board for files. Drag files
-onto it (or straight into a column) and they upload to Supabase Storage, filed
-under the current board. Word, Excel, PDF, PowerPoint and images are recognised
-and badged; each file opens through a short-lived signed URL, or can be removed.
+## Repo
 
-Columns start as Inbox / Research / Working / Final and are yours to change:
-**+ Column** adds one, double-click a heading to rename it, and drag a file card
-from one column to another. Double-click a file's name to rename it — that is a
-display name only, so the stored object is never touched.
+**Repo** is not a canvas. The screen is six columns wide: the last one is the
+repo itself, and the five to its left are one writing area.
+
+The writing area is a stack of named rows. Each row holds free text, links and
+files. **+ Add row** adds one, double-click a heading to rename it, **+ Link**
+pins a link to it, and dragging the bar at the bottom of a row makes it taller —
+the height is saved with the board.
+
+Every upload lands in the repo column on the right, and you drag it into whichever
+row it belongs to. The **+** tile at the foot of that column opens the file
+picker, and it takes dropped files too. Files move between rows by dragging, and
+the ← button on a filed card sends it back to the repo.
+
+Word, Excel, PDF, PowerPoint and images are recognised and badged; each file opens
+through a short-lived signed URL, or can be removed. Double-click a file's name to
+rename it — that is a display name only, so the stored object is never touched.
+
+Boards saved before the rename open unchanged: the old Document Gallery columns
+become rows, keeping their names and the files filed under them.
 
 **Content Strategy** opens into four axes in the sidebar — Category, Competitor,
 ICP and Value. Each is its own matrix with its own rows and its own article-type

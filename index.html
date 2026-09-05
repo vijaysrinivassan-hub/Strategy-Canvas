@@ -30,6 +30,9 @@
 
     /* Obsidian card colours, kept */
     --n1:#e5484d; --n2:#f76b15; --n3:#e0b700; --n4:#30a46c; --n5:#00a2c7; --n6:#8e4ec6;
+    /* the same six, mixed down to a fill a card can carry behind its text */
+    --n1-bg:#fdecec; --n2-bg:#fdf0e3; --n3-bg:#fbf4d9;
+    --n4-bg:#e6f6ec; --n5-bg:#e1f4f9; --n6-bg:#f3ebfa;
   }
   *{box-sizing:border-box}
   [hidden]{display:none !important}
@@ -142,6 +145,12 @@
   .tab-sub .n{margin-left:auto; font-size:9.5px; font-weight:700; letter-spacing:.04em;
               color:var(--faint); flex:none; padding-left:6px}
   .tab-sub.active .n{color:var(--accent)}
+  .tab-sub .sub-x{margin-left:auto; padding:0 4px; font-size:14px; line-height:1;
+                  color:var(--faint); border-radius:5px; visibility:hidden; flex:none}
+  .tab-sub:hover .sub-x{visibility:visible}
+  .tab-sub .sub-x:hover{color:var(--danger); background:var(--danger-bg)}
+  .tab-sub.sub-add{color:var(--accent); font-weight:500}
+  .tab-sub.sub-add:hover{background:var(--accent-soft)}
 
   .tab .n{margin-left:auto; font-size:9.5px; font-weight:700; letter-spacing:.04em;
           color:var(--faint); background:#f0f0f1; padding:2px 6px; border-radius:5px; flex:none}
@@ -186,6 +195,12 @@
   }
   .toolbar h2{margin:0; font-size:20px; font-weight:800; letter-spacing:-.02em; color:var(--ink)}
   .tool-sep{width:1px; height:20px; background:var(--line); margin:0 4px}
+  .frame-pick{
+    font:inherit; font-size:12px; color:var(--ink-2); background:var(--panel);
+    border:1px solid var(--border); border-radius:8px; padding:5px 8px;
+    max-width:210px; cursor:pointer; outline:none;
+  }
+  .frame-pick:hover{border-color:var(--accent); color:var(--accent)}
   .zoom-label{font-size:12px; color:var(--muted); font-variant-numeric:tabular-nums;
               min-width:44px; text-align:center}
   /* the dashboard keeps its save state in the sidebar, not the toolbar */
@@ -285,12 +300,15 @@
   .anchor.left{top:0; bottom:0; left:-7px; width:11px}
   .anchor.right{top:0; bottom:0; right:-7px; width:11px}
 
-  .node[data-color="1"]{border-color:var(--n1)}
-  .node[data-color="2"]{border-color:var(--n2)}
-  .node[data-color="3"]{border-color:var(--n3)}
-  .node[data-color="4"]{border-color:var(--n4)}
-  .node[data-color="5"]{border-color:var(--n5)}
-  .node[data-color="6"]{border-color:var(--n6)}
+  /* A coloured card is filled, not merely outlined. */
+  .node[data-color="1"]{border-color:var(--n1); background:var(--n1-bg)}
+  .node[data-color="2"]{border-color:var(--n2); background:var(--n2-bg)}
+  .node[data-color="3"]{border-color:var(--n3); background:var(--n3-bg)}
+  .node[data-color="4"]{border-color:var(--n4); background:var(--n4-bg)}
+  .node[data-color="5"]{border-color:var(--n5); background:var(--n5-bg)}
+  .node[data-color="6"]{border-color:var(--n6); background:var(--n6-bg)}
+  /* selection still has to read on top of a fill */
+  .node.sel[data-color]{box-shadow:0 0 0 3px var(--accent-soft), var(--shadow)}
 
   /* alignment guides, the way Obsidian shows them while you drag */
   .guides{position:absolute; inset:0; pointer-events:none; z-index:45}
@@ -364,84 +382,129 @@
             padding:1px 6px; color:var(--ink)}
 
   /* clear of the dock, which sits at bottom:22px */
-  /* ================= document gallery ================= */
-  .docs{flex:1; min-height:0; overflow-y:auto; padding:20px 22px 40px; background:var(--bg)}
-  .dropzone{
-    border:2px dashed var(--border); border-radius:14px; background:var(--panel);
-    padding:30px 20px; text-align:center; cursor:pointer; transition:border-color .15s, background .15s;
-  }
-  .dropzone:hover{border-color:var(--accent); background:var(--accent-soft)}
-  .dropzone.over{border-color:var(--accent); background:var(--accent-soft)}
-  .dz-icon{font-size:22px; line-height:1; color:var(--accent); margin-bottom:8px}
-  .dropzone b{display:block; font-size:14.5px; font-weight:600; margin-bottom:3px}
-  .dropzone span{display:block; font-size:13px; color:var(--muted)}
-  .dropzone small{display:block; font-size:11.5px; color:var(--muted); margin-top:9px}
-  .linkish{background:none; border:none; padding:0; color:var(--accent);
-           font:inherit; font-size:13px; text-decoration:underline; cursor:pointer}
-  .linkish:hover{background:none; border-color:transparent}
+  /* ================= repo =================
+     Six columns wide: five for the sections the user writes in, the last one
+     for the file repo itself. Files land in the repo and are dragged left. */
+  .repo{flex:1; min-height:0; display:flex; flex-direction:column;
+        padding:18px 22px 22px; background:var(--bg); gap:14px}
+  .repo-grid{flex:1; min-height:0; display:grid; grid-template-columns:repeat(6,1fr); gap:16px}
+  .repo-main{grid-column:1 / 6; min-width:0; min-height:0; display:flex;
+             flex-direction:column; gap:12px; overflow-y:auto; padding-right:2px}
+  .repo-side{grid-column:6 / 7; min-width:0; min-height:0; display:flex; flex-direction:column;
+             background:#fff; border:1px solid var(--line); border-radius:14px;
+             box-shadow:var(--shadow)}
 
   .doc-setup{
-    margin-top:16px; border:1px solid var(--danger-border); background:var(--danger-bg);
+    border:1px solid var(--danger-border); background:var(--danger-bg);
     color:var(--danger); border-radius:12px; padding:14px 16px; font-size:13px; line-height:1.6;
   }
   .doc-setup b{display:block; margin-bottom:4px; font-size:13.5px}
   .doc-setup code{background:rgba(0,0,0,.06); border-radius:4px; padding:1px 5px; font-size:12px}
+  .linkish{background:none; border:none; padding:0; color:var(--accent);
+           font:inherit; font-size:13px; text-decoration:underline; cursor:pointer}
+  .linkish:hover{background:none; border-color:transparent}
 
-  .doc-head{display:flex; align-items:center; gap:10px; margin:26px 2px 12px}
-  .doc-head h3{margin:0; font-size:13px; font-weight:600; letter-spacing:.05em;
-               text-transform:uppercase; color:var(--muted)}
-  .doc-head span{font-size:12px; color:var(--muted)}
-  .doc-head button{margin-left:auto; padding:5px 10px; font-size:12px}
-
-  /* columns of files */
-  .doc-cols{display:flex; gap:12px; align-items:flex-start; overflow-x:auto; padding-bottom:10px}
-  .doc-col{
-    flex:0 0 268px; background:#fff; border:1px solid var(--line);
-    border-radius:14px; display:flex; flex-direction:column; max-height:62vh;
-    box-shadow:var(--shadow);
+  /* ---- a section row ---- */
+  .rrow{background:#fff; border:1px solid var(--line); border-radius:14px;
+        box-shadow:var(--shadow); display:flex; flex-direction:column;
+        min-height:96px; position:relative; flex:none}
+  .rrow.over{border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-soft)}
+  .rrow-head{display:flex; align-items:center; gap:8px; padding:9px 12px;
+             border-bottom:1px solid var(--line-2); flex:none}
+  .rrow-head b{font-size:13px; font-weight:600; cursor:text; min-width:0;
+               overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+  .rrow-head input{font:inherit; font-size:13px; font-weight:600; color:var(--ink);
+                   background:var(--bg); border:1px solid var(--accent); border-radius:5px;
+                   padding:1px 6px; outline:none; max-width:320px}
+  .rrow-head .n{font-size:10px; font-weight:700; letter-spacing:.03em; color:var(--muted);
+                background:var(--line-2); border-radius:999px; padding:2px 8px; flex:none}
+  .rrow-head .sp{margin-left:auto}
+  .rrow-head button{padding:3px 9px; font-size:11.5px; flex:none}
+  .rrow-head .x{padding:2px 8px; font-size:14px; line-height:1; color:var(--muted);
+                border-color:transparent; background:transparent}
+  .rrow-head .x:hover{color:var(--danger); background:var(--danger-bg); border-color:transparent}
+  .rrow-body{flex:1; min-height:0; display:flex; gap:12px; padding:10px 12px 14px; overflow:hidden}
+  .rrow-body textarea{
+    flex:1; min-width:0; resize:none; border:none; outline:none; background:transparent;
+    font:inherit; font-size:13px; line-height:1.65; color:var(--ink-2); padding:0;
   }
-  .doc-col.over{border-color:var(--accent); background:var(--accent-soft)}
-  .doc-col-head{display:flex; align-items:center; gap:7px; padding:10px 11px;
-                border-bottom:1px solid var(--border)}
-  .doc-col-head b{font-size:12.5px; font-weight:600; cursor:text; min-width:0;
-                  overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
-  .doc-col-head input{font:inherit; font-size:12.5px; font-weight:600; color:var(--ink);
-                      background:var(--panel); border:1px solid var(--accent);
-                      border-radius:5px; padding:1px 5px; outline:none; width:100%}
-  .doc-col-head .n{font-size:10.5px; font-weight:600; color:var(--muted);
-                   background:var(--panel); border:1px solid var(--border);
-                   border-radius:999px; padding:1px 7px; flex:none}
-  .doc-col-head .x{margin-left:auto; padding:2px 7px; font-size:13px; line-height:1;
-                   color:var(--muted); border-color:transparent; background:transparent; flex:none}
-  .doc-col-head .x:hover{color:var(--danger); background:var(--danger-bg); border-color:transparent}
-  .doc-col-body{padding:9px; display:flex; flex-direction:column; gap:8px;
-                overflow-y:auto; min-height:70px}
-  .doc-col-empty{font-size:12px; color:var(--muted); padding:10px 4px; text-align:center}
+  .rrow-body textarea::placeholder{color:var(--faint)}
+  .rrow-att{flex:0 0 clamp(140px, 28%, 240px); min-width:0; overflow-y:auto;
+            display:flex; flex-direction:column; gap:6px}
+  .rrow-att:empty::after{content:'Drag files here'; color:var(--faint); font-size:11.5px;
+                         border:1px dashed var(--border); border-radius:9px;
+                         padding:12px 8px; text-align:center}
+  .rrow-grip{position:absolute; left:0; right:0; bottom:-4px; height:9px; cursor:ns-resize; z-index:2}
+  .rrow-grip::after{content:''; position:absolute; left:50%; bottom:3px; width:42px; height:3px;
+                    margin-left:-21px; border-radius:2px; background:var(--border)}
+  .rrow-grip:hover::after{background:var(--accent)}
+  .repo-empty{color:var(--muted); font-size:13px; padding:22px 4px; text-align:center;
+              border:1px dashed var(--border); border-radius:12px}
+  .repo-newrow{align-self:flex-start; padding:7px 13px; font-size:12.5px; flex:none}
 
+  /* ---- the repo column ---- */
+  .repo-side-head{display:flex; align-items:center; gap:7px; padding:11px 12px;
+                  border-bottom:1px solid var(--line); flex:none}
+  .repo-side-head b{font-size:12px; font-weight:600; letter-spacing:.05em;
+                    text-transform:uppercase; color:var(--muted)}
+  .repo-side-head .n{margin-left:auto; font-size:10.5px; font-weight:600; color:var(--muted);
+                     background:var(--panel); border:1px solid var(--border);
+                     border-radius:999px; padding:1px 7px}
+  .repo-side-body{flex:1; min-height:0; overflow-y:auto; padding:9px;
+                  display:flex; flex-direction:column; gap:8px}
+  .repo-side.over{border-color:var(--accent)}
+  .repo-side.over .repo-side-body{background:var(--accent-soft)}
+  .repo-side-empty{font-size:11.5px; color:var(--faint); text-align:center; padding:14px 6px}
+  .repo-add{
+    flex:none; margin:0 9px 9px; padding:14px 8px; border:2px dashed var(--border);
+    border-radius:11px; background:transparent; color:var(--muted); cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+    font-size:20px; line-height:1; transition:border-color .15s, background .15s, color .15s;
+  }
+  .repo-add:hover, .repo-add.over{border-color:var(--accent); background:var(--accent-soft);
+                                  color:var(--accent)}
+
+  /* ---- file cards, in the repo column and inside rows ---- */
   .doc{
-    display:flex; align-items:center; gap:10px; padding:10px;
+    display:flex; align-items:center; gap:9px; padding:9px;
     background:var(--panel); border:1px solid var(--border); border-radius:10px;
     box-shadow:var(--shadow); min-width:0; cursor:grab;
   }
   .doc.dragging{opacity:.45}
   .doc-kind{
-    width:38px; height:44px; border-radius:7px; flex:none; display:grid; place-items:center;
-    font-size:9.5px; font-weight:700; letter-spacing:.03em; color:#fff; text-transform:uppercase;
+    width:34px; height:40px; border-radius:7px; flex:none; display:grid; place-items:center;
+    font-size:9px; font-weight:700; letter-spacing:.03em; color:#fff; text-transform:uppercase;
     background:var(--muted);
   }
   .doc-kind.k-doc{background:#2b5ce6} .doc-kind.k-xls{background:#1a7f45}
   .doc-kind.k-pdf{background:#c8322b} .doc-kind.k-ppt{background:#d2601a}
   .doc-kind.k-img{background:#7b4bc4} .doc-kind.k-zip{background:#8a6d3b}
   .doc-main{min-width:0; flex:1}
-  .doc-main b{display:block; font-size:13px; font-weight:600; overflow:hidden;
+  .doc-main b{display:block; font-size:12.5px; font-weight:600; overflow:hidden;
               text-overflow:ellipsis; white-space:nowrap}
-  .doc-main span{display:block; font-size:11.5px; color:var(--muted); margin-top:2px}
-  .doc-acts{display:flex; gap:4px; flex:none}
-  .doc-acts button{padding:4px 7px; font-size:11px}
-  .doc-empty{color:var(--muted); font-size:13px; padding:26px 2px}
-  .doc-main input{font:inherit; font-size:13px; font-weight:600; color:var(--ink);
+  .doc-main span{display:block; font-size:11px; color:var(--muted); margin-top:2px}
+  .doc-main input{font:inherit; font-size:12.5px; font-weight:600; color:var(--ink);
                   background:var(--bg); border:1px solid var(--accent); border-radius:5px;
                   padding:1px 5px; outline:none; width:100%}
+  .doc-acts{display:flex; gap:3px; flex:none}
+  .doc-acts button{padding:3px 6px; font-size:10.5px}
+  .doc.compact{flex-wrap:wrap; gap:7px; padding:8px}
+  .doc.compact .doc-kind{width:28px; height:32px; font-size:8.5px}
+  .doc.compact .doc-main{flex:1 1 56px}
+  .doc.compact .doc-main b{font-size:12px}
+  .doc.compact .doc-acts{flex:1 0 100%; justify-content:flex-end}
+
+  /* ---- links pinned to a row ---- */
+  .rlink{display:flex; align-items:center; gap:8px; padding:7px 9px; min-width:0;
+         background:var(--accent-soft); border:1px solid #d5e2fb; border-radius:9px}
+  .rlink svg{width:14px; height:14px; flex:none; stroke:var(--accent); stroke-width:1.9;
+             fill:none; stroke-linecap:round}
+  .rlink a{flex:1; min-width:0; font-size:12px; font-weight:500; color:var(--accent-d);
+           text-decoration:none; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+  .rlink a:hover{text-decoration:underline}
+  .rlink button{padding:2px 6px; font-size:12px; line-height:1; color:var(--muted);
+                background:transparent; border-color:transparent; flex:none}
+  .rlink button:hover{color:var(--danger); background:var(--danger-bg); border-color:transparent}
 
   /* ================= frames ================= */
   .frame-note{flex:1; min-height:0; overflow-y:auto; padding:24px 30px 40px; background:var(--bg)}
@@ -776,6 +839,10 @@
       <h2 id="tabTitle">Product Architecture</h2>
       <span class="ro-note" id="roNote" hidden>View only &mdash; this board belongs to someone else</span>
       <span class="ro-frame" id="roFrame" hidden>Reference frame &mdash; read only</span>
+      <select class="frame-pick" id="framePick" hidden
+              title="Drop one of your Obsidian frames onto this canvas">
+        <option value="">Insert a frame&hellip;</option>
+      </select>
       <div class="tool-sep"></div>
       <button id="btnZoomOut" title="Zoom out">−</button>
       <span class="zoom-label" id="zoomLabel">100%</span>
@@ -821,24 +888,26 @@
       </div>
     </div>
 
-    <!-- Document Gallery is a plain screen, not a canvas -->
-    <div class="docs" id="docsPane" hidden>
-      <div class="dropzone" id="dropzone">
-        <input type="file" id="fileInput" multiple hidden>
-        <div class="dz-icon">&#8679;</div>
-        <b>Drop files here</b>
-        <span>or <button class="linkish" id="btnBrowse" type="button">browse your computer</button></span>
-        <small>Word, Excel, PDF, PowerPoint, images &middot; up to 25&nbsp;MB each</small>
-      </div>
-
+    <!-- Repo: five columns of writing sections, one column of files -->
+    <div class="repo" id="docsPane" hidden>
       <div class="doc-setup" id="docSetup" hidden></div>
 
-      <div class="doc-head">
-        <h3>Files</h3>
-        <span id="docCount"></span>
-        <button id="btnAddColumn">+ Column</button>
+      <div class="repo-grid">
+        <div class="repo-main" id="repoMain"></div>
+
+        <aside class="repo-side" id="repoSide">
+          <div class="repo-side-head">
+            <b>Repo</b>
+            <span class="n" id="docCount"></span>
+          </div>
+          <div class="repo-side-body" id="repoFiles"></div>
+          <input type="file" id="fileInput" multiple hidden>
+          <button class="repo-add" id="dropzone" type="button"
+                  title="Upload files &mdash; or drop them here">+</button>
+        </aside>
       </div>
-      <div class="doc-cols" id="docCols"></div>
+
+      <button class="repo-newrow" id="btnAddColumn">+ Add row</button>
     </div>
 
     <!-- Channel Strategy is an in-scope / out-of-scope checklist, not a canvas -->
@@ -964,7 +1033,7 @@ const SUPABASE_URL = 'https://cskamgfvebryahkljlll.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_MdkD-TxMCIwlu69seSHA3Q_A39GADsK';
 const CLIENT_ID    = '1059013355751-6g50dsgm7df37htl2fdqrtlkh5hmrc0c.apps.googleusercontent.com';
 const ALLOWED      = ['vijaysrinivassan@gmail.com'];
-const BUILD        = 'v4.5';
+const BUILD        = 'v4.7';
 
 const TABS = [
   'Product Architecture',
@@ -975,28 +1044,41 @@ const TABS = [
   'Channel Strategy',
   'Content Strategy',
   'Keyword Repo',
-  'Document Gallery'
+  'Repo'
 ];
 
 /* The sidebar is grouped: two expanding sections and four plain entries. */
-const BRAND_TABS = [
+
+/* The five canvases every board starts with. They always exist; anything the
+   user adds later lives in state.extra and is saved with the board. */
+const BRAND_DEFAULT = [
   'Product Architecture',
   'Market Research Frame',
   'Messaging Framework',
   'Positioning Document',
   'Growth Strategy'
 ];
+const brandTabs = () => BRAND_DEFAULT.concat(state.extra);
+const isBrandTab = name => brandTabs().indexOf(name) > -1;
 const NAV = [
-  { kind: 'group',  id: 'brand',   label: 'Brand Strategy', children: BRAND_TABS },
+  { kind: 'group',  id: 'brand',   label: 'Brand Strategy' },
   { kind: 'tab',    name: 'Channel Strategy' },
   { kind: 'group',  id: 'content', label: 'Content Strategy', tab: 'Content Strategy' },
   { kind: 'tab',    name: 'Keyword Repo' },
-  { kind: 'tab',    name: 'Document Gallery' },
+  { kind: 'tab',    name: 'Repo' },
   { kind: 'group',  id: 'frames',   label: 'Frames' },
   { kind: 'spacer' },
   { kind: 'group',  id: 'settings', label: 'Settings',
     screens: [{ id: 'clients', label: 'Clients' }, { id: 'mcp', label: 'MCP' }] }
 ];
+
+/* Only one sidebar group stands open at a time. */
+function openNav(id){
+  Object.keys(state.navOpen).forEach(k => { state.navOpen[k] = (k === id); });
+}
+function closeNav(){
+  Object.keys(state.navOpen).forEach(k => { state.navOpen[k] = false; });
+}
 
 const $ = id => document.getElementById(id);
 const uid = () => Math.random().toString(36).slice(2, 10) + Date.now().toString(36).slice(-4);
@@ -1011,6 +1093,7 @@ const state = {
   logo: '',
   tab: TABS[0],
   tabs: {},                    /* tabName -> { nodes:[], edges:[] } */
+  extra: [],                   /* extra Brand Strategy canvases, by name */
   boards: [],                  /* [{id,title,updated_at}] */
   sel: { ids: [], edge: null },   /* many cards/groups, or one edge */
   role: 'admin',                  /* 'admin' owns the board, 'viewer' may only read */
@@ -1047,6 +1130,61 @@ function toggleSel(id){
 function selectAll(){
   state.sel = { ids: cur().nodes.map(n => n.id), edge: null };
   render();
+}
+
+/* ---- extra Brand Strategy canvases ----
+   A canvas is identified by its name, which is also its key in state.tabs,
+   so renaming one moves its contents across. Names have to stay unique. */
+function canvasNameTaken(name){
+  const low = name.toLowerCase();
+  return TABS.concat(state.extra).some(x => x.toLowerCase() === low);
+}
+function askCanvasName(title, current){
+  const raw = prompt(title, current || '');
+  if (raw === null) return null;
+  const name = raw.trim();
+  if (!name){ toast('A canvas needs a name.', true); return null; }
+  if (name !== current && canvasNameTaken(name)){
+    toast('There is already a canvas called "' + name + '".', true);
+    return null;
+  }
+  return name;
+}
+function addCanvas(){
+  if (readOnly()) return;
+  const name = askCanvasName('Name the new canvas');
+  if (!name) return;
+  state.extra.push(name);
+  state.tabs[name] = { nodes: [], edges: [] };
+  openNav('brand');
+  markDirty();
+  switchTab(name);
+  toast('"' + name + '" added under Brand Strategy.');
+}
+function renameCanvas(old){
+  if (readOnly()) return;
+  const name = askCanvasName('Rename this canvas', old);
+  if (!name || name === old) return;
+  state.extra = state.extra.map(x => (x === old ? name : x));
+  state.tabs[name] = state.tabs[old] || { nodes: [], edges: [] };
+  delete state.tabs[old];
+  if (state.tab === old) state.tab = name;
+  markDirty();
+  render();
+  applyTabMode();
+}
+function deleteCanvas(name){
+  if (readOnly()) return;
+  const cards = ((state.tabs[name] || {}).nodes || []).filter(x => x.type !== 'group').length;
+  const warn = cards
+    ? 'Delete "' + name + '" and its ' + cards + ' card' + (cards === 1 ? '' : 's') + '?'
+    : 'Delete "' + name + '"?';
+  if (!confirm(warn)) return;
+  state.extra = state.extra.filter(x => x !== name);
+  delete state.tabs[name];
+  markDirty();
+  if (state.tab === name) switchTab(TABS[0]); else { render(); applyTabMode(); }
+  toast('"' + name + '" deleted.');
 }
 
 /* ===================================================================
@@ -1183,7 +1321,7 @@ const TAB_ICONS = {
   'Channel Strategy': '<path d="M4 6h16M4 12h16M4 18h9"/><circle cx="19" cy="18" r="2"/>',
   'Content Strategy': '<path d="M4 5h16v14H4z"/><path d="M8 9h8M8 13h5"/>',
   'Keyword Repo': '<circle cx="8.5" cy="8.5" r="4.5"/><path d="M12 12l7 7"/><path d="M17 17l2-2"/>',
-  'Document Gallery': '<path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>',
+  'Repo': '<path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>',
   'Brand Strategy': '<path d="M12 3l2.6 5.6 6.1.8-4.5 4.2 1.2 6L12 16.8 6.6 19.6l1.2-6L3.3 9.4l6.1-.8z"/>',
   'MCP': '<path d="M5 7h14M5 12h14M5 17h9"/><circle cx="18" cy="17" r="2.2"/>',
   'Settings': '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1A1.7 1.7 0 0 0 9 19.4a1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1A1.7 1.7 0 0 0 4.6 9a1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.9.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/>'
@@ -1274,20 +1412,38 @@ function renderTabs(){
       return;
     }
 
-    /* ---- groups: open state is explicit, so a second click closes them ---- */
+    /* ---- groups: one open at a time, and a second click closes it ---- */
     const open = !!state.navOpen[item.id];
     box.append(groupButton(item.label, item.label, open, () => {
-      state.navOpen[item.id] = !state.navOpen[item.id];
+      if (open) closeNav(); else openNav(item.id);
       renderTabs();
     }));
     if (!open) return;
 
     if (item.id === 'brand'){
-      item.children.forEach(name => {
+      brandTabs().forEach(name => {
         const t = state.tabs[name] || { nodes: [] };
         const cards = (t.nodes || []).filter(x => x.type !== 'group').length;
-        box.append(subButton(name, onBoard && name === state.tab, () => switchTab(name), cards));
+        const b = subButton(name, onBoard && name === state.tab, () => switchTab(name), cards);
+        /* the five that ship are fixed; only added ones can be renamed or removed */
+        if (BRAND_DEFAULT.indexOf(name) === -1 && !readOnly()){
+          b.title = name + ' \u2014 double-click to rename';
+          b.ondblclick = ev => { ev.preventDefault(); renameCanvas(name); };
+          const x = document.createElement('span');
+          x.className = 'sub-x';
+          x.innerHTML = '&times;';
+          x.title = 'Delete this canvas';
+          x.onclick = ev => { ev.stopPropagation(); deleteCanvas(name); };
+          b.append(x);
+        }
+        box.append(b);
       });
+      if (!readOnly()){
+        const add = subButton('+ New canvas', false, addCanvas, 0);
+        add.classList.add('sub-add');
+        add.title = 'Add another canvas under Brand Strategy';
+        box.append(add);
+      }
       return;
     }
 
@@ -1337,7 +1493,7 @@ function renderTabs(){
 /* Screens that are not board tabs: Clients, MCP. */
 function goScreen(id){
   state.screen = id;
-  if (id === 'clients' || id === 'mcp') state.navOpen.settings = true;
+  if (id === 'clients' || id === 'mcp') openNav('settings');
   applyTabMode();
   if (id === 'clients') renderClients();
   if (id === 'mcp') renderMcp();
@@ -1628,8 +1784,8 @@ function switchTab(name){
   state.tab = name;
   state.frameIndex = -1;
   state.screen = 'board';
-  if (BRAND_TABS.indexOf(name) > -1) state.navOpen.brand = true;
-  if (name === CONTENT_TAB) state.navOpen.content = true;
+  if (isBrandTab(name)) openNav('brand');
+  else if (name === CONTENT_TAB) openNav('content');
   clearSel();
   render();
   applyTabMode();
@@ -2155,17 +2311,36 @@ window.addEventListener('blur', () => { spaceHeld = false; });
    PERSISTENCE
    =================================================================== */
 function serialize(){
-  return JSON.stringify({ version: 1, client: state.client, logo: state.logo || '', tabs: state.tabs });
+  return JSON.stringify({ version: 2, client: state.client, logo: state.logo || '',
+                          extra: state.extra, tabs: state.tabs });
 }
 function hydrate(text){
   let d = null;
   try { d = JSON.parse(text); } catch (e) {}
   state.tabs = blankTabs();
+  state.extra = [];
   if (d && d.tabs){
-    TABS.forEach(name => {
+    /* Document Gallery was renamed to Repo; older boards keep their files. */
+    if (d.tabs['Document Gallery'] && !d.tabs[DOCS_TAB]){
+      d.tabs[DOCS_TAB] = d.tabs['Document Gallery'];
+      delete d.tabs['Document Gallery'];
+    }
+    /* Copy every slot whole. The panel tabs keep their own shapes in here —
+       columns, views, items — and picking out nodes and edges alone used to
+       drop all of it on the way in. */
+    Object.keys(d.tabs).forEach(name => {
       const t = d.tabs[name];
-      if (t && Array.isArray(t.nodes)) state.tabs[name] = { nodes: t.nodes, edges: t.edges || [] };
+      if (!t || typeof t !== 'object') return;
+      if (!Array.isArray(t.nodes)) t.nodes = [];
+      if (!Array.isArray(t.edges)) t.edges = [];
+      state.tabs[name] = t;
     });
+    /* Anything saved that is not a built-in tab is a canvas the user added. */
+    if (Array.isArray(d.extra)){
+      state.extra = d.extra.filter(x => typeof x === 'string' && TABS.indexOf(x) === -1);
+    } else {
+      state.extra = Object.keys(d.tabs).filter(x => TABS.indexOf(x) === -1);
+    }
   }
   state.client = (d && d.client) || 'XYZ';
   state.logo = (d && d.logo) || '';
@@ -2231,6 +2406,7 @@ function newBoard(){
   state.role = 'admin';
   state.client = 'New client';
   state.tabs = blankTabs();
+  state.extra = [];
   state.tab = TABS[0];
   clearSel();
   $('clientName').value = state.client;
@@ -2245,7 +2421,7 @@ function newBoard(){
    DOCUMENT GALLERY
    =================================================================== */
 const BUCKET = 'documents';
-const DOCS_TAB = 'Document Gallery';
+const DOCS_TAB = 'Repo';
 
 const KIND = [
   { re: /\.(docx?|odt|rtf|pages)$/i,        cls: 'k-doc', label: 'DOC' },
@@ -2281,19 +2457,16 @@ function showDocSetup(msg){
 }
 
 async function refreshDocs(){
-  const grid = $('docCols');
-  if (!state.boardId){
-    $('docCount').textContent = '';
-    grid.innerHTML = '<div class="doc-empty">Save this board first — documents are filed under it.</div>';
-    return;
-  }
+  /* The rows are the user's own writing and exist with or without storage,
+     so they are drawn first and the file list is layered on after. */
+  if (!state.boardId){ renderRepo([]); return; }
+
   /* `list` returns an empty array for a bucket that does not exist, so it
      cannot tell "not set up" from "set up but empty". Ask about the bucket
      itself instead. */
   const probe = await sb.storage.getBucket(BUCKET);
   if (probe.error && /not found|does not exist|nosuchbucket/i.test(probe.error.message)){
-    grid.innerHTML = '';
-    $('docCount').textContent = '';
+    renderRepo([]);
     showDocSetup(probe.error.message);
     return;
   }
@@ -2302,27 +2475,35 @@ async function refreshDocs(){
     limit: 200, sortBy: { column: 'created_at', order: 'desc' }
   });
   if (error){
-    grid.innerHTML = '';
-    $('docCount').textContent = '';
+    renderRepo([]);
     showDocSetup(error.message);
     return;
   }
   $('docSetup').hidden = true;
-
-  const files = (data || []).filter(f => f.id);   /* skip folder placeholders */
-  $('docSetup').hidden = true;
-  $('docCount').textContent = files.length ? files.length + ' file' + (files.length === 1 ? '' : 's') : '';
-  renderDocColumns(files);
+  renderRepo((data || []).filter(f => f.id));   /* skip folder placeholders */
 }
 
-/* ---- columns ---------------------------------------------------- */
-const DEFAULT_DOC_COLUMNS = ['Inbox', 'Research', 'Working', 'Final'];
+/* ---- sections -----------------------------------------------------
+   The five left-hand columns are one writing area: a stack of named rows,
+   each holding text, links and whatever files were dragged across from the
+   repo column on the right. */
+const REPO_ROW_H = 190;
 
 function docsMeta(){
   const t = state.tabs[DOCS_TAB] || (state.tabs[DOCS_TAB] = { nodes: [], edges: [] });
-  if (!Array.isArray(t.columns) || !t.columns.length){
-    t.columns = DEFAULT_DOC_COLUMNS.map(n => ({ id: uid(), name: n }));
+
+  if (!Array.isArray(t.sections)){
+    /* older boards kept plain columns of files; carry the names across */
+    t.sections = Array.isArray(t.columns)
+      ? t.columns.map(c => ({ id: c.id, name: c.name, text: '', links: [], h: REPO_ROW_H }))
+      : [{ id: uid(), name: 'Section 1', text: '', links: [], h: REPO_ROW_H }];
+    delete t.columns;
   }
+  t.sections.forEach(sec => {
+    if (typeof sec.text !== 'string') sec.text = '';
+    if (!Array.isArray(sec.links)) sec.links = [];
+    if (!sec.h) sec.h = REPO_ROW_H;
+  });
   if (!t.files || typeof t.files !== 'object') t.files = {};
   return t;
 }
@@ -2333,90 +2514,186 @@ function fileMeta(storageName){
   if (!m.files[storageName]) m.files[storageName] = {};
   return m.files[storageName];
 }
+const sectionById = id => docsMeta().sections.find(x => x.id === id);
 
-function renderDocColumns(files){
+/* The last fetched listing, so a rename or a drag can redraw without going
+   back to storage for a list that has not changed. */
+let repoFiles = [];
+
+function renderRepo(files){
+  if (files) repoFiles = files;
   const m = docsMeta();
-  const host = $('docCols');
-  host.innerHTML = '';
+  const ro = readOnly();
 
-  const firstCol = m.columns[0].id;
-  const bucketed = {};
-  m.columns.forEach(c => bucketed[c.id] = []);
-  files.forEach(f => {
-    const meta = m.files[f.name] || {};
-    const col = bucketed[meta.col] ? meta.col : firstCol;
-    bucketed[col].push(f);
+  /* a file belongs to a row only while that row still exists */
+  const inRow = {};
+  m.sections.forEach(sec => { inRow[sec.id] = []; });
+  const loose = [];
+  repoFiles.forEach(f => {
+    const col = (m.files[f.name] || {}).col;
+    if (col && inRow[col]) inRow[col].push(f); else loose.push(f);
   });
 
-  m.columns.forEach(col => {
-    const el = document.createElement('div');
-    el.className = 'doc-col';
-    el.dataset.col = col.id;
+  /* ---------------- the rows ---------------- */
+  const main = $('repoMain');
+  main.innerHTML = '';
+  if (!m.sections.length){
+    const e = document.createElement('div');
+    e.className = 'repo-empty';
+    e.textContent = 'No rows yet — press "+ Add row" below to make one.';
+    main.append(e);
+  }
 
+  m.sections.forEach(sec => {
+    const row = document.createElement('section');
+    row.className = 'rrow';
+    row.style.height = sec.h + 'px';
+
+    /* ---- head ---- */
     const head = document.createElement('div');
-    head.className = 'doc-col-head';
+    head.className = 'rrow-head';
     const nm = document.createElement('b');
-    nm.textContent = col.name;
-    nm.title = 'Double-click to rename';
-    nm.ondblclick = () => inlineRename(nm, col.name, v => {
-      col.name = v || 'Untitled'; markDirty(); refreshDocs();
+    nm.textContent = sec.name;
+    nm.title = ro ? sec.name : 'Double-click to rename';
+    if (!ro) nm.ondblclick = () => inlineRename(nm, sec.name, v => {
+      sec.name = v || 'Untitled'; markDirty(); renderRepo();
     });
-    const count = document.createElement('span');
-    count.className = 'n';
-    count.textContent = bucketed[col.id].length;
-    const x = document.createElement('button');
-    x.className = 'x';
-    x.innerHTML = '&times;';
-    x.title = 'Delete column';
-    x.onclick = () => removeColumn(col.id);
-    head.append(nm, count, x);
+    head.append(nm);
 
-    const body = document.createElement('div');
-    body.className = 'doc-col-body';
-    body.dataset.col = col.id;
-
-    if (!bucketed[col.id].length){
-      const e = document.createElement('div');
-      e.className = 'doc-col-empty';
-      e.textContent = 'Drop files here';
-      body.append(e);
+    const count = inRow[sec.id].length + sec.links.length;
+    if (count){
+      const c = document.createElement('span');
+      c.className = 'n';
+      c.textContent = count;
+      head.append(c);
     }
-    bucketed[col.id].forEach(f => body.append(docCard(f)));
 
-    /* accept both a card dragged from another column and an OS file drop */
-    body.addEventListener('dragover', ev => {
-      ev.preventDefault(); ev.stopPropagation();
-      el.classList.add('over');
-    });
-    body.addEventListener('dragleave', () => el.classList.remove('over'));
-    body.addEventListener('drop', ev => {
-      ev.preventDefault(); ev.stopPropagation();
-      el.classList.remove('over');
-      const moved = ev.dataTransfer.getData('text/sb-file');
-      if (moved){
-        fileMeta(moved).col = col.id;
-        markDirty();
-        refreshDocs();
-        return;
-      }
-      if (ev.dataTransfer.files && ev.dataTransfer.files.length){
-        uploadFiles(ev.dataTransfer.files, col.id);
-      }
-    });
+    const sp = document.createElement('span');
+    sp.className = 'sp';
+    head.append(sp);
 
-    el.append(head, body);
-    host.append(el);
+    if (!ro){
+      const link = document.createElement('button');
+      link.textContent = '+ Link';
+      link.title = 'Attach a link to this row';
+      link.onclick = () => addLink(sec.id);
+      const x = document.createElement('button');
+      x.className = 'x';
+      x.innerHTML = '&times;';
+      x.title = 'Delete this row';
+      x.onclick = () => removeSection(sec.id);
+      head.append(link, x);
+    }
+
+    /* ---- body ---- */
+    const body = document.createElement('div');
+    body.className = 'rrow-body';
+
+    const ta = document.createElement('textarea');
+    ta.value = sec.text;
+    ta.placeholder = 'Write here\u2026';
+    ta.readOnly = ro;
+    /* typed straight into state: redrawing on every keystroke would take the
+       caret with it */
+    ta.oninput = () => { sec.text = ta.value; markDirty(); };
+    ta.onkeydown = ev => ev.stopPropagation();
+
+    const att = document.createElement('div');
+    att.className = 'rrow-att';
+    sec.links.forEach(l => att.append(linkChip(sec, l)));
+    inRow[sec.id].forEach(f => att.append(docCard(f, sec.id)));
+
+    body.append(ta, att);
+
+    /* ---- accept files dragged in ---- */
+    if (!ro){
+      row.addEventListener('dragover', ev => {
+        ev.preventDefault(); ev.stopPropagation();
+        row.classList.add('over');
+      });
+      row.addEventListener('dragleave', ev => {
+        if (!row.contains(ev.relatedTarget)) row.classList.remove('over');
+      });
+      row.addEventListener('drop', ev => {
+        ev.preventDefault(); ev.stopPropagation();
+        row.classList.remove('over');
+        const moved = ev.dataTransfer.getData('text/sb-file');
+        if (moved){ fileMeta(moved).col = sec.id; markDirty(); renderRepo(); return; }
+        if (ev.dataTransfer.files && ev.dataTransfer.files.length){
+          uploadFiles(ev.dataTransfer.files, sec.id);
+        }
+      });
+    }
+
+    row.append(head, body);
+
+    /* ---- drag the bottom edge to make the row taller ---- */
+    if (!ro){
+      const grip = document.createElement('div');
+      grip.className = 'rrow-grip';
+      grip.title = 'Drag to resize';
+      grip.addEventListener('pointerdown', ev => {
+        ev.preventDefault();
+        grip.setPointerCapture(ev.pointerId);
+        const y0 = ev.clientY;
+        const h0 = row.getBoundingClientRect().height;
+        const move = e2 => {
+          const h = Math.max(96, Math.round(h0 + e2.clientY - y0));
+          row.style.height = h + 'px';
+          sec.h = h;
+        };
+        const up = () => {
+          grip.removeEventListener('pointermove', move);
+          grip.removeEventListener('pointerup', up);
+          markDirty();
+        };
+        grip.addEventListener('pointermove', move);
+        grip.addEventListener('pointerup', up);
+      });
+      row.append(grip);
+    }
+
+    main.append(row);
   });
+
+  /* ---------------- the repo column ---------------- */
+  const side = $('repoFiles');
+  side.innerHTML = '';
+  $('docCount').textContent = loose.length ? String(loose.length) : '';
+  if (!loose.length){
+    const e = document.createElement('div');
+    e.className = 'repo-side-empty';
+    e.textContent = state.boardId
+      ? 'Everything is filed. New uploads land here.'
+      : 'Save this board first — files are filed under it.';
+    side.append(e);
+  }
+  loose.forEach(f => side.append(docCard(f, null)));
+  $('btnAddColumn').hidden = readOnly();
 }
 
-function docCard(f){
+/* Send a file back to the repo column, or move it between rows. */
+function fileToSection(storageName, sectionId){
+  if (readOnly()) return;
+  if (sectionId) fileMeta(storageName).col = sectionId;
+  else delete fileMeta(storageName).col;
+  markDirty();
+  renderRepo();
+}
+
+function docCard(f, sectionId){
   const meta = (docsMeta().files[f.name]) || {};
   const shown = meta.title || displayName(f.name);
-  const k = kindOf(shown);
+  /* the badge comes from the stored filename, which always carries the
+     extension — a renamed card would otherwise show the first four letters
+     of its new title */
+  const k = kindOf(f.name);
+  const ro = readOnly();
 
   const card = document.createElement('div');
-  card.className = 'doc';
-  card.draggable = true;
+  /* the repo column is one sixth of the screen, so its cards wrap */
+  card.className = 'doc' + (sectionId ? '' : ' compact');
+  card.draggable = !ro;
   card.addEventListener('dragstart', ev => {
     ev.dataTransfer.setData('text/sb-file', f.name);
     ev.dataTransfer.effectAllowed = 'move';
@@ -2432,15 +2709,15 @@ function docCard(f){
   main.className = 'doc-main';
   const nm = document.createElement('b');
   nm.textContent = shown;
-  nm.title = 'Double-click to rename';
-  nm.ondblclick = () => inlineRename(nm, shown, v => {
+  nm.title = ro ? shown : 'Double-click to rename';
+  if (!ro) nm.ondblclick = () => inlineRename(nm, shown, v => {
     fileMeta(f.name).title = v || displayName(f.name);
-    markDirty(); refreshDocs();
+    markDirty(); renderRepo();
   });
   const sub = document.createElement('span');
   const size = f.metadata && f.metadata.size;
   const when = f.created_at ? new Date(f.created_at).toLocaleDateString() : '';
-  sub.textContent = [prettySize(size), when].filter(Boolean).join(' · ');
+  sub.textContent = [prettySize(size), when].filter(Boolean).join(' \u00b7 ');
   main.append(nm, sub);
 
   const acts = document.createElement('div');
@@ -2448,13 +2725,51 @@ function docCard(f){
   const open = document.createElement('button');
   open.textContent = 'Open';
   open.onclick = () => openDoc(f.name);
-  const del = document.createElement('button');
-  del.textContent = 'Remove';
-  del.onclick = () => removeDoc(f.name);
-  acts.append(open, del);
+  acts.append(open);
+  if (!ro){
+    if (sectionId){
+      const back = document.createElement('button');
+      back.innerHTML = '&#8592;';
+      back.title = 'Send back to the repo';
+      back.onclick = () => fileToSection(f.name, null);
+      acts.append(back);
+    }
+    const del = document.createElement('button');
+    del.innerHTML = '&times;';
+    del.title = 'Delete this file';
+    del.onclick = () => removeDoc(f.name);
+    acts.append(del);
+  }
 
   card.append(badge, main, acts);
   return card;
+}
+
+function linkChip(sec, l){
+  const el = document.createElement('div');
+  el.className = 'rlink';
+  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  svg.setAttribute('viewBox', '0 0 24 24');
+  svg.innerHTML = '<path d="M10 13a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1.5 1.5"/>' +
+                  '<path d="M14 11a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1.5-1.5"/>';
+  const a = document.createElement('a');
+  a.href = l.url;
+  a.target = '_blank';
+  a.rel = 'noopener noreferrer';
+  a.textContent = l.label || l.url;
+  a.title = l.url;
+  el.append(svg, a);
+  if (!readOnly()){
+    const x = document.createElement('button');
+    x.innerHTML = '&times;';
+    x.title = 'Remove this link';
+    x.onclick = () => {
+      sec.links = sec.links.filter(y => y.id !== l.id);
+      markDirty(); renderRepo();
+    };
+    el.append(x);
+  }
+  return el;
 }
 
 /* Swap an element for an input, commit on blur or Enter. */
@@ -2474,27 +2789,46 @@ function inlineRename(el, current, done){
   input.addEventListener('keydown', ev => {
     ev.stopPropagation();
     if (ev.key === 'Enter') input.blur();
-    if (ev.key === 'Escape'){ finished = true; refreshDocs(); renderChannels(); }
+    if (ev.key === 'Escape'){ finished = true; renderRepo(); renderChannels(); }
   });
 }
 
-function addColumn(){
+function addSection(){
   if (readOnly()) return;
   const m = docsMeta();
-  m.columns.push({ id: uid(), name: 'New column' });
+  m.sections.push({ id: uid(), name: 'Section ' + (m.sections.length + 1),
+                    text: '', links: [], h: REPO_ROW_H });
   markDirty();
-  refreshDocs();
+  renderRepo();
 }
-function removeColumn(id){
+function removeSection(id){
   if (readOnly()) return;
   const m = docsMeta();
-  if (m.columns.length <= 1){ toast('Keep at least one column.', true); return; }
-  if (!confirm('Delete this column? Its files move to the first column.')) return;
-  const firstOther = m.columns.filter(c => c.id !== id)[0].id;
-  Object.keys(m.files).forEach(k => { if (m.files[k].col === id) m.files[k].col = firstOther; });
-  m.columns = m.columns.filter(c => c.id !== id);
+  const sec = sectionById(id);
+  if (!sec) return;
+  const held = repoFiles.filter(f => (m.files[f.name] || {}).col === id).length;
+  const warn = held
+    ? 'Delete "' + sec.name + '"? Its ' + held + ' file' + (held === 1 ? '' : 's') +
+      ' go back to the repo, and its text and links are lost.'
+    : 'Delete "' + sec.name + '"? Its text and links are lost.';
+  if (!confirm(warn)) return;
+  Object.keys(m.files).forEach(k => { if (m.files[k].col === id) delete m.files[k].col; });
+  m.sections = m.sections.filter(x => x.id !== id);
   markDirty();
-  refreshDocs();
+  renderRepo();
+}
+
+function addLink(sectionId){
+  if (readOnly()) return;
+  const sec = sectionById(sectionId);
+  if (!sec) return;
+  let url = (prompt('Paste the link') || '').trim();
+  if (!url) return;
+  if (!/^https?:\/\//i.test(url)) url = 'https://' + url;
+  const label = (prompt('Name it (leave blank to show the address)', '') || '').trim();
+  sec.links.push({ id: uid(), url: url, label: label });
+  markDirty();
+  renderRepo();
 }
 
 async function openDoc(name){
@@ -2509,17 +2843,19 @@ async function removeDoc(name){
   if (!confirm('Remove ' + displayName(name) + ' permanently?')) return;
   const { error } = await sb.storage.from(BUCKET).remove([docsFolder() + '/' + name]);
   if (error){ toast('Could not remove it: ' + error.message, true); return; }
+  delete docsMeta().files[name];
+  markDirty();
   toast('File removed.');
   refreshDocs();
 }
 
-async function uploadFiles(list, targetCol){
+async function uploadFiles(list, targetSection){
   if (readOnly()){ toast('You have view-only access to this board.', true); return; }
   const files = Array.from(list || []);
   if (!files.length) return;
   /* Documents are filed under the board, so it needs an id first. */
   if (!state.boardId){
-    toast('Saving the board first…');
+    toast('Saving the board first\u2026');
     await saveBoard(true);
     if (!state.boardId) return;
   }
@@ -2536,9 +2872,8 @@ async function uploadFiles(list, targetCol){
       if (/not found|does not exist|nosuchbucket/i.test(error.message)) showDocSetup(error.message);
     } else {
       ok++;
-      /* file the upload into whichever column received the drop */
-      const col = targetCol || docsMeta().columns[0].id;
-      fileMeta(path.split('/').pop()).col = col;
+      /* new files land in the repo column unless they were dropped on a row */
+      if (targetSection) fileMeta(path.split('/').pop()).col = targetSection;
       markDirty();
     }
   }
@@ -2557,7 +2892,8 @@ function applyTabMode(){
     $('viewport').hidden = true; $('docsPane').hidden = true;
     $('chanPane').hidden = true; $('kwPane').hidden = true; $('mxPane').hidden = true;
     $('framePane').hidden = true; $('roFrame').hidden = true;
-    ['btnZoomIn','btnZoomOut','btnFit','zoomLabel'].forEach(id => { $(id).hidden = true; });
+    ['btnZoomIn','btnZoomOut','btnFit','zoomLabel','framePick']
+      .forEach(id => { $(id).hidden = true; });
     $('tabTitle').textContent = onClients ? 'Clients' : 'MCP';
     applyRole();
     return;
@@ -2584,6 +2920,9 @@ function applyTabMode(){
   $('mxPane').hidden   = !isMx;
   ['btnZoomIn','btnZoomOut','btnFit'].forEach(id => { $(id).hidden = !isCanvas; });
   $('zoomLabel').hidden = !isCanvas;
+  /* a frame can be used as a template on a real canvas, but not inside a frame */
+  $('framePick').hidden = !isCanvas || readOnly();
+  renderFramePicker();
   if (isDocs && state.user) refreshDocs();
   if (isChan) renderChannels();
   if (isKw && state.user) refreshKeywords();
@@ -3610,9 +3949,9 @@ function repaintKeywordViews(){
 function switchContentView(id){
   state.contentView = id;
   state.frameIndex = -1;
+  openNav('content');
   state.tab = CONTENT_TAB;
   state.screen = 'board';
-  state.navOpen.content = true;
   renderTabs();
   applyTabMode();
 }
@@ -3664,6 +4003,7 @@ async function loadFrames(){
     toast('Could not load the frames library: ' + e.message, true);
   }
   renderTabs();
+  renderFramePicker();
 }
 
 function openFrame(i){
@@ -3671,7 +4011,7 @@ function openFrame(i){
   if (!f) return;
   state.frameIndex = i;
   state.screen = 'board';
-  state.navOpen.frames = true;
+  openNav('frames');
   clearSel();
 
   if (f.kind === 'canvas'){
@@ -3693,6 +4033,82 @@ function openFrame(i){
    that no AI may write to them. Nothing here is editable. */
 const inFrame = () => state.tab === FRAME_TAB && state.frameIndex > -1;
 
+/* ---- using a frame as a template on a real canvas ---- */
+function renderFramePicker(){
+  const sel = $('framePick');
+  if (!sel) return;
+  const want = state.frames.map(f => f.name).join('\u0000');
+  if (sel.dataset.filled !== want){
+    sel.innerHTML = '';
+    const head = document.createElement('option');
+    head.value = '';
+    head.textContent = state.frames.length ? 'Insert a frame\u2026' : 'No frames loaded';
+    sel.append(head);
+    state.frames.forEach((f, i) => {
+      const o = document.createElement('option');
+      o.value = String(i);
+      o.textContent = f.name;
+      sel.append(o);
+    });
+    sel.dataset.filled = want;
+  }
+  sel.value = '';
+}
+
+/* Copies a frame onto the canvas you are on. Everything gets fresh ids, so
+   the same frame can be dropped in twice, and it lands clear of whatever is
+   already there rather than on top of it. */
+function insertFrame(i){
+  if (readOnly()) return;
+  const f = state.frames[i];
+  if (!f) return;
+  const slot = cur();
+
+  /* start to the right of everything already placed */
+  let originX = 0, originY = 0;
+  if (slot.nodes.length){
+    originX = Math.max.apply(null, slot.nodes.map(x => x.x + (x.width || 0))) + 90;
+    originY = Math.min.apply(null, slot.nodes.map(x => x.y));
+  }
+
+  const fresh = [];
+  if (f.kind === 'note'){
+    fresh.push({ id: uid(), type: 'text', x: originX, y: originY,
+                 width: 420, height: 260, text: f.text || '' });
+  } else {
+    const src = f.nodes || [];
+    if (!src.length){ toast('That frame is empty.', true); return; }
+    const dx = originX - Math.min.apply(null, src.map(x => x.x));
+    const dy = originY - Math.min.apply(null, src.map(x => x.y));
+    const idMap = {};
+    src.forEach(node => {
+      const copy = Object.assign({}, node);
+      copy.id = uid();
+      copy.x = node.x + dx;
+      copy.y = node.y + dy;
+      idMap[node.id] = copy.id;
+      fresh.push(copy);
+    });
+    /* groups are drawn under their contents, same as everywhere else */
+    (f.edges || []).forEach(e => {
+      if (!idMap[e.fromNode] || !idMap[e.toNode]) return;
+      slot.edges.push({ id: uid(), fromNode: idMap[e.fromNode], fromSide: e.fromSide || 'right',
+                        toNode: idMap[e.toNode], toSide: e.toSide || 'left' });
+    });
+  }
+
+  fresh.forEach(node => {
+    if (node.type === 'group') slot.nodes.unshift(node); else slot.nodes.push(node);
+  });
+  state.sel = { ids: fresh.filter(x => x.type !== 'group').map(x => x.id), edge: null };
+  markDirty();
+  render();
+  zoomToFit();
+  const cards = fresh.filter(x => x.type !== 'group').length;
+  toast('"' + f.name + '" added \u2014 ' + cards + ' card' + (cards === 1 ? '' : 's') +
+        ' on this canvas. They are yours to edit; the frame itself is untouched.');
+}
+
 /* ===================================================================
    CLIENTS & ACCESS
    =================================================================== */
@@ -3705,7 +4121,7 @@ function roleForBoard(row){
 
 function openClients(){   /* kept for callers that open the list directly */
   state.screen = 'clients';
-  state.navOpen.settings = true;
+  openNav('settings');
   applyTabMode();
   renderClients();
   renderTabs();
@@ -3890,7 +4306,7 @@ async function openAccessModal(board){
 function applyRole(){
   const ro = readOnly();
   ['dock','btnAddColumn','btnAddChannel','dropzone',
-   'btnAddCompetitor','btnAddType','btnKwAdd','btnKwPaste']
+   'btnAddCompetitor','btnAddType','btnKwAdd','btnKwPaste']  /* dropzone = the + tile */
     .forEach(id => { const el = $(id); if (el) el.hidden = ro; });
 
   const note = $('roNote');
@@ -4220,8 +4636,7 @@ $('dockGroup').onclick = () => {
 /* the dock sits inside the viewport, so stop clicks becoming pans */
 $('dock').addEventListener('pointerdown', e => e.stopPropagation());
 
-/* ---- document gallery ---- */
-$('btnBrowse').onclick = ev => { ev.stopPropagation(); $('fileInput').click(); };
+/* ---- repo ---- */
 $('dropzone').onclick = () => $('fileInput').click();
 $('fileInput').onchange = ev => { uploadFiles(ev.target.files); ev.target.value = ''; };
 ['dragenter','dragover'].forEach(t =>
@@ -4237,6 +4652,31 @@ $('fileInput').onchange = ev => { uploadFiles(ev.target.files); ev.target.value 
 $('dropzone').addEventListener('drop', ev => {
   if (ev.dataTransfer && ev.dataTransfer.files) uploadFiles(ev.dataTransfer.files);
 });
+/* the repo column takes files back off a row, and accepts fresh uploads */
+['dragenter','dragover'].forEach(t =>
+  $('repoSide').addEventListener(t, ev => {
+    if (readOnly()) return;
+    ev.preventDefault();
+    $('repoSide').classList.add('over');
+  }));
+$('repoSide').addEventListener('dragleave', ev => {
+  if (!$('repoSide').contains(ev.relatedTarget)) $('repoSide').classList.remove('over');
+});
+$('repoSide').addEventListener('drop', ev => {
+  ev.preventDefault(); ev.stopPropagation();
+  $('repoSide').classList.remove('over');
+  if (readOnly()) return;
+  const moved = ev.dataTransfer.getData('text/sb-file');
+  if (moved){ fileToSection(moved, null); return; }
+  if (ev.dataTransfer.files && ev.dataTransfer.files.length) uploadFiles(ev.dataTransfer.files);
+});
+
+$('framePick').onchange = ev => {
+  const i = ev.target.value;
+  ev.target.value = '';
+  if (i !== '') insertFrame(Number(i));
+};
+
 $('brandLogo').onclick = openClientSettings;
 $('btnAddCompetitor').onclick = function(){
   if (viewDef(state.contentView).kind === 'grid') addGridRow(); else addCompetitor();
@@ -4244,7 +4684,7 @@ $('btnAddCompetitor').onclick = function(){
 $('btnAddType').onclick = function(){
   if (viewDef(state.contentView).kind === 'grid') addGridColumn(); else addArticleType();
 };
-$('btnAddColumn').onclick = addColumn;
+$('btnAddColumn').onclick = addSection;
 $('btnKwRefresh').onclick = refreshKeywords;
 $('btnKwAdd').onclick = function(){ openKeywordModal(''); };
 $('btnKwPaste').onclick = openPasteModal;

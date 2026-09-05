@@ -1,6 +1,17 @@
 import { z } from "zod";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { assertCanvasTab, CANVAS_TABS, loadBoard, ok, saveBoard, tabSlot, ToolError, uid } from "../lib.js";
+import { assertCanvasOnBoard, canvasTabsOf, CANVAS_TABS, loadBoard, ok, saveBoard, tabSlot, ToolError, uid } from "../lib.js";
+
+/** Boards can carry canvases beyond the five defaults, so the tab is a plain
+ *  string and is checked against the board once it is loaded. */
+const TAB_ARG = () =>
+  z
+    .string()
+    .describe(
+      "Canvas name. The defaults are " +
+        CANVAS_TABS.join(", ") +
+        "; a board may have more added under Brand Strategy (board_get lists them)."
+    );
 
 const SIDES = ["top", "right", "bottom", "left"] as const;
 
@@ -10,18 +21,19 @@ export function registerCanvasTools(server: McpServer) {
     {
       title: "Read a canvas",
       description:
-        "Read the cards, groups and connections on one canvas tab. Canvas tabs are: " +
-        CANVAS_TABS.join(", ") + ".",
+        "Read the cards, groups and connections on one canvas. Default canvases are: " +
+        CANVAS_TABS.join(", ") + ". Boards may have more.",
       inputSchema: {
         board_id: z.string(),
-        tab: z.enum(CANVAS_TABS)
+        tab: TAB_ARG()
       },
       annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true }
     },
     async ({ board_id, tab }) => {
       const { body } = await loadBoard(board_id);
+      assertCanvasOnBoard(body, tab);
       const slot = tabSlot(body, tab);
-      return ok({ nodes: slot.nodes, edges: slot.edges });
+      return ok({ canvases: canvasTabsOf(body), nodes: slot.nodes, edges: slot.edges });
     }
   );
 
@@ -35,7 +47,7 @@ export function registerCanvasTools(server: McpServer) {
         "several without overlapping them. Returns the new card ids for use with canvas_connect.",
       inputSchema: {
         board_id: z.string(),
-        tab: z.enum(CANVAS_TABS),
+        tab: TAB_ARG(),
         cards: z
           .array(
             z.object({
@@ -56,8 +68,8 @@ export function registerCanvasTools(server: McpServer) {
       annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false }
     },
     async ({ board_id, tab, cards }) => {
-      assertCanvasTab(tab);
       const { body } = await loadBoard(board_id);
+      assertCanvasOnBoard(body, tab);
       const slot = tabSlot(body, tab);
 
       /* start to the right of everything already placed */
@@ -100,7 +112,7 @@ export function registerCanvasTools(server: McpServer) {
         "or canvas_get.",
       inputSchema: {
         board_id: z.string(),
-        tab: z.enum(CANVAS_TABS),
+        tab: TAB_ARG(),
         from_id: z.string(),
         to_id: z.string(),
         from_side: z.enum(SIDES).default("right").optional(),
@@ -109,8 +121,8 @@ export function registerCanvasTools(server: McpServer) {
       annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false }
     },
     async ({ board_id, tab, from_id, to_id, from_side, to_side }) => {
-      assertCanvasTab(tab);
       const { body } = await loadBoard(board_id);
+      assertCanvasOnBoard(body, tab);
       const slot = tabSlot(body, tab);
       const has = (id: string) => slot.nodes.some((n: any) => n.id === id);
       if (!has(from_id)) throw new ToolError(`No card ${from_id} on ${tab}. Call canvas_get to see the ids.`);
@@ -138,15 +150,15 @@ export function registerCanvasTools(server: McpServer) {
         "any card whose centre sits inside the box belongs to it and moves with it.",
       inputSchema: {
         board_id: z.string(),
-        tab: z.enum(CANVAS_TABS),
+        tab: TAB_ARG(),
         label: z.string(),
         card_ids: z.array(z.string()).min(1)
       },
       annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false }
     },
     async ({ board_id, tab, label, card_ids }) => {
-      assertCanvasTab(tab);
       const { body } = await loadBoard(board_id);
+      assertCanvasOnBoard(body, tab);
       const slot = tabSlot(body, tab);
       const members = slot.nodes.filter((n: any) => card_ids.includes(n.id));
       if (!members.length) throw new ToolError(`None of those card ids are on ${tab}.`);
@@ -180,13 +192,13 @@ export function registerCanvasTools(server: McpServer) {
         "Remove every card, group and connection from one canvas tab. This cannot be undone.",
       inputSchema: {
         board_id: z.string(),
-        tab: z.enum(CANVAS_TABS)
+        tab: TAB_ARG()
       },
       annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true }
     },
     async ({ board_id, tab }) => {
-      assertCanvasTab(tab);
       const { body } = await loadBoard(board_id);
+      assertCanvasOnBoard(body, tab);
       const slot = tabSlot(body, tab);
       const n = slot.nodes.length;
       const e = slot.edges.length;
