@@ -32,7 +32,6 @@ export function registerContentTools(server: McpServer) {
         board_id: z.string(),
         view: z.enum(CONTENT_VIEWS)
       },
-      outputSchema: { view: z.string(), kind: z.string(), data: z.any() },
       annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true }
     },
     async ({ board_id, view }) => {
@@ -94,7 +93,6 @@ export function registerContentTools(server: McpServer) {
         mode: z.enum(["aeo", "seo"]).default("aeo").optional(),
         replace: z.boolean().default(false).optional()
       },
-      outputSchema: { written: z.number(), unknown_columns: z.array(z.string()) },
       annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false }
     },
     async ({ board_id, view, rows, mode, replace }) => {
@@ -146,7 +144,6 @@ export function registerContentTools(server: McpServer) {
         mode: z.enum(["aeo", "seo"]).default("aeo").optional(),
         planned: z.boolean().default(true).optional()
       },
-      outputSchema: { competitor: z.string(), article_type: z.string(), mode: z.string(), planned: z.boolean() },
       annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true }
     },
     async ({ board_id, competitor, article_type, mode, planned }) => {
@@ -195,7 +192,6 @@ export function registerContentTools(server: McpServer) {
         channel: z.string().describe("e.g. Technical SEO"),
         in_scope: z.boolean()
       },
-      outputSchema: { channel: z.string(), in_scope: z.boolean() },
       annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true }
     },
     async ({ board_id, channel, in_scope }) => {

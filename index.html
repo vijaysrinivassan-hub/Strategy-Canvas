@@ -137,8 +137,10 @@
   }
   .tab-sub:hover{background:#f5f5f6; color:var(--ink); border-color:transparent}
   .tab-sub.active{background:var(--accent-soft); color:var(--accent); font-weight:600}
+  .tab-sub > span:first-child{flex:1; min-width:0; overflow:hidden;
+                              text-overflow:ellipsis; white-space:nowrap}
   .tab-sub .n{margin-left:auto; font-size:9.5px; font-weight:700; letter-spacing:.04em;
-              color:var(--faint); flex:none}
+              color:var(--faint); flex:none; padding-left:6px}
   .tab-sub.active .n{color:var(--accent)}
 
   .tab .n{margin-left:auto; font-size:9.5px; font-weight:700; letter-spacing:.04em;
@@ -440,6 +442,15 @@
   .doc-main input{font:inherit; font-size:13px; font-weight:600; color:var(--ink);
                   background:var(--bg); border:1px solid var(--accent); border-radius:5px;
                   padding:1px 5px; outline:none; width:100%}
+
+  /* ================= frames ================= */
+  .frame-note{flex:1; min-height:0; overflow-y:auto; padding:24px 30px 40px; background:var(--bg)}
+  .frame-note .sheet{background:#fff; border:1px solid var(--line); border-radius:14px;
+                     box-shadow:var(--shadow); padding:26px 30px; max-width:760px}
+  .frame-note pre{margin:0; white-space:pre-wrap; word-break:break-word;
+                  font:inherit; font-size:13.5px; line-height:1.75; color:var(--ink-2)}
+  .ro-frame{display:flex; align-items:center; gap:8px; font-size:12px; color:var(--muted);
+            background:var(--line-2); border-radius:9px; padding:5px 11px; margin-left:8px}
 
   /* ================= clients ================= */
   .clients{flex:1; min-height:0; overflow-y:auto; padding:24px 30px 40px; background:var(--bg)}
@@ -764,6 +775,7 @@
     <div class="toolbar">
       <h2 id="tabTitle">Product Architecture</h2>
       <span class="ro-note" id="roNote" hidden>View only &mdash; this board belongs to someone else</span>
+      <span class="ro-frame" id="roFrame" hidden>Reference frame &mdash; read only</span>
       <div class="tool-sep"></div>
       <button id="btnZoomOut" title="Zoom out">−</button>
       <span class="zoom-label" id="zoomLabel">100%</span>
@@ -839,6 +851,11 @@
         <button id="btnAddChannel">+ Add channel</button>
       </div>
       <div class="chan-grid" id="chanGrid"></div>
+    </div>
+
+    <!-- A frame from the Obsidian vault, rendered read-only -->
+    <div class="frame-note" id="framePane" hidden>
+      <div class="sheet"><pre id="frameText"></pre></div>
     </div>
 
     <!-- MCP: what a server needs to know to push data into this board -->
@@ -947,7 +964,7 @@ const SUPABASE_URL = 'https://cskamgfvebryahkljlll.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_MdkD-TxMCIwlu69seSHA3Q_A39GADsK';
 const CLIENT_ID    = '1059013355751-6g50dsgm7df37htl2fdqrtlkh5hmrc0c.apps.googleusercontent.com';
 const ALLOWED      = ['vijaysrinivassan@gmail.com'];
-const BUILD        = 'v4.4';
+const BUILD        = 'v4.5';
 
 const TABS = [
   'Product Architecture',
@@ -975,6 +992,7 @@ const NAV = [
   { kind: 'group',  id: 'content', label: 'Content Strategy', tab: 'Content Strategy' },
   { kind: 'tab',    name: 'Keyword Repo' },
   { kind: 'tab',    name: 'Document Gallery' },
+  { kind: 'group',  id: 'frames',   label: 'Frames' },
   { kind: 'spacer' },
   { kind: 'group',  id: 'settings', label: 'Settings',
     screens: [{ id: 'clients', label: 'Clients' }, { id: 'mcp', label: 'MCP' }] }
@@ -998,7 +1016,9 @@ const state = {
   role: 'admin',                  /* 'admin' owns the board, 'viewer' may only read */
   screen: 'board',                /* 'board' | 'clients' */
   contentView: 'competitor',      /* which axis the content matrix is showing */
-  navOpen: { brand: false, content: false, settings: false },
+  navOpen: { brand: false, content: false, settings: false, frames: false },
+  frames: [],                     /* the Obsidian Frames folder, loaded once */
+  frameIndex: -1,                 /* which frame is open, -1 for none */
   ownerId: null,                  /* owner_id of the loaded board */
   view: { x: 0, y: 0, z: 1 },
   dirty: false
@@ -1218,6 +1238,7 @@ function renderTabs(){
   function subButton(label, active, onClick, count){
     const b = document.createElement('button');
     b.className = 'tab-sub' + (active ? ' active' : '');
+    b.title = label;
     const lab = document.createElement('span');
     lab.textContent = label;
     b.append(lab);
@@ -1287,6 +1308,20 @@ function renderTabs(){
       return;
     }
 
+    if (item.id === 'frames'){
+      if (!state.frames.length){
+        box.append(subButton('Loading\u2026', false, () => {}, 0));
+        return;
+      }
+      state.frames.forEach((f, i) => {
+        const label = f.name.replace(/^Step\s+\d+\s*-\s*/i, '');
+        box.append(subButton(label, onBoard && inFrame() && state.frameIndex === i,
+                             () => openFrame(i),
+                             f.kind === 'canvas' ? (f.nodes || []).length : 0));
+      });
+      return;
+    }
+
     if (item.id === 'settings'){
       item.screens.forEach(sc => {
         box.append(subButton(sc.label, state.screen === sc.id, () => goScreen(sc.id), 0));
@@ -1296,7 +1331,7 @@ function renderTabs(){
   });
 
   /* off-board screens set their own title in applyTabMode */
-  if (onBoard) $('tabTitle').textContent = state.tab;
+  if (onBoard && !inFrame()) $('tabTitle').textContent = state.tab;
 }
 
 /* Screens that are not board tabs: Clients, MCP. */
@@ -1591,6 +1626,7 @@ function deleteSelection(){
 }
 function switchTab(name){
   state.tab = name;
+  state.frameIndex = -1;
   state.screen = 'board';
   if (BRAND_TABS.indexOf(name) > -1) state.navOpen.brand = true;
   if (name === CONTENT_TAB) state.navOpen.content = true;
@@ -2520,16 +2556,27 @@ function applyTabMode(){
   if (onClients || onMcp){
     $('viewport').hidden = true; $('docsPane').hidden = true;
     $('chanPane').hidden = true; $('kwPane').hidden = true; $('mxPane').hidden = true;
+    $('framePane').hidden = true; $('roFrame').hidden = true;
     ['btnZoomIn','btnZoomOut','btnFit','zoomLabel'].forEach(id => { $(id).hidden = true; });
     $('tabTitle').textContent = onClients ? 'Clients' : 'MCP';
     applyRole();
     return;
   }
+  const frame = inFrame() ? state.frames[state.frameIndex] : null;
+  const isNote = !!frame && frame.kind === 'note';
+  $('framePane').hidden = !isNote;
+  $('roFrame').hidden = !frame;
+
   const isDocs = state.tab === DOCS_TAB;
   const isChan = state.tab === CHANNELS_TAB;
   const isKw   = state.tab === KEYWORDS_TAB;
   const isMx   = state.tab === CONTENT_TAB;
-  const isCanvas = !isDocs && !isChan && !isKw && !isMx;
+  const isCanvas = !isDocs && !isChan && !isKw && !isMx && !isNote;
+
+  if (frame){
+    $('tabTitle').textContent = frame.name;
+    if (isNote) $('frameText').textContent = frame.text || '';
+  }
   $('viewport').hidden = !isCanvas;
   $('docsPane').hidden = !isDocs;
   $('chanPane').hidden = !isChan;
@@ -3562,6 +3609,7 @@ function repaintKeywordViews(){
 
 function switchContentView(id){
   state.contentView = id;
+  state.frameIndex = -1;
   state.tab = CONTENT_TAB;
   state.screen = 'board';
   state.navOpen.content = true;
@@ -3598,10 +3646,57 @@ function addArticleType(){
   toast('Added. Use "terms" on the column to widen what it matches.');
 }
 
+
+/* ===================================================================
+   FRAMES  —  the Obsidian Frames folder, read-only
+   =================================================================== */
+const FRAME_TAB = '__frame__';   /* a scratch tab the canvas engine can render */
+
+async function loadFrames(){
+  if (state.frames.length) return;
+  try {
+    const res = await fetch('frames.json', { cache: 'no-cache' });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json();
+    state.frames = Array.isArray(data.frames) ? data.frames : [];
+  } catch (e){
+    state.frames = [];
+    toast('Could not load the frames library: ' + e.message, true);
+  }
+  renderTabs();
+}
+
+function openFrame(i){
+  const f = state.frames[i];
+  if (!f) return;
+  state.frameIndex = i;
+  state.screen = 'board';
+  state.navOpen.frames = true;
+  clearSel();
+
+  if (f.kind === 'canvas'){
+    /* hand the frame to the ordinary canvas engine, then lock it */
+    state.tabs[FRAME_TAB] = { nodes: f.nodes || [], edges: f.edges || [] };
+    state.tab = FRAME_TAB;
+  } else {
+    state.tab = FRAME_TAB;
+    state.tabs[FRAME_TAB] = { nodes: [], edges: [] };
+  }
+
+  render();
+  applyTabMode();
+  renderTabs();
+  if (f.kind === 'canvas') zoomToFit();
+}
+
+/* A frame is somebody's reference material, and several say in as many words
+   that no AI may write to them. Nothing here is editable. */
+const inFrame = () => state.tab === FRAME_TAB && state.frameIndex > -1;
+
 /* ===================================================================
    CLIENTS & ACCESS
    =================================================================== */
-const readOnly = () => state.role !== 'admin';
+const readOnly = () => inFrame() || state.role !== 'admin';
 
 /* A board you did not create is one you may only read. */
 function roleForBoard(row){
@@ -3799,7 +3894,8 @@ function applyRole(){
     .forEach(id => { const el = $(id); if (el) el.hidden = ro; });
 
   const note = $('roNote');
-  if (note) note.hidden = !ro;
+  /* a frame is read-only too, but that is not the same as somebody else's board */
+  if (note) note.hidden = state.role === 'admin';
 }
 
 /* ===================================================================
@@ -4198,6 +4294,7 @@ setTimeout(function(){
 
 state.tabs = blankTabs();
 render();
+loadFrames();
 
 (function boot(){
   if (!(window.supabase && window.supabase.createClient)){

@@ -30,7 +30,6 @@ export function registerKeywordTools(server: McpServer) {
         contains: z.string().optional().describe("Case-insensitive substring filter"),
         limit: z.number().int().min(1).max(1000).default(200).optional()
       },
-      outputSchema: { count: z.number(), keywords: z.array(z.any()) },
       annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true }
     },
     async ({ board_id, selected_only, contains, limit }) => {
@@ -67,7 +66,6 @@ export function registerKeywordTools(server: McpServer) {
         keywords: z.array(KeywordInput).min(1).max(500),
         source: z.string().optional().describe("Where these came from, e.g. 'ahrefs-2026-09'")
       },
-      outputSchema: { added: z.number(), updated: z.number(), skipped: z.number() },
       annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true }
     },
     async ({ board_id, keywords, source }) => {
@@ -133,7 +131,6 @@ export function registerKeywordTools(server: McpServer) {
         keywords: z.array(z.string()).min(1).describe("Keyword text, matched case-insensitively"),
         selected: z.boolean()
       },
-      outputSchema: { changed: z.number(), not_found: z.array(z.string()) },
       annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true }
     },
     async ({ board_id, keywords, selected }) => {
@@ -169,7 +166,6 @@ export function registerKeywordTools(server: McpServer) {
         board_id: z.string(),
         keywords: z.array(z.string()).min(1)
       },
-      outputSchema: { deleted: z.number() },
       annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true }
     },
     async ({ board_id, keywords }) => {

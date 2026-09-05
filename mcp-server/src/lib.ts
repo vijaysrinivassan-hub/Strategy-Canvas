@@ -187,11 +187,13 @@ export function assertCanvasTab(tab: string): void {
   }
 }
 
-/** Every tool returns the same envelope so responses stay predictable. */
+/** Every tool returns the same envelope so responses stay predictable.
+ *  Deliberately text-only: declaring an outputSchema makes the SDK emit a
+ *  draft-07 JSON Schema, which newer MCP clients reject outright. The JSON is
+ *  in the text, which every client can read. */
 export function ok<T>(data: T) {
   return {
-    content: [{ type: "text" as const, text: JSON.stringify(data, null, 2) }],
-    structuredContent: data as Record<string, unknown>
+    content: [{ type: "text" as const, text: JSON.stringify(data, null, 2) }]
   };
 }
 

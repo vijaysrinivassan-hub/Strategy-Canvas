@@ -19,11 +19,6 @@ export function registerDocumentTools(server: McpServer) {
         "List the files attached to a board, with the column each is filed under in the " +
         "Document Gallery, its size and when it was uploaded.",
       inputSchema: { board_id: z.string() },
-      outputSchema: {
-        count: z.number(),
-        columns: z.array(z.string()),
-        documents: z.array(z.any())
-      },
       annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true }
     },
     async ({ board_id }) => {
@@ -71,7 +66,6 @@ export function registerDocumentTools(server: McpServer) {
         storage_name: z.string().describe("storage_name from document_list"),
         max_chars: z.number().int().min(100).max(200000).default(50000).optional()
       },
-      outputSchema: { name: z.string(), truncated: z.boolean(), text: z.string() },
       annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true }
     },
     async ({ board_id, storage_name, max_chars }) => {
@@ -105,7 +99,6 @@ export function registerDocumentTools(server: McpServer) {
         storage_name: z.string(),
         expires_seconds: z.number().int().min(60).max(3600).default(600).optional()
       },
-      outputSchema: { name: z.string(), url: z.string(), expires_seconds: z.number() },
       annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: false }
     },
     async ({ board_id, storage_name, expires_seconds }) => {
@@ -131,7 +124,6 @@ export function registerDocumentTools(server: McpServer) {
         column: z.string().optional().describe("Column name; defaults to the first column"),
         name: z.string().optional().describe("Display name; defaults to the file name")
       },
-      outputSchema: { storage_name: z.string(), name: z.string(), column: z.string() },
       annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false }
     },
     async ({ board_id, file_path, column, name }) => {

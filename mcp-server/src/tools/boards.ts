@@ -11,16 +11,6 @@ export function registerBoardTools(server: McpServer) {
         "List every Strategy Board, newest first. Each board belongs to one client and " +
         "holds all nine tabs. Start here to find the board_id other tools need.",
       inputSchema: {},
-      outputSchema: {
-        boards: z.array(
-          z.object({
-            id: z.string(),
-            title: z.string(),
-            client: z.string().optional(),
-            updated_at: z.string().optional()
-          })
-        )
-      },
       annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true }
     },
     async () => {
@@ -52,12 +42,6 @@ export function registerBoardTools(server: McpServer) {
         "before writing, to see what is already there.",
       inputSchema: {
         board_id: z.string().describe("Board uuid from board_list")
-      },
-      outputSchema: {
-        id: z.string(),
-        title: z.string(),
-        client: z.string().optional(),
-        tabs: z.record(z.string(), z.any())
       },
       annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true }
     },
@@ -104,7 +88,6 @@ export function registerBoardTools(server: McpServer) {
       inputSchema: {
         client: z.string().min(1).describe("Client name, e.g. 'Triple Whale'")
       },
-      outputSchema: { id: z.string(), title: z.string() },
       annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false }
     },
     async ({ client }) => {

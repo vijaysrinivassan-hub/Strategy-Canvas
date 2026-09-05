@@ -16,7 +16,6 @@ export function registerCanvasTools(server: McpServer) {
         board_id: z.string(),
         tab: z.enum(CANVAS_TABS)
       },
-      outputSchema: { nodes: z.array(z.any()), edges: z.array(z.any()) },
       annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true }
     },
     async ({ board_id, tab }) => {
@@ -54,7 +53,6 @@ export function registerCanvasTools(server: McpServer) {
           .min(1)
           .max(60)
       },
-      outputSchema: { added: z.number(), ids: z.array(z.string()) },
       annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false }
     },
     async ({ board_id, tab, cards }) => {
@@ -108,7 +106,6 @@ export function registerCanvasTools(server: McpServer) {
         from_side: z.enum(SIDES).default("right").optional(),
         to_side: z.enum(SIDES).default("left").optional()
       },
-      outputSchema: { edge_id: z.string() },
       annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false }
     },
     async ({ board_id, tab, from_id, to_id, from_side, to_side }) => {
@@ -145,7 +142,6 @@ export function registerCanvasTools(server: McpServer) {
         label: z.string(),
         card_ids: z.array(z.string()).min(1)
       },
-      outputSchema: { group_id: z.string(), contains: z.number() },
       annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false }
     },
     async ({ board_id, tab, label, card_ids }) => {
@@ -186,7 +182,6 @@ export function registerCanvasTools(server: McpServer) {
         board_id: z.string(),
         tab: z.enum(CANVAS_TABS)
       },
-      outputSchema: { removed_nodes: z.number(), removed_edges: z.number() },
       annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true }
     },
     async ({ board_id, tab }) => {

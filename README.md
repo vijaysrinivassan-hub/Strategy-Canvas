@@ -41,6 +41,27 @@ The sidebar groups them:
 - **Channel Strategy** — a scope checklist.
 - **Content Strategy** opens into Category, Competitor, ICP and Value.
 - **Keyword Repo** and **Document Gallery**.
+- **Frames** — the reference frames from the Obsidian vault, read-only.
+
+## Frames
+
+`Frames` mirrors the `Frames` folder of the Obsidian vault. Obsidian's `.canvas`
+files are JSON Canvas, the same vocabulary this app uses, so they render on the
+ordinary canvas with their cards, groups and connections intact; the `.md` notes
+render as plain documents.
+
+They are **read-only**. They are reference material, and several of them carry a
+note inside saying no AI may write to them, so nothing here edits them and
+nothing is ever written back to the vault.
+
+To refresh them after editing in Obsidian:
+
+```bash
+node tools/import-frames.mjs
+```
+
+That rewrites `frames.json`, which the app fetches at load. Pass a path as the
+first argument if the vault is not at `~/OneDrive/Documents/Obsidian Vault/Frames`.
 
 The toolbar carries only the page title and the canvas zoom controls. Boards are
 chosen and created on the Clients screen, saving happens on its own a couple of

@@ -1,0 +1,2466 @@
+{
+ "generatedAt": "2026-09-05T04:34:34.840Z",
+ "source": "C:\\Users\\vijay\\OneDrive\\Documents\\Obsidian Vault\\Frames",
+ "frames": [
+  {
+   "name": "Step 1 - Horizontal Category Evolution Frame",
+   "kind": "canvas",
+   "nodes": [
+    {
+     "id": "426749f8f6ccb4e0",
+     "type": "group",
+     "x": -1880,
+     "y": 320,
+     "width": 1480,
+     "height": 960,
+     "label": "Product Evolution View - What are the directions the marker is Progressing?"
+    },
+    {
+     "id": "64bff9a671748bd5",
+     "type": "text",
+     "text": "People Axis",
+     "x": -1228,
+     "y": 524,
+     "width": 250,
+     "height": 59
+    },
+    {
+     "id": "be3b96927ba236a4",
+     "type": "text",
+     "text": "Process Axis ",
+     "x": -1228,
+     "y": 1004,
+     "width": 250,
+     "height": 59
+    },
+    {
+     "id": "b9ef5bbbc03c661d",
+     "type": "text",
+     "text": "Market",
+     "x": -1183,
+     "y": 774,
+     "width": 160,
+     "height": 50
+    },
+    {
+     "id": "30bf567d8c4fc30a",
+     "type": "text",
+     "text": "Technology/Machinery/ Tech Stack Axis",
+     "x": -1725,
+     "y": 774,
+     "width": 330,
+     "height": 50
+    },
+    {
+     "id": "7a1106e9e17007f7",
+     "type": "text",
+     "text": "Raw Material / Input Axis ",
+     "x": -805,
+     "y": 770,
+     "width": 250,
+     "height": 59
+    },
+    {
+     "id": "43e7fc89a857cb85",
+     "type": "text",
+     "text": "This frame is used when the client is in a competitive market and he has to pivot to a evolving market, rather than compete in the same market. This is built on the hypothesis that all markets evolve in multiple directions and saturated markets slowly loose customers to these evolving markets. Players in the market should be pioneers in the market to capture this market before the rest come for the market. Large players, who have the bandwidh to invest in resources are advised to stay in well established markets as they have a large customer base. These players can actively invest in writing more blogs, covering AEO, slowly pivot to SEO based content, do outreach programs, gain reviews, get PR placements. This frame is when small players can't compete with these large players by investing so many reviews and will have to find niche markets in a category. Categories evolve in multiple directions like industry specialization , use case focused, technology advancement, regional players, operational efficiency, cost, size specific, ....",
+     "x": -1874,
+     "y": 1360,
+     "width": 1520,
+     "height": 200,
+     "color": "2"
+    },
+    {
+     "id": "c12dd17aecf68b50",
+     "type": "text",
+     "text": "I don't think we will need a vertical category evolution framework because that is not something that is marketing-related or marketing-intensive. It is basically something the client does with selling more products to the same customer. That's the reason why we don't have a vertical category evolution frame, only a horizontal category evolution frame. ",
+     "x": -1874,
+     "y": 1600,
+     "width": 1520,
+     "height": 80
+    },
+    {
+     "id": "b5ff11191f778edf",
+     "type": "text",
+     "text": "**Important**: NO AI is allowed to WRIE THIS PAGE. READ ONLY ACCESS IS ALLOWED",
+     "x": -1880,
+     "y": 160,
+     "width": 640,
+     "height": 50,
+     "color": "2"
+    }
+   ],
+   "edges": [
+    {
+     "id": "5659a7c11aa98920",
+     "fromNode": "b9ef5bbbc03c661d",
+     "fromSide": "bottom",
+     "toNode": "be3b96927ba236a4",
+     "toSide": "top"
+    },
+    {
+     "id": "4538f8285706613f",
+     "fromNode": "b9ef5bbbc03c661d",
+     "fromSide": "left",
+     "toNode": "30bf567d8c4fc30a",
+     "toSide": "right"
+    },
+    {
+     "id": "fce0bda25ce00924",
+     "fromNode": "b9ef5bbbc03c661d",
+     "fromSide": "top",
+     "toNode": "64bff9a671748bd5",
+     "toSide": "bottom"
+    },
+    {
+     "id": "14579f47f669303f",
+     "fromNode": "b9ef5bbbc03c661d",
+     "fromSide": "right",
+     "toNode": "7a1106e9e17007f7",
+     "toSide": "left"
+    }
+   ]
+  },
+  {
+   "name": "Step 2 - Product Architecture",
+   "kind": "canvas",
+   "nodes": [
+    {
+     "id": "b88f7bd1f01f5773",
+     "type": "group",
+     "x": -1080,
+     "y": 320,
+     "width": 2159,
+     "height": 1080,
+     "label": "Step 2: Mapping Out Capabilities"
+    },
+    {
+     "id": "7e18b97e0691e899",
+     "type": "group",
+     "x": -1080,
+     "y": -460,
+     "width": 2159,
+     "height": 520,
+     "label": "Step 1: Product Design"
+    },
+    {
+     "id": "ad5c8bd988fefd99",
+     "type": "text",
+     "text": "Product Design - You need to map out all the capabilities, features, steps, flows of a product. Every feature exists for a certain reason. Each step is there for a certain reason which is either a use case or a differentiator or the reason we exist in a category. ",
+     "x": -1025,
+     "y": -390,
+     "width": 265,
+     "height": 400,
+     "color": "2"
+    },
+    {
+     "id": "2bf7075ea1b1d5fb",
+     "type": "text",
+     "text": "Shopify ",
+     "x": -710,
+     "y": -390,
+     "width": 250,
+     "height": 60
+    },
+    {
+     "id": "b05e1549bd113754",
+     "type": "text",
+     "text": "Meta",
+     "x": -710,
+     "y": -280,
+     "width": 250,
+     "height": 60
+    },
+    {
+     "id": "c82d85502567c5d3",
+     "type": "text",
+     "text": "**Choose the Axis of Product Evolution (Any of the 4 People, Process, Input or Technology)** \n\nE g 1\nEcommerce Analytics\nTechnology 1 >> Technology 2 >> Technology 3 >> Technology 4 \nFree Tools like Google Analytics >> Ecommerce Specific Tools Stack >> Data Warehouses .......\n\nE g 2 \n\nEOR Services\n\nProcess 1 >> Process 2 >> Process 3 >> Process 4 \nGlobal Companies Outsource EOR to local Partners >> Country Native EOR players Originate\n\n\nIf any of the 4 components of a system is inefficient/new tech, process, skill, data requirements emerge a new category evolves in that direction ",
+     "x": -3520,
+     "y": -390,
+     "width": 2159,
+     "height": 440
+    },
+    {
+     "id": "05c13aab534785fa",
+     "type": "text",
+     "text": "Product Narration",
+     "x": -2349,
+     "y": -1600,
+     "width": 2159,
+     "height": 720
+    },
+    {
+     "id": "79cec2de39a552c7",
+     "type": "text",
+     "text": "Slack",
+     "x": 514,
+     "y": -420,
+     "width": 250,
+     "height": 60
+    },
+    {
+     "id": "a759e91de2ff85f9",
+     "type": "text",
+     "text": "This is just a primitive example of the product Design. The actual design should depict the product design with a few context nodes/legends attached to it",
+     "x": 831,
+     "y": -260,
+     "width": 209,
+     "height": 300
+    },
+    {
+     "id": "07f6182a1b710392",
+     "type": "text",
+     "text": "Luca AI",
+     "x": -40,
+     "y": -220,
+     "width": 250,
+     "height": 60
+    },
+    {
+     "id": "54002970a048312e",
+     "type": "text",
+     "text": "Google ",
+     "x": -710,
+     "y": -160,
+     "width": 250,
+     "height": 60
+    },
+    {
+     "id": "c20297a52f39468d",
+     "type": "text",
+     "text": "Highlight the prime capability, the reason this product was built for and the secondary capabilities distinguishing the difference. \n\n",
+     "x": -710,
+     "y": 355,
+     "width": 250,
+     "height": 350,
+     "color": "2"
+    },
+    {
+     "id": "6b874ee18c7d0970",
+     "type": "text",
+     "text": "+When this symbol appears near a category it means in step 2 you will have to place the section that a simple/1 person company/primitive buyer would need at first and the advanced versions in the bottom\n-when this symbol is mentioned you have the most dreaded version at the first and the desired version at the last.\n\n+is the capability customers would want to have and -is the pain point they would like to avoid.",
+     "x": -1010,
+     "y": 355,
+     "width": 250,
+     "height": 350,
+     "color": "2"
+    },
+    {
+     "id": "027b15c0d27d9d87",
+     "type": "text",
+     "text": "Klaviyo",
+     "x": -710,
+     "y": -40,
+     "width": 250,
+     "height": 60
+    },
+    {
+     "id": "76c5aa2d92223f4d",
+     "type": "text",
+     "text": "Intelligence +",
+     "x": -1060,
+     "y": 960,
+     "width": 250,
+     "height": 60
+    },
+    {
+     "id": "05a5d5e3d4e9722a",
+     "type": "text",
+     "text": "Company",
+     "x": -130,
+     "y": 355,
+     "width": 250,
+     "height": 60
+    },
+    {
+     "id": "21a3b220b9316165",
+     "type": "text",
+     "text": "Analytics / Dashboards +",
+     "x": -760,
+     "y": 960,
+     "width": 250,
+     "height": 55
+    },
+    {
+     "id": "fe56bfe23758e482",
+     "type": "text",
+     "text": "Gmail ",
+     "x": 514,
+     "y": -220,
+     "width": 250,
+     "height": 60
+    },
+    {
+     "id": "d064aaafb10bc786",
+     "type": "text",
+     "text": "Luca App",
+     "x": 514,
+     "y": -40,
+     "width": 250,
+     "height": 60
+    },
+    {
+     "id": "a23b3e0f4412bd93",
+     "type": "text",
+     "text": "Product ",
+     "x": -130,
+     "y": 645,
+     "width": 250,
+     "height": 60
+    },
+    {
+     "id": "685da78fbc53676b",
+     "type": "text",
+     "text": "Use Case / Industry Specific Use Case",
+     "x": 120,
+     "y": 1080,
+     "width": 250,
+     "height": 260
+    },
+    {
+     "id": "60cbfd66748f498b",
+     "type": "text",
+     "text": "Cross Functional Reasoning +",
+     "x": 760,
+     "y": 965,
+     "width": 280,
+     "height": 55
+    },
+    {
+     "id": "5acbeaa58c388bfd",
+     "type": "text",
+     "text": "Use Case / Industry Specific Use Case",
+     "x": 790,
+     "y": 1080,
+     "width": 250,
+     "height": 260
+    },
+    {
+     "id": "53466d42a35c0ee9",
+     "type": "text",
+     "text": "Use Case / Industry Specific Use Case",
+     "x": -1060,
+     "y": 1080,
+     "width": 250,
+     "height": 260
+    },
+    {
+     "id": "f8d86adae3123847",
+     "type": "text",
+     "text": "Use Case / Industry Specific Use Case",
+     "x": -760,
+     "y": 1080,
+     "width": 250,
+     "height": 260
+    },
+    {
+     "id": "d2646e80c0740778",
+     "type": "text",
+     "text": "Use Case / Industry Specific Use Case",
+     "x": -460,
+     "y": 1080,
+     "width": 250,
+     "height": 260
+    },
+    {
+     "id": "596fae9dec05260f",
+     "type": "text",
+     "text": "Use Case / Industry Specific Use Case",
+     "x": -188,
+     "y": 1080,
+     "width": 250,
+     "height": 260
+    },
+    {
+     "id": "07ae64ad5a42bd83",
+     "type": "text",
+     "text": "Automated Reporting +",
+     "x": -460,
+     "y": 960,
+     "width": 250,
+     "height": 60
+    },
+    {
+     "id": "ee08339253c2e428",
+     "type": "text",
+     "text": "Use Case / Industry Specific Use Case",
+     "x": 445,
+     "y": 1080,
+     "width": 250,
+     "height": 260
+    },
+    {
+     "id": "67f4a3a3397f8cd6",
+     "type": "text",
+     "text": "Single Tool +",
+     "x": 120,
+     "y": 960,
+     "width": 250,
+     "height": 60
+    },
+    {
+     "id": "073001b6ea2f3567",
+     "type": "text",
+     "text": "Technicalities - ",
+     "x": -190,
+     "y": 965,
+     "width": 250,
+     "height": 50
+    },
+    {
+     "id": "544781eb43fbfe76",
+     "type": "text",
+     "text": "Talk to Data +",
+     "x": 445,
+     "y": 960,
+     "width": 250,
+     "height": 60
+    },
+    {
+     "id": "a2abc104e596f9cd",
+     "type": "text",
+     "text": "**Important**: NO AI is allowed to WRIE THIS PAGE. READ ONLY ACCESS IS ALLOWED",
+     "x": -2349,
+     "y": -1720,
+     "width": 640,
+     "height": 50,
+     "color": "2"
+    },
+    {
+     "id": "c58688d6ad8afb77",
+     "type": "text",
+     "text": "This is basically what the AI can do ",
+     "x": -2746,
+     "y": 515,
+     "width": 306,
+     "height": 50
+    },
+    {
+     "id": "d89c947d1110db3c",
+     "type": "text",
+     "text": "Map the Tech - AI",
+     "x": -3386,
+     "y": 630,
+     "width": 250,
+     "height": 60
+    },
+    {
+     "id": "cdd498ac240d4653",
+     "type": "text",
+     "text": "Map the Use Case - Ecommerce Intelligence",
+     "x": -2746,
+     "y": 635,
+     "width": 306,
+     "height": 55
+    },
+    {
+     "id": "2370f2b355a26378",
+     "type": "text",
+     "text": "Map the Use Case - Data Analysis",
+     "x": -2746,
+     "y": 755,
+     "width": 306,
+     "height": 50
+    },
+    {
+     "id": "150b8f1aeb2900bc",
+     "type": "text",
+     "text": "Priority Capability - What is the  most advanced capability we've built and what is the most profitable",
+     "x": -2746,
+     "y": 355,
+     "width": 306,
+     "height": 110
+    },
+    {
+     "id": "18ffc8ef16abf30d",
+     "type": "text",
+     "text": "Map the System of the ICP",
+     "x": -2171,
+     "y": 630,
+     "width": 250,
+     "height": 60
+    }
+   ],
+   "edges": [
+    {
+     "id": "0b0fb80bdd44815a",
+     "fromNode": "05c13aab534785fa",
+     "fromSide": "bottom",
+     "toNode": "7e18b97e0691e899",
+     "toSide": "top"
+    },
+    {
+     "id": "06c0575992cc7ffd",
+     "fromNode": "a23b3e0f4412bd93",
+     "fromSide": "bottom",
+     "toNode": "073001b6ea2f3567",
+     "toSide": "top"
+    },
+    {
+     "id": "0518d7416894558a",
+     "fromNode": "a23b3e0f4412bd93",
+     "fromSide": "bottom",
+     "toNode": "76c5aa2d92223f4d",
+     "toSide": "top"
+    },
+    {
+     "id": "8162b23732afb502",
+     "fromNode": "a23b3e0f4412bd93",
+     "fromSide": "bottom",
+     "toNode": "07ae64ad5a42bd83",
+     "toSide": "top"
+    },
+    {
+     "id": "013e505c8438f2f0",
+     "fromNode": "54002970a048312e",
+     "fromSide": "right",
+     "toNode": "07f6182a1b710392",
+     "toSide": "left"
+    },
+    {
+     "id": "a4e3081a5d156e56",
+     "fromNode": "027b15c0d27d9d87",
+     "fromSide": "right",
+     "toNode": "07f6182a1b710392",
+     "toSide": "left"
+    },
+    {
+     "id": "c5cda446693b7e5c",
+     "fromNode": "07f6182a1b710392",
+     "fromSide": "right",
+     "toNode": "79cec2de39a552c7",
+     "toSide": "left"
+    },
+    {
+     "id": "6e5424151344b9fa",
+     "fromNode": "07f6182a1b710392",
+     "fromSide": "right",
+     "toNode": "fe56bfe23758e482",
+     "toSide": "left"
+    },
+    {
+     "id": "57a3311cd4ae9676",
+     "fromNode": "07f6182a1b710392",
+     "fromSide": "right",
+     "toNode": "d064aaafb10bc786",
+     "toSide": "left"
+    },
+    {
+     "id": "4704a7cbe2a377bc",
+     "fromNode": "2bf7075ea1b1d5fb",
+     "fromSide": "right",
+     "toNode": "07f6182a1b710392",
+     "toSide": "left"
+    },
+    {
+     "id": "37b846c6df925a82",
+     "fromNode": "b05e1549bd113754",
+     "fromSide": "right",
+     "toNode": "07f6182a1b710392",
+     "toSide": "left"
+    },
+    {
+     "id": "92901c3527cf99bd",
+     "fromNode": "a23b3e0f4412bd93",
+     "fromSide": "bottom",
+     "toNode": "21a3b220b9316165",
+     "toSide": "top"
+    },
+    {
+     "id": "d747e5c1bced3e9f",
+     "fromNode": "05a5d5e3d4e9722a",
+     "fromSide": "bottom",
+     "toNode": "a23b3e0f4412bd93",
+     "toSide": "top"
+    },
+    {
+     "id": "6437127cc30a93d1",
+     "fromNode": "a23b3e0f4412bd93",
+     "fromSide": "bottom",
+     "toNode": "67f4a3a3397f8cd6",
+     "toSide": "top"
+    },
+    {
+     "id": "12a408ed3ce946c2",
+     "fromNode": "a23b3e0f4412bd93",
+     "fromSide": "bottom",
+     "toNode": "544781eb43fbfe76",
+     "toSide": "top"
+    },
+    {
+     "id": "9ab72d777135f8a5",
+     "fromNode": "a23b3e0f4412bd93",
+     "fromSide": "bottom",
+     "toNode": "60cbfd66748f498b",
+     "toSide": "top"
+    },
+    {
+     "id": "cfbb9d3b23b28e4a",
+     "fromNode": "05c13aab534785fa",
+     "fromSide": "bottom",
+     "toNode": "c82d85502567c5d3",
+     "toSide": "top"
+    },
+    {
+     "id": "c8b0364b415160d1",
+     "fromNode": "7e18b97e0691e899",
+     "fromSide": "bottom",
+     "toNode": "b88f7bd1f01f5773",
+     "toSide": "top"
+    },
+    {
+     "id": "0a9d969056fd4986",
+     "fromNode": "d89c947d1110db3c",
+     "fromSide": "right",
+     "toNode": "cdd498ac240d4653",
+     "toSide": "left"
+    },
+    {
+     "id": "155c08ce631a995c",
+     "fromNode": "d89c947d1110db3c",
+     "fromSide": "right",
+     "toNode": "2370f2b355a26378",
+     "toSide": "left"
+    },
+    {
+     "id": "cc75058d2c105005",
+     "fromNode": "cdd498ac240d4653",
+     "fromSide": "right",
+     "toNode": "18ffc8ef16abf30d",
+     "toSide": "left"
+    }
+   ]
+  },
+  {
+   "name": "Step 3 - Market Research Frame",
+   "kind": "canvas",
+   "nodes": [
+    {
+     "id": "77e4d2191aee451c",
+     "type": "group",
+     "x": 801,
+     "y": -480,
+     "width": 1159,
+     "height": 1340,
+     "label": "ICP Positioning - Based on System Size "
+    },
+    {
+     "id": "ff70ee4c75b752af",
+     "type": "group",
+     "x": 801,
+     "y": 1120,
+     "width": 1159,
+     "height": 1000,
+     "label": "Category Positioning - Based on Maturity"
+    },
+    {
+     "id": "4fed3b736c238d36",
+     "type": "group",
+     "x": 801,
+     "y": 2320,
+     "width": 1159,
+     "height": 760,
+     "label": "Competitive Positioning - Based on Architecture"
+    },
+    {
+     "id": "83d97b5c865f93e3",
+     "type": "group",
+     "x": 0,
+     "y": -480,
+     "width": 540,
+     "height": 1340,
+     "label": "Axis of Evolution: Technology"
+    },
+    {
+     "id": "b527dca6897483a3",
+     "type": "text",
+     "text": "**Important**: NO AI is allowed to WRIE THIS PAGE. READ ONLY ACCESS IS ALLOWED",
+     "x": 800,
+     "y": -680,
+     "width": 640,
+     "height": 50,
+     "color": "2"
+    },
+    {
+     "id": "1f8e0cc8a0d47ed7",
+     "type": "text",
+     "text": "Free Tools Competitors",
+     "x": 872,
+     "y": 1260,
+     "width": 250,
+     "height": 60
+    },
+    {
+     "id": "27afe64395093b42",
+     "type": "text",
+     "text": "So if you are a Data Analysis Tool always ensure your ICP is doing Data Analysis\n\n\n\nICP chooses us, not the other way round.\n\nWe can say Both SMBs and Enterprises need AI platform - but Luca is an AI product, which does data analysis, which is needed by Mid Market, not SMBs as they don't do Data analysis, they just visualize data. Enterprises need Integrations like Bigquery and all that, which we don't have - if we need to target them  we need to build these features - the eval harness decides who we are for.\n\nRefrigeration is the Tech Packing it like a Home Fridge is for Households and the Ice Cream Freezer Box is for shops",
+     "x": 801,
+     "y": 3160,
+     "width": 1159,
+     "height": 240,
+     "color": "2"
+    },
+    {
+     "id": "6d1c8d14e2a79371",
+     "type": "text",
+     "text": "Ecommerce Specific Analytics Tools Competitors",
+     "x": 872,
+     "y": 1390,
+     "width": 250,
+     "height": 54
+    },
+    {
+     "id": "610e34d6362e26ca",
+     "type": "text",
+     "text": "Free Tools like Google Analytics",
+     "x": 1262,
+     "y": 1260,
+     "width": 250,
+     "height": 60
+    },
+    {
+     "id": "27aabfe1022c01ca",
+     "type": "text",
+     "text": "Currently the above systems are stacked one on top of the other. That is a gradual growth of maturity. It can also branch into horizontal nodes if needed. A system for a single-product company and a multi-product company is different but the maturity is still the same. ",
+     "x": 1453,
+     "y": 1840,
+     "width": 357,
+     "height": 200,
+     "color": "2"
+    },
+    {
+     "id": "1cc5cdb3c86cf041",
+     "type": "text",
+     "text": "Maturity = Not awareness level\n\nYou only solve for certain maturity levels\n\nThis view is basically based on: What are the logical steps that appear when a customer is searching for a certain capability. Basically the most primitive version to the most advanced version\n\n**Step 3 asks: what else could they buy INSTEAD of this entire class of tool?**\n\nThese are SUBSTITUTES, not rivals. You displace the rung below you, and you lose to the rung above.\n\nVertical axis. BETWEEN classes.\n\nProduces MIGRATION content: moving off spreadsheets, alternatives to a data stack.",
+     "x": 1560,
+     "y": 1155,
+     "width": 250,
+     "height": 330,
+     "color": "2"
+    },
+    {
+     "id": "7d695e1440faf651",
+     "type": "text",
+     "text": "Coded / Dashboard Versions Competitors",
+     "x": 935,
+     "y": 2400,
+     "width": 305,
+     "height": 60
+    },
+    {
+     "id": "e92a379b87a8d9d5",
+     "type": "text",
+     "text": "Use Cases - Industries, ",
+     "x": 2400,
+     "y": -34,
+     "width": 250,
+     "height": 50
+    },
+    {
+     "id": "9418b06aec5a34a6",
+     "type": "text",
+     "text": "The nodes and the number of nodes can differ from capability to capability.\n\nThe ladder is drawn PER CAPABILITY, and its anchor node is the capability itself.\n\nWithout that anchor, maturity floats free and drifts into either company size or tech sophistication. Both are wrong.",
+     "x": 1560,
+     "y": 1570,
+     "width": 250,
+     "height": 200,
+     "color": "2"
+    },
+    {
+     "id": "be942422e38e40b8",
+     "type": "text",
+     "text": "**4. Full modern data stack (most power, most overhead)**\n\nAirbyte/Fivetran → BigQuery/Snowflake → dbt → Metabase. This is the standard recommendation for companies in the $5M–$50M range, and honestly that's who it's for. Metabase itself has no SaaS connectors — it only reads databases, so you're maintaining several moving parts.",
+     "x": 1262,
+     "y": 1640,
+     "width": 250,
+     "height": 60
+    },
+    {
+     "id": "9be96e5cea289e9f",
+     "type": "text",
+     "text": "AI Retrofitted Tools Competitors",
+     "x": 935,
+     "y": 2520,
+     "width": 305,
+     "height": 60
+    },
+    {
+     "id": "46349a8686fb4c0d",
+     "type": "text",
+     "text": "Coded / Dashboard Versions",
+     "x": 1289,
+     "y": 2400,
+     "width": 305,
+     "height": 60
+    },
+    {
+     "id": "c258e4b256dacb5d",
+     "type": "text",
+     "text": "**Connector-to-dashboard (middle ground)**\n\nA pipeline tool pulls all sources into one place, and you build reports yourself. Ingestion: Supermetrics, Windsor.ai, Fivetran, Airbyte. Storage: BigQuery, Postgres/Supabase. Reporting: Looker Studio (free), Metabase, Power BI. This is where you get real flexibility without vendor lock-in on the metrics.",
+     "x": 1261,
+     "y": 1510,
+     "width": 250,
+     "height": 60
+    },
+    {
+     "id": "15050b8b087892c6",
+     "type": "text",
+     "text": "Ecommerce Specific Analytics Tools ",
+     "x": 1261,
+     "y": 1390,
+     "width": 250,
+     "height": 54,
+     "color": "4"
+    },
+    {
+     "id": "46ae02533b09f04d",
+     "type": "text",
+     "text": "AI Native Versions Competitors",
+     "x": 935,
+     "y": 2650,
+     "width": 305,
+     "height": 60
+    },
+    {
+     "id": "4dc620b26942b978",
+     "type": "text",
+     "text": "Competitive Positioning, is definitely not just in the direction of Technology advancements alone, it is how we are better than the rest and how. \n\nExample: An India Native EOR player is better than a global player for the Indian EOR Market. That's a direction.\n\nPick a direction based on the Industry and it's evolutionary direction.",
+     "x": 947,
+     "y": 2770,
+     "width": 647,
+     "height": 230,
+     "color": "2"
+    },
+    {
+     "id": "284db49d63044788",
+     "type": "text",
+     "text": "AI Retrofitted Tools",
+     "x": 1289,
+     "y": 2530,
+     "width": 305,
+     "height": 60
+    },
+    {
+     "id": "4639d65c493b26b9",
+     "type": "text",
+     "text": "AI Native Versions",
+     "x": 1289,
+     "y": 2650,
+     "width": 305,
+     "height": 60,
+     "color": "4"
+    },
+    {
+     "id": "8ad87ff9c78d51ed",
+     "type": "text",
+     "text": "ICPs requiring Analytics and simple data visualization",
+     "x": 872,
+     "y": 1140,
+     "width": 639,
+     "height": 50
+    },
+    {
+     "id": "1d6274b3fec797bb",
+     "type": "text",
+     "text": "Connector-to-dashboard Competitors",
+     "x": 872,
+     "y": 1510,
+     "width": 250,
+     "height": 60
+    },
+    {
+     "id": "41203786579ac7ec",
+     "type": "text",
+     "text": "This defines the tech stack used by different players/ categories to deliver the same capability.\n\nThis data would be used to position the product relatively to the competing architecture.\n\nThe nodes and the number of nodes can differ from capability to capability.\n\n**Competitive Positioning asks: who else sells this same class of tool, and how is theirs built?**\n\nThese are RIVALS, not substitutes. Same buyer, same budget, same evaluation, same promise. The only thing that differs is how the product is built — and therefore what it cannot do at the edges.\n\nHorizontal axis. Inside ONE class.\n\nProduces COMPARISON content: X vs Y, AI-native vs AI-retrofitted.",
+     "x": 1631,
+     "y": 2400,
+     "width": 305,
+     "height": 470,
+     "color": "2"
+    },
+    {
+     "id": "b4aa33833be43edd",
+     "type": "text",
+     "text": "Full modern data stack Competitors",
+     "x": 872,
+     "y": 1640,
+     "width": 250,
+     "height": 60
+    },
+    {
+     "id": "3fd70a0024fe2f0e",
+     "type": "text",
+     "text": "People: \nProcess:\nTech:\nInput:",
+     "x": 907,
+     "y": -440,
+     "width": 957,
+     "height": 170
+    },
+    {
+     "id": "b0fd6e9a3dbb18a6",
+     "type": "text",
+     "text": "Why not the above Rungs?\nWhy not the below Rungs?",
+     "x": 906,
+     "y": 680,
+     "width": 957,
+     "height": 120,
+     "color": "2"
+    },
+    {
+     "id": "5e36def1a333fc2d",
+     "type": "text",
+     "text": "People: \nProcess:\nTech:\nInput:",
+     "x": 906,
+     "y": -204,
+     "width": 957,
+     "height": 170
+    },
+    {
+     "id": "4b513d447270da93",
+     "type": "text",
+     "text": "People: \nProcess:\nTech:\nInput:",
+     "x": 908,
+     "y": 240,
+     "width": 957,
+     "height": 160,
+     "color": "4"
+    },
+    {
+     "id": "63001283e945082d",
+     "type": "text",
+     "text": "People: \nProcess:\nTech:\nInput:",
+     "x": 906,
+     "y": 16,
+     "width": 957,
+     "height": 170
+    },
+    {
+     "id": "cd8ef1cbdf5ecbbf",
+     "type": "text",
+     "text": "People: \nProcess:\nTech:\nInput:",
+     "x": 906,
+     "y": 440,
+     "width": 957,
+     "height": 170
+    },
+    {
+     "id": "b9cc6ac0557df691",
+     "type": "text",
+     "text": "",
+     "x": 20,
+     "y": 623,
+     "width": 480,
+     "height": 175
+    },
+    {
+     "id": "ce7de8b6f4ff8700",
+     "type": "text",
+     "text": "",
+     "x": 20,
+     "y": 400,
+     "width": 480,
+     "height": 175,
+     "color": "4"
+    },
+    {
+     "id": "2ebade1f7a7941ef",
+     "type": "text",
+     "text": "",
+     "x": 20,
+     "y": 153,
+     "width": 480,
+     "height": 175,
+     "color": "4"
+    },
+    {
+     "id": "d138ed6a5d5288db",
+     "type": "text",
+     "text": "",
+     "x": 20,
+     "y": -96,
+     "width": 480,
+     "height": 175
+    },
+    {
+     "id": "7b9107ca10e9810a",
+     "type": "text",
+     "text": "",
+     "x": 20,
+     "y": -355,
+     "width": 480,
+     "height": 175
+    }
+   ],
+   "edges": [
+    {
+     "id": "237c59b96a5cf37a",
+     "fromNode": "46349a8686fb4c0d",
+     "fromSide": "bottom",
+     "toNode": "284db49d63044788",
+     "toSide": "top"
+    },
+    {
+     "id": "d363dbd8bc9d7fab",
+     "fromNode": "284db49d63044788",
+     "fromSide": "bottom",
+     "toNode": "4639d65c493b26b9",
+     "toSide": "top"
+    },
+    {
+     "id": "846fb406541985ef",
+     "fromNode": "c258e4b256dacb5d",
+     "fromSide": "bottom",
+     "toNode": "be942422e38e40b8",
+     "toSide": "top"
+    },
+    {
+     "id": "b7ae0625ecec0b6f",
+     "fromNode": "15050b8b087892c6",
+     "fromSide": "bottom",
+     "toNode": "c258e4b256dacb5d",
+     "toSide": "top"
+    },
+    {
+     "id": "e4d81d1845853429",
+     "fromNode": "610e34d6362e26ca",
+     "fromSide": "bottom",
+     "toNode": "15050b8b087892c6",
+     "toSide": "top"
+    },
+    {
+     "id": "d69a6ceefdc00fa3",
+     "fromNode": "d138ed6a5d5288db",
+     "fromSide": "bottom",
+     "toNode": "2ebade1f7a7941ef",
+     "toSide": "top"
+    },
+    {
+     "id": "f1defe3d659ce7f7",
+     "fromNode": "2ebade1f7a7941ef",
+     "fromSide": "bottom",
+     "toNode": "ce7de8b6f4ff8700",
+     "toSide": "top"
+    },
+    {
+     "id": "07ce8cb805fc87d4",
+     "fromNode": "ce7de8b6f4ff8700",
+     "fromSide": "bottom",
+     "toNode": "b9cc6ac0557df691",
+     "toSide": "top"
+    },
+    {
+     "id": "1227e2197d08e938",
+     "fromNode": "ff70ee4c75b752af",
+     "fromSide": "bottom",
+     "toNode": "4fed3b736c238d36",
+     "toSide": "top"
+    },
+    {
+     "id": "525a8cecad8bd8b5",
+     "fromNode": "77e4d2191aee451c",
+     "fromSide": "bottom",
+     "toNode": "ff70ee4c75b752af",
+     "toSide": "top"
+    },
+    {
+     "id": "dbdd90ba4c764c6c",
+     "fromNode": "4b513d447270da93",
+     "fromSide": "right",
+     "toNode": "e92a379b87a8d9d5",
+     "toSide": "left"
+    },
+    {
+     "id": "f5c8d294e4734977",
+     "fromNode": "ce7de8b6f4ff8700",
+     "fromSide": "right",
+     "toNode": "4b513d447270da93",
+     "toSide": "left"
+    },
+    {
+     "id": "a9ef3cdb711ee4b4",
+     "fromNode": "7b9107ca10e9810a",
+     "fromSide": "bottom",
+     "toNode": "d138ed6a5d5288db",
+     "toSide": "top"
+    }
+   ]
+  },
+  {
+   "name": "Step 4 - Messaging Framework",
+   "kind": "canvas",
+   "nodes": [
+    {
+     "id": "2b71016fc1c53151",
+     "type": "text",
+     "text": "Messaging Framework",
+     "x": -180,
+     "y": -20,
+     "width": 250,
+     "height": 60
+    },
+    {
+     "id": "b26257b894b2a0e8",
+     "type": "text",
+     "file": "Frames/Step 5 - Positioning Document.md",
+     "x": -720,
+     "y": -190,
+     "width": 400,
+     "height": 400,
+     "text": "📄 Step 5 - Positioning Document.md"
+    },
+    {
+     "id": "f5b517b0eefc1fbb",
+     "type": "text",
+     "text": "Client Stand Point",
+     "x": -1180,
+     "y": -20,
+     "width": 250,
+     "height": 60
+    },
+    {
+     "id": "915b856cbb4eefc0",
+     "type": "text",
+     "text": "+ve Perceived Value",
+     "x": 160,
+     "y": -220,
+     "width": 215,
+     "height": 60
+    },
+    {
+     "id": "f9e9b7ae6a27dd24",
+     "type": "text",
+     "text": "**One Liner**\n\n\nWhat is it? (Clear Demarcation of the architecture, step 4)\n\nWhat does it do (better than the previous category, step 4 and 5)?\n\nWho is it meant for?\n\nWhy is it needed for the ICP(Optional)?\n\nAI Data Layer for Small Ecommerce Teams to view and analyze data from multiple sources without complex setup technical setups or a data analyst.\n\n",
+     "x": -1180,
+     "y": 560,
+     "width": 709,
+     "height": 407
+    },
+    {
+     "id": "03f1647797581b5e",
+     "type": "text",
+     "text": "\t\tPeople  - Tribals for Honey ",
+     "x": 680,
+     "y": -210,
+     "width": 360,
+     "height": 50
+    },
+    {
+     "id": "92e219a5dcd39793",
+     "type": "text",
+     "text": "Process - Sourced and Packed from Forests",
+     "x": 680,
+     "y": -95,
+     "width": 360,
+     "height": 60
+    },
+    {
+     "id": "2a703a9dbf7f9aef",
+     "type": "text",
+     "text": "Pillar Messaging",
+     "x": 1023,
+     "y": -375,
+     "width": 250,
+     "height": 60
+    },
+    {
+     "id": "a24c2700bfbac062",
+     "type": "text",
+     "text": "Technology - Simply crushing and Packing ",
+     "x": 680,
+     "y": 35,
+     "width": 360,
+     "height": 50
+    },
+    {
+     "id": "710784ca996e41f2",
+     "type": "text",
+     "text": "Inputs - Just Honey Combs",
+     "x": 680,
+     "y": 145,
+     "width": 360,
+     "height": 50
+    },
+    {
+     "id": "b95810521689f161",
+     "type": "text",
+     "text": "Supporting Messaging",
+     "x": 1148,
+     "y": 360,
+     "width": 250,
+     "height": 50
+    },
+    {
+     "id": "65966a274ddda576",
+     "type": "text",
+     "text": "Customer Signal - The Most Relevant Tool for my system, with the least Risk",
+     "x": 1720,
+     "y": -65,
+     "width": 300,
+     "height": 80
+    },
+    {
+     "id": "844a13a5a25f0afa",
+     "type": "text",
+     "text": "**Important**: NO AI is allowed to WRIE THIS PAGE. READ ONLY ACCESS IS ALLOWED",
+     "x": 100,
+     "y": 271,
+     "width": 640,
+     "height": 50,
+     "color": "2"
+    },
+    {
+     "id": "b8ea051027acce70",
+     "type": "text",
+     "text": "Problem Aware ",
+     "x": 680,
+     "y": 560,
+     "width": 468,
+     "height": 160
+    },
+    {
+     "id": "e00ecb8c7d24b29c",
+     "type": "text",
+     "text": "Solution Aware ",
+     "x": 680,
+     "y": 765,
+     "width": 468,
+     "height": 160
+    },
+    {
+     "id": "c748df71675918a6",
+     "type": "text",
+     "text": "Feature Aware ",
+     "x": 680,
+     "y": 960,
+     "width": 468,
+     "height": 160
+    },
+    {
+     "id": "e1bdab5c4ec4d055",
+     "type": "text",
+     "text": "Competitor Aware ",
+     "x": 680,
+     "y": 1160,
+     "width": 468,
+     "height": 160
+    },
+    {
+     "id": "7d3176a3cd52b24a",
+     "x": 2180,
+     "y": -400,
+     "width": 250,
+     "height": 60,
+     "type": "text",
+     "text": "Problem Aware"
+    },
+    {
+     "id": "291393aba2003313",
+     "x": 2180,
+     "y": -180,
+     "width": 250,
+     "height": 60,
+     "type": "text",
+     "text": "Solution Aware"
+    },
+    {
+     "id": "0c7f170adc243253",
+     "x": 2180,
+     "y": 60,
+     "width": 250,
+     "height": 60,
+     "type": "text",
+     "text": "Feature Aware"
+    },
+    {
+     "id": "2d94ac4d790cd680",
+     "x": 2180,
+     "y": 260,
+     "width": 250,
+     "height": 60,
+     "type": "text",
+     "text": "Competitor Aware"
+    },
+    {
+     "id": "0b8d6c9888006c30",
+     "x": 2545,
+     "y": -114,
+     "width": 250,
+     "height": 274,
+     "type": "text",
+     "text": "Maturity Axis\nAwareness Axis\nPositioning\nSystems "
+    }
+   ],
+   "edges": [
+    {
+     "id": "f770f8a07b3a7f3a",
+     "fromNode": "f5b517b0eefc1fbb",
+     "fromSide": "right",
+     "toNode": "b26257b894b2a0e8",
+     "toSide": "left"
+    },
+    {
+     "id": "52b3eeee1211d788",
+     "fromNode": "b26257b894b2a0e8",
+     "fromSide": "right",
+     "toNode": "2b71016fc1c53151",
+     "toSide": "left"
+    },
+    {
+     "id": "a9e4626ce42097b9",
+     "fromNode": "2b71016fc1c53151",
+     "fromSide": "right",
+     "toNode": "915b856cbb4eefc0",
+     "toSide": "left"
+    },
+    {
+     "id": "aa513077b8b997d1",
+     "fromNode": "915b856cbb4eefc0",
+     "fromSide": "right",
+     "toNode": "03f1647797581b5e",
+     "toSide": "left"
+    },
+    {
+     "id": "b50d5775c2e67a76",
+     "fromNode": "03f1647797581b5e",
+     "fromSide": "right",
+     "toNode": "65966a274ddda576",
+     "toSide": "left"
+    },
+    {
+     "id": "f7c9d68f045b7098",
+     "fromNode": "03f1647797581b5e",
+     "fromSide": "top",
+     "toNode": "2a703a9dbf7f9aef",
+     "toSide": "left"
+    },
+    {
+     "id": "178b3b7d0913e454",
+     "fromNode": "915b856cbb4eefc0",
+     "fromSide": "right",
+     "toNode": "92e219a5dcd39793",
+     "toSide": "left"
+    },
+    {
+     "id": "b6a91ec52b6f65a9",
+     "fromNode": "915b856cbb4eefc0",
+     "fromSide": "right",
+     "toNode": "a24c2700bfbac062",
+     "toSide": "left"
+    },
+    {
+     "id": "5e890307e860e06f",
+     "fromNode": "915b856cbb4eefc0",
+     "fromSide": "right",
+     "toNode": "710784ca996e41f2",
+     "toSide": "left"
+    },
+    {
+     "id": "0ebe9e2c0065d659",
+     "fromNode": "92e219a5dcd39793",
+     "fromSide": "right",
+     "toNode": "b95810521689f161",
+     "toSide": "top"
+    },
+    {
+     "id": "29f49d5a4b553abb",
+     "fromNode": "a24c2700bfbac062",
+     "fromSide": "right",
+     "toNode": "b95810521689f161",
+     "toSide": "top"
+    },
+    {
+     "id": "3c83bf504b6a017f",
+     "fromNode": "710784ca996e41f2",
+     "fromSide": "right",
+     "toNode": "b95810521689f161",
+     "toSide": "top"
+    },
+    {
+     "id": "2be45db5be91c009",
+     "fromNode": "92e219a5dcd39793",
+     "fromSide": "right",
+     "toNode": "65966a274ddda576",
+     "toSide": "left"
+    },
+    {
+     "id": "7c8926386124bb72",
+     "fromNode": "a24c2700bfbac062",
+     "fromSide": "right",
+     "toNode": "65966a274ddda576",
+     "toSide": "left"
+    },
+    {
+     "id": "294561e7cd21aae1",
+     "fromNode": "710784ca996e41f2",
+     "fromSide": "right",
+     "toNode": "65966a274ddda576",
+     "toSide": "left"
+    },
+    {
+     "id": "792adba21dd6ff5d",
+     "fromNode": "65966a274ddda576",
+     "fromSide": "right",
+     "toNode": "291393aba2003313",
+     "toSide": "left"
+    },
+    {
+     "id": "865707b64c147024",
+     "fromNode": "65966a274ddda576",
+     "fromSide": "right",
+     "toNode": "0c7f170adc243253",
+     "toSide": "left"
+    },
+    {
+     "id": "bf33e9b63efcf779",
+     "fromNode": "65966a274ddda576",
+     "fromSide": "right",
+     "toNode": "2d94ac4d790cd680",
+     "toSide": "left"
+    },
+    {
+     "id": "5d9666d29a438087",
+     "fromNode": "65966a274ddda576",
+     "fromSide": "right",
+     "toNode": "7d3176a3cd52b24a",
+     "toSide": "left"
+    }
+   ]
+  },
+  {
+   "name": "Step 5 - Positioning Document",
+   "kind": "note",
+   "text": "1. Positioning Statement\n- Who is it for?\n- What is the problem it solves for  - to be very specific in the system component level\n- How are we better than the others?\n- What is the Category we fall into\n\nAll the above has to fall into 2-3 Lines \n\n2. Category Positioning\n\n\n3. Competitive Positioning\n\n\n4. ICP Positioning\n\n\n5. Value Positioning\n\n5.1 What is the functional Value, they get?\n5.2 What is the benefit of the functional value?\n5.3 What is the Economic Value?\n5.4 What is the Strategic benefit that further influences the other components of the system?\n\nPillar Capabilities - And their Benefits\nSupporting Capabilities - And their Benefits\n\n6. EEAT"
+  },
+  {
+   "name": "Human Reference - Cluster Frame",
+   "kind": "canvas",
+   "nodes": [
+    {
+     "id": "b37ec166cfc56266",
+     "type": "group",
+     "x": -1690,
+     "y": -2221,
+     "width": 2220,
+     "height": 860,
+     "label": "Step 5: Customer Flow Map"
+    },
+    {
+     "id": "e7466769b0033741",
+     "type": "text",
+     "text": "Free Tools like Google Analytics",
+     "x": -1055,
+     "y": -2201,
+     "width": 250,
+     "height": 60
+    },
+    {
+     "id": "9003cf93c618a849",
+     "type": "text",
+     "text": "Ecommerce Specific Analytics Tools ",
+     "x": -1015,
+     "y": -1921,
+     "width": 250,
+     "height": 60
+    },
+    {
+     "id": "1136a5d06e2ab07c",
+     "type": "text",
+     "text": "Multi Industry/Multi Use Case\n\n[Multi ICP/Multi Size /Multi Technology Tools]\n\nSupermetrics",
+     "x": -330,
+     "y": -1918,
+     "width": 250,
+     "height": 177
+    },
+    {
+     "id": "3b1bb1428c8914ad",
+     "type": "text",
+     "text": "How to pivot to adjacent categories?\n\nIt is a business decision where the brand picks one of the below:\n\n1. Single Utility(Product/Service/Capability) - Multi Location(People/Industry/Use Cases/ICP). This is where you lead with marketing. In this case we try to cover adjacent Industries/Use Cases where we cover multi industry players. Also here we only are trying to pull our industry/vertical players from multi industry players unless we reposition ourselves to multi industry after which we pull all industry players,\nEg: Scale to Multi Capability - Regional Players like Annapoorna Hotels Coimbatore\n\n2. Single Location(People/Industry/ICP) to Multi Utility(Product/Service/Capability). This is where you lead with product. In this case we try to create multiple products to  sell to the existing customer base.\nEg: Scale to Multi Industry: Super Metrics \nScale to Multi Use Case: Kajabi\n\nAlso in adjacent categories we ,map the entire category and then choose the green node.\n",
+     "x": 20,
+     "y": -2121,
+     "width": 420,
+     "height": 710,
+     "color": "2"
+    },
+    {
+     "id": "6f34e14803989b75",
+     "type": "text",
+     "text": "Coded / Dashboard Versions Competitors",
+     "x": -1370,
+     "y": -1641,
+     "width": 250,
+     "height": 60
+    },
+    {
+     "id": "1d4a213cc59f6e41",
+     "type": "text",
+     "text": "AI Retrofitted Tools Competitors",
+     "x": -1055,
+     "y": -1641,
+     "width": 250,
+     "height": 60
+    },
+    {
+     "id": "6d58e3d200caa5c7",
+     "type": "text",
+     "text": "AI Native Versions",
+     "x": -735,
+     "y": -1641,
+     "width": 250,
+     "height": 60
+    },
+    {
+     "id": "b8c554706ec536bd",
+     "type": "text",
+     "text": "Glew",
+     "x": -1670,
+     "y": -1441,
+     "width": 250,
+     "height": 60
+    },
+    {
+     "id": "0529109a782da99d",
+     "type": "text",
+     "text": "Triple Whale ",
+     "x": -1370,
+     "y": -1441,
+     "width": 250,
+     "height": 60
+    },
+    {
+     "id": "3f22a5ed60264aa5",
+     "type": "text",
+     "text": "Luca",
+     "x": -1054,
+     "y": -1441,
+     "width": 250,
+     "height": 60
+    },
+    {
+     "id": "1d303a50d9cfe5b1",
+     "type": "text",
+     "text": "Saaras Analytics",
+     "x": -735,
+     "y": -1441,
+     "width": 250,
+     "height": 60
+    },
+    {
+     "id": "f4e8311782ed7933",
+     "type": "text",
+     "text": "Note: You don't have to fill in all the details. You only have to map the important ones based on the market insights and product capability",
+     "x": -635,
+     "y": 404,
+     "width": 320,
+     "height": 143,
+     "color": "2"
+    },
+    {
+     "id": "c21eab3bdb8c3200",
+     "type": "text",
+     "text": "For Both Category and Competitor - Thought from a first principle perspective\n1. Features\n2. Pricing\n3. Category / Competitor Alternatives\n4. Reviews\n5. How it works \n-------------------\n1. Use Cases\n2. Industry\n3. Size\n4. ICP\n5. Feature Capability",
+     "x": 720,
+     "y": -160,
+     "width": 250,
+     "height": 520
+    },
+    {
+     "id": "e9e6b4a029ed9b7f",
+     "type": "text",
+     "text": "How to hoard people to you funnel?\n\n1. If a category is new write for your exact category >> Competitors(from architecturally poorer categories) >> Architecturally poorer categories / Parent Category >> Multi Industry Competitors >> Multi Industry Categories\n\nThe first determines PMF and the second determines growth.",
+     "x": -1440,
+     "y": 720,
+     "width": 2520,
+     "height": 176,
+     "color": "2"
+    },
+    {
+     "id": "e836980e914e1212",
+     "type": "text",
+     "text": "\nSEO Content\n\n| **Article Type** | Angle                      | **Keyword 1** | **Keyword 2** | **Keyword 3** | **Keyword N** |\n| ---------------- | -------------------------- | ------------- | ------------- | ------------- | ------------- |\n| Info             | Architecture/Mechanism/RCA |               |               |               |               |\n| Info             | Desired Outcomes           |               |               |               |               |\n| Info             | Guides                     |               |               |               |               |\n| Info             | Vs                         |               |               |               |               |\n| Info             | What you should know?      |               |               |               |               |\n| Info             | Miscelleneaous             |               |               |               |               |\n\n\n\n\n",
+     "x": -157,
+     "y": -440,
+     "width": 1237,
+     "height": 1074
+    },
+    {
+     "id": "ca7c772a158ad073",
+     "type": "text",
+     "text": "**AEO Content**\n\nIf it is a new category\nArchitectural Category >> Architectural Competitors >> Capability Category \n\nLarger Category and the client is broad function player\nCapability Category >> Competitors\n\n| **Article Type** | Angle               | **Keyword 1** | **Keyword 2** | **Keyword 3** | **Keyword N** |\n| ---------------- | ------------------- | ------------- | ------------- | ------------- | ------------- |\n| Listicles        | Category + Synonyms |               |               |               |               |\n|                  |                     |               |               |               |               |\n| Landing Page     | Service Page        |               |               |               |               |\n| Landing Page     | Use Case Page       |               |               |               |               |\n|                  |                     |               |               |               |               |\n\n**Secondary** - Prime Category + Secondary Categories\n\n| Prime Category | Main Name/Synonyms | ICP | Use Case / Industry | Technical/Feature | Size | Operational Workflow | Pain Point | Benefits |\n| -------------- | ------------------ | --- | ------------------- | ----------------- | ---- | -------------------- | ---------- | -------- |\n| 1              |                    |     |                     |                   |      |                      |            |          |\n| 2              |                    |     |                     |                   |      |                      |            |          |\n| 3              |                    |     |                     |                   |      |                      |            |          |\n| N              |                    |     |                     |                   |      |                      |            |          |\n\n**Competitor Matrix**\n\n| S.No | Competitor | Alternatives | Reviews | Pricing | Vs  |\n| ---- | ---------- | ------------ | ------- | ------- | --- |\n| 1    |            |              |         |         |     |\n| 2    |            |              |         |         |     |\n|      |            |              |         |         |     |\n\n\nCompetitor Vs\n\n| S.No | Vs  | Status |     |\n| ---- | --- | ------ | --- |\n| 1    |     |        |     |\n| 2    |     |        |     |\n\n- Industry and Use Case are intentionally kept together, as Industry is a much more organized/systematic\n\nModifiers: Commercial, Tech, Operational Workflow, Pain Point",
+     "x": -1920,
+     "y": -440,
+     "width": 1676,
+     "height": 1074
+    },
+    {
+     "id": "1ec3755a9d4aed17",
+     "type": "text",
+     "text": "How to create keywords?\n\nHead On Terms - High search Volume, Low purchase intent\n\nLong Tail Keywords - High Intent, Low search volume\n\nThe ideal keyword has to be a mid level keyword with medium search volume and intent\n\nProcess: Use modifiers like tech modifiers, commercial modifiers, operational workflow modifiers .... to create keywords.\n\nThese keywords would be pasted in Ahrefs to find and pick keywords with appropriate volume and difficulty.\n\nNote: Only MOFU and BOFU Content ",
+     "x": -119,
+     "y": 234,
+     "width": 1160,
+     "height": 340,
+     "color": "2"
+    },
+    {
+     "id": "04752328b75cfd62",
+     "type": "text",
+     "text": "Solution Aware\nCategory Aware\nCompetitor Aware",
+     "x": -2240,
+     "y": -209,
+     "width": 250,
+     "height": 306
+    },
+    {
+     "id": "f153c6f1d4e4c61d",
+     "type": "text",
+     "text": "Cluster = Product Capability = Category",
+     "x": -462,
+     "y": -1120,
+     "width": 305,
+     "height": 115
+    }
+   ],
+   "edges": [
+    {
+     "id": "c158de2e557c1ee5",
+     "fromNode": "f153c6f1d4e4c61d",
+     "fromSide": "bottom",
+     "toNode": "ca7c772a158ad073",
+     "toSide": "top"
+    },
+    {
+     "id": "e5e0bf91d5a602e8",
+     "fromNode": "f153c6f1d4e4c61d",
+     "fromSide": "bottom",
+     "toNode": "e836980e914e1212",
+     "toSide": "top"
+    },
+    {
+     "id": "0f5f6f9b73b1bd77",
+     "fromNode": "e7466769b0033741",
+     "fromSide": "bottom",
+     "toNode": "9003cf93c618a849",
+     "toSide": "top"
+    },
+    {
+     "id": "91f366cb19341717",
+     "fromNode": "e7466769b0033741",
+     "fromSide": "bottom",
+     "toNode": "1136a5d06e2ab07c",
+     "toSide": "top"
+    },
+    {
+     "id": "fbc6f5ae0c848411",
+     "fromNode": "9003cf93c618a849",
+     "fromSide": "bottom",
+     "toNode": "6f34e14803989b75",
+     "toSide": "top"
+    },
+    {
+     "id": "b5aaed7388f04312",
+     "fromNode": "9003cf93c618a849",
+     "fromSide": "bottom",
+     "toNode": "6d58e3d200caa5c7",
+     "toSide": "top"
+    },
+    {
+     "id": "59ca3c5f88c1396b",
+     "fromNode": "9003cf93c618a849",
+     "fromSide": "bottom",
+     "toNode": "1d4a213cc59f6e41",
+     "toSide": "top"
+    },
+    {
+     "id": "cb3484bf2c0548ce",
+     "fromNode": "6f34e14803989b75",
+     "fromSide": "bottom",
+     "toNode": "0529109a782da99d",
+     "toSide": "top"
+    },
+    {
+     "id": "41f26ea282b6f5bb",
+     "fromNode": "6f34e14803989b75",
+     "fromSide": "bottom",
+     "toNode": "b8c554706ec536bd",
+     "toSide": "top"
+    },
+    {
+     "id": "f697a79b17e05310",
+     "fromNode": "6d58e3d200caa5c7",
+     "fromSide": "bottom",
+     "toNode": "1d303a50d9cfe5b1",
+     "toSide": "top"
+    },
+    {
+     "id": "c630ded396aea3c1",
+     "fromNode": "6d58e3d200caa5c7",
+     "fromSide": "bottom",
+     "toNode": "3f22a5ed60264aa5",
+     "toSide": "top"
+    }
+   ]
+  },
+  {
+   "name": "Miscelleneaous Notes",
+   "kind": "canvas",
+   "nodes": [
+    {
+     "id": "650264beed2194ed",
+     "type": "text",
+     "text": "Product ",
+     "x": -125,
+     "y": -30,
+     "width": 250,
+     "height": 330
+    },
+    {
+     "id": "92b7cbb2819024e6",
+     "type": "text",
+     "text": "System Evolution\n\n\nSystem1 \n\nSystem 2\n\nSystem 3\n\nSystem 4\n\nSystem 5\n",
+     "x": -420,
+     "y": -30,
+     "width": 250,
+     "height": 330
+    },
+    {
+     "id": "64da22a525a0c6ae",
+     "type": "text",
+     "text": "Only after spending so much time on this product I got to know that Data Analytics only meaningful if you have a certain threshold of data.\n\nThe threshold applies to raw material(data influx/store), technology(tech stack). This is obvious so the remaining two should also have a minimum threshold i.e humans and processes. Yeah processes also seems to be obvious. The only thing in doubt is humans ",
+     "x": -420,
+     "y": 340,
+     "width": 250,
+     "height": 460
+    },
+    {
+     "id": "a6fe86bb4bbce44e",
+     "type": "text",
+     "text": "How to assess PMF and ePMF?\nCreate the Market Mapping frame including the systems ladder and try to match it with the product architecture and benefits and see where the value generated is high \n\nHow do you quantify value/delta generated?\n\nHow do you find the problems in a certain maturity system?\n\nFind the issues in reddit/g2 .... other sources to verify issues in a certain system",
+     "x": -140,
+     "y": 340,
+     "width": 265,
+     "height": 460
+    },
+    {
+     "id": "777e6a04c5b58a8e",
+     "type": "text",
+     "text": "Draw the system stack - verify all the relevant areas - run a research on reddit/G2 .... find the problems >> then match the product to see how much value could be generated\n\nA stack can generate max value for all the actual PMF system as well as all the lower systems. Eliminate all thr lower systems by threshold.\n\nNow calculate Delta increased on implementing the product. The delta is not measured in money. It is always mentioned in the increase in productivity/ decreased cost of production which leads to money. Money is not directly calculated.\n\nBut if you ask an AI to do this exercise it will still say a one person store will get value giving some random reason like they get analytics from ai at the cost of some coded tool.\n\nMaybe we can set thresholds for all 4 -  like data influx, tech stack, humans and processes where the delta is the highest. \n\nHow do you calculate the minimum? - But this sounds like we are choosing the ICP\n\nBut doesn't the ICP choose us?\n\nYeah you are right they come and choose us. But we try to choose the **right** ICP else they will come to us - use/demo us and figure out we are not the right solution considering the threshold value and leave us. Our effort to reach will be wasted\n\nWe will need to calculate the value generated for the few categories which seem relevant and then find value generated and optimize for the category which generates the highest value \n\nYou give more value >> you get more value(money)\n\nSmall people might say they want ai data analytics and we give them\n\nSo just calculate what they get on simulating their situation with their maturity and our product and value generated. If the value generated is higher than the price they pay it's a business\n\nHow to calculate value?\n\nValue = Future state(Productivity/value Generated after using the product - Productivity/value Generated before using the product )\n\nWhere does problems of reddit/G2 come into the equation?\n\nProblems are signals given by users saying come give us value",
+     "x": 160,
+     "y": 340,
+     "width": 250,
+     "height": 2640
+    },
+    {
+     "id": "050b6596be7be7a0",
+     "type": "text",
+     "text": "If you are selling a tool that reduces the work of data analysis, you should only sell to systems that are mature enough and data analysis is already happening, you don't sell to people who are currently not doing data analysis. If you want to do that maybe you should try a push based channel.\n\nBut in pull based channels you only sell to ICP who need it \n\nYou should look for evidence data analysis is already happening like a data analyst is there, they've got a data analysis tool, some sort of effort done by them to show they are doing data analysis.\n\nA company might collect data, 4 different tools connected is an example of data collection and data analysis.\n\nNote: When Eric's data was analyzed the user's were using the tool for data visualization, that you could simply view in a dashboard. If you would have simply researched the company, they would have no history of data analysis only data visualization(These data visualization, analysis, intelligence are all indicators of maturity created in step 3)",
+     "x": 460,
+     "y": 340,
+     "width": 250,
+     "height": 1340
+    },
+    {
+     "id": "565163b24fdd62b2",
+     "type": "text",
+     "text": "You only sell to people who are complaining they have a problem, and maybe searching online.\n\nBut if people are not complaining, but you think your product can be useful you choose a push based channel\n\n",
+     "x": 740,
+     "y": 340,
+     "width": 250,
+     "height": 460
+    },
+    {
+     "id": "679fa99446212006",
+     "type": "text",
+     "text": "The net value generated method before and after using the tool seems to be valid and requires intense calculations. But a measure of if they are already doing data analysis is simply a check. If someone is already doing data analysis and they use our ai tool, it is obvious they get value.\n\nNever get into the market  where you teach people to use a certain technology or follow a certain lifestyle unless you are a genius.",
+     "x": 1020,
+     "y": 340,
+     "width": 250,
+     "height": 840
+    },
+    {
+     "id": "70596bbf70956819",
+     "type": "text",
+     "text": "Luca - Check for proof if a company is already doing data analysis like having a data analyst, data analysis tools before you call them ICP\n\nUnder Defense - Check if a company is already having a soc team, are they getting many alert volume, if so what is their system(4 metrics) before you call them ICP\n\nIf you sell to a team that is not doing analysis and you sell it to them they've got a overqualified solution and eventually stop subscribing or won't resonate in the first place and won't buy",
+     "x": 1300,
+     "y": 340,
+     "width": 250,
+     "height": 680,
+     "color": "4"
+    },
+    {
+     "id": "829b635b4cba2c19",
+     "type": "text",
+     "text": "You might think, that what if people just needed the data analytics setup and there's no symptoms.\n\nThis is think worthy? The need for data analysis might just have arrived, but there would always be a trail of an accumulating data resource, growing sources, inefficient data usage. These are what we look for as proof.\n\nIn the case of UD piling alerts. logs, alerts,  ... these are proofs to look for ",
+     "x": 1620,
+     "y": 340,
+     "width": 250,
+     "height": 560
+    },
+    {
+     "id": "42ee70de282cce28",
+     "type": "text",
+     "text": "The reason I say don't sell to someone who isn't looking for a solution is this is a B2B business, they but only when needed; not because they need it\n\nWhat if is something people think, it might be useful\n\nAnd it is useful - you sell data visualization(just see data and not analyze it)\n\nYou compete with data visualization tools, pricing competition with data visualization tools \n\nWhat if eric's happy selling to simple ecom store's as a data visualization tool? And he makes money?\n\nBut this is something people are getting for free, so you are asking 500 Euros for the AI\n\nAssuming a company has 500 Euros as affordability, why would he pay 500 Euros. Does the AI do justice to the 500 Euros. If it's a big company it would make sense, but to a small company why ? He can simply connect to a MCP to claude at 200 Dollars and it's claude, you can do anything with it.\n\nA company can't do this because they are paying for normalisation, connectors for multiple sources, .... it is complicated to build and maintain it inhouse so it is easier to outsource. But a small company does not have so many requirements, so they do the job with claude simply",
+     "x": 1900,
+     "y": 340,
+     "width": 250,
+     "height": 1300
+    },
+    {
+     "id": "2fd0c2537e18f69e",
+     "type": "text",
+     "text": "Rules to assess PMF - Can they build it by themselves and would that be cheaper?\n\nIs there any Architectural benefits you have over the existing players to solve their problems \n\nAnd remember you solving evolving problems",
+     "x": 2180,
+     "y": 340,
+     "width": 250,
+     "height": 380
+    },
+    {
+     "id": "a11a44bbffc01383",
+     "type": "text",
+     "text": "Luca is not AI - It is a product stacked/Packed and marketed with eval harness and other stuff to cater a certain ICP. \n\nThe reason I say this How do you pack your product is important?\n\nAI can be used for SMBs as well as Enterprises - who you sell to is dependent on you.  \n\nBuilding the product and packing for whom is important?",
+     "x": 664,
+     "y": 1896,
+     "width": 250,
+     "height": 584
+    },
+    {
+     "id": "c4a0425ac4f678a5",
+     "type": "text",
+     "text": "Who is the ICP?",
+     "x": 200,
+     "y": -2390,
+     "width": 250,
+     "height": 60
+    },
+    {
+     "id": "73adb8463a2a730b",
+     "type": "text",
+     "text": "Map out all the areas, in detail specificity, where the tool is needed.\n\nICP 1 - Users using this tool and facing this problem. The most relevant market has solution for this, but not this.\n\nICP 2 ...\n\nThis is ideally how a ICP has to look like, what is the exact problem we are solving for \n\nMarketing Analytics for Small Ecommerce Brands is a positioning statement and not a ICP ",
+     "x": 200,
+     "y": -2090,
+     "width": 250,
+     "height": 560
+    },
+    {
+     "id": "6244cf124287010b",
+     "type": "text",
+     "text": "Maximus Labs ICP Examples\n\nCompanies that are confident that AEO is a growing channel and is the future, they want to capitalise on this channel. They are established players with a huge cash. They also know Inbound is a huge channel and they need to crack this somehow, but have no idea how to do it. They are looking for someone, who can just come and figure it out for them. Money is not a problem for them. They can hire anyone for this but since this is a new field they can't hire and train, since they don't know it themselves.\n",
+     "x": 527,
+     "y": -2090,
+     "width": 250,
+     "height": 560
+    },
+    {
+     "id": "185d8d55cd340469",
+     "type": "text",
+     "text": "Pull the ICP and the capabilities ",
+     "x": 200,
+     "y": -2230,
+     "width": 250,
+     "height": 60
+    },
+    {
+     "id": "6bb0098a5138c316",
+     "type": "text",
+     "text": "Companies don't buy a product because they want to buy one. They buy a solution because situations force them to but one. The situation should be in detail.",
+     "x": 820,
+     "y": -1970,
+     "width": 260,
+     "height": 440
+    },
+    {
+     "id": "f60b72f642a018d9",
+     "type": "text",
+     "text": "What are valid reasons?",
+     "x": 1140,
+     "y": -1970,
+     "width": 250,
+     "height": 440
+    },
+    {
+     "id": "3949744c00d45710",
+     "type": "text",
+     "text": "You don't choose the ICP, chooses you(tech stack). Unless you intentionally try to avoid a certain size of players, industry or use case...",
+     "x": 1440,
+     "y": -1970,
+     "width": 250,
+     "height": 440
+    },
+    {
+     "id": "1986382dc2610407",
+     "type": "text",
+     "text": "The delta difference has to be significant and structural.",
+     "x": 200,
+     "y": -1470,
+     "width": 250,
+     "height": 320
+    },
+    {
+     "id": "8365ed1c7c7705d5",
+     "type": "text",
+     "text": "The ICP should be drafted with the person who is actively looking for a solution like ours",
+     "x": 527,
+     "y": -1470,
+     "width": 250,
+     "height": 320
+    },
+    {
+     "id": "ec7d19bfcbd3cf25",
+     "type": "text",
+     "text": "There are 2 ways for this\n1. Selling a solution to someone who has a problem and is looking for a solution. This is where pull based marketing channels like aeo/google ads work. \n2. This person does not have a problem and is not looking for a solution. This is where channels like email, performance marketing, rep driven sales, tele calling work.\n\nSo even if a product is capable of selling to a certain ICP(Induststry/use case,...) but they fall in the second category, not actively  looking for a solution, you should omit them",
+     "x": 527,
+     "y": -1070,
+     "width": 250,
+     "height": 680
+    },
+    {
+     "id": "83fe0ad439be63ef",
+     "type": "text",
+     "text": "Reddit/Quora/Sales Tickets - Proof of Problem",
+     "x": 527,
+     "y": -2230,
+     "width": 250,
+     "height": 60
+    },
+    {
+     "id": "2c3a728d0aa4df48",
+     "type": "text",
+     "text": "Write ICPs as trapped-demand descriptions, not company profiles. Each one is a single prose paragraph describing a buyer's stuck position, containing: what they already believe without my telling them; what they already want as a result; proof that money is not the constraint (ideally money already spent and wasted); evidence they are actively searching right now; and the specific structural blocker that would survive them writing a large cheque tomorrow.\n\nThe blocker must be something budget cannot unlock — usually that they cannot evaluate the solution because they don't possess the underlying capability themselves. Name the obvious alternative (hiring, building, another vendor) and show why it fails for them specifically.\n\nNo revenue bands, no job titles, no industries, no feature lists. Do not mention my product. If a cohort would need convincing that the problem matters, reject it and say why. If a cohort could solve it themselves with money, reject it and say why.",
+     "x": 830,
+     "y": -1470,
+     "width": 250,
+     "height": 1080
+    },
+    {
+     "id": "b4c1c738bbcaea00",
+     "type": "text",
+     "text": "You only write for categories where there is demand",
+     "x": 1140,
+     "y": -1470,
+     "width": 250,
+     "height": 60
+    },
+    {
+     "id": "e70baceb3e55c181",
+     "type": "text",
+     "text": "I want to figure out a way to find what saaras analytics found, knowing their exact icp after 15 years first hand\n\nMarket Mapping Frame vs ICP Frame - that already has step 3, saying who needs it but it is primitive, doesn't explain the structurally",
+     "x": 1140,
+     "y": -1370,
+     "width": 250,
+     "height": 250
+    },
+    {
+     "id": "5466864440434abe",
+     "type": "text",
+     "text": "What is the bare minimum size you need to use this tool? What is the anti ICP",
+     "x": 1140,
+     "y": -1090,
+     "width": 250,
+     "height": 195
+    },
+    {
+     "id": "00264679a4f0606a",
+     "type": "text",
+     "text": "What is the bare minimum you need in terms of tech size before I can serve you. If you are someone who uses big query, amazon aws and other tools(specificity) and are having a trouble with exactly this, then you come to us",
+     "x": 1140,
+     "y": -850,
+     "width": 250,
+     "height": 460
+    },
+    {
+     "id": "e217811224e0b94d",
+     "type": "text",
+     "text": "Exact thing they're searching for. I was assuming they would search for the regular terms like conversion tracking and all that stuff but they were searching for something called contribution margin and all that stuff. How do I actually figure out what they are actually searching for?\n\nI want to also know what they are searching structurally. Find out a method, like you told me, right? Basic architecture is needed only then they would be needing this tool. Similarly I also want to know: how do I exactly structurally know what is the actual thing that they're searching for? I need to know a formula, something like that. ",
+     "x": 1440,
+     "y": -1470,
+     "width": 250,
+     "height": 740
+    },
+    {
+     "id": "4c8f5e79493b3ed0",
+     "type": "text",
+     "text": "Framing, negative framing: they're looking for something actively but these are two ways of framing it. Both of these fall under category one where they're actually searching. They don't need to be educated so we can classify people into two. Classification is not absolutely necessary but when you're just thinking about finding keywords and all that stuff, maybe you could have these two things in mind. ",
+     "x": 200,
+     "y": -1052,
+     "width": 250,
+     "height": 60
+    },
+    {
+     "id": "b95ac34c315a9797",
+     "type": "text",
+     "text": "Once you identify who our ICPs are, you should be able to map out:\n\n- where exactly they are searching\n- what channels they are searching\n- how those channels are getting influenced\n\nWe should be in all those sources.",
+     "x": 200,
+     "y": -910,
+     "width": 250,
+     "height": 60
+    },
+    {
+     "id": "71cfd3ff243d2caf",
+     "type": "text",
+     "text": "So basically you charge the maximum amount of money you can charge someone. You only charge less when there is competition. Simple rule of capitalism.\n\nSay for example in N8N hosting in India, the assumption that I make over here is that they can sell. Someone who needs N8N is doing a lot of automation. They have so much money that the ₹2,000 that N8N charges for its native hosting is nothing. but still another industry evolved where people like Hostinger have come in. They are charging just ₹500 for self-hosting and hosting in N8N both are the same. If you could get it at a lower price, customers would get an extra benefit, right, but why ₹500? Why couldn't it be ₹1,800, ₹200 less? There wouldn't be a delta difference. People just for the sake of ₹200 would not buy something that is outside that complex setup and all that. If you give it ₹1,000 they will still buy but why was it charged at ₹500? That's where competition comes in. ",
+     "x": -80,
+     "y": -2090,
+     "width": 250,
+     "height": 940
+    },
+    {
+     "id": "a6106538a5c9897a",
+     "type": "text",
+     "text": "Find the terms used by competitors ",
+     "x": 1840,
+     "y": -1100,
+     "width": 250,
+     "height": 60
+    },
+    {
+     "id": "9a5254935b1ee589",
+     "type": "text",
+     "text": "What is the problem that the user has and what is given by us is the value ",
+     "x": 880,
+     "y": 170,
+     "width": 250,
+     "height": 130
+    },
+    {
+     "id": "6364e528f0300f9d",
+     "type": "text",
+     "text": "The delta of the difference has to be high",
+     "x": 880,
+     "y": 360,
+     "width": 250,
+     "height": 60
+    },
+    {
+     "id": "a315c39dcbf42ad2",
+     "type": "text",
+     "text": "Keyword Strategy - It's currently in Luca -  Copy it ",
+     "x": 880,
+     "y": 265,
+     "width": 250,
+     "height": 60,
+     "color": "3"
+    },
+    {
+     "id": "a22d855ec2371c9d",
+     "type": "text",
+     "text": "\n\n**Already Written** \nUpdated on (Date and Time):\n\n| Keyword   | Volume | Difficulty | Article Type | Status      |\n| --------- | ------ | ---------- | ------------ | ----------- |\n| Keyword 1 | -      | -          | -            | Published   |\n| Keyword 2 | -      | -          | -            | In Progress |\n\n**Batch 1**:\nDate and Time of Suggestion: \n\n| Keyword   | Volume | Difficulty | Article Type | Approval |\n| --------- | ------ | ---------- | ------------ | -------- |\n| Keyword 1 | -      | -          | -            |          |\n| Keyword 2 | -      | -          | -            |          |\n\n\n**Batch 2**:\nDate and Time of Suggestion: \n\n| Keyword   | Volume | Difficulty | Article Type | Approval |\n| --------- | ------ | ---------- | ------------ | -------- |\n| Keyword 1 | -      | -          | -            |          |\n| Keyword 2 | -      | -          | -            |          |\n",
+     "x": -140,
+     "y": -850,
+     "width": 495,
+     "height": 800,
+     "color": "5"
+    },
+    {
+     "id": "73956fcd96fcaa2d",
+     "type": "text",
+     "text": "Important: ICPs are categorized by Capabilities required and not Industry use case, Industry, Job Title or size",
+     "x": -726,
+     "y": -2838,
+     "width": 250,
+     "height": 202,
+     "color": "2"
+    },
+    {
+     "id": "1821e55ffc1fedcf",
+     "type": "text",
+     "text": "\tMaybe Capabilities are not clusters, they only give direction towards use case. And you don't have to create one map for every capability. You only create use cases",
+     "x": -358,
+     "y": -2788,
+     "width": 250,
+     "height": 152
+    },
+    {
+     "id": "efb06b283825e4a9",
+     "type": "text",
+     "text": "You don't assert the category in the beginning. The category is a result of this process, you will have to redraw this map",
+     "x": -19,
+     "y": -2803,
+     "width": 250,
+     "height": 167
+    },
+    {
+     "id": "f0128f5e4635f895",
+     "type": "text",
+     "text": "Note\n1. Cover primary categories\n2. Move to secondary categories only after you have gained significant traction in the primary category",
+     "x": 284,
+     "y": -2913,
+     "width": 296,
+     "height": 277,
+     "color": "2"
+    },
+    {
+     "id": "b4b57d9ae3e68b78",
+     "type": "text",
+     "text": "Adjacent Category",
+     "x": 284,
+     "y": -2593,
+     "width": 296,
+     "height": 50
+    },
+    {
+     "id": "8389bfa4e215c966",
+     "type": "text",
+     "text": "Growth Strategy",
+     "x": -2024,
+     "y": -560,
+     "width": 250,
+     "height": 60
+    },
+    {
+     "id": "2eb8dafa23886434",
+     "type": "text",
+     "text": "Horizontal",
+     "x": -2096,
+     "y": -360,
+     "width": 145,
+     "height": 50
+    },
+    {
+     "id": "7e54b5e165f2035e",
+     "type": "text",
+     "text": "Vertical",
+     "x": -1841,
+     "y": -360,
+     "width": 135,
+     "height": 50
+    },
+    {
+     "id": "1847c042708d7960",
+     "type": "text",
+     "text": "**Vertical Growth**: This is a method where a company fixes one vertical/Industry/Use Case and decides to scale ",
+     "x": -3289,
+     "y": -550,
+     "width": 250,
+     "height": 480,
+     "color": "2"
+    },
+    {
+     "id": "cc9a6f546572bc94",
+     "type": "text",
+     "text": "How to pivot to adjacent categories?\n\nIt is a business decision where the brand picks one of the below:\n\n1. Single Utility(Product/Service/Capability) - Multi Location(People/Industry/Use Cases/ICP). This is where you lead with marketing. In this case we try to cover adjacent Industries/Use Cases where we cover multi industry players. Also here we only are trying to pull our industry/vertical players from multi industry players unless we reposition ourselves to multi industry after which we pull all industry players,\nEg: Scale to Multi Capability - Regional Players like Annapoorna Hotels Coimbatore\n\n2. Single Location(People/Industry/ICP) to Multi Utility(Product/Service/Capability). This is where you lead with product. In this case we try to create multiple products to  sell to the existing customer base.\nEg: Scale to Multi Industry: Super Metrics \nScale to Multi Use Case: Kajabi\n\nAlso in adjacent categories we ,map the entire category and then choose the green node.\n",
+     "x": -3009,
+     "y": -550,
+     "width": 680,
+     "height": 480,
+     "color": "2"
+    },
+    {
+     "id": "87fb4bf89b788cb3",
+     "type": "text",
+     "text": "Basically where you identified all the details:\n\n- who is the customer\n- what exactly are you selling\n- who are the competitors and all that stuff\n\nNow you just have to identify:\n\n- where are the searchers\n- especially where they are digitally\n- what channels they are\n- what are the various sources that affect those channels\n- how do I reach out to them\n- reach out to those sources and create visibility in those sources\n\nThat's it",
+     "x": -2919,
+     "y": 86,
+     "width": 250,
+     "height": 702
+    },
+    {
+     "id": "e958fa7845b8aa60",
+     "type": "text",
+     "text": "**Important**: NO AI is allowed to WRIE THIS PAGE. READ ONLY ACCESS IS ALLOWED",
+     "x": -2969,
+     "y": -720,
+     "width": 640,
+     "height": 50,
+     "color": "2"
+    },
+    {
+     "id": "57da189356d2a07e",
+     "type": "text",
+     "file": "Frames/Step 1 - Horizontal Category Evolution Frame.canvas",
+     "x": -2223,
+     "y": -114,
+     "width": 400,
+     "height": 400,
+     "text": "📄 Step 1 - Horizontal Category Evolution Frame.canvas"
+    },
+    {
+     "id": "3e635914ba19b5a6",
+     "type": "text",
+     "text": "What is their Architecture?, Category, What are they good at, how did they become good at that, their history, what is the problem they solve for, for whom, ",
+     "x": -3354,
+     "y": -2210,
+     "width": 250,
+     "height": 400
+    },
+    {
+     "id": "c1f7d508935f2c53",
+     "type": "text",
+     "text": "There are multiple Directions in which a market evolves, what is the particular direction in which we(client) as a company are good at and how we solve for these problems, using our unique stack + the basics already provided by the competitor and their category.",
+     "x": -2389,
+     "y": -2210,
+     "width": 250,
+     "height": 400
+    },
+    {
+     "id": "d5c88bf5ae211564",
+     "type": "text",
+     "text": "How did the market's need evolve past what the competitor could provide, what are the architectural misalignments and known compromises made by the brand to standardise and scale ",
+     "x": -2844,
+     "y": -2210,
+     "width": 250,
+     "height": 400
+    },
+    {
+     "id": "ea4d20b5e4355ac8",
+     "type": "text",
+     "text": "Reviews, Reddit Comments, Forums/ Proprietary Findings covering these issues",
+     "x": -2844,
+     "y": -1590,
+     "width": 250,
+     "height": 120
+    },
+    {
+     "id": "ed436bf04e5454dd",
+     "type": "text",
+     "text": "Competitor 1",
+     "x": -2844,
+     "y": -2630,
+     "width": 250,
+     "height": 60
+    },
+    {
+     "id": "eda652ac57b3ef06",
+     "type": "text",
+     "text": "**Important**: NO AI is allowed to WRIE THIS PAGE. READ ONLY ACCESS IS ALLOWED",
+     "x": -3359,
+     "y": -2830,
+     "width": 640,
+     "height": 50,
+     "color": "2"
+    }
+   ],
+   "edges": [
+    {
+     "id": "5e773f8f3344f01e",
+     "fromNode": "e217811224e0b94d",
+     "fromSide": "right",
+     "toNode": "a6106538a5c9897a",
+     "toSide": "left"
+    },
+    {
+     "id": "590cdb3124dafa67",
+     "fromNode": "8389bfa4e215c966",
+     "fromSide": "bottom",
+     "toNode": "2eb8dafa23886434",
+     "toSide": "top"
+    },
+    {
+     "id": "ebfb0eaf9439995a",
+     "fromNode": "8389bfa4e215c966",
+     "fromSide": "bottom",
+     "toNode": "7e54b5e165f2035e",
+     "toSide": "top"
+    },
+    {
+     "id": "158878af50372271",
+     "fromNode": "2eb8dafa23886434",
+     "fromSide": "bottom",
+     "toNode": "57da189356d2a07e",
+     "toSide": "top"
+    },
+    {
+     "id": "31d66f5dfd986fb8",
+     "fromNode": "3e635914ba19b5a6",
+     "fromSide": "right",
+     "toNode": "d5c88bf5ae211564",
+     "toSide": "left"
+    },
+    {
+     "id": "d27220047d2f1309",
+     "fromNode": "d5c88bf5ae211564",
+     "fromSide": "right",
+     "toNode": "c1f7d508935f2c53",
+     "toSide": "left"
+    },
+    {
+     "id": "c89806ab4c0adad8",
+     "fromNode": "d5c88bf5ae211564",
+     "fromSide": "bottom",
+     "toNode": "ea4d20b5e4355ac8",
+     "toSide": "top"
+    }
+   ]
+  },
+  {
+   "name": "Pain Points Validation - UGC",
+   "kind": "note",
+   "text": "1. Problems of the 4 components of a system of the ICP\n2. Problems/Issues in Competitor Products causing customer grievance\n3. Problems of the category - basically a problem in all the tools of the category\n4. What is the value desired by a new player, or something that they are willing to get serviced for?"
+  },
+  {
+   "name": "Service Based Company - Service Scoping Frame",
+   "kind": "canvas",
+   "nodes": [
+    {
+     "id": "28e144592b7a6ae9",
+     "type": "text",
+     "text": "Service 1 ",
+     "x": -1050,
+     "y": 273,
+     "width": 250,
+     "height": 60
+    },
+    {
+     "id": "8ba25f9165d124f1",
+     "type": "text",
+     "text": "Company",
+     "x": -120,
+     "y": -332,
+     "width": 250,
+     "height": 60
+    },
+    {
+     "id": "d7d082cd735815da",
+     "type": "text",
+     "text": "Service 1 ",
+     "x": -180,
+     "y": 278,
+     "width": 250,
+     "height": 50
+    },
+    {
+     "id": "7492be23d64c3530",
+     "type": "text",
+     "text": "Service 2",
+     "x": 130,
+     "y": 273,
+     "width": 250,
+     "height": 60
+    },
+    {
+     "id": "db2f938562053ee3",
+     "type": "text",
+     "text": "Service 1 ",
+     "x": 455,
+     "y": 273,
+     "width": 250,
+     "height": 60
+    },
+    {
+     "id": "ef5ed4deddb697ea",
+     "type": "text",
+     "text": "Service 2",
+     "x": 770,
+     "y": 278,
+     "width": 280,
+     "height": 55
+    },
+    {
+     "id": "f01a2b484e5056d7",
+     "type": "text",
+     "text": "Service 3",
+     "x": -450,
+     "y": 273,
+     "width": 250,
+     "height": 60
+    },
+    {
+     "id": "88efbe3e21c468c3",
+     "type": "text",
+     "text": "Service 2",
+     "x": -750,
+     "y": 273,
+     "width": 250,
+     "height": 55
+    },
+    {
+     "id": "44f6af4e405104dd",
+     "type": "text",
+     "text": "Service Cluster 1",
+     "x": -575,
+     "y": -12,
+     "width": 250,
+     "height": 60
+    },
+    {
+     "id": "909e1d93088a3144",
+     "type": "text",
+     "text": "Service Cluster 2",
+     "x": -120,
+     "y": -12,
+     "width": 250,
+     "height": 60
+    },
+    {
+     "id": "424ec4d7524719a0",
+     "type": "text",
+     "text": "Service Cluster 3 ",
+     "x": 455,
+     "y": -12,
+     "width": 250,
+     "height": 60
+    }
+   ],
+   "edges": [
+    {
+     "id": "639456d403ad866f",
+     "fromNode": "44f6af4e405104dd",
+     "fromSide": "bottom",
+     "toNode": "28e144592b7a6ae9",
+     "toSide": "top"
+    },
+    {
+     "id": "743138f7ff7801c1",
+     "fromNode": "8ba25f9165d124f1",
+     "fromSide": "bottom",
+     "toNode": "44f6af4e405104dd",
+     "toSide": "top"
+    },
+    {
+     "id": "b056f37563bf91e7",
+     "fromNode": "44f6af4e405104dd",
+     "fromSide": "bottom",
+     "toNode": "88efbe3e21c468c3",
+     "toSide": "top"
+    },
+    {
+     "id": "2064fb965264fa26",
+     "fromNode": "44f6af4e405104dd",
+     "fromSide": "bottom",
+     "toNode": "f01a2b484e5056d7",
+     "toSide": "top"
+    },
+    {
+     "id": "4131cc7f4d214d82",
+     "fromNode": "8ba25f9165d124f1",
+     "fromSide": "bottom",
+     "toNode": "424ec4d7524719a0",
+     "toSide": "top"
+    },
+    {
+     "id": "fda4eb488f3bcce7",
+     "fromNode": "8ba25f9165d124f1",
+     "fromSide": "bottom",
+     "toNode": "909e1d93088a3144",
+     "toSide": "top"
+    },
+    {
+     "id": "00f8dc27f0c01abf",
+     "fromNode": "424ec4d7524719a0",
+     "fromSide": "bottom",
+     "toNode": "ef5ed4deddb697ea",
+     "toSide": "top"
+    },
+    {
+     "id": "f345b95aa0b4759c",
+     "fromNode": "424ec4d7524719a0",
+     "fromSide": "bottom",
+     "toNode": "db2f938562053ee3",
+     "toSide": "top"
+    },
+    {
+     "id": "edb6488fc4bc5abf",
+     "fromNode": "909e1d93088a3144",
+     "fromSide": "bottom",
+     "toNode": "d7d082cd735815da",
+     "toSide": "top"
+    },
+    {
+     "id": "fd4ccf1749107bb1",
+     "fromNode": "909e1d93088a3144",
+     "fromSide": "bottom",
+     "toNode": "7492be23d64c3530",
+     "toSide": "top"
+    }
+   ]
+  }
+ ]
+}
