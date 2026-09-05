@@ -106,7 +106,7 @@ do, the gallery says so plainly rather than failing on upload.
 Click the logo tile beside the client name (or **Edit** on a client card) to
 open **Client** settings: rename the client, and give it a logo by uploading an
 image or pasting a URL. Uploads are downscaled to 256px and stored inside the
-board record, so a logo needs no bucket and never expires.
+board record, so a logo needs no bucket and never expires. The whole mark is always shown — the tile widens for a wide logo rather than cropping it.
 
 **Clients** is the first item in the sidebar: a card per board, with **+ New
 client** to start another. Each client's board carries the same nine tabs.

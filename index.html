@@ -78,14 +78,32 @@
                     display:grid; place-items:center; color:#fff; font-weight:700; font-size:13px;
                     flex:none; padding:0; border:none; overflow:hidden; cursor:pointer}
   .board-name .logo:hover{background:var(--accent-d)}
-  .board-name .logo img{width:100%; height:100%; object-fit:cover; display:block}
-  .card .ic img{width:100%; height:100%; object-fit:cover; display:block; border-radius:11px}
+  /* A logo is shown whole, never cropped, and the tile widens to suit it —
+     most brand marks are wider than they are tall, and `cover` on a square
+     tile would slice the ends off. */
+  .board-name .logo img{width:100%; height:100%; object-fit:contain; display:block}
+  .board-name .logo.has-img{
+    width:auto; min-width:32px; height:32px;
+    background:transparent; border-radius:6px; padding:0;
+  }
+  .board-name .logo.has-img img{width:auto; height:100%; max-width:96px}
+  .board-name .logo.has-img:hover{background:var(--line-2)}
+
+  .card .ic img{width:100%; height:100%; object-fit:contain; display:block}
   .card .ic{overflow:hidden; padding:0}
+  .card .ic.has-img{
+    width:auto; min-width:42px; height:42px;
+    background:transparent; border-radius:8px;
+  }
+  .card .ic.has-img img{width:auto; height:100%; max-width:150px}
   .logo-row{display:flex; align-items:center; gap:14px; margin:4px 0 2px}
   .logo-prev{width:56px; height:56px; border-radius:12px; background:var(--accent-soft);
              color:var(--accent); display:grid; place-items:center; font-weight:700;
              font-size:20px; flex:none; overflow:hidden; border:1px solid var(--line)}
-  .logo-prev img{width:100%; height:100%; object-fit:cover; display:block}
+  .logo-prev img{width:100%; height:100%; object-fit:contain; display:block}
+  /* the preview widens too, so what you see here is what the sidebar shows */
+  .logo-prev.has-img{width:auto; min-width:56px; padding:5px; background:#fff}
+  .logo-prev.has-img img{width:auto; height:100%; max-width:180px}
   .logo-acts{display:flex; gap:8px; flex-wrap:wrap}
   #clientName{
     font:inherit; font-size:14px; font-weight:700; letter-spacing:-.01em; line-height:1.25;
@@ -929,7 +947,7 @@ const SUPABASE_URL = 'https://cskamgfvebryahkljlll.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_MdkD-TxMCIwlu69seSHA3Q_A39GADsK';
 const CLIENT_ID    = '1059013355751-6g50dsgm7df37htl2fdqrtlkh5hmrc0c.apps.googleusercontent.com';
 const ALLOWED      = ['vijaysrinivassan@gmail.com'];
-const BUILD        = 'v4.3';
+const BUILD        = 'v4.4';
 
 const TABS = [
   'Product Architecture',
@@ -2544,6 +2562,8 @@ function downscaleImage(file){
       const img = new Image();
       img.onerror = function(){ reject(new Error('The browser could not decode that image.')); };
       img.onload = function(){
+        /* scale the longest edge down, keeping the aspect ratio, so nothing
+           is trimmed on the way in either */
         const scale = Math.min(1, LOGO_MAX_PX / Math.max(img.width, img.height));
         const w = Math.max(1, Math.round(img.width * scale));
         const h = Math.max(1, Math.round(img.height * scale));
@@ -2562,6 +2582,7 @@ function renderBrand(){
   const el = $('brandLogo');
   if (!el) return;
   el.innerHTML = '';
+  el.classList.toggle('has-img', !!state.logo);
   if (state.logo){
     const img = document.createElement('img');
     img.src = state.logo;
@@ -2638,6 +2659,7 @@ function openClientSettings(){
 
   function paint(){
     prev.innerHTML = '';
+    prev.classList.toggle('has-img', !!pendingLogo);
     if (pendingLogo){
       const img = document.createElement('img');
       img.src = pendingLogo;
@@ -3610,6 +3632,7 @@ async function renderClients(){
     const ic = document.createElement('div');
     ic.className = 'ic';
     if (b.id === state.boardId && state.logo){
+      ic.classList.add('has-img');
       const img = document.createElement('img');
       img.src = state.logo; img.alt = '';
       ic.append(img);
