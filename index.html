@@ -255,6 +255,9 @@
   }
   .node:hover .anchor, .node.sel .anchor{opacity:1}
   .node .anchor:hover{transform:scale(1.35)}
+  /* an invisible collar, so the dot does not have to be hit precisely */
+  .node .anchor::before{content:""; position:absolute; left:-7px; top:-7px;
+                        width:25px; height:25px; border-radius:50%}
   .anchor.top{left:50%; top:-6px; margin-left:-5.5px}
   .anchor.bottom{left:50%; bottom:-6px; margin-left:-5.5px}
   .anchor.left{top:50%; left:-6px; margin-top:-5.5px}
@@ -266,6 +269,19 @@
   .node[data-color="4"]{border-color:var(--n4)}
   .node[data-color="5"]{border-color:var(--n5)}
   .node[data-color="6"]{border-color:var(--n6)}
+
+  /* alignment guides, the way Obsidian shows them while you drag */
+  .guides{position:absolute; inset:0; pointer-events:none; z-index:45}
+  .guide{position:absolute; background:#e5484d}
+  .guide.v{width:1px}
+  .guide.h{height:1px}
+  .guide::after{content:""; position:absolute; background:#e5484d; border-radius:50%;
+                width:5px; height:5px}
+  .guide.v::after{left:-2px; top:-2px}
+  .guide.h::after{left:-2px; top:-2px}
+
+  /* the card a connection would land on */
+  .node.link-target{border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-soft)}
 
   /* rubber-band selection rectangle */
   .marquee{
@@ -753,6 +769,7 @@
         <div id="nodes"></div>
       </div>
       <div class="hint" id="hint" hidden></div>
+      <div class="guides" id="guides"></div>
       <div class="marquee" id="marquee" hidden></div>
       <div class="palette" id="palette" hidden></div>
 
@@ -910,7 +927,7 @@ const SUPABASE_URL = 'https://cskamgfvebryahkljlll.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_MdkD-TxMCIwlu69seSHA3Q_A39GADsK';
 const CLIENT_ID    = '1059013355751-6g50dsgm7df37htl2fdqrtlkh5hmrc0c.apps.googleusercontent.com';
 const ALLOWED      = ['vijaysrinivassan@gmail.com'];
-const BUILD        = 'v4.0';
+const BUILD        = 'v4.1';
 
 const TABS = [
   'Product Architecture',
@@ -1593,6 +1610,103 @@ function beginEdit(nodeEl, n){
   });
 }
 
+
+/* ===================================================================
+   ALIGNMENT GUIDES
+   =================================================================== */
+const SNAP_PX = 6;          /* how close, on screen, before it snaps */
+
+function bboxOf(rects){
+  const x0 = Math.min(...rects.map(r => r.x));
+  const y0 = Math.min(...rects.map(r => r.y));
+  const x1 = Math.max(...rects.map(r => r.x + r.width));
+  const y1 = Math.max(...rects.map(r => r.y + r.height));
+  return { x: x0, y: y0, width: x1 - x0, height: y1 - y0 };
+}
+
+/* Compare the three interesting lines on each axis - near edge, centre, far
+   edge - against every other card, and take the closest match inside the
+   tolerance. Returns the nudge needed and the lines to draw. */
+function computeSnap(box, others){
+  const tol = SNAP_PX / state.view.z;
+  const out = { dx: 0, dy: 0, guides: [] };
+  if (!others.length) return out;
+
+  const mine = {
+    v: [box.x, box.x + box.width / 2, box.x + box.width],
+    h: [box.y, box.y + box.height / 2, box.y + box.height]
+  };
+
+  let bestV = null, bestH = null;
+  for (const o of others){
+    const theirs = {
+      v: [o.x, o.x + o.width / 2, o.x + o.width],
+      h: [o.y, o.y + o.height / 2, o.y + o.height]
+    };
+    for (const m of mine.v){
+      for (const t of theirs.v){
+        const d = t - m;
+        if (Math.abs(d) <= tol && (!bestV || Math.abs(d) < Math.abs(bestV.d))){
+          bestV = { d, at: t, other: o };
+        }
+      }
+    }
+    for (const m of mine.h){
+      for (const t of theirs.h){
+        const d = t - m;
+        if (Math.abs(d) <= tol && (!bestH || Math.abs(d) < Math.abs(bestH.d))){
+          bestH = { d, at: t, other: o };
+        }
+      }
+    }
+  }
+
+  if (bestV){
+    out.dx = bestV.d;
+    const o = bestV.other;
+    out.guides.push({
+      axis: 'v',
+      at: bestV.at,
+      from: Math.min(box.y, o.y),
+      to: Math.max(box.y + box.height, o.y + o.height)
+    });
+  }
+  if (bestH){
+    out.dy = bestH.d;
+    const o = bestH.other;
+    out.guides.push({
+      axis: 'h',
+      at: bestH.at,
+      from: Math.min(box.x, o.x),
+      to: Math.max(box.x + box.width, o.x + o.width)
+    });
+  }
+  return out;
+}
+
+function drawGuides(guides){
+  const host = $('guides');
+  host.innerHTML = '';
+  if (!guides || !guides.length) return;
+  const v = state.view;
+  guides.forEach(function(g){
+    const el = document.createElement('div');
+    el.className = 'guide ' + g.axis;
+    if (g.axis === 'v'){
+      el.style.left = (g.at * v.z + v.x) + 'px';
+      el.style.top = (g.from * v.z + v.y) + 'px';
+      el.style.height = ((g.to - g.from) * v.z) + 'px';
+    } else {
+      el.style.top = (g.at * v.z + v.y) + 'px';
+      el.style.left = (g.from * v.z + v.x) + 'px';
+      el.style.width = ((g.to - g.from) * v.z) + 'px';
+    }
+    host.append(el);
+  });
+}
+
+const clearGuides = () => { $('guides').innerHTML = ''; };
+
 /* ===================================================================
    POINTER INTERACTION
    =================================================================== */
@@ -1714,8 +1828,23 @@ $('viewport').addEventListener('pointermove', ev => {
     state.view.y = drag.vy + (ev.clientY - drag.oy);
     applyView();
   } else if (drag.kind === 'move'){
-    const dx = (ev.clientX - drag.ox) / state.view.z;
-    const dy = (ev.clientY - drag.oy) / state.view.z;
+    let dx = (ev.clientX - drag.ox) / state.view.z;
+    let dy = (ev.clientY - drag.oy) / state.view.z;
+
+    /* where the dragged set would land, and what it lines up with */
+    const movingIds = drag.kids.map(k => k.id);
+    const provisional = drag.kids.map(k => {
+      const n = nodeById(k.id);
+      return { x: k.x0 + dx, y: k.y0 + dy, width: n ? n.width : 0, height: n ? n.height : 0 };
+    }).filter(r => r.width);
+    if (provisional.length){
+      const others = cur().nodes.filter(n => movingIds.indexOf(n.id) === -1);
+      const snap = computeSnap(bboxOf(provisional), others);
+      dx += snap.dx;
+      dy += snap.dy;
+      drawGuides(snap.guides);
+    }
+
     drag.kids.forEach(k => {
       const n = nodeById(k.id);
       if (n){ n.x = Math.round(k.x0 + dx); n.y = Math.round(k.y0 + dy); }
@@ -1751,8 +1880,15 @@ $('viewport').addEventListener('pointermove', ev => {
     renderEdges();
   } else if (drag.kind === 'gmove'){
     const g = nodeById(drag.id); if (!g) return;
-    const dx = (ev.clientX - drag.ox) / state.view.z;
-    const dy = (ev.clientY - drag.oy) / state.view.z;
+    let dx = (ev.clientX - drag.ox) / state.view.z;
+    let dy = (ev.clientY - drag.oy) / state.view.z;
+    const held = [drag.id].concat(drag.kids.map(k => k.id));
+    const snapG = computeSnap(
+      { x: drag.x0 + dx, y: drag.y0 + dy, width: g.width, height: g.height },
+      cur().nodes.filter(n => held.indexOf(n.id) === -1)
+    );
+    dx += snapG.dx; dy += snapG.dy;
+    drawGuides(snapG.guides);
     g.x = Math.round(drag.x0 + dx);
     g.y = Math.round(drag.y0 + dy);
     drag.kids.forEach(k => {
@@ -1773,7 +1909,12 @@ $('viewport').addEventListener('pointermove', ev => {
     const over = document.elementFromPoint(ev.clientX, ev.clientY);
     const overNode = over && over.closest ? over.closest('.node') : null;
     let p2 = w, s2 = bestSide({ x:w.x, y:w.y, width:1, height:1 }, p1);
+
+    /* show which card would receive it, so a release never feels like a guess */
+    Array.from(document.querySelectorAll('.node.link-target'))
+      .forEach(el => el.classList.remove('link-target'));
     if (overNode && overNode.dataset.id !== drag.from){
+      overNode.classList.add('link-target');
       const b = nodeById(overNode.dataset.id);
       if (b){ s2 = bestSide(b, p1); p2 = anchorPoint(b, s2); }
     }
@@ -1810,6 +1951,9 @@ function endDrag(ev){
   }
   const wasMarquee = drag.kind === 'marquee';
   drag = null;
+  clearGuides();
+  Array.from(document.querySelectorAll('.node.link-target'))
+    .forEach(el => el.classList.remove('link-target'));
   $('marquee').hidden = true;
   $('viewport').classList.remove('panning', 'connecting');
   render();
