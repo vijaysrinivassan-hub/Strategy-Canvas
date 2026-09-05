@@ -147,9 +147,11 @@ ICP and Value. Competitor is a matrix; Category, ICP and Value are plain tables
 of 20 rows.
 
 In those three the unit is the **cell**, not the row. Each cell holds the words,
-a green **Write this** tick, its own **AEO / SEO** choice and its own **article
-type**, because all of those follow the keyword: the same category can be worth
-an AEO listicle in one column and an SEO explainer in the next. The controls stay
+a green **Write this** tick, its own **AEO / SEO** choice, its **type** (from
+Settings) and the reader's **awareness** level — Problem aware, Solution aware,
+Feature aware or Competitor aware — because all of those follow the keyword: the
+same category can be worth an AEO listicle for the problem-aware in one column
+and an SEO explainer for the competitor-aware in the next. The controls stay
 faded on an empty cell and come up on hover, so a blank table still reads as a
 table, and nothing is written to the board for a cell you have not filled in.
 
@@ -158,9 +160,11 @@ the MCP or added by hand — that contains the cell's words, each with its searc
 volume, and the **total** underneath. Two keywords at 50 read as *100 total*.
 **+ kw** adds a keyword to the repo seeded with the cell's words.
 
-The competitor matrix works the same way: the tick sits on top, the AEO / SEO
-choice and the article type sit in a row beneath it that only shows on hover
-until the cell is ticked, and the keywords it catches carry their total.
+The competitor matrix uses the **very same cell** — one shared builder draws
+both — so a matrix cell also takes the article's own words, the tick, AEO / SEO,
+type and awareness, and shows its evidence with a total. What a matrix cell
+catches is the repo keywords that mention the competitor and the column's terms,
+plus any that contain the words you wrote in it.
 
 The list of article types lives under **Settings › Article Types** — Listicle,
 List item and Informational to start, and yours to rename, remove or add to. It

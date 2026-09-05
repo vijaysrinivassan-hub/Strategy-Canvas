@@ -747,8 +747,15 @@
   .gr-kind.set{color:var(--ink-2); font-weight:500; border-color:var(--border)}
   .gr-kind:focus{border-color:var(--accent)}
   /* a cell with nothing in it keeps its controls quiet until you touch it */
-  .gr-cell.empty .gr-foot{opacity:0; transition:opacity .12s}
-  .gr-cell.empty:hover .gr-foot, .gr-cell.empty:focus-within .gr-foot{opacity:1}
+  .gr-ctl{display:flex; flex-direction:column}
+  .gr-foot .gr-kwadd{margin-left:auto}
+  /* the awareness labels run longer than the type names, so that dropdown
+     takes 1.3 times the width: measured, Competitor aware needs 90px */
+  .gr-foot2{display:flex; gap:4px; padding:0 5px 7px}
+  .gr-foot2 .gr-kind{flex:1 1 0; min-width:0; padding:0 3px}
+  .gr-foot2 .gr-aw{flex:1.3 1 0}
+  .gr-cell.empty .gr-ctl{opacity:0; transition:opacity .12s}
+  .gr-cell.empty:hover .gr-ctl, .gr-cell.empty:focus-within .gr-ctl{opacity:1}
   /* the tick: green, so it never reads as a keyword selection */
   .gr-tick{margin:0; accent-color:#15803d; width:14px; height:14px; flex:none; cursor:pointer}
   .gr-cell.planned{background:#f4fbf6}
@@ -1288,7 +1295,7 @@ const SUPABASE_URL = 'https://cskamgfvebryahkljlll.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_MdkD-TxMCIwlu69seSHA3Q_A39GADsK';
 const CLIENT_ID    = '1059013355751-6g50dsgm7df37htl2fdqrtlkh5hmrc0c.apps.googleusercontent.com';
 const ALLOWED      = ['vijaysrinivassan@gmail.com'];
-const BUILD        = 'v5.9';
+const BUILD        = 'v6.0';
 
 const TABS = [
   'Product Architecture',
@@ -4104,16 +4111,31 @@ function cellKeywords(comp, type){
    old boards are read forward rather than reset. */
 function cellState(m, key){
   const raw = m.cells[key];
-  if (raw === true) return { on: true, mode: 'aeo', type: '' };
+  if (raw === true) return { on: true, mode: 'aeo', type: '', v: '', aw: '' };
   if (raw && typeof raw === 'object'){
-    return { on: !!raw.on, mode: raw.mode === 'seo' ? 'seo' : 'aeo', type: raw.type || '' };
+    return { on: !!raw.on, mode: raw.mode === 'seo' ? 'seo' : 'aeo', type: raw.type || '',
+             v: raw.v || '', aw: raw.aw || '' };
   }
-  return { on: false, mode: 'aeo', type: '' };
+  return { on: false, mode: 'aeo', type: '', v: '', aw: '' };
 }
 function setCellState(m, key, st){
-  /* AEO with the tick off and no kind is the default, so it need not be stored */
-  if (!st.on && st.mode === 'aeo' && !st.type) delete m.cells[key];
-  else m.cells[key] = { on: st.on, mode: st.mode, type: st.type || '' };
+  /* the default — nothing chosen, nothing written — need not be stored */
+  if (!st.on && st.mode === 'aeo' && !st.type && !st.v && !st.aw) delete m.cells[key];
+  else m.cells[key] = { on: !!st.on, mode: st.mode, type: st.type || '', v: st.v || '', aw: st.aw || '' };
+}
+
+/* What a matrix cell catches: the repo keywords that mention the competitor
+   and the column's terms, plus any that contain the cell's own words. */
+function matrixCellKeywords(comp, ty, text){
+  const seen = {};
+  const out = [];
+  cellKeywords(comp, ty).concat(gridCellKeywords(text)).forEach(function(r){
+    const k = r.id != null ? String(r.id) : String(r.keyword).toLowerCase();
+    if (seen[k]) return;
+    seen[k] = true;
+    out.push(r);
+  });
+  return out;
 }
 
 /* ---- shared cell furniture ----
@@ -4134,7 +4156,7 @@ function kindSelect(current, disabled, onPick){
   sel.title = 'What kind of article is this?';
   const none = document.createElement('option');
   none.value = '';
-  none.textContent = 'Article type\u2026';
+  none.textContent = 'Type\u2026';
   sel.append(none);
   types.forEach(function(t){
     const o = document.createElement('option');
@@ -4156,6 +4178,96 @@ function kindSelect(current, disabled, onPick){
   };
   sel.onkeydown = function(ev){ ev.stopPropagation(); };
   return sel;
+}
+
+/* How aware the reader is when they search: the four levels the strategy
+   works with, fixed, so the dropdown reads the same on every board. */
+const AWARENESS = ['Problem aware', 'Solution aware', 'Feature aware', 'Competitor aware'];
+
+function awarenessSelect(current, disabled, onPick){
+  const sel = document.createElement('select');
+  sel.className = 'gr-kind gr-aw' + (current ? ' set' : '');
+  sel.disabled = disabled;
+  sel.title = 'Awareness level: how far along the reader is when they search this';
+  const none = document.createElement('option');
+  none.value = '';
+  none.textContent = 'Awareness\u2026';
+  sel.append(none);
+  AWARENESS.forEach(function(a){
+    const o = document.createElement('option');
+    o.value = a;
+    o.textContent = a;
+    sel.append(o);
+  });
+  if (current && AWARENESS.indexOf(current) === -1){
+    const o = document.createElement('option');
+    o.value = current;
+    o.textContent = current;
+    sel.append(o);
+  }
+  sel.value = current || '';
+  sel.onchange = function(){
+    sel.classList.toggle('set', !!sel.value);
+    onPick(sel.value);
+  };
+  sel.onkeydown = function(ev){ ev.stopPropagation(); };
+  return sel;
+}
+
+/* The controls every content cell carries, in the tables and the competitor
+   matrix alike: the tick, the AEO/SEO choice and + kw on one line, the article
+   type and the awareness level on the next. `get` reads the cell and `set`
+   writes a patch to it, so the two views cannot drift apart. */
+function cellControls(td, o){
+  const cell = o.get();
+  const ctl = document.createElement('div');
+  ctl.className = 'gr-ctl';
+
+  const foot = document.createElement('div');
+  foot.className = 'gr-foot';
+  const tick = document.createElement('input');
+  tick.type = 'checkbox';
+  tick.className = 'gr-tick';
+  tick.checked = !!cell.on;
+  tick.disabled = o.ro;
+  tick.title = 'Write this \u2014 mark it as an article you are producing';
+  tick.onchange = function(){
+    o.set({ on: tick.checked });
+    td.classList.toggle('planned', tick.checked);
+    o.refreshEmpty();
+    markDirty();
+  };
+  foot.append(tick);
+  foot.append(modeSwitch(cell.mode, o.ro, function(kind){
+    o.set({ mode: kind });
+    markDirty();
+    o.rerender();
+  }));
+  if (!o.ro){
+    const add = document.createElement('button');
+    add.className = 'gr-kwadd';
+    add.textContent = '+ kw';
+    add.title = 'Add a keyword to the repo that lands in this cell';
+    add.onclick = function(){ openKeywordModal(o.seed()); };
+    foot.append(add);
+  }
+  ctl.append(foot);
+
+  const foot2 = document.createElement('div');
+  foot2.className = 'gr-foot2';
+  foot2.append(kindSelect(cell.type, o.ro, function(id){
+    o.set({ type: id });
+    o.refreshEmpty();
+    markDirty();
+  }));
+  foot2.append(awarenessSelect(cell.aw, o.ro, function(a){
+    o.set({ aw: a });
+    o.refreshEmpty();
+    markDirty();
+  }));
+  ctl.append(foot2);
+
+  td.append(ctl);
 }
 
 /* Keywords as evidence under a cell, each with its volume, and the total at
@@ -4218,19 +4330,25 @@ function articleTypes(){
    Strings are still read, so nothing saved earlier is lost. */
 function cellOf(row, colId){
   const c = row.cells[colId];
-  if (typeof c === 'string') return { v: c, mode: 'aeo', type: '', on: false };
+  if (typeof c === 'string') return { v: c, mode: 'aeo', type: '', on: false, aw: '' };
   if (c && typeof c === 'object'){
-    return { v: c.v || '', mode: c.mode === 'seo' ? 'seo' : 'aeo', type: c.type || '', on: !!c.on };
+    return { v: c.v || '', mode: c.mode === 'seo' ? 'seo' : 'aeo', type: c.type || '',
+             on: !!c.on, aw: c.aw || '' };
   }
-  return { v: '', mode: 'aeo', type: '', on: false };
+  return { v: '', mode: 'aeo', type: '', on: false, aw: '' };
+}
+
+/* A cell with nothing chosen and nothing caught keeps its controls quiet. */
+function cellQuiet(c, keywordCount){
+  return !c.v && !c.on && !keywordCount && !c.type && !c.aw;
 }
 
 /* An empty cell is left out of the record entirely, so a blank table saves as
    a blank table rather than four hundred little objects. */
 function setCellIn(row, colId, patch){
   const c = Object.assign(cellOf(row, colId), patch);
-  if (!c.v && !c.type && c.mode === 'aeo' && !c.on) delete row.cells[colId];
-  else row.cells[colId] = { v: c.v, mode: c.mode, type: c.type, on: c.on };
+  if (!c.v && !c.type && c.mode === 'aeo' && !c.on && !c.aw) delete row.cells[colId];
+  else row.cells[colId] = { v: c.v, mode: c.mode, type: c.type, on: c.on, aw: c.aw };
 }
 
 function renderArticleTypes(){
@@ -4348,7 +4466,9 @@ function renderMatrix(){
   const vd = viewDef(state.contentView);
   const heading = $('mxHeading');
   if (heading) heading.textContent = vd.label + ' \u00d7 article matrix';
-  $('mxIntro').textContent = 'Keywords from the repo drop into the cell they fit. '
+  $('mxIntro').textContent = 'The same cells as the tables: write the article\u2019s words, tick it, '
+    + 'choose AEO or SEO, its type and the reader\u2019s awareness. Keywords from the repo drop '
+    + 'into the cell they fit. '
     + 'Tick a cell to mark that article as one you are writing. '
     + 'Hover a heading to rename it or change what it matches.';
   const addBtn = $('btnAddCompetitor');
@@ -4513,61 +4633,55 @@ function renderMatrix(){
 
     m.types.forEach(function(ty){
       const td = document.createElement('td');
-      const rows = cellKeywords(comp, ty);
       const cellKey = comp.id + '|' + ty.id;
       const st = cellState(m, cellKey);
-      td.className = 'mx-cell' + (st.on ? ' planned' : '') + (rows.length ? '' : ' empty-cell');
+      const rows = matrixCellKeywords(comp, ty, st.v);
+      td.className = 'gr-cell' + (cellQuiet(st, rows.length) ? ' empty' : '') + (st.on ? ' planned' : '');
 
-      /* The tick on top; the mode and the article kind in a foot row that
-         stays out of sight on an empty, unticked cell until you hover it. */
-      const plan = document.createElement('div');
-      plan.className = 'mx-plan';
+      /* the cell's own words: the title or keyword this article is about */
+      const inp = document.createElement('input');
+      inp.type = 'text';
+      inp.value = st.v || '';
+      inp.disabled = ro;
+      td.append(inp);
 
-      const pcb = document.createElement('input');
-      pcb.type = 'checkbox';
-      pcb.checked = st.on;
-      pcb.disabled = ro;
-      pcb.title = 'Mark this article as one you are writing, keyword or not';
-      pcb.onchange = function(){
-        setCellState(m, cellKey, { on: pcb.checked, mode: st.mode, type: st.type });
+      const kwHost = document.createElement('div');
+      kwHost.className = 'gr-kws';
+      kwHost.append(keywordBlock(rows));
+      td.append(kwHost);
+
+      let paintTimer = null;
+      inp.oninput = function(){
+        setCellState(m, cellKey, Object.assign(cellState(m, cellKey), { v: inp.value }));
         markDirty();
-        renderMatrix();
+        clearTimeout(paintTimer);
+        paintTimer = setTimeout(function(){
+          const now = cellState(m, cellKey);
+          const rows2 = matrixCellKeywords(comp, ty, now.v);
+          kwHost.innerHTML = '';
+          kwHost.append(keywordBlock(rows2));
+          td.classList.toggle('empty', cellQuiet(now, rows2.length));
+        }, 250);
       };
 
-      const ptx = document.createElement('span');
-      ptx.textContent = (ty.name || '').trim() || 'Write this';
-      ptx.style.cssText = 'overflow:hidden;text-overflow:ellipsis;white-space:nowrap';
-      plan.append(pcb, ptx);
-      td.append(plan);
+      cellControls(td, {
+        ro: ro,
+        get: function(){ return cellState(m, cellKey); },
+        set: function(patch){ setCellState(m, cellKey, Object.assign(cellState(m, cellKey), patch)); },
+        seed: function(){
+          const now = cellState(m, cellKey);
+          if ((now.v || '').trim()) return now.v.trim();
+          /* nothing written yet: seed from the competitor and the column */
+          return ((comp.name || '').toLowerCase() + ' ' +
+                  ((ty.terms && ty.terms[0]) || (ty.name || '').toLowerCase())).trim();
+        },
+        refreshEmpty: function(){
+          const now = cellState(m, cellKey);
+          td.classList.toggle('empty', cellQuiet(now, matrixCellKeywords(comp, ty, now.v).length));
+        },
+        rerender: renderMatrix
+      });
 
-      const foot = document.createElement('div');
-      foot.className = 'mx-foot';
-      foot.append(modeSwitch(st.mode, ro, function(kind){
-        setCellState(m, cellKey, { on: st.on, mode: kind, type: st.type });
-        markDirty();
-        renderMatrix();
-      }));
-      foot.append(kindSelect(st.type, ro, function(kindId){
-        setCellState(m, cellKey, { on: st.on, mode: st.mode, type: kindId });
-        markDirty();
-      }));
-      td.append(foot);
-
-      /* The cell carries the single approval; keywords are shown as evidence,
-         with their search volume added up underneath. */
-      if (rows.length) td.append(keywordBlock(rows));
-      /* seeding a keyword needs both names, so only offer it once they exist */
-      if (!ro && (comp.name || '').trim() && (ty.name || '').trim()){
-        const add = document.createElement('button');
-        add.className = 'kw-add-row';
-        add.textContent = '+ keyword';
-        add.title = 'Add a keyword that lands in this cell';
-        add.onclick = function(){
-          const seed = comp.name.toLowerCase() + ' ' + ((ty.terms && ty.terms[0]) || ty.name.toLowerCase());
-          openKeywordModal(seed);
-        };
-        td.append(add);
-      }
       tr.append(td);
     });
 
@@ -4678,8 +4792,7 @@ function renderGrid(){
       const cell = cellOf(row, col.id);
       const kws = gridCellKeywords(cell.v);
       const td = document.createElement('td');
-      const quiet = !cell.v && !cell.on && !kws.length;
-      td.className = 'gr-cell' + (quiet ? ' empty' : '') + (cell.on ? ' planned' : '');
+      td.className = 'gr-cell' + (cellQuiet(cell, kws.length) ? ' empty' : '') + (cell.on ? ' planned' : '');
 
       const inp = document.createElement('input');
       inp.type = 'text';
@@ -4706,50 +4819,21 @@ function renderGrid(){
           const rows2 = gridCellKeywords(now.v);
           kwHost.innerHTML = '';
           kwHost.append(keywordBlock(rows2));
-          td.classList.toggle('empty', !now.v && !now.on && !rows2.length);
+          td.classList.toggle('empty', cellQuiet(now, rows2.length));
         }, 250);
       };
 
-      /* the foot: the tick, the mode, the kind, and a way to add a keyword.
-         All of it belongs to the keyword in this cell, not to the row. */
-      const foot = document.createElement('div');
-      foot.className = 'gr-foot';
-
-      const tick = document.createElement('input');
-      tick.type = 'checkbox';
-      tick.className = 'gr-tick';
-      tick.checked = cell.on;
-      tick.disabled = ro;
-      tick.title = 'Write this \u2014 mark it as an article you are producing';
-      tick.onchange = function(){
-        setCellIn(row, col.id, { on: tick.checked });
-        td.classList.toggle('planned', tick.checked);
-        const now = cellOf(row, col.id);
-        td.classList.toggle('empty', !now.v && !now.on && !gridCellKeywords(now.v).length);
-        markDirty();
-      };
-      foot.append(tick);
-
-      foot.append(modeSwitch(cell.mode, ro, function(kind){
-        setCellIn(row, col.id, { mode: kind });
-        markDirty();
-        renderGrid();
-      }));
-
-      foot.append(kindSelect(cell.type, ro, function(kindId){
-        setCellIn(row, col.id, { type: kindId });
-        markDirty();
-      }));
-
-      if (!ro){
-        const add = document.createElement('button');
-        add.className = 'gr-kwadd';
-        add.textContent = '+ kw';
-        add.title = 'Add a keyword to the repo that lands in this cell';
-        add.onclick = function(){ openKeywordModal((cellOf(row, col.id).v || '').trim()); };
-        foot.append(add);
-      }
-      td.append(foot);
+      cellControls(td, {
+        ro: ro,
+        get: function(){ return cellOf(row, col.id); },
+        set: function(patch){ setCellIn(row, col.id, patch); },
+        seed: function(){ return (cellOf(row, col.id).v || '').trim(); },
+        refreshEmpty: function(){
+          const now = cellOf(row, col.id);
+          td.classList.toggle('empty', cellQuiet(now, gridCellKeywords(now.v).length));
+        },
+        rerender: renderGrid
+      });
 
       tr.append(td);
     });

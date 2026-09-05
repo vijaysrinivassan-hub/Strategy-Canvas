@@ -8,17 +8,22 @@ const CONTENT_TAB = "Content Strategy";
  *  piece is aimed at answer engines or search engines, and what kind of article
  *  it becomes — all three follow the keyword, not the row. Old strings still
  *  read correctly. */
-function readCell(raw: any): { value: string; mode: "aeo" | "seo"; type: string; on: boolean } {
-  if (typeof raw === "string") return { value: raw, mode: "aeo", type: "", on: false };
+const AWARENESS = ["Problem aware", "Solution aware", "Feature aware", "Competitor aware"] as const;
+
+function readCell(raw: any): {
+  value: string; mode: "aeo" | "seo"; type: string; on: boolean; aw: string;
+} {
+  if (typeof raw === "string") return { value: raw, mode: "aeo", type: "", on: false, aw: "" };
   if (raw && typeof raw === "object") {
     return {
       value: raw.v || "",
       mode: raw.mode === "seo" ? "seo" : "aeo",
       type: raw.type || "",
-      on: !!raw.on
+      on: !!raw.on,
+      aw: raw.aw || ""
     };
   }
-  return { value: "", mode: "aeo", type: "", on: false };
+  return { value: "", mode: "aeo", type: "", on: false, aw: "" };
 }
 
 /** Resolve an article-kind name (Listicle, Informational...) to its id. */
@@ -85,12 +90,13 @@ export function registerContentTools(server: McpServer) {
             const cells: Record<string, any> = {};
             for (const c of cols) {
               const cell = readCell(r.cells?.[c.id]);
-              if (!cell.value && !cell.type && !cell.on) continue;
+              if (!cell.value && !cell.type && !cell.on && !cell.aw) continue;
               cells[c.name] = {
                 value: cell.value,
                 planned: cell.on,
                 mode: cell.mode,
-                article_type: cell.type ? typeName(cell.type) : null
+                article_type: cell.type ? typeName(cell.type) : null,
+                awareness: cell.aw || null
               };
             }
             return { row: i + 1, cells };
@@ -117,10 +123,18 @@ export function registerContentTools(server: McpServer) {
         for (const t of types) {
           const raw = v.cells?.[`${r.id}|${t.id}`];
           if (!raw) continue;
-          const on = raw === true || !!raw.on;
-          const mode = raw === true ? "aeo" : raw.mode === "seo" ? "seo" : "aeo";
-          const kind = raw === true ? null : raw.type ? kindName(raw.type) : null;
-          if (on) cells.push({ row: r.name, article_type: t.name, mode, article_kind: kind });
+          const cell = readCell(raw);
+          if (cell.on || cell.value || cell.aw) {
+            cells.push({
+              row: r.name,
+              article_type: t.name,
+              planned: cell.on,
+              text: cell.value || null,
+              mode: cell.mode,
+              article_kind: cell.type ? kindName(cell.type) : null,
+              awareness: cell.aw || null
+            });
+          }
         }
       }
       return ok({
@@ -162,11 +176,15 @@ export function registerContentTools(server: McpServer) {
           .boolean()
           .optional()
           .describe("Tick the cells this call writes as articles being produced"),
+        awareness: z
+          .enum(AWARENESS)
+          .optional()
+          .describe("Reader's awareness level for the cells this call writes"),
         replace: z.boolean().default(false).optional()
       },
       annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false }
     },
-    async ({ board_id, view, rows, mode, article_type, planned, replace }) => {
+    async ({ board_id, view, rows, mode, article_type, planned, awareness, replace }) => {
       const { body } = await loadBoard(board_id);
       const v = viewOf(body, view);
       if (v.kind !== "grid") throw new ToolError(`The "${view}" view is a matrix, not a table.`);
@@ -190,7 +208,7 @@ export function registerContentTools(server: McpServer) {
         for (const [k, val] of Object.entries(r)) {
           const id = byName.get(k.toLowerCase());
           if (!id) { unknown.add(k); continue; }
-          slot.cells[id] = { v: val, mode: mode ?? "aeo", type: typeId, on: !!planned };
+          slot.cells[id] = { v: val, mode: mode ?? "aeo", type: typeId, on: !!planned, aw: awareness ?? "" };
         }
         written++;
       }
@@ -219,11 +237,13 @@ export function registerContentTools(server: McpServer) {
           .string()
           .optional()
           .describe("The kind of piece, from Settings > Article Types: e.g. Listicle, Informational"),
+        awareness: z.enum(AWARENESS).optional().describe("Reader's awareness level"),
+        text: z.string().optional().describe("The article's own words: its title or keyword"),
         planned: z.boolean().default(true).optional()
       },
       annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true }
     },
-    async ({ board_id, competitor, article_type, mode, article_kind, planned }) => {
+    async ({ board_id, competitor, article_type, mode, article_kind, awareness, text, planned }) => {
       const { body } = await loadBoard(board_id);
       const v = viewOf(body, "competitor");
       const kindId = kindIdFor(body.tabs[CONTENT_TAB], article_kind);
@@ -250,19 +270,22 @@ export function registerContentTools(server: McpServer) {
       const key = `${row.id}|${type.id}`;
       const on = planned ?? true;
       const m = mode ?? "aeo";
-      /* keep a kind the cell already had unless a new one was given */
-      const prev = v.cells[key];
-      const kept = prev && typeof prev === "object" ? prev.type || "" : "";
-      const type_ = kindId || kept;
-      if (!on && m === "aeo" && !type_) delete v.cells[key];
-      else v.cells[key] = { on, mode: m, type: type_ };
+      /* keep whatever the cell already had unless a new value was given */
+      const prev = readCell(v.cells[key]);
+      const type_ = kindId || prev.type;
+      const aw = awareness ?? prev.aw;
+      const words = text ?? prev.value;
+      if (!on && m === "aeo" && !type_ && !aw && !words) delete v.cells[key];
+      else v.cells[key] = { on, mode: m, type: type_, v: words, aw };
 
       await saveBoard(board_id, body);
       return ok({
         competitor: row.name,
         article_type: type.name,
+        text: words || null,
         mode: m,
         article_kind: article_kind ?? null,
+        awareness: aw || null,
         planned: on
       });
     }
