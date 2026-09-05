@@ -2,9 +2,9 @@
  * Pulls the Frames folder out of the Obsidian vault into frames.json, which the
  * app fetches at runtime.
  *
- * The frames are reference material, and several of them carry a note saying
- * no AI may write to them, so this only ever reads. Re-run it after editing
- * the frames in Obsidian.
+ * This only ever reads the vault. Edits made in the app are kept with the
+ * board, and the no-AI-writes rule is enforced in the MCP server. Re-run this
+ * after editing the frames in Obsidian.
  *
  *   node tools/import-frames.mjs
  *   node tools/import-frames.mjs "D:\\path\\to\\vault\\Frames"

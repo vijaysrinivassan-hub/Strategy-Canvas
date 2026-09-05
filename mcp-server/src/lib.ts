@@ -1,4 +1,7 @@
 import { createClient, SupabaseClient } from "@supabase/supabase-js";
+import { readFile } from "node:fs/promises";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 
 /* ---------------------------------------------------------------- config */
 
@@ -212,6 +215,49 @@ export function assertCanvasOnBoard(body: BoardBody, tab: string): void {
         `Add one in the app under Brand Strategy, then retry.`
     );
   }
+}
+
+/* ---------------------------------------------------------------- frames */
+
+/** The frames pulled out of the user's Obsidian vault, as frames.json in the
+ *  repo root. Read once and kept; the file only changes when the user re-runs
+ *  the importer, which is a manual step. */
+let frames: any[] | null = null;
+
+export async function frameLibrary(): Promise<any[]> {
+  if (frames) return frames;
+  const here = dirname(fileURLToPath(import.meta.url));
+  const path = join(here, "..", "..", "frames.json");
+  try {
+    const raw = await readFile(path, "utf8");
+    const parsed = JSON.parse(raw);
+    frames = Array.isArray(parsed.frames) ? parsed.frames : [];
+  } catch (e: any) {
+    throw new ToolError(
+      `Could not read the frames library at ${path}: ${e.message}. Run ` +
+        `"node tools/import-frames.mjs" in the repo to rebuild it from the vault.`
+    );
+  }
+  return frames!;
+}
+
+/** Several frames carry a line saying no AI may write to them. This is where
+ *  that instruction is enforced: a frame is readable through frame_get and is
+ *  not writable through anything. The person edits frames in the app. */
+export async function refuseIfFrame(name: string): Promise<void> {
+  let library: any[];
+  try {
+    library = await frameLibrary();
+  } catch {
+    return; /* no library on disk is not a reason to block an ordinary canvas */
+  }
+  const hit = library.find((f: any) => String(f.name).toLowerCase() === name.toLowerCase());
+  if (!hit) return;
+  throw new ToolError(
+    `"${hit.name}" is a frame from the Obsidian vault, and frames are read-only to AI by ` +
+      `their author's instruction. Read it with frame_get and copy what you need onto a ` +
+      `board canvas with canvas_add_cards. The person can edit the frame itself in the app.`
+  );
 }
 
 /** Every tool returns the same envelope so responses stay predictable.

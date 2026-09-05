@@ -149,6 +149,7 @@
                   color:var(--faint); border-radius:5px; visibility:hidden; flex:none}
   .tab-sub:hover .sub-x{visibility:visible}
   .tab-sub .sub-x:hover{color:var(--danger); background:var(--danger-bg)}
+  .tab-sub .sub-dot{color:var(--cli); font-size:15px; line-height:1; flex:none}
   .tab-sub.sub-add{color:var(--accent); font-weight:500}
   .tab-sub.sub-add:hover{background:var(--accent-soft)}
 
@@ -510,10 +511,15 @@
   .frame-note{flex:1; min-height:0; overflow-y:auto; padding:24px 30px 40px; background:var(--bg)}
   .frame-note .sheet{background:#fff; border:1px solid var(--line); border-radius:14px;
                      box-shadow:var(--shadow); padding:26px 30px; max-width:760px}
-  .frame-note pre{margin:0; white-space:pre-wrap; word-break:break-word;
-                  font:inherit; font-size:13.5px; line-height:1.75; color:var(--ink-2)}
-  .ro-frame{display:flex; align-items:center; gap:8px; font-size:12px; color:var(--muted);
-            background:var(--line-2); border-radius:9px; padding:5px 11px; margin-left:8px}
+  .frame-note textarea{display:block; width:100%; min-height:58vh; margin:0; padding:0;
+                       border:none; outline:none; resize:vertical; background:transparent;
+                       font:inherit; font-size:13.5px; line-height:1.75; color:var(--ink-2)}
+  .ro-frame{display:flex; align-items:center; gap:9px; font-size:12px; color:var(--cli);
+            background:var(--cli-bg); border-radius:9px; padding:4px 6px 4px 11px; margin-left:8px}
+  .ro-frame button{padding:3px 8px; font-size:11px; background:var(--panel);
+                   border-color:transparent; color:var(--ink-2)}
+  .ro-frame button:hover{color:var(--ink); border-color:var(--border)}
+  .frame-out{margin-left:8px; padding:5px 10px; font-size:12px}
 
   /* ================= clients ================= */
   .clients{flex:1; min-height:0; overflow-y:auto; padding:24px 30px 40px; background:var(--bg)}
@@ -838,7 +844,14 @@
     <div class="toolbar">
       <h2 id="tabTitle">Product Architecture</h2>
       <span class="ro-note" id="roNote" hidden>View only &mdash; this board belongs to someone else</span>
-      <span class="ro-frame" id="roFrame" hidden>Reference frame &mdash; read only</span>
+      <span class="ro-frame" id="roFrame" hidden>
+        <span>Edited on this board</span>
+        <button id="btnFrameReset" type="button"
+                title="Throw away your changes and load the version from your vault again"
+                >Reset to original</button>
+      </span>
+      <button class="frame-out" id="btnFrameExport" type="button" hidden
+              title="Download this frame so you can put it back in your vault">Download</button>
       <select class="frame-pick" id="framePick" hidden
               title="Drop one of your Obsidian frames onto this canvas">
         <option value="">Insert a frame&hellip;</option>
@@ -924,7 +937,8 @@
 
     <!-- A frame from the Obsidian vault, rendered read-only -->
     <div class="frame-note" id="framePane" hidden>
-      <div class="sheet"><pre id="frameText"></pre></div>
+      <div class="sheet"><textarea id="frameText" spellcheck="false"
+                                  placeholder="Write here&hellip;"></textarea></div>
     </div>
 
     <!-- MCP: what a server needs to know to push data into this board -->
@@ -1033,7 +1047,7 @@ const SUPABASE_URL = 'https://cskamgfvebryahkljlll.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_MdkD-TxMCIwlu69seSHA3Q_A39GADsK';
 const CLIENT_ID    = '1059013355751-6g50dsgm7df37htl2fdqrtlkh5hmrc0c.apps.googleusercontent.com';
 const ALLOWED      = ['vijaysrinivassan@gmail.com'];
-const BUILD        = 'v4.8';
+const BUILD        = 'v4.9';
 
 const TABS = [
   'Product Architecture',
@@ -1101,6 +1115,7 @@ const state = {
   contentView: 'competitor',      /* which axis the content matrix is showing */
   navOpen: { brand: false, content: false, settings: false, frames: false },
   frames: [],                     /* the Obsidian Frames folder, loaded once */
+  frameEdits: {},                 /* frame name -> your edited copy, saved with the board */
   frameIndex: -1,                 /* which frame is open, -1 for none */
   ownerId: null,                  /* owner_id of the loaded board */
   view: { x: 0, y: 0, z: 1 },
@@ -1210,6 +1225,25 @@ function isAllowed(email){
 }
 function markDirty(){
   if (readOnly()) return;
+
+  /* An edit to a frame becomes your copy of it straight away, so the Reset
+     button is there the moment you need it. Held by reference, which costs
+     nothing on a drag; captureFrame does the exact comparison when the board
+     is saved and drops the record again if it matches the vault after all. */
+  const f = openFrameDef();
+  if (f && state.frameEdits[f.name] !== state.tabs[FRAME_TAB]){
+    const work = state.tabs[FRAME_TAB];
+    /* compared properly the first time, so a Reset does not immediately file
+       the restored copy straight back as an edit; once recorded the reference
+       check above short-circuits and a drag costs nothing */
+    if (JSON.stringify(work) !== JSON.stringify(pristineFrame(f))){
+      state.frameEdits[f.name] = work;
+      const badge = $("roFrame");
+      if (badge) badge.hidden = false;
+      renderTabs();
+    }
+  }
+
   state.dirty = true;
   const el = $('saveState');
   el.textContent = 'Unsaved changes';
@@ -1471,9 +1505,18 @@ function renderTabs(){
       }
       state.frames.forEach((f, i) => {
         const label = f.name.replace(/^Step\s+\d+\s*-\s*/i, '');
-        box.append(subButton(label, onBoard && inFrame() && state.frameIndex === i,
-                             () => openFrame(i),
-                             f.kind === 'canvas' ? (f.nodes || []).length : 0));
+        const edited = !!state.frameEdits[f.name];
+        const b = subButton(label, onBoard && inFrame() && state.frameIndex === i,
+                            () => openFrame(i),
+                            f.kind === 'canvas' ? (f.nodes || []).length : 0);
+        if (edited){
+          b.title = label + ' \u2014 edited on this board';
+          const dot = document.createElement('span');
+          dot.className = 'sub-dot';
+          dot.textContent = '\u2022';
+          b.append(dot);
+        }
+        box.append(b);
       });
       return;
     }
@@ -1492,6 +1535,7 @@ function renderTabs(){
 
 /* Screens that are not board tabs: Clients, MCP. */
 function goScreen(id){
+  captureFrame();
   state.screen = id;
   if (id === 'clients' || id === 'mcp') openNav('settings');
   applyTabMode();
@@ -1781,6 +1825,7 @@ function deleteSelection(){
   render();
 }
 function switchTab(name){
+  captureFrame();
   state.tab = name;
   state.frameIndex = -1;
   state.screen = 'board';
@@ -2311,14 +2356,20 @@ window.addEventListener('blur', () => { spaceHeld = false; });
    PERSISTENCE
    =================================================================== */
 function serialize(){
-  return JSON.stringify({ version: 2, client: state.client, logo: state.logo || '',
-                          extra: state.extra, tabs: state.tabs });
+  captureFrame();
+  /* the frame scratch tab is a working copy, not a tab of this board */
+  const tabs = {};
+  Object.keys(state.tabs).forEach(k => { if (k !== FRAME_TAB) tabs[k] = state.tabs[k]; });
+  return JSON.stringify({ version: 3, client: state.client, logo: state.logo || '',
+                          extra: state.extra, frameEdits: state.frameEdits, tabs: tabs });
 }
 function hydrate(text){
   let d = null;
   try { d = JSON.parse(text); } catch (e) {}
   state.tabs = blankTabs();
   state.extra = [];
+  state.frameEdits = (d && d.frameEdits && typeof d.frameEdits === 'object') ? d.frameEdits : {};
+  state.frameIndex = -1;
   if (d && d.tabs){
     /* This tab has been called Document Gallery and then Repo. A board saved
        under either name keeps its rows and its filing; the old key has to go,
@@ -2333,7 +2384,7 @@ function hydrate(text){
        drop all of it on the way in. */
     Object.keys(d.tabs).forEach(name => {
       const t = d.tabs[name];
-      if (!t || typeof t !== 'object') return;
+      if (!t || typeof t !== 'object' || name === FRAME_TAB) return;
       if (!Array.isArray(t.nodes)) t.nodes = [];
       if (!Array.isArray(t.edges)) t.edges = [];
       state.tabs[name] = t;
@@ -2342,7 +2393,7 @@ function hydrate(text){
     if (Array.isArray(d.extra)){
       state.extra = d.extra.filter(x => typeof x === 'string' && TABS.indexOf(x) === -1);
     } else {
-      state.extra = Object.keys(d.tabs).filter(x => TABS.indexOf(x) === -1);
+      state.extra = Object.keys(d.tabs).filter(x => TABS.indexOf(x) === -1 && x !== FRAME_TAB);
     }
   }
   state.client = (d && d.client) || 'XYZ';
@@ -2410,6 +2461,8 @@ function newBoard(){
   state.client = 'New client';
   state.tabs = blankTabs();
   state.extra = [];
+  state.frameEdits = {};
+  state.frameIndex = -1;
   state.tab = TABS[0];
   clearSel();
   $('clientName').value = state.client;
@@ -2895,7 +2948,8 @@ function applyTabMode(){
     $('viewport').hidden = true; $('docsPane').hidden = true;
     $('chanPane').hidden = true; $('kwPane').hidden = true; $('mxPane').hidden = true;
     $('framePane').hidden = true; $('roFrame').hidden = true;
-    ['btnZoomIn','btnZoomOut','btnFit','zoomLabel','framePick']
+    $('btnFrameExport').hidden = true;
+    ['btnZoomIn','btnZoomOut','btnFit','zoomLabel','framePick','btnFrameExport']
       .forEach(id => { $(id).hidden = true; });
     $('tabTitle').textContent = onClients ? 'Clients' : 'MCP';
     applyRole();
@@ -2904,7 +2958,9 @@ function applyTabMode(){
   const frame = inFrame() ? state.frames[state.frameIndex] : null;
   const isNote = !!frame && frame.kind === 'note';
   $('framePane').hidden = !isNote;
-  $('roFrame').hidden = !frame;
+  /* the badge is not a lock any more, it just says this is your copy */
+  $('roFrame').hidden = !frame || !state.frameEdits[frame.name] || readOnly();
+  $('btnFrameExport').hidden = !frame;
 
   const isDocs = state.tab === DOCS_TAB;
   const isChan = state.tab === CHANNELS_TAB;
@@ -2914,7 +2970,11 @@ function applyTabMode(){
 
   if (frame){
     $('tabTitle').textContent = frame.name;
-    if (isNote) $('frameText').textContent = frame.text || '';
+    if (isNote){
+      const ta = $('frameText');
+      ta.value = (state.tabs[FRAME_TAB] || {}).text || '';
+      ta.readOnly = readOnly();
+    }
   }
   $('viewport').hidden = !isCanvas;
   $('docsPane').hidden = !isDocs;
@@ -3950,6 +4010,7 @@ function repaintKeywordViews(){
 }
 
 function switchContentView(id){
+  captureFrame();
   state.contentView = id;
   state.frameIndex = -1;
   openNav('content');
@@ -3990,7 +4051,13 @@ function addArticleType(){
 
 
 /* ===================================================================
-   FRAMES  —  the Obsidian Frames folder, read-only
+   FRAMES  —  the Obsidian Frames folder
+
+   The frames come out of the vault read-only, but that was only ever an
+   instruction to AI. You can edit them here. Your changes are kept with the
+   board, never written back to the vault, and Reset brings the original
+   back. The MCP server can read frames and cannot write them, which is where
+   the no-AI-writes rule actually lives.
    =================================================================== */
 const FRAME_TAB = '__frame__';   /* a scratch tab the canvas engine can render */
 
@@ -4009,7 +4076,17 @@ async function loadFrames(){
   renderFramePicker();
 }
 
+const clone = x => JSON.parse(JSON.stringify(x));
+
+/* What the frame looks like straight out of the vault. */
+function pristineFrame(f){
+  return f.kind === 'note'
+    ? { nodes: [], edges: [], text: f.text || '' }
+    : { nodes: clone(f.nodes || []), edges: clone(f.edges || []) };
+}
+
 function openFrame(i){
+  captureFrame();                       /* keep any edit to the frame we are leaving */
   const f = state.frames[i];
   if (!f) return;
   state.frameIndex = i;
@@ -4017,14 +4094,11 @@ function openFrame(i){
   openNav('frames');
   clearSel();
 
-  if (f.kind === 'canvas'){
-    /* hand the frame to the ordinary canvas engine, then lock it */
-    state.tabs[FRAME_TAB] = { nodes: f.nodes || [], edges: f.edges || [] };
-    state.tab = FRAME_TAB;
-  } else {
-    state.tab = FRAME_TAB;
-    state.tabs[FRAME_TAB] = { nodes: [], edges: [] };
-  }
+  /* your edit if you have one, otherwise a fresh copy — never the library
+     object itself, or editing here would quietly rewrite the frame in memory */
+  const saved = state.frameEdits[f.name];
+  state.tabs[FRAME_TAB] = saved ? saved : pristineFrame(f);
+  state.tab = FRAME_TAB;
 
   render();
   applyTabMode();
@@ -4032,9 +4106,58 @@ function openFrame(i){
   if (f.kind === 'canvas') zoomToFit();
 }
 
-/* A frame is somebody's reference material, and several say in as many words
-   that no AI may write to them. Nothing here is editable. */
 const inFrame = () => state.tab === FRAME_TAB && state.frameIndex > -1;
+const openFrameDef = () => (inFrame() ? state.frames[state.frameIndex] : null);
+
+/* Folds the open frame's working copy into the board — but only when it
+   actually differs from the vault original, so the "Edited" badge never lies
+   and Reset really does clear the record. */
+function captureFrame(){
+  const f = openFrameDef();
+  if (!f || readOnly()) return;
+  const work = state.tabs[FRAME_TAB];
+  if (!work) return;
+  if (JSON.stringify(work) === JSON.stringify(pristineFrame(f))) delete state.frameEdits[f.name];
+  else state.frameEdits[f.name] = work;
+}
+
+function resetFrame(){
+  const f = openFrameDef();
+  if (!f || !state.frameEdits[f.name]) return;
+  if (!confirm('Throw away your changes to "' + f.name +
+               '" and load the version from your vault again?')) return;
+  delete state.frameEdits[f.name];
+  /* put the original in place before anything else runs: openFrame captures
+     the copy it is leaving, which would file the edit straight back again */
+  state.tabs[FRAME_TAB] = pristineFrame(f);
+  clearSel();
+  markDirty();
+  render();
+  applyTabMode();
+  renderTabs();
+  if (f.kind === 'canvas') zoomToFit();
+  toast('Back to the original.');
+}
+
+/* The vault is never written to from here. This hands you the file so you can
+   drop it into the Frames folder yourself if you want the change to stick. */
+function exportFrame(){
+  const f = openFrameDef();
+  if (!f) return;
+  captureFrame();
+  const work = state.tabs[FRAME_TAB] || pristineFrame(f);
+  const isNote = f.kind === 'note';
+  const body = isNote ? (work.text || '')
+                      : JSON.stringify({ nodes: work.nodes, edges: work.edges }, null, 1);
+  const url = URL.createObjectURL(new Blob([body],
+    { type: isNote ? 'text/markdown' : 'application/json' }));
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = f.name + (isNote ? '.md' : '.canvas');
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 4000);
+  toast('Downloaded. Drop it into your vault\u2019s Frames folder to replace the original.');
+}
 
 /* ---- using a frame as a template on a real canvas ---- */
 function renderFramePicker(){
@@ -4115,7 +4238,7 @@ function insertFrame(i){
 /* ===================================================================
    CLIENTS & ACCESS
    =================================================================== */
-const readOnly = () => inFrame() || state.role !== 'admin';
+const readOnly = () => state.role !== 'admin';
 
 /* A board you did not create is one you may only read. */
 function roleForBoard(row){
@@ -4673,6 +4796,15 @@ $('repoSide').addEventListener('drop', ev => {
   if (moved){ fileToSection(moved, null); return; }
   if (ev.dataTransfer.files && ev.dataTransfer.files.length) uploadFiles(ev.dataTransfer.files);
 });
+
+$('btnFrameReset').onclick = resetFrame;
+$('btnFrameExport').onclick = exportFrame;
+$('frameText').oninput = ev => {
+  if (!inFrame() || readOnly()) return;
+  state.tabs[FRAME_TAB].text = ev.target.value;
+  markDirty();
+};
+$('frameText').onkeydown = ev => ev.stopPropagation();
 
 $('framePick').onchange = ev => {
   const i = ev.target.value;

@@ -54,9 +54,16 @@ files are JSON Canvas, the same vocabulary this app uses, so they render on the
 ordinary canvas with their cards, groups and connections intact; the `.md` notes
 render as plain documents.
 
-They are **read-only**. They are reference material, and several of them carry a
-note inside saying no AI may write to them, so nothing here edits them and
-nothing is ever written back to the vault.
+**You can edit them.** Several carry a note inside saying no AI may write to
+them, but that was an instruction to AI, not to their author, so the rule lives
+in the MCP server instead: it exposes `frame_list` and `frame_get` and has no
+tool that writes a frame, and the canvas write tools refuse a frame by name.
+
+Your edits are kept **with the board you are on**, never written back to the
+vault. An edited frame shows an amber dot in the sidebar and an *Edited on this
+board* badge with **Reset to original**, which loads the vault copy again.
+**Download** hands you the frame as a `.canvas` (or `.md`) file, so you can drop
+it into the vault yourself if you want the change to stick there.
 
 To refresh them after editing in Obsidian:
 

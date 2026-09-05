@@ -1,6 +1,6 @@
 import { z } from "zod";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { assertCanvasOnBoard, canvasTabsOf, CANVAS_TABS, loadBoard, ok, saveBoard, tabSlot, ToolError, uid } from "../lib.js";
+import { assertCanvasOnBoard, canvasTabsOf, CANVAS_TABS, loadBoard, ok, refuseIfFrame, saveBoard, tabSlot, ToolError, uid } from "../lib.js";
 
 /** Boards can carry canvases beyond the five defaults, so the tab is a plain
  *  string and is checked against the board once it is loaded. */
@@ -68,6 +68,7 @@ export function registerCanvasTools(server: McpServer) {
       annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false }
     },
     async ({ board_id, tab, cards }) => {
+      await refuseIfFrame(tab);
       const { body } = await loadBoard(board_id);
       assertCanvasOnBoard(body, tab);
       const slot = tabSlot(body, tab);
@@ -121,6 +122,7 @@ export function registerCanvasTools(server: McpServer) {
       annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false }
     },
     async ({ board_id, tab, from_id, to_id, from_side, to_side }) => {
+      await refuseIfFrame(tab);
       const { body } = await loadBoard(board_id);
       assertCanvasOnBoard(body, tab);
       const slot = tabSlot(body, tab);
@@ -157,6 +159,7 @@ export function registerCanvasTools(server: McpServer) {
       annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false }
     },
     async ({ board_id, tab, label, card_ids }) => {
+      await refuseIfFrame(tab);
       const { body } = await loadBoard(board_id);
       assertCanvasOnBoard(body, tab);
       const slot = tabSlot(body, tab);
@@ -197,6 +200,7 @@ export function registerCanvasTools(server: McpServer) {
       annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true }
     },
     async ({ board_id, tab }) => {
+      await refuseIfFrame(tab);
       const { body } = await loadBoard(board_id);
       assertCanvasOnBoard(body, tab);
       const slot = tabSlot(body, tab);
