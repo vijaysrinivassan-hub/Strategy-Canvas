@@ -754,7 +754,9 @@
   .gr-foot2{display:flex; gap:4px; padding:0 5px 7px}
   .gr-foot2 .gr-kind{flex:1 1 0; min-width:0; padding:0 3px}
   .gr-foot2 .gr-aw{flex:1.3 1 0}
-  .gr-cell.empty .gr-ctl{opacity:0; transition:opacity .12s}
+  /* a quiet cell keeps its controls faintly in view rather than hidden, so
+     an empty matrix still shows what each cell can take; hover brings them up */
+  .gr-cell.empty .gr-ctl{opacity:.38; transition:opacity .12s}
   .gr-cell.empty:hover .gr-ctl, .gr-cell.empty:focus-within .gr-ctl{opacity:1}
   /* the tick: green, so it never reads as a keyword selection */
   .gr-tick{margin:0; accent-color:#15803d; width:14px; height:14px; flex:none; cursor:pointer}
@@ -1295,7 +1297,7 @@ const SUPABASE_URL = 'https://cskamgfvebryahkljlll.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_MdkD-TxMCIwlu69seSHA3Q_A39GADsK';
 const CLIENT_ID    = '1059013355751-6g50dsgm7df37htl2fdqrtlkh5hmrc0c.apps.googleusercontent.com';
 const ALLOWED      = ['vijaysrinivassan@gmail.com'];
-const BUILD        = 'v6.0';
+const BUILD        = 'v6.1';
 
 const TABS = [
   'Product Architecture',
@@ -4094,7 +4096,8 @@ function matrixState(){
    strict word boundary would drop "semrush's pricing" and the like. */
 function hit(text, needles){
   const h = String(text || '').toLowerCase();
-  return needles.some(function(nd){
+  /* a type or row saved without its terms is a miss, not a crash */
+  return (Array.isArray(needles) ? needles : []).some(function(nd){
     nd = String(nd || '').toLowerCase().trim();
     return nd && h.indexOf(nd) !== -1;
   });
@@ -4631,7 +4634,7 @@ function renderMatrix(){
     rh.append(lab);
     tr.append(rh);
 
-    m.types.forEach(function(ty){
+    m.types.forEach(function(ty, ti){
       const td = document.createElement('td');
       const cellKey = comp.id + '|' + ty.id;
       const st = cellState(m, cellKey);
@@ -4643,6 +4646,7 @@ function renderMatrix(){
       inp.type = 'text';
       inp.value = st.v || '';
       inp.disabled = ro;
+      if (ri === 0 && ti === 0) inp.placeholder = 'Title or keyword…';
       td.append(inp);
 
       const kwHost = document.createElement('div');
