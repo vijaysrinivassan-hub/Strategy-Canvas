@@ -46,7 +46,8 @@ The sidebar groups them:
   Messaging Framework, Positioning Document and Growth Strategy. Each is its own
   canvas; the count beside one is its card count. Those five always exist —
   **+ New canvas** adds as many more as you like, double-click one to rename it,
-  and the × beside it removes it. Added canvases are saved with the board.
+  and the × beside it removes it. **Drag any of them by the grip that appears on
+  hover to change the order.** Added canvases and the order are saved with the board.
 - **Channel Strategy** — a scope checklist.
 - **Content Strategy** opens into Category, Competitor, ICP and Value.
 - **Keyword Repo** and **Grounded Evidences**.
@@ -124,11 +125,20 @@ ICP and Value. Competitor is a matrix; Category, ICP and Value are plain tables
 of 20 rows.
 
 In those three the unit is the **cell**, not the row. Each cell holds the words,
-its own **AEO / SEO** choice and its own **article type**, because both of those
-follow the keyword: the same category can be worth an AEO listicle in one column
-and an SEO explainer in the next. The two controls stay faded on an empty cell
-and come up on hover, so a blank table still reads as a table, and nothing is
-written to the board for a cell you have not filled in.
+a green **Write this** tick, its own **AEO / SEO** choice and its own **article
+type**, because all of those follow the keyword: the same category can be worth
+an AEO listicle in one column and an SEO explainer in the next. The controls stay
+faded on an empty cell and come up on hover, so a blank table still reads as a
+table, and nothing is written to the board for a cell you have not filled in.
+
+A cell also shows its **evidence**: every keyword in the repo — pushed through
+the MCP or added by hand — that contains the cell's words, each with its search
+volume, and the **total** underneath. Two keywords at 50 read as *100 total*.
+**+ kw** adds a keyword to the repo seeded with the cell's words.
+
+The competitor matrix works the same way: the tick sits on top, the AEO / SEO
+choice and the article type sit in a row beneath it that only shows on hover
+until the cell is ticked, and the keywords it catches carry their total.
 
 The list of article types lives under **Settings › Article Types** — Listicle,
 List item and Informational to start, and yours to rename, remove or add to. It

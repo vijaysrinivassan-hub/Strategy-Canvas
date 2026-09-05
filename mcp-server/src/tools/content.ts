@@ -8,12 +8,32 @@ const CONTENT_TAB = "Content Strategy";
  *  piece is aimed at answer engines or search engines, and what kind of article
  *  it becomes — all three follow the keyword, not the row. Old strings still
  *  read correctly. */
-function readCell(raw: any): { value: string; mode: "aeo" | "seo"; type: string } {
-  if (typeof raw === "string") return { value: raw, mode: "aeo", type: "" };
+function readCell(raw: any): { value: string; mode: "aeo" | "seo"; type: string; on: boolean } {
+  if (typeof raw === "string") return { value: raw, mode: "aeo", type: "", on: false };
   if (raw && typeof raw === "object") {
-    return { value: raw.v || "", mode: raw.mode === "seo" ? "seo" : "aeo", type: raw.type || "" };
+    return {
+      value: raw.v || "",
+      mode: raw.mode === "seo" ? "seo" : "aeo",
+      type: raw.type || "",
+      on: !!raw.on
+    };
   }
-  return { value: "", mode: "aeo", type: "" };
+  return { value: "", mode: "aeo", type: "", on: false };
+}
+
+/** Resolve an article-kind name (Listicle, Informational...) to its id. */
+function kindIdFor(root: any, name: string | undefined): string {
+  if (!name) return "";
+  const types = articleTypes(root);
+  const hit = types.find((t) => String(t.name).toLowerCase() === name.toLowerCase());
+  if (!hit) {
+    throw new ToolError(
+      `No article type called "${name}" on this board. It offers: ` +
+        (types.length ? types.map((t) => t.name).join(", ") : "(none yet)") +
+        `. Add one under Settings > Article Types in the app.`
+    );
+  }
+  return hit.id;
 }
 
 /** The article types this board offers, as the app seeds them. */
@@ -65,9 +85,10 @@ export function registerContentTools(server: McpServer) {
             const cells: Record<string, any> = {};
             for (const c of cols) {
               const cell = readCell(r.cells?.[c.id]);
-              if (!cell.value && !cell.type) continue;
+              if (!cell.value && !cell.type && !cell.on) continue;
               cells[c.name] = {
                 value: cell.value,
+                planned: cell.on,
                 mode: cell.mode,
                 article_type: cell.type ? typeName(cell.type) : null
               };
@@ -89,6 +110,8 @@ export function registerContentTools(server: McpServer) {
 
       const types = (v.types || []).filter((t: any) => (t.name || "").trim());
       const rows = (v.rows || []).filter((r: any) => (r.name || "").trim());
+      const kinds = articleTypes(body.tabs[CONTENT_TAB]);
+      const kindName = (id: string) => kinds.find((k) => k.id === id)?.name ?? null;
       const cells: any[] = [];
       for (const r of rows) {
         for (const t of types) {
@@ -96,7 +119,8 @@ export function registerContentTools(server: McpServer) {
           if (!raw) continue;
           const on = raw === true || !!raw.on;
           const mode = raw === true ? "aeo" : raw.mode === "seo" ? "seo" : "aeo";
-          if (on) cells.push({ row: r.name, article_type: t.name, mode });
+          const kind = raw === true ? null : raw.type ? kindName(raw.type) : null;
+          if (on) cells.push({ row: r.name, article_type: t.name, mode, article_kind: kind });
         }
       }
       return ok({
@@ -134,11 +158,15 @@ export function registerContentTools(server: McpServer) {
           .string()
           .optional()
           .describe("Article type name; content_get lists the ones this board offers"),
+        planned: z
+          .boolean()
+          .optional()
+          .describe("Tick the cells this call writes as articles being produced"),
         replace: z.boolean().default(false).optional()
       },
       annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false }
     },
-    async ({ board_id, view, rows, mode, article_type, replace }) => {
+    async ({ board_id, view, rows, mode, article_type, planned, replace }) => {
       const { body } = await loadBoard(board_id);
       const v = viewOf(body, view);
       if (v.kind !== "grid") throw new ToolError(`The "${view}" view is a matrix, not a table.`);
@@ -146,21 +174,7 @@ export function registerContentTools(server: McpServer) {
       const byName = new Map<string, string>();
       for (const c of v.columns || []) byName.set(String(c.name).toLowerCase(), c.id);
 
-      const types = articleTypes(body.tabs[CONTENT_TAB]);
-      let typeId = "";
-      if (article_type) {
-        const hit = types.find(
-          (t) => String(t.name).toLowerCase() === article_type.toLowerCase()
-        );
-        if (!hit) {
-          throw new ToolError(
-            `No article type called "${article_type}" on this board. It offers: ` +
-              (types.length ? types.map((t) => t.name).join(", ") : "(none yet)") +
-              `. Add one under Settings > Article Types in the app.`
-          );
-        }
-        typeId = hit.id;
-      }
+      const typeId = kindIdFor(body.tabs[CONTENT_TAB], article_type);
 
       const unknown = new Set<string>();
       if (replace) v.rows = [];
@@ -176,7 +190,7 @@ export function registerContentTools(server: McpServer) {
         for (const [k, val] of Object.entries(r)) {
           const id = byName.get(k.toLowerCase());
           if (!id) { unknown.add(k); continue; }
-          slot.cells[id] = { v: val, mode: mode ?? "aeo", type: typeId };
+          slot.cells[id] = { v: val, mode: mode ?? "aeo", type: typeId, on: !!planned };
         }
         written++;
       }
@@ -194,20 +208,25 @@ export function registerContentTools(server: McpServer) {
       title: "Plan an article in the competitor matrix",
       description:
         "Tick a cell of the competitor matrix, marking that article as one you are writing, " +
-        "and set whether it targets AEO or SEO. Creates the competitor row or article-type " +
-        "column if either is missing.",
+        "and set whether it targets AEO or SEO and what kind of piece it is. Creates the " +
+        "competitor row or article-type column if either is missing.",
       inputSchema: {
         board_id: z.string(),
         competitor: z.string(),
-        article_type: z.string().describe("e.g. Alternatives, Pricing, Reviews, Features"),
+        article_type: z.string().describe("The column: e.g. Alternatives, Pricing, Reviews, Features"),
         mode: z.enum(["aeo", "seo"]).default("aeo").optional(),
+        article_kind: z
+          .string()
+          .optional()
+          .describe("The kind of piece, from Settings > Article Types: e.g. Listicle, Informational"),
         planned: z.boolean().default(true).optional()
       },
       annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true }
     },
-    async ({ board_id, competitor, article_type, mode, planned }) => {
+    async ({ board_id, competitor, article_type, mode, article_kind, planned }) => {
       const { body } = await loadBoard(board_id);
       const v = viewOf(body, "competitor");
+      const kindId = kindIdFor(body.tabs[CONTENT_TAB], article_kind);
 
       const findOrFill = (list: any[], name: string, make: () => any) => {
         let hit = list.find((x: any) => String(x.name || "").toLowerCase() === name.toLowerCase());
@@ -231,11 +250,21 @@ export function registerContentTools(server: McpServer) {
       const key = `${row.id}|${type.id}`;
       const on = planned ?? true;
       const m = mode ?? "aeo";
-      if (!on && m === "aeo") delete v.cells[key];
-      else v.cells[key] = { on, mode: m };
+      /* keep a kind the cell already had unless a new one was given */
+      const prev = v.cells[key];
+      const kept = prev && typeof prev === "object" ? prev.type || "" : "";
+      const type_ = kindId || kept;
+      if (!on && m === "aeo" && !type_) delete v.cells[key];
+      else v.cells[key] = { on, mode: m, type: type_ };
 
       await saveBoard(board_id, body);
-      return ok({ competitor: row.name, article_type: type.name, mode: m, planned: on });
+      return ok({
+        competitor: row.name,
+        article_type: type.name,
+        mode: m,
+        article_kind: article_kind ?? null,
+        planned: on
+      });
     }
   );
 

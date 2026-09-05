@@ -140,8 +140,15 @@
   }
   .tab-sub:hover{background:#f5f5f6; color:var(--ink); border-color:transparent}
   .tab-sub.active{background:var(--accent-soft); color:var(--accent); font-weight:600}
-  .tab-sub > span:first-child{flex:1; min-width:0; overflow:hidden;
-                              text-overflow:ellipsis; white-space:nowrap}
+  .tab-sub > .sub-label{flex:1; min-width:0; overflow:hidden;
+                        text-overflow:ellipsis; white-space:nowrap}
+  /* canvases under Brand Strategy can be dragged into a new order */
+  .tab-sub .sub-grip{color:var(--faint); font-size:10px; letter-spacing:-1px;
+                     margin:0 4px 0 -6px; flex:none; visibility:hidden; cursor:grab}
+  .tab-sub.sub-drag:hover .sub-grip{visibility:visible}
+  .tab-sub.dragging{opacity:.4}
+  .tab-sub.drop-before{box-shadow:inset 0 2px 0 var(--accent)}
+  .tab-sub.drop-after{box-shadow:inset 0 -2px 0 var(--accent)}
   .tab-sub .n{margin-left:auto; font-size:9.5px; font-weight:700; letter-spacing:.04em;
               color:var(--faint); flex:none; padding-left:6px}
   .tab-sub.active .n{color:var(--accent)}
@@ -684,6 +691,23 @@
   .mx-cell.planned .mx-plan{color:var(--ok)}
   .mx-cell.planned .mx-kw{background:transparent}
   .mx-cell.planned .mx-kw:hover{background:var(--accent-soft)}
+  /* mode and kind live in a foot row under the tick; on an empty, unticked
+     cell it keeps quiet until hovered, the way the tables do */
+  .mx-foot{display:flex; align-items:center; gap:5px; padding:4px 8px 6px;
+           border-bottom:1px solid var(--line-2)}
+  .mx-foot .mx-mode{margin:0; flex:none}
+  .mx-cell.empty-cell:not(.planned) .mx-foot,
+  .mx-cell.empty-cell:not(.planned) .kw-add-row{opacity:0; transition:opacity .12s}
+  .mx-cell.empty-cell:not(.planned):hover .mx-foot,
+  .mx-cell.empty-cell:not(.planned):focus-within .mx-foot,
+  .mx-cell.empty-cell:not(.planned):hover .kw-add-row,
+  .mx-cell.empty-cell:not(.planned):focus-within .kw-add-row{opacity:1}
+  /* the sum of the evidence */
+  .kw-total{display:flex; align-items:center; justify-content:space-between; gap:8px;
+            padding:5px 10px; font-size:10.5px; color:var(--muted);
+            background:#fafbfc; border-top:1px solid var(--line-2)}
+  .kw-total em{font-style:normal; font-weight:700; color:var(--ink-2);
+               font-variant-numeric:tabular-nums}
 
   /* free-form data grids: Category, ICP, Value */
   .gr-num{position:sticky; left:0; z-index:3; background:#f9fafb; width:46px;
@@ -716,6 +740,17 @@
   /* a cell with nothing in it keeps its controls quiet until you touch it */
   .gr-cell.empty .gr-foot{opacity:0; transition:opacity .12s}
   .gr-cell.empty:hover .gr-foot, .gr-cell.empty:focus-within .gr-foot{opacity:1}
+  /* the tick: green, so it never reads as a keyword selection */
+  .gr-tick{margin:0; accent-color:#15803d; width:14px; height:14px; flex:none; cursor:pointer}
+  .gr-cell.planned{background:#f4fbf6}
+  .gr-cell.planned input[type=text]{font-weight:600; color:var(--ok)}
+  .gr-kwadd{flex:none; padding:0 6px; height:21px; font-size:10.5px; color:var(--muted);
+            border-color:transparent; background:transparent}
+  .gr-kwadd:hover{color:var(--accent); background:var(--accent-soft); border-color:transparent}
+  .gr-kws{margin:0}
+  .gr-kws .mx-kws{max-height:150px}
+  .gr-kws .mx-kw{height:26px; cursor:default}
+  .gr-kws .mx-kw span{font-size:12px}
 
   /* Settings > Article Types */
   .at-list{display:flex; flex-direction:column; gap:8px; max-width:520px; margin-bottom:16px}
@@ -1085,7 +1120,7 @@ const SUPABASE_URL = 'https://cskamgfvebryahkljlll.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_MdkD-TxMCIwlu69seSHA3Q_A39GADsK';
 const CLIENT_ID    = '1059013355751-6g50dsgm7df37htl2fdqrtlkh5hmrc0c.apps.googleusercontent.com';
 const ALLOWED      = ['vijaysrinivassan@gmail.com'];
-const BUILD        = 'v5.4';
+const BUILD        = 'v5.5';
 
 const TABS = [
   'Product Architecture',
@@ -1110,7 +1145,26 @@ const BRAND_DEFAULT = [
   'Positioning Document',
   'Growth Strategy'
 ];
-const brandTabs = () => BRAND_DEFAULT.concat(state.extra);
+/* The five defaults plus whatever was added, in the order the user dragged
+   them into. Names missing from the saved order (a rename, a new canvas)
+   simply follow on the end, so the order never has to be repaired. */
+const brandTabs = () => {
+  const all = BRAND_DEFAULT.concat(state.extra);
+  const ordered = state.brandOrder.filter(x => all.indexOf(x) !== -1);
+  all.forEach(x => { if (ordered.indexOf(x) === -1) ordered.push(x); });
+  return ordered;
+};
+function moveCanvas(from, to, after){
+  if (readOnly() || from === to) return;
+  const order = brandTabs().filter(x => x !== from);
+  let i = order.indexOf(to);
+  if (i === -1) return;
+  if (after) i++;
+  order.splice(i, 0, from);
+  state.brandOrder = order;
+  markDirty();
+  renderTabs();
+}
 const isBrandTab = name => brandTabs().indexOf(name) > -1;
 const NAV = [
   { kind: 'group',  id: 'brand',   label: 'Brand Strategy' },
@@ -1148,6 +1202,7 @@ const state = {
   tab: TABS[0],
   tabs: {},                    /* tabName -> { nodes:[], edges:[] } */
   extra: [],                   /* extra Brand Strategy canvases, by name */
+  brandOrder: [],              /* the order the canvases sit in under Brand Strategy */
   boards: [],                  /* [{id,title,updated_at}] */
   sel: { ids: [], edge: null },   /* many cards/groups, or one edge */
   role: 'admin',                  /* 'admin' owns the board, 'viewer' may only read */
@@ -1236,6 +1291,7 @@ function renameCanvas(old){
   const name = askCanvasName('Rename this canvas', old);
   if (!name || name === old) return;
   state.extra = state.extra.map(x => (x === old ? name : x));
+  state.brandOrder = state.brandOrder.map(x => (x === old ? name : x));
   state.tabs[name] = state.tabs[old] || { nodes: [], edges: [] };
   delete state.tabs[old];
   if (state.tab === old) state.tab = name;
@@ -1251,6 +1307,7 @@ function deleteCanvas(name){
     : 'Delete "' + name + '"?';
   if (!confirm(warn)) return;
   state.extra = state.extra.filter(x => x !== name);
+  state.brandOrder = state.brandOrder.filter(x => x !== name);
   delete state.tabs[name];
   markDirty();
   if (state.tab === name) switchTab(TABS[0]); else { render(); applyTabMode(); }
@@ -1465,6 +1522,7 @@ function renderTabs(){
     b.className = 'tab-sub' + (active ? ' active' : '');
     b.title = label;
     const lab = document.createElement('span');
+    lab.className = 'sub-label';
     lab.textContent = label;
     b.append(lab);
     if (count){
@@ -1512,6 +1570,42 @@ function renderTabs(){
         const t = state.tabs[name] || { nodes: [] };
         const cards = (t.nodes || []).filter(x => x.type !== 'group').length;
         const b = subButton(name, onBoard && name === state.tab, () => switchTab(name), cards);
+        if (!readOnly()){
+          /* drag to reorder: the grip shows on hover, a line shows where it lands */
+          const grip = document.createElement('span');
+          grip.className = 'sub-grip';
+          grip.textContent = '\u22ee\u22ee';
+          grip.title = 'Drag to reorder';
+          b.prepend(grip);
+          b.classList.add('sub-drag');
+          b.draggable = true;
+          b.addEventListener('dragstart', ev => {
+            ev.dataTransfer.setData('text/sb-canvas', name);
+            ev.dataTransfer.effectAllowed = 'move';
+            b.classList.add('dragging');
+          });
+          b.addEventListener('dragend', () => {
+            b.classList.remove('dragging');
+            box.querySelectorAll('.drop-before,.drop-after')
+               .forEach(x => x.classList.remove('drop-before', 'drop-after'));
+          });
+          b.addEventListener('dragover', ev => {
+            if (Array.prototype.indexOf.call(ev.dataTransfer.types, 'text/sb-canvas') === -1) return;
+            ev.preventDefault(); ev.stopPropagation();
+            const r = b.getBoundingClientRect();
+            const after = ev.clientY > r.top + r.height / 2;
+            b.classList.toggle('drop-after', after);
+            b.classList.toggle('drop-before', !after);
+          });
+          b.addEventListener('dragleave', () => b.classList.remove('drop-before', 'drop-after'));
+          b.addEventListener('drop', ev => {
+            ev.preventDefault(); ev.stopPropagation();
+            const from = ev.dataTransfer.getData('text/sb-canvas');
+            const after = b.classList.contains('drop-after');
+            b.classList.remove('drop-before', 'drop-after');
+            if (from) moveCanvas(from, name, after);
+          });
+        }
         /* the five that ship are fixed; only added ones can be renamed or removed */
         if (BRAND_DEFAULT.indexOf(name) === -1 && !readOnly()){
           b.title = name + ' \u2014 double-click to rename';
@@ -2625,7 +2719,8 @@ function serialize(){
   const tabs = {};
   Object.keys(state.tabs).forEach(k => { if (k !== FRAME_TAB) tabs[k] = state.tabs[k]; });
   return JSON.stringify({ version: 3, client: state.client, logo: state.logo || '',
-                          extra: state.extra, frameEdits: state.frameEdits, tabs: tabs });
+                          extra: state.extra, brandOrder: state.brandOrder,
+                          frameEdits: state.frameEdits, tabs: tabs });
 }
 function hydrate(text){
   let d = null;
@@ -2633,6 +2728,8 @@ function hydrate(text){
   state.tabs = blankTabs();
   state.extra = [];
   state.frameEdits = (d && d.frameEdits && typeof d.frameEdits === 'object') ? d.frameEdits : {};
+  state.brandOrder = (d && Array.isArray(d.brandOrder))
+    ? d.brandOrder.filter(x => typeof x === 'string') : [];
   state.frameIndex = -1;
   if (d && d.tabs){
     /* This tab has been called Document Gallery and then Repo. A board saved
@@ -2726,6 +2823,7 @@ function newBoard(){
   state.tabs = blankTabs();
   state.extra = [];
   state.frameEdits = {};
+  state.brandOrder = [];
   state.frameIndex = -1;
   state.tab = TABS[0];
   clearSel();
@@ -3821,14 +3919,99 @@ function cellKeywords(comp, type){
    old boards are read forward rather than reset. */
 function cellState(m, key){
   const raw = m.cells[key];
-  if (raw === true) return { on: true, mode: 'aeo' };
-  if (raw && typeof raw === 'object') return { on: !!raw.on, mode: raw.mode === 'seo' ? 'seo' : 'aeo' };
-  return { on: false, mode: 'aeo' };
+  if (raw === true) return { on: true, mode: 'aeo', type: '' };
+  if (raw && typeof raw === 'object'){
+    return { on: !!raw.on, mode: raw.mode === 'seo' ? 'seo' : 'aeo', type: raw.type || '' };
+  }
+  return { on: false, mode: 'aeo', type: '' };
 }
 function setCellState(m, key, st){
-  /* AEO with the tick off is the default, so it need not be stored */
-  if (!st.on && st.mode === 'aeo') delete m.cells[key];
-  else m.cells[key] = { on: st.on, mode: st.mode };
+  /* AEO with the tick off and no kind is the default, so it need not be stored */
+  if (!st.on && st.mode === 'aeo' && !st.type) delete m.cells[key];
+  else m.cells[key] = { on: st.on, mode: st.mode, type: st.type || '' };
+}
+
+/* ---- shared cell furniture ----
+   The article-kind dropdown, the keyword evidence with its volume total, and
+   the sum itself. Used by the competitor matrix and the three tables alike. */
+function volumeTotal(rows){
+  return rows.reduce(function(sum, r){
+    const v = r.volume == null ? 0 : Number(r.volume);
+    return sum + (isNaN(v) ? 0 : v);
+  }, 0);
+}
+
+function kindSelect(current, disabled, onPick){
+  const types = articleTypes();
+  const sel = document.createElement('select');
+  sel.className = 'gr-kind' + (current ? ' set' : '');
+  sel.disabled = disabled;
+  sel.title = 'What kind of article is this?';
+  const none = document.createElement('option');
+  none.value = '';
+  none.textContent = 'Article type\u2026';
+  sel.append(none);
+  types.forEach(function(t){
+    const o = document.createElement('option');
+    o.value = t.id;
+    o.textContent = t.name;
+    sel.append(o);
+  });
+  /* a type deleted from Settings should not silently blank the cell */
+  if (current && !types.some(function(t){ return t.id === current; })){
+    const gone = document.createElement('option');
+    gone.value = current;
+    gone.textContent = '(removed type)';
+    sel.append(gone);
+  }
+  sel.value = current || '';
+  sel.onchange = function(){
+    sel.classList.toggle('set', !!sel.value);
+    onPick(sel.value);
+  };
+  sel.onkeydown = function(ev){ ev.stopPropagation(); };
+  return sel;
+}
+
+/* Keywords as evidence under a cell, each with its volume, and the total at
+   the foot: two keywords at 50 each read as 100. */
+function keywordBlock(rows){
+  const frag = document.createDocumentFragment();
+  if (!rows.length) return frag;
+  const list = document.createElement('div');
+  list.className = 'mx-kws';
+  rows.forEach(function(r){
+    const line = document.createElement('div');
+    line.className = 'mx-kw';
+    const nm = document.createElement('span');
+    nm.textContent = r.keyword;
+    nm.title = r.keyword;
+    const vol = document.createElement('em');
+    vol.textContent = r.volume == null ? '' : Number(r.volume).toLocaleString();
+    line.append(nm, vol);
+    list.append(line);
+  });
+  frag.append(list);
+  const tot = document.createElement('div');
+  tot.className = 'kw-total';
+  const lab = document.createElement('span');
+  lab.textContent = rows.length + ' keyword' + (rows.length === 1 ? '' : 's');
+  const sum = document.createElement('em');
+  sum.textContent = volumeTotal(rows).toLocaleString() + ' total';
+  sum.title = 'Search volume of every keyword in this cell, added up';
+  tot.append(lab, sum);
+  frag.append(tot);
+  return frag;
+}
+
+/* Which repo keywords belong to a table cell: any keyword that contains the
+   cell's own words. Three letters is the floor, or "ai" would catch the lot. */
+function gridCellKeywords(text){
+  const t = String(text || '').trim().toLowerCase();
+  if (t.length < 3) return [];
+  return kwRows.filter(function(r){
+    return String(r.keyword || '').toLowerCase().indexOf(t) !== -1;
+  });
 }
 
 /* ---- article types ----
@@ -3850,19 +4033,19 @@ function articleTypes(){
    Strings are still read, so nothing saved earlier is lost. */
 function cellOf(row, colId){
   const c = row.cells[colId];
-  if (typeof c === 'string') return { v: c, mode: 'aeo', type: '' };
+  if (typeof c === 'string') return { v: c, mode: 'aeo', type: '', on: false };
   if (c && typeof c === 'object'){
-    return { v: c.v || '', mode: c.mode === 'seo' ? 'seo' : 'aeo', type: c.type || '' };
+    return { v: c.v || '', mode: c.mode === 'seo' ? 'seo' : 'aeo', type: c.type || '', on: !!c.on };
   }
-  return { v: '', mode: 'aeo', type: '' };
+  return { v: '', mode: 'aeo', type: '', on: false };
 }
 
 /* An empty cell is left out of the record entirely, so a blank table saves as
    a blank table rather than four hundred little objects. */
 function setCellIn(row, colId, patch){
   const c = Object.assign(cellOf(row, colId), patch);
-  if (!c.v && !c.type && c.mode === 'aeo') delete row.cells[colId];
-  else row.cells[colId] = { v: c.v, mode: c.mode, type: c.type };
+  if (!c.v && !c.type && c.mode === 'aeo' && !c.on) delete row.cells[colId];
+  else row.cells[colId] = { v: c.v, mode: c.mode, type: c.type, on: c.on };
 }
 
 function renderArticleTypes(){
@@ -4150,8 +4333,8 @@ function renderMatrix(){
       const st = cellState(m, cellKey);
       td.className = 'mx-cell' + (st.on ? ' planned' : '') + (rows.length ? '' : ' empty-cell');
 
-      /* One row per cell: the tick, the article type it stands for, and
-         whether the piece is aimed at search or at answer engines. */
+      /* The tick on top; the mode and the article kind in a foot row that
+         stays out of sight on an empty, unticked cell until you hover it. */
       const plan = document.createElement('div');
       plan.className = 'mx-plan';
 
@@ -4161,7 +4344,7 @@ function renderMatrix(){
       pcb.disabled = ro;
       pcb.title = 'Mark this article as one you are writing, keyword or not';
       pcb.onchange = function(){
-        setCellState(m, cellKey, { on: pcb.checked, mode: st.mode });
+        setCellState(m, cellKey, { on: pcb.checked, mode: st.mode, type: st.type });
         markDirty();
         renderMatrix();
       };
@@ -4169,33 +4352,25 @@ function renderMatrix(){
       const ptx = document.createElement('span');
       ptx.textContent = (ty.name || '').trim() || 'Write this';
       ptx.style.cssText = 'overflow:hidden;text-overflow:ellipsis;white-space:nowrap';
-
-      const mode = modeSwitch(st.mode, ro, function(kind){
-        setCellState(m, cellKey, { on: st.on, mode: kind });
-        markDirty();
-        renderMatrix();
-      });
-
-      plan.append(pcb, ptx, mode);
+      plan.append(pcb, ptx);
       td.append(plan);
 
-      if (rows.length){
-        const list = document.createElement('div');
-        list.className = 'mx-kws';
-        /* The cell carries the single approval; keywords are shown as evidence. */
-        rows.forEach(function(r){
-          const line = document.createElement('div');
-          line.className = 'mx-kw';
-          const nm = document.createElement('span');
-          nm.textContent = r.keyword;
-          nm.title = r.keyword;
-          const vol = document.createElement('em');
-          vol.textContent = r.volume == null ? '' : Number(r.volume).toLocaleString();
-          line.append(nm, vol);
-          list.append(line);
-        });
-        td.append(list);
-      }
+      const foot = document.createElement('div');
+      foot.className = 'mx-foot';
+      foot.append(modeSwitch(st.mode, ro, function(kind){
+        setCellState(m, cellKey, { on: st.on, mode: kind, type: st.type });
+        markDirty();
+        renderMatrix();
+      }));
+      foot.append(kindSelect(st.type, ro, function(kindId){
+        setCellState(m, cellKey, { on: st.on, mode: st.mode, type: kindId });
+        markDirty();
+      }));
+      td.append(foot);
+
+      /* The cell carries the single approval; keywords are shown as evidence,
+         with their search volume added up underneath. */
+      if (rows.length) td.append(keywordBlock(rows));
       /* seeding a keyword needs both names, so only offer it once they exist */
       if (!ro && (comp.name || '').trim() && (ty.name || '').trim()){
         const add = document.createElement('button');
@@ -4227,9 +4402,10 @@ function renderGrid(){
 
   const heading = $('mxHeading');
   if (heading) heading.textContent = vd.label;
-  $('mxIntro').textContent = 'Type straight into the table. Every cell carries its own '
-    + 'AEO or SEO choice and its own article type, because both follow the keyword. '
-    + 'The list of article types is under Settings.';
+  $('mxIntro').textContent = 'Type straight into the table. Keywords in the repo that '
+    + 'contain a cell\u2019s words show under it with their volume added up. Each cell '
+    + 'carries its own tick, AEO or SEO choice and article type; hover an empty cell to '
+    + 'see them.';
   $('mxSetup').hidden = true;
   $('btnAddCompetitor').textContent = '+ Row';
   $('btnAddType').textContent = '+ Column';
@@ -4313,64 +4489,81 @@ function renderGrid(){
     num.append(wrap);
     tr.append(num);
 
-    const types = articleTypes();
-
     v.columns.forEach(function(col, ci){
       const cell = cellOf(row, col.id);
+      const kws = gridCellKeywords(cell.v);
       const td = document.createElement('td');
-      td.className = 'gr-cell' + (cell.v ? '' : ' empty');
+      const quiet = !cell.v && !cell.on && !kws.length;
+      td.className = 'gr-cell' + (quiet ? ' empty' : '') + (cell.on ? ' planned' : '');
 
       const inp = document.createElement('input');
       inp.type = 'text';
       inp.value = cell.v;
       inp.disabled = ro;
       if (i === 0 && ci === 0) inp.placeholder = 'Type here\u2026';
-      inp.oninput = function(){
-        setCellIn(row, col.id, { v: inp.value });
-        td.classList.toggle('empty', !inp.value);
-        markDirty();
-      };
       td.append(inp);
 
-      /* mode and article type belong to the keyword in this cell, not to the
-         row: the same category can be worth an AEO listicle in one column and
-         an SEO explainer in the next */
+      /* the keywords this cell's words catch in the repo, with their total */
+      const kwHost = document.createElement('div');
+      kwHost.className = 'gr-kws';
+      kwHost.append(keywordBlock(kws));
+      td.append(kwHost);
+
+      /* typed straight into state; only this cell's evidence is repainted,
+         a beat after typing stops, so the caret is never disturbed */
+      let paintTimer = null;
+      inp.oninput = function(){
+        setCellIn(row, col.id, { v: inp.value });
+        markDirty();
+        clearTimeout(paintTimer);
+        paintTimer = setTimeout(function(){
+          const now = cellOf(row, col.id);
+          const rows2 = gridCellKeywords(now.v);
+          kwHost.innerHTML = '';
+          kwHost.append(keywordBlock(rows2));
+          td.classList.toggle('empty', !now.v && !now.on && !rows2.length);
+        }, 250);
+      };
+
+      /* the foot: the tick, the mode, the kind, and a way to add a keyword.
+         All of it belongs to the keyword in this cell, not to the row. */
       const foot = document.createElement('div');
       foot.className = 'gr-foot';
+
+      const tick = document.createElement('input');
+      tick.type = 'checkbox';
+      tick.className = 'gr-tick';
+      tick.checked = cell.on;
+      tick.disabled = ro;
+      tick.title = 'Write this \u2014 mark it as an article you are producing';
+      tick.onchange = function(){
+        setCellIn(row, col.id, { on: tick.checked });
+        td.classList.toggle('planned', tick.checked);
+        const now = cellOf(row, col.id);
+        td.classList.toggle('empty', !now.v && !now.on && !gridCellKeywords(now.v).length);
+        markDirty();
+      };
+      foot.append(tick);
+
       foot.append(modeSwitch(cell.mode, ro, function(kind){
         setCellIn(row, col.id, { mode: kind });
         markDirty();
         renderGrid();
       }));
 
-      const kind = document.createElement('select');
-      kind.className = 'gr-kind' + (cell.type ? ' set' : '');
-      kind.disabled = ro;
-      kind.title = 'What kind of article is this?';
-      const none = document.createElement('option');
-      none.value = '';
-      none.textContent = 'Article type\u2026';
-      kind.append(none);
-      types.forEach(function(t){
-        const o = document.createElement('option');
-        o.value = t.id;
-        o.textContent = t.name;
-        kind.append(o);
-      });
-      /* a type deleted from Settings should not silently blank the cell */
-      if (cell.type && !types.some(function(t){ return t.id === cell.type; })){
-        const gone = document.createElement('option');
-        gone.value = cell.type;
-        gone.textContent = '(removed type)';
-        kind.append(gone);
-      }
-      kind.value = cell.type;
-      kind.onchange = function(){
-        setCellIn(row, col.id, { type: kind.value });
-        kind.classList.toggle('set', !!kind.value);
+      foot.append(kindSelect(cell.type, ro, function(kindId){
+        setCellIn(row, col.id, { type: kindId });
         markDirty();
-      };
-      foot.append(kind);
+      }));
+
+      if (!ro){
+        const add = document.createElement('button');
+        add.className = 'gr-kwadd';
+        add.textContent = '+ kw';
+        add.title = 'Add a keyword to the repo that lands in this cell';
+        add.onclick = function(){ openKeywordModal((cellOf(row, col.id).v || '').trim()); };
+        foot.append(add);
+      }
       td.append(foot);
 
       tr.append(td);
@@ -4409,8 +4602,9 @@ function renderContent(){
   if (vd.kind === 'grid') renderGrid(); else renderMatrix();
 }
 
+/* Every content view reads the keyword repo now: the matrix matches on
+   competitor and article type, the tables match on the cell's own words. */
 async function refreshMatrix(){
-  if (viewDef(state.contentView).kind === 'grid'){ renderGrid(); return; }
   const err = await loadKeywords();
   if (err && err !== 'no-board'){
     $('mxSetup').hidden = false;
@@ -4418,13 +4612,16 @@ async function refreshMatrix(){
       + '  Has supabase-keywords.sql been run?';
     kwRows = [];
   }
-  renderMatrix();
+  renderContentView();
+}
+function renderContentView(){
+  if (viewDef(state.contentView).kind === 'grid') renderGrid(); else renderMatrix();
 }
 
 /* Keep both keyword views in step when one of them changes a row. */
 function repaintKeywordViews(){
   if (state.tab === KEYWORDS_TAB) renderKeywordTables();
-  if (state.tab === CONTENT_TAB) renderMatrix();
+  if (state.tab === CONTENT_TAB) renderContentView();
 }
 
 function switchContentView(id){
