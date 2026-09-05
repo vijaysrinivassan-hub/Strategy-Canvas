@@ -11,22 +11,25 @@
   /* Tokens lifted from the Maximus Labs Content Dashboard so this tool reads
      as part of the same product. The dashboard is light-only, so this is too. */
   :root{
-    --bg:#f6f7f9; --panel:#ffffff; --ink:#181a20; --ink-2:#3f4451;
-    --muted:#6b7280; --faint:#9aa1ac;
-    --line:#e9eaee; --line-2:#f1f2f4;
-    --accent:#2563eb; --accent-d:#1d4ed8; --accent-soft:#eaf1fe;
-    --ok:#15803d; --ok-bg:#e7f6ec; --ok-border:#c3e6cf;
-    --danger:#dc2626; --danger-bg:#fef2f2; --danger-border:#fecaca;
-    --cli:#b45309; --cli-bg:#fdf0dc;
-    --shadow:0 1px 2px rgba(16,24,40,.04),0 1px 3px rgba(16,24,40,.05);
-    --shadow-lift:0 6px 18px rgba(16,24,40,.09);
-    --dock-shadow:0 6px 20px rgba(16,24,40,.12);
+    /* A quiet, neutral system: grey page, near-white content panel, white
+       cards with hairline borders, and black where a colour used to shout. */
+    --bg:#f4f4f5; --panel:#ffffff; --surface:#fafafa;
+    --ink:#111114; --ink-2:#3d4047;
+    --muted:#6b6f78; --faint:#9a9ea7;
+    --line:#e6e6ea; --line-2:#efeff2;
+    --accent:#111114; --accent-d:#000000; --accent-soft:#eef3f9;
+    --ok:#1f7a3f; --ok-bg:#e7f5ec; --ok-border:#cfe9d8;
+    --danger:#c62828; --danger-bg:#fdf1f1; --danger-border:#f3c9c9;
+    --cli:#8a5a12; --cli-bg:#fdf0dc;
+    --shadow:0 1px 2px rgba(17,17,20,.04),0 1px 3px rgba(17,17,20,.04);
+    --shadow-lift:0 8px 24px rgba(17,17,20,.08);
+    --dock-shadow:0 6px 20px rgba(17,17,20,.10);
 
     /* aliases so the canvas code keeps reading naturally */
-    --border:#e9eaee;
-    --sidebar:#ffffff;
-    --wire:#9aa1ac;
-    --grid:#dfe1e6;
+    --border:#e6e6ea;
+    --sidebar:#f4f4f5;
+    --wire:#9a9ea7;
+    --grid:#e2e3e7;
 
     /* Obsidian card colours, kept */
     --n1:#e5484d; --n2:#f76b15; --n3:#e0b700; --n4:#30a46c; --n5:#00a2c7; --n6:#8e4ec6;
@@ -881,6 +884,137 @@
          box-shadow:var(--shadow); color:var(--ok); background:var(--ok-bg);
          border:1px solid var(--ok-border)}
   .toast.bad{color:var(--danger); background:var(--danger-bg); border-color:var(--danger-border)}
+
+  /* ==================================================================
+     THEME — the quiet portal look: grey page, an inset near-white panel,
+     white cards on hairlines, black for the one action that matters.
+     Written last so it wins over the component rules above.
+     ================================================================== */
+  body{background:var(--bg); color:var(--ink)}
+  .shell{background:var(--bg)}
+
+  /* ---- sidebar: same grey as the page, no wall between them ---- */
+  .sidebar{background:transparent; border-right:none}
+  .side-head{padding:20px 20px 10px; border-bottom:none}
+  .client-head{font-size:15px; font-weight:800; letter-spacing:-.02em}
+  .side-head .sub{font-size:11px; color:var(--faint); font-weight:500}
+  .tabs{padding:6px 12px 12px}
+  .nav-label{font-size:10.5px; font-weight:600; letter-spacing:.09em; text-transform:uppercase;
+             color:var(--faint); padding:16px 10px 6px}
+  .tabs > .nav-label:first-child{padding-top:4px}
+  .tab{padding:7px 10px; border-radius:9px; font-size:13.5px; color:var(--ink-2);
+       border:1px solid transparent; margin-bottom:2px}
+  .tab svg{color:var(--muted)}
+  .tab:hover{background:rgba(17,17,20,.045); border-color:transparent}
+  .tab.active{background:#fff; color:var(--ink); border-color:var(--line);
+              box-shadow:var(--shadow); font-weight:600}
+  .tab.active svg{color:var(--ink)}
+  .tab.active .n{color:var(--muted); background:var(--line-2)}
+  .tab .chev{color:var(--faint)}
+  .tab-sub{padding:6px 10px 6px 36px; border-radius:9px; font-size:13px; color:var(--muted);
+           border:1px solid transparent}
+  .tab-sub:hover{background:rgba(17,17,20,.045); color:var(--ink); border-color:transparent}
+  .tab-sub.active{background:#fff; color:var(--ink); border-color:var(--line);
+                  box-shadow:var(--shadow); font-weight:600}
+  .tab-sub.active .n{color:var(--muted)}
+  .tab-sub.sub-add{color:var(--ink-2)}
+  .tab-sub.sub-add:hover{background:rgba(17,17,20,.045)}
+  .save-line{padding:0 20px 14px; color:var(--faint)}
+
+  /* ---- top bar: a breadcrumb, not a banner ---- */
+  .toolbar{background:transparent; backdrop-filter:none; border-bottom:none;
+           padding:16px 22px 10px 18px; gap:8px}
+  .crumb{font-size:10.5px; font-weight:600; letter-spacing:.09em; text-transform:uppercase;
+         color:var(--muted)}
+  .crumb-sep{color:var(--faint); font-size:15px; line-height:1; margin:0 2px}
+  .toolbar h2{font-size:14px; font-weight:600; letter-spacing:0; color:var(--ink)}
+  .frame-pick{border-radius:999px; padding:6px 12px; color:var(--ink-2)}
+  .frame-pick:hover{border-color:#cfd0d6; color:var(--ink)}
+  .acct-btn{border-radius:999px}
+  .acct-btn:hover{border-color:#cfd0d6}
+  .acct.client .acct-btn{background:var(--cli-bg); border-color:#efd9b7}
+  .ro-note, .ro-frame{border-radius:999px; font-size:12px}
+
+  /* ---- the content panel, inset from the edges like a sheet on a desk ---- */
+  .main > .viewport, .main > .repo, .main > .chan, .main > .kw, .main > .mx,
+  .main > .frame-note, .main > .clients, .main > .mcp{
+    margin:0 16px 16px 2px; border-radius:14px; border:1px solid var(--line);
+    background:var(--surface); box-shadow:var(--shadow);
+  }
+  .viewport{background-color:var(--surface)}
+  .frame-note{background:var(--surface)}
+  .fit-dot{border-radius:10px; box-shadow:var(--shadow)}
+
+  /* ---- buttons: hairline pills, and one black one per page ---- */
+  button{border-radius:10px; border-color:var(--line); color:var(--ink); font-weight:600;
+         box-shadow:0 1px 1px rgba(17,17,20,.03)}
+  button:hover:not(:disabled){background:#f7f7f8; border-color:#d3d4da}
+  button.sp, button.primary, #btnAddColumn, #btnAddChannel, #btnKwAdd, #btnTypeAdd, #btnFrameExport{
+    background:var(--accent); border-color:var(--accent); color:#fff; border-radius:999px;
+    padding:8px 16px; box-shadow:none;
+  }
+  button.sp:hover:not(:disabled), button.primary:hover:not(:disabled), #btnAddColumn:hover:not(:disabled),
+  #btnAddChannel:hover:not(:disabled), #btnKwAdd:hover:not(:disabled), #btnTypeAdd:hover:not(:disabled),
+  #btnFrameExport:hover:not(:disabled){background:var(--accent-d); border-color:var(--accent-d); color:#fff}
+  .repo-newrow{border-radius:999px}
+  .rrow-head button, .doc-acts button, .kw-head button, .mx-lab .x, .rrow-head .x,
+  .at-row .x, .rlink button, .gr-kwadd{box-shadow:none}
+
+  /* ---- page headings inside a panel: eyebrow-free, big, quiet subtitle ---- */
+  .mx-head h3, .chan-head h3{font-size:22px; font-weight:700; letter-spacing:-.02em; margin-bottom:4px}
+  .mx-head p, .chan-head p{font-size:13px; color:var(--muted)}
+  .kw-head h3{font-size:10.5px; letter-spacing:.09em; color:var(--muted)}
+  .page-intro{font-size:13px}
+
+  /* ---- cards: white, hairline, still ---- */
+  .card, .rrow, .repo-side, .pane, .modal, .kw-table-wrap, .at-row, .chan-item,
+  .frame-note .sheet{border-color:var(--line); border-radius:12px; box-shadow:var(--shadow)}
+  .card:hover{transform:none; box-shadow:var(--shadow); border-color:#d3d4da}
+  .doc{border-radius:10px; box-shadow:none}
+  .rlink{background:var(--accent-soft); border-color:#dfe7f1}
+  .rlink svg{stroke:var(--ink-2)}
+  .rlink a{color:var(--ink)}
+
+  /* ---- tables: headers as eyebrows, hairline rows ---- */
+  .mx-table thead th, .kw-table thead th{
+    background:var(--surface); font-size:10.5px; font-weight:600; letter-spacing:.08em;
+    text-transform:uppercase; color:var(--muted);
+  }
+  .mx-table tbody tr:hover td, .mx-table tbody tr:hover th{background:#f7f7f8}
+  .kw-table tbody tr:hover{background:#f7f7f8}
+  .kw-head > span:first-of-type{color:var(--ink-2)}
+  .kw-head input[type=search]{border-radius:999px}
+  .mx-mode{border-radius:999px}
+  .mx-mode button.on{background:var(--ink); color:#fff}
+  .mx-mode button.on:hover:not(:disabled){background:#000; color:#fff}
+  .gr-kind{border-radius:999px}
+  .kw-total{background:var(--surface)}
+  .mx-cell.planned, .gr-cell.planned{background:#f2f9f4}
+
+  /* ---- status: dot pills, the way the design tags a row ---- */
+  .rrow-head .n, .repo-side-head .n, .at-row .n{
+    border-radius:999px; background:var(--line-2); color:var(--ink-2); border:none;
+  }
+
+  /* ---- canvas: selection in ink with a cool ring, wires in grey ---- */
+  .node{border-color:var(--line); box-shadow:var(--shadow)}
+  .node.sel{border-color:var(--ink); box-shadow:0 0 0 3px var(--accent-soft), var(--shadow)}
+  .palette, .pal-pop{border-radius:12px}
+  .palette .tool.on{background:var(--line-2); color:var(--ink)}
+  .marquee{border-color:var(--ink); background:rgba(17,17,20,.05)}
+  .guide{background:var(--ink)}
+
+  /* ---- sign-in, toasts, menus ---- */
+  .gate{background:var(--bg)}
+  .gate-card{border-radius:16px; box-shadow:var(--shadow-lift)}
+  .gate-card .logo{background:var(--ink)}
+  .toast{background:var(--ink); color:#fff; border-radius:999px; border:none}
+  .acct-menu, .pal-pop{box-shadow:var(--shadow-lift)}
+  .acct-opt.on{background:var(--line-2)}
+  .acct-opt.on b{color:var(--ink)}
+  .acct-face{background:var(--ink)}
+  .sub-dot{color:var(--cli)}
+  ::-webkit-scrollbar-thumb{background:#d6d7dc; border-color:var(--surface)}
 </style>
 </head>
 <body>
@@ -911,6 +1045,8 @@
 
   <div class="main">
     <div class="toolbar">
+      <span class="crumb" id="crumb">Brand Strategy</span>
+      <span class="crumb-sep">&rsaquo;</span>
       <h2 id="tabTitle">Product Architecture</h2>
       <span class="ro-note" id="roNote" hidden>View only &mdash; this board belongs to someone else</span>
       <span class="ro-frame" id="roFrame" hidden>
@@ -1135,7 +1271,7 @@ const SUPABASE_URL = 'https://cskamgfvebryahkljlll.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_MdkD-TxMCIwlu69seSHA3Q_A39GADsK';
 const CLIENT_ID    = '1059013355751-6g50dsgm7df37htl2fdqrtlkh5hmrc0c.apps.googleusercontent.com';
 const ALLOWED      = ['vijaysrinivassan@gmail.com'];
-const BUILD        = 'v5.7';
+const BUILD        = 'v5.8';
 
 const TABS = [
   'Product Architecture',
@@ -1182,13 +1318,16 @@ function moveCanvas(from, to, after){
 }
 const isBrandTab = name => brandTabs().indexOf(name) > -1;
 const NAV = [
+  { kind: 'label',  text: 'Strategy' },
   { kind: 'group',  id: 'brand',   label: 'Brand Strategy' },
   { kind: 'tab',    name: 'Channel Strategy' },
   { kind: 'group',  id: 'content', label: 'Content Strategy', tab: 'Content Strategy' },
+  { kind: 'label',  text: 'Research' },
   { kind: 'tab',    name: 'Keyword Repo' },
   { kind: 'tab',    name: 'Grounded Evidences' },
   { kind: 'group',  id: 'frames',   label: 'Frames' },
   { kind: 'spacer' },
+  { kind: 'label',  text: 'Account' },
   { kind: 'group',  id: 'settings', label: 'Settings',
     screens: [{ id: 'clients', label: 'Clients' },
               { id: 'atypes',  label: 'Article Types' },
@@ -1555,6 +1694,14 @@ function renderTabs(){
     if (clientView()){
       if (item.kind === 'tab' && CLIENT_HIDDEN_TABS.indexOf(item.name) !== -1) return;
       if (item.kind === 'group' && CLIENT_HIDDEN_GROUPS.indexOf(item.id) !== -1) return;
+      if (item.kind === 'label' && item.text === 'Account') return;   /* nothing under it */
+    }
+    if (item.kind === 'label'){
+      const l = document.createElement('div');
+      l.className = 'nav-label';
+      l.textContent = item.text;
+      box.append(l);
+      return;
     }
     if (item.kind === 'spacer'){
       const sp = document.createElement('div');
@@ -1697,7 +1844,10 @@ function renderTabs(){
   });
 
   /* off-board screens set their own title in applyTabMode */
-  if (onBoard && !inFrame()) $('tabTitle').textContent = state.tab;
+  if (onBoard && !inFrame()){
+    /* the crumb already says Content Strategy; the title is the view itself */
+    $('tabTitle').textContent = state.tab === CONTENT_TAB ? viewDef(state.contentView).label : state.tab;
+  }
 }
 
 /* Screens that are not board tabs: Clients, MCP. */
@@ -3337,6 +3487,7 @@ function applyTabMode(){
     $('btnFrameExport').hidden = true;
     ['btnFit','framePick','btnFrameExport'].forEach(id => { $(id).hidden = true; });
     $('tabTitle').textContent = onClients ? 'Clients' : onTypes ? 'Article Types' : 'MCP';
+    renderCrumb();
     applyRole();
     return;
   }
@@ -3374,6 +3525,7 @@ function applyTabMode(){
   if (isChan) renderChannels();
   if (isKw && state.user) refreshKeywords();
   if (isMx) refreshMatrix();   /* grids need no database, so no user check */
+  renderCrumb();
   applyRole();
 }
 
@@ -5121,6 +5273,19 @@ async function openAccessModal(board){
   input.onkeydown = ev => { if (ev.key === 'Enter') grant(); };
 
   refresh();
+}
+
+/* The eyebrow before the title: which part of the board you are in. */
+function renderCrumb(){
+  const el = $('crumb');
+  if (!el) return;
+  let c = 'Strategy';
+  if (state.screen !== 'board') c = 'Settings';
+  else if (inFrame()) c = 'Frames';
+  else if (isBrandTab(state.tab)) c = 'Brand Strategy';
+  else if (state.tab === CONTENT_TAB) c = 'Content Strategy';
+  else if (state.tab === KEYWORDS_TAB || state.tab === DOCS_TAB) c = 'Research';
+  el.textContent = c;
 }
 
 /* Hide every control a viewer must not have. */
