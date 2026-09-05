@@ -184,12 +184,12 @@ present whether or not a keyword — plenty of articles get written without one.
 the cell, so it never reads as a keyword selection.
 
 Keywords beneath it are shown as evidence, not as separate choices: the cell is
-what you approve. Selecting individual keywords stays in the Keyword Repo.
+what you approve.
 
-**Keyword Repo** is two stacked tables. The lower one holds everything pulled
-from Ahrefs; the upper one holds what you have chosen. `+` on a repo row
-promotes it, `−` on a selected row sends it back — the only thing that changes is
-a `selected` flag on the row. A filter box narrows the repo.
+**Keyword Repo** is one table: everything pulled from Ahrefs or pushed through
+the MCP, with a filter box to narrow it. There is no separate "selected" list any
+more — approval lives in the content cells' ticks. A `selected` flag still exists
+on each row for the MCP's sake, but nothing in the app reads it.
 
 Enter keywords three ways: **+ Keyword** for one with its metrics, **Paste rows**
 for a whole Ahrefs export (tab- or comma-separated, header optional), or the

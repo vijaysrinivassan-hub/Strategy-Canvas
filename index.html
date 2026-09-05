@@ -1263,15 +1263,6 @@
 
       <section class="kw-block">
         <div class="kw-head">
-          <h3>Selected keywords</h3>
-          <span id="kwSelCount">0</span>
-          <span class="kw-hint">Press &minus; to send one back to the repo</span>
-        </div>
-        <div class="kw-table-wrap"><table class="kw-table" id="kwSelTable"></table></div>
-      </section>
-
-      <section class="kw-block">
-        <div class="kw-head">
           <h3>Keyword repo</h3>
           <span id="kwRepoCount">0</span>
           <input id="kwSearch" type="search" placeholder="Filter keywords…" autocomplete="off">
@@ -1297,7 +1288,7 @@ const SUPABASE_URL = 'https://cskamgfvebryahkljlll.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_MdkD-TxMCIwlu69seSHA3Q_A39GADsK';
 const CLIENT_ID    = '1059013355751-6g50dsgm7df37htl2fdqrtlkh5hmrc0c.apps.googleusercontent.com';
 const ALLOWED      = ['vijaysrinivassan@gmail.com'];
-const BUILD        = 'v6.1';
+const BUILD        = 'v6.2';
 
 const TABS = [
   'Product Architecture',
@@ -5480,14 +5471,11 @@ async function refreshKeywords(){
   renderKeywordTables();
 }
 
-function kwTable(tableEl, rows, isSelected, emptyMsg){
+function kwTable(tableEl, rows, emptyMsg){
   tableEl.innerHTML = '';
 
   const thead = document.createElement('thead');
   const hr = document.createElement('tr');
-  const th0 = document.createElement('th');
-  th0.textContent = '';
-  hr.append(th0);
   KW_COLS.forEach(c => {
     const th = document.createElement('th');
     th.textContent = c.label;
@@ -5501,23 +5489,13 @@ function kwTable(tableEl, rows, isSelected, emptyMsg){
     const tr = document.createElement('tr');
     const td = document.createElement('td');
     td.className = 'kw-empty';
-    td.colSpan = KW_COLS.length + 1;
+    td.colSpan = KW_COLS.length;
     td.textContent = emptyMsg;
     tr.append(td);
     tbody.append(tr);
   }
   rows.forEach(r => {
     const tr = document.createElement('tr');
-
-    const act = document.createElement('td');
-    act.className = 'act';
-    const btn = document.createElement('button');
-    btn.className = 'kw-move';
-    btn.textContent = isSelected ? '−' : '+';
-    btn.title = isSelected ? 'Move back to the repo' : 'Move up to selected';
-    btn.onclick = () => moveKeyword(r.id, !isSelected);
-    act.append(btn);
-    tr.append(act);
 
     KW_COLS.forEach(c => {
       const td = document.createElement('td');
@@ -5537,30 +5515,13 @@ function renderKeywordTables(overrideEmpty){
   const match = r => !q || String(r.keyword || '').toLowerCase().includes(q)
                      || String(r.parent_topic || '').toLowerCase().includes(q);
 
-  const chosen = kwRows.filter(r => r.selected);
-  const repo   = kwRows.filter(r => !r.selected && match(r));
-
-  $('kwSelCount').textContent = chosen.length;
+  /* one table: everything in the repo, whatever an old selected flag says.
+     Approval lives in the content cells' ticks, not here. */
+  const repo = kwRows.filter(match);
   $('kwRepoCount').textContent = repo.length;
-
-  kwTable($('kwSelTable'), chosen, true,
-    overrideEmpty || 'Nothing selected yet. Press + on a row below.');
-  kwTable($('kwRepoTable'), repo, false,
+  kwTable($('kwRepoTable'), repo,
     overrideEmpty || (kwRows.length ? 'No keywords match that filter.'
                                     : 'The repo is empty. Push keywords in and they appear here.'));
-}
-
-async function moveKeyword(id, selected){
-  if (readOnly()){ toast('You have view-only access to this board.', true); return; }
-  const row = kwRows.find(r => r.id === id);
-  if (row) row.selected = selected;          /* optimistic, so it feels instant */
-  repaintKeywordViews();
-  const { error } = await sb.from('keywords').update({ selected: selected }).eq('id', id);
-  if (error){
-    if (row) row.selected = !selected;
-    repaintKeywordViews();
-    toast('Could not move that keyword: ' + error.message, true);
-  }
 }
 
 /* ===================================================================
