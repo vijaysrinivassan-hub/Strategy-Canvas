@@ -7,7 +7,7 @@ per client, eight tabs per board, each tab its own canvas.
 
 | Action | How |
 |---|---|
-| Add a note | Double-click empty canvas, or **+ Note** |
+| Add a note | Double-click empty canvas |
 | Edit a note | Double-click it, or select it and press `Enter`. `Esc` cancels, `Ctrl/Cmd+Enter` commits |
 | Move a note | Drag it |
 | Paste text | With a card selected it fills that card; with nothing selected it drops one card per blank-line-separated block |
@@ -19,15 +19,14 @@ per client, eight tabs per board, each tab its own canvas.
 | Select everything | `Ctrl/Cmd`+`A` |
 | Move many at once | Drag any selected card; the whole selection follows |
 | Group a selection | **Create group** on the bar above it, or `Ctrl/Cmd`+`G` |
-| Add an empty group | The fourth dock button. Drag cards inside it |
 | Move a group | Drag its label — every card inside travels with it |
 | Rename a group | Double-click its label |
 | Delete | Select a note, connection or group, press `Delete` |
 | Pan | Two-finger swipe on a trackpad, two fingers on a touchscreen, `Space`+drag, or middle-mouse drag |
-| Zoom | Pinch, `Ctrl`+scroll, a mouse wheel, or the toolbar buttons |
+| Zoom | Pinch, `Ctrl`+scroll, or a mouse wheel |
 | Line cards up | **Align** on the bar above them: six edges and centres |
 | Align while dragging | Automatic — edges and centres snap to nearby cards and a guide line shows the match |
-| Frame everything | **Fit** |
+| Frame everything | The dashed-square button in the bottom-right corner |
 | Frame just the selection | **Zoom to selection** on the bar above it |
 
 Selecting anything raises a small bar above it — **Delete**, **Colour**, **Zoom
@@ -90,7 +89,9 @@ there, with its groups and connections intact. The copy gets fresh ids, so the
 same frame can be dropped in twice, and it is yours to edit — the frame itself is
 never touched.
 
-The toolbar carries only the page title and the canvas zoom controls. Boards are
+The toolbar carries only the page title, with the frame picker at its far end.
+The canvas itself stays bare: no add-bar, no hint text, no zoom buttons — just
+the dashed-square Fit button in the bottom-right corner. Boards are
 chosen and created on the Clients screen, saving happens on its own a couple of
 seconds after any change (`Ctrl/Cmd+S` forces it), and the save state sits at the
 foot of the sidebar.
