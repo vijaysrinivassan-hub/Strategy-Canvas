@@ -8,8 +8,9 @@ per client, eight tabs per board, each tab its own canvas.
 | Action | How |
 |---|---|
 | Add a note | Double-click empty canvas, or **+ Note** |
-| Edit a note | Double-click it. `Esc` cancels, `Ctrl/Cmd+Enter` commits |
+| Edit a note | Double-click it, or select it and press `Enter`. `Esc` cancels, `Ctrl/Cmd+Enter` commits |
 | Move a note | Drag it |
+| Paste text | With a card selected it fills that card; with nothing selected it drops one card per blank-line-separated block |
 | Resize a note | Drag the corner grip |
 | Connect two notes | Drag from anywhere along a card's edge onto another card. Nothing is drawn on the edge — the cursor turns to a crosshair — and the wire leaves from the middle of whichever side you grabbed |
 | Colour a note | Select it, then **Colour** on the bar above it |
@@ -32,7 +33,7 @@ per client, eight tabs per board, each tab its own canvas.
 Selecting anything raises a small bar above it — **Delete**, **Colour**, **Zoom
 to selection**, **Create group**, **Align** — each named as you hover it. Nothing
 on it happens on its own: grouping is offered as a choice and waits to be asked.
-A group of one card is allowed; Align needs two.
+Create group and Align both need two or more cards.
 
 Connections are cubic bezier curves that leave each anchor perpendicular to its
 side, which is what gives them their shape, and the target side is chosen
@@ -118,8 +119,20 @@ open unchanged: old columns become rows, keeping their names and the files filed
 under them.
 
 **Content Strategy** opens into four axes in the sidebar — Category, Competitor,
-ICP and Value. Each is its own matrix with its own rows and its own article-type
-columns, so the plan can be sliced four ways without four tabs.
+ICP and Value. Competitor is a matrix; Category, ICP and Value are plain tables
+of 20 rows.
+
+In those three the unit is the **cell**, not the row. Each cell holds the words,
+its own **AEO / SEO** choice and its own **article type**, because both of those
+follow the keyword: the same category can be worth an AEO listicle in one column
+and an SEO explainer in the next. The two controls stay faded on an empty cell
+and come up on hover, so a blank table still reads as a table, and nothing is
+written to the board for a cell you have not filled in.
+
+The list of article types lives under **Settings › Article Types** — Listicle,
+List item and Informational to start, and yours to rename, remove or add to. It
+saves with the client's board, so different clients can keep different lists.
+Removing one that is in use leaves those cells their words and clears the type.
 
 Each matrix has rows down the side, article types across
 the top (Alternatives, Pricing, Reviews, Features to start). Every keyword in the

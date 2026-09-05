@@ -4,6 +4,23 @@ import { CONTENT_VIEWS, loadBoard, ok, saveBoard, tabSlot, ToolError, uid } from
 
 const CONTENT_TAB = "Content Strategy";
 
+/** A table cell used to be a bare string. It now carries the words, whether the
+ *  piece is aimed at answer engines or search engines, and what kind of article
+ *  it becomes — all three follow the keyword, not the row. Old strings still
+ *  read correctly. */
+function readCell(raw: any): { value: string; mode: "aeo" | "seo"; type: string } {
+  if (typeof raw === "string") return { value: raw, mode: "aeo", type: "" };
+  if (raw && typeof raw === "object") {
+    return { value: raw.v || "", mode: raw.mode === "seo" ? "seo" : "aeo", type: raw.type || "" };
+  }
+  return { value: "", mode: "aeo", type: "" };
+}
+
+/** The article types this board offers, as the app seeds them. */
+function articleTypes(root: any): { id: string; name: string }[] {
+  return Array.isArray(root?.articleTypes) ? root.articleTypes : [];
+}
+
 function viewOf(body: any, view: string) {
   const slot = tabSlot(body, CONTENT_TAB);
   if (!slot.views || typeof slot.views !== "object") {
@@ -40,14 +57,34 @@ export function registerContentTools(server: McpServer) {
 
       if (v.kind === "grid") {
         const cols = (v.columns || []).map((c: any) => ({ id: c.id, name: c.name }));
+        const types = articleTypes(body.tabs[CONTENT_TAB]);
+        const typeName = (id: string) => types.find((t) => t.id === id)?.name ?? null;
+
         const rows = (v.rows || [])
           .map((r: any, i: number) => {
-            const cells: Record<string, string> = {};
-            for (const c of cols) if (r.cells?.[c.id]) cells[c.name] = r.cells[c.id];
-            return { row: i + 1, mode: r.mode === "seo" ? "seo" : "aeo", ...cells };
+            const cells: Record<string, any> = {};
+            for (const c of cols) {
+              const cell = readCell(r.cells?.[c.id]);
+              if (!cell.value && !cell.type) continue;
+              cells[c.name] = {
+                value: cell.value,
+                mode: cell.mode,
+                article_type: cell.type ? typeName(cell.type) : null
+              };
+            }
+            return { row: i + 1, cells };
           })
-          .filter((r: any) => Object.keys(r).length > 2);
-        return ok({ view, kind: "grid", data: { columns: cols.map((c: any) => c.name), rows } });
+          .filter((r: any) => Object.keys(r.cells).length);
+
+        return ok({
+          view,
+          kind: "grid",
+          data: {
+            columns: cols.map((c: any) => c.name),
+            article_types: types.map((t) => t.name),
+            rows
+          }
+        });
       }
 
       const types = (v.types || []).filter((t: any) => (t.name || "").trim());
@@ -80,8 +117,10 @@ export function registerContentTools(server: McpServer) {
       title: "Write rows into a content table",
       description:
         "Fill rows of the category, icp or value table. Give each row as an object keyed " +
-        "by column name. Rows are written from the first blank row down; pass replace to " +
-        "clear the table first. Not for the competitor matrix, which uses content_plan_article.",
+        "by column name. Every cell carries its own AEO/SEO choice and article type; mode " +
+        "and article_type here apply to each cell this call writes. Rows are written from " +
+        "the first blank row down; pass replace to clear the table first. Not for the " +
+        "competitor matrix, which uses content_plan_article.",
       inputSchema: {
         board_id: z.string(),
         view: z.enum(["category", "icp", "value"]),
@@ -91,17 +130,37 @@ export function registerContentTools(server: McpServer) {
           .max(200)
           .describe('e.g. [{"Category name":"Attribution","Category synonyms":"MTA"}]'),
         mode: z.enum(["aeo", "seo"]).default("aeo").optional(),
+        article_type: z
+          .string()
+          .optional()
+          .describe("Article type name; content_get lists the ones this board offers"),
         replace: z.boolean().default(false).optional()
       },
       annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false }
     },
-    async ({ board_id, view, rows, mode, replace }) => {
+    async ({ board_id, view, rows, mode, article_type, replace }) => {
       const { body } = await loadBoard(board_id);
       const v = viewOf(body, view);
       if (v.kind !== "grid") throw new ToolError(`The "${view}" view is a matrix, not a table.`);
 
       const byName = new Map<string, string>();
       for (const c of v.columns || []) byName.set(String(c.name).toLowerCase(), c.id);
+
+      const types = articleTypes(body.tabs[CONTENT_TAB]);
+      let typeId = "";
+      if (article_type) {
+        const hit = types.find(
+          (t) => String(t.name).toLowerCase() === article_type.toLowerCase()
+        );
+        if (!hit) {
+          throw new ToolError(
+            `No article type called "${article_type}" on this board. It offers: ` +
+              (types.length ? types.map((t) => t.name).join(", ") : "(none yet)") +
+              `. Add one under Settings > Article Types in the app.`
+          );
+        }
+        typeId = hit.id;
+      }
 
       const unknown = new Set<string>();
       if (replace) v.rows = [];
@@ -113,11 +172,11 @@ export function registerContentTools(server: McpServer) {
           slot = { id: uid(), cells: {} };
           v.rows.push(slot);
         }
-        slot.mode = mode ?? "aeo";
+        delete slot.mode; /* the row no longer carries one; each cell does */
         for (const [k, val] of Object.entries(r)) {
           const id = byName.get(k.toLowerCase());
           if (!id) { unknown.add(k); continue; }
-          slot.cells[id] = val;
+          slot.cells[id] = { v: val, mode: mode ?? "aeo", type: typeId };
         }
         written++;
       }

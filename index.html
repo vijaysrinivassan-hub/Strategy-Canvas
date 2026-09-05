@@ -709,15 +709,46 @@
           border-color:transparent; background:transparent}
   tr:hover .gr-del{opacity:1}
   .gr-del:hover{color:var(--danger); background:var(--danger-bg); border-color:transparent}
-  .gr-cell{padding:0}
-  .gr-mode{position:sticky; left:46px; z-index:2; background:#fff; padding:0 8px}
-  .gr-mode .mx-mode{margin:0}
-  .gr-cell input{
-    width:100%; height:32px; border:none; outline:none; background:transparent;
-    font:inherit; font-size:12.5px; color:var(--ink); padding:0 10px;
+  /* Every cell is its own piece of content: the words, whether it is aimed at
+     answer engines or search engines, and what kind of article it becomes. */
+  .gr-cell{padding:0; vertical-align:top}
+  .gr-cell input[type=text]{
+    width:100%; height:30px; border:none; outline:none; background:transparent;
+    font:inherit; font-size:12.5px; color:var(--ink); padding:0 9px;
   }
-  .gr-cell input:focus{background:#fff; box-shadow:inset 0 0 0 2px var(--accent)}
-  .gr-cell input::placeholder{color:#d5d7dd}
+  .gr-cell input[type=text]:focus{background:#fff; box-shadow:inset 0 0 0 2px var(--accent)}
+  .gr-cell input[type=text]::placeholder{color:#d5d7dd}
+  .gr-foot{display:flex; align-items:center; gap:5px; padding:0 7px 6px}
+  .gr-foot .mx-mode{margin:0; flex:none}
+  .gr-kind{
+    flex:1; min-width:0; height:21px; font:inherit; font-size:10.5px; color:var(--muted);
+    background:var(--panel); border:1px solid var(--line); border-radius:6px;
+    padding:0 4px; outline:none; cursor:pointer;
+  }
+  .gr-kind:hover:not(:disabled){border-color:var(--border); color:var(--ink-2)}
+  .gr-kind.set{color:var(--ink-2); font-weight:500; border-color:var(--border)}
+  .gr-kind:focus{border-color:var(--accent)}
+  /* a cell with nothing in it keeps its controls quiet until you touch it */
+  .gr-cell.empty .gr-foot{opacity:0; transition:opacity .12s}
+  .gr-cell.empty:hover .gr-foot, .gr-cell.empty:focus-within .gr-foot{opacity:1}
+
+  /* Settings > Article Types */
+  .at-list{display:flex; flex-direction:column; gap:8px; max-width:520px; margin-bottom:16px}
+  .at-row{display:flex; align-items:center; gap:10px; background:#fff; padding:10px 12px;
+          border:1px solid var(--line); border-radius:11px; box-shadow:var(--shadow)}
+  .at-row b{flex:1; min-width:0; font-size:13px; font-weight:500; cursor:text;
+            overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+  .at-row input{flex:1; font:inherit; font-size:13px; color:var(--ink); background:var(--bg);
+                border:1px solid var(--accent); border-radius:6px; padding:2px 7px; outline:none}
+  .at-row .n{font-size:10.5px; color:var(--muted); background:var(--line-2);
+             border-radius:999px; padding:2px 8px; flex:none}
+  .at-row .x{padding:2px 8px; font-size:14px; line-height:1; color:var(--muted);
+             border-color:transparent; background:transparent; flex:none}
+  .at-row .x:hover{color:var(--danger); background:var(--danger-bg); border-color:transparent}
+  .at-add{display:flex; gap:8px; max-width:520px}
+  .at-add input{flex:1; font:inherit; font-size:13px; color:var(--ink); background:#fff;
+                border:1px solid var(--border); border-radius:9px; padding:8px 11px; outline:none}
+  .at-add input:focus{border-color:var(--accent)}
 
   /* ================= keyword repo ================= */
   .kw{flex:1; min-height:0; overflow-y:auto; padding:18px 22px 40px; background:var(--bg);
@@ -1018,6 +1049,18 @@
       <div class="grid" id="clientGrid"></div>
     </div>
 
+    <!-- Settings: the article types every table cell can choose from -->
+    <div class="clients" id="typesPane" hidden>
+      <p class="page-intro">The kinds of article a keyword can become. Every cell in the
+        Category, ICP and Value tables picks from this list, so keeping it short keeps
+        those tables readable. Saved with this client's board.</p>
+      <div class="at-list" id="typeList"></div>
+      <div class="at-add">
+        <input id="typeNew" type="text" placeholder="Add an article type&hellip;" maxlength="40">
+        <button class="sp" id="btnTypeAdd">Add</button>
+      </div>
+    </div>
+
     <!-- Content Strategy: competitors x article types, filled from the keyword repo -->
     <div class="mx" id="mxPane" hidden>
       <div class="mx-head">
@@ -1072,7 +1115,7 @@ const SUPABASE_URL = 'https://cskamgfvebryahkljlll.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_MdkD-TxMCIwlu69seSHA3Q_A39GADsK';
 const CLIENT_ID    = '1059013355751-6g50dsgm7df37htl2fdqrtlkh5hmrc0c.apps.googleusercontent.com';
 const ALLOWED      = ['vijaysrinivassan@gmail.com'];
-const BUILD        = 'v5.0';
+const BUILD        = 'v5.1';
 
 const TABS = [
   'Product Architecture',
@@ -1108,7 +1151,9 @@ const NAV = [
   { kind: 'group',  id: 'frames',   label: 'Frames' },
   { kind: 'spacer' },
   { kind: 'group',  id: 'settings', label: 'Settings',
-    screens: [{ id: 'clients', label: 'Clients' }, { id: 'mcp', label: 'MCP' }] }
+    screens: [{ id: 'clients', label: 'Clients' },
+              { id: 'atypes',  label: 'Article Types' },
+              { id: 'mcp',     label: 'MCP' }] }
 ];
 
 /* Only one sidebar group stands open at a time. */
@@ -1565,6 +1610,7 @@ function goScreen(id){
   if (id === 'clients' || id === 'mcp') openNav('settings');
   applyTabMode();
   if (id === 'clients') renderClients();
+  if (id === 'atypes') renderArticleTypes();
   if (id === 'mcp') renderMcp();
   renderTabs();
 }
@@ -1848,8 +1894,7 @@ function positionPalette(){
   $('palDelete').hidden = ro;
   $('palColour').hidden = ro;
   $('palAlign').hidden = ro || cards < 2;
-  /* offered for one card as much as for ten; a group of one is a real thing */
-  $('palGroup').hidden = ro || cards < 1;
+  $('palGroup').hidden = ro || cards < 2;
 
   /* sit above the bounding box of everything currently selected */
   let x0 = Infinity, y0 = Infinity, anyGroup = false;
@@ -1868,7 +1913,7 @@ function positionPalette(){
 function groupSelection(){
   if (readOnly()) return;
   const ns = selNodes().filter(n => n.type !== 'group');
-  if (!ns.length){ toast('Select a card or two first, then Create group.', true); return; }
+  if (ns.length < 2){ toast('Select two or more cards to group them.', true); return; }
   let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
   ns.forEach(n => {
     x0 = Math.min(x0, n.x); y0 = Math.min(y0, n.y);
@@ -1884,8 +1929,7 @@ function groupSelection(){
   selectOnly(g.id);
   markDirty();
   render();
-  toast('Grouped ' + ns.length + ' card' + (ns.length === 1 ? '' : 's') +
-        ' \u2014 double-click the label to name it.');
+  toast('Grouped ' + ns.length + ' cards \u2014 double-click the label to name it.');
 }
 
 /* Frame the selection on its own, the way Fit frames the whole canvas. */
@@ -2232,9 +2276,10 @@ $('viewport').addEventListener('pointerdown', ev => {
     else if (!isSel(n.id)) selectOnly(n.id);
 
     if (!nodeEl.classList.contains('editing') && isSel(n.id) && !ro){
-      ev.preventDefault();
-      drag = { kind:'move', ox:ev.clientX, oy:ev.clientY, kids:movingSet(), moved:false };
-      $('viewport').setPointerCapture(ev.pointerId);
+      /* pending until the pointer actually moves: claiming the event here
+         would cost us the double-click that opens the card for editing */
+      drag = { kind:'move', ox:ev.clientX, oy:ev.clientY, kids:movingSet(),
+               moved:false, pending:true, pid:ev.pointerId };
     }
     render();
     return;
@@ -2290,6 +2335,14 @@ $('viewport').addEventListener('pointermove', ev => {
   } else if (drag.kind === 'move'){
     let dx = (ev.clientX - drag.ox) / state.view.z;
     let dy = (ev.clientY - drag.oy) / state.view.z;
+
+    /* a press that never travels is a click, not a drag */
+    if (drag.pending){
+      if (Math.abs(ev.clientX - drag.ox) + Math.abs(ev.clientY - drag.oy) < 4) return;
+      drag.pending = false;
+      ev.preventDefault();
+      try { $('viewport').setPointerCapture(drag.pid); } catch (e) {}
+    }
 
     /* where the dragged set would land, and what it lines up with */
     const movingIds = drag.kids.map(k => k.id);
@@ -2413,6 +2466,7 @@ function endDrag(ev){
   } else if (drag.kind === 'resize' || drag.kind === 'gresize'){
     markDirty();
   }
+  if (drag.kind === 'move' && drag.pending){ drag = null; render(); return; }
   const wasMarquee = drag.kind === 'marquee';
   drag = null;
   clearGuides();
@@ -2487,10 +2541,59 @@ document.addEventListener('keydown', ev => {
   if (ev.code === 'Space' && !ev.repeat){ spaceHeld = true; ev.preventDefault(); }
   if (ev.key === 'Delete' || ev.key === 'Backspace'){ ev.preventDefault(); deleteSelection(); }
   if (ev.key === 'Escape'){ clearSel(); render(); }
+  /* Enter opens the selected card, for anyone who does not think to double-click */
+  if (ev.key === 'Enter' || ev.key === 'F2'){
+    const ns = selNodes().filter(x => x.type !== 'group');
+    if (ns.length === 1){
+      ev.preventDefault();
+      const el = $('nodes').querySelector('[data-id="' + ns[0].id + '"]');
+      if (el) beginEdit(el, ns[0]);
+    }
+  }
   if ((ev.ctrlKey || ev.metaKey) && ev.key.toLowerCase() === 's'){ ev.preventDefault(); saveBoard(false); }
   if ((ev.ctrlKey || ev.metaKey) && ev.key.toLowerCase() === 'a'){ ev.preventDefault(); selectAll(); }
   if ((ev.ctrlKey || ev.metaKey) && ev.key.toLowerCase() === 'g'){ ev.preventDefault(); groupSelection(); }
 });
+/* Pasting with a card selected fills that card. Pasting with nothing selected
+   drops the text on the canvas — one card per blank-line-separated block, so a
+   pasted list arrives as a list rather than one long card. */
+document.addEventListener('paste', ev => {
+  if ($('shell').hidden || readOnly()) return;
+  const t = ev.target.tagName;
+  if (t === 'TEXTAREA' || t === 'INPUT' || ev.target.isContentEditable) return;
+  if (!isCanvasTab()) return;
+
+  const text = (ev.clipboardData || window.clipboardData || {}).getData
+    ? (ev.clipboardData || window.clipboardData).getData('text/plain') : '';
+  if (!text || !text.trim()) return;
+  ev.preventDefault();
+
+  const one = selNodes().filter(x => x.type !== 'group');
+  if (one.length === 1){
+    one[0].text = (one[0].text ? one[0].text + '\n' : '') + text.trim();
+    markDirty(); render();
+    toast('Pasted into the card.');
+    return;
+  }
+
+  const blocks = text.split(/\n\s*\n/).map(b => b.trim()).filter(Boolean);
+  const vp = $('viewport').getBoundingClientRect();
+  const start = toWorld(vp.left + vp.width / 2, vp.top + vp.height / 2);
+  const made = [];
+  blocks.slice(0, 40).forEach((b, i) => {
+    const node = { id: uid(), type: 'text', width: 260, height: 110,
+                   x: Math.round(start.x - 130 + (i % 3) * 300),
+                   y: Math.round(start.y - 55 + Math.floor(i / 3) * 150),
+                   text: b };
+    cur().nodes.push(node);
+    made.push(node.id);
+  });
+  state.sel = { ids: made, edge: null };
+  markDirty(); render();
+  toast(made.length === 1 ? 'Pasted as a new card.'
+                          : 'Pasted as ' + made.length + ' cards.');
+});
+
 document.addEventListener('keyup', ev => { if (ev.code === 'Space') spaceHeld = false; });
 window.addEventListener('blur', () => { spaceHeld = false; });
 
@@ -3084,16 +3187,18 @@ async function uploadFiles(list, targetSection){
 function applyTabMode(){
   const onClients = state.screen === 'clients';
   const onMcp = state.screen === 'mcp';
+  const onTypes = state.screen === 'atypes';
   $('clientsPane').hidden = !onClients;
   $('mcpPane').hidden = !onMcp;
-  if (onClients || onMcp){
+  $('typesPane').hidden = !onTypes;
+  if (onClients || onMcp || onTypes){
     $('viewport').hidden = true; $('docsPane').hidden = true;
     $('chanPane').hidden = true; $('kwPane').hidden = true; $('mxPane').hidden = true;
     $('framePane').hidden = true; $('roFrame').hidden = true;
     $('btnFrameExport').hidden = true;
     ['btnZoomIn','btnZoomOut','btnFit','zoomLabel','framePick','btnFrameExport']
       .forEach(id => { $(id).hidden = true; });
-    $('tabTitle').textContent = onClients ? 'Clients' : 'MCP';
+    $('tabTitle').textContent = onClients ? 'Clients' : onTypes ? 'Article Types' : 'MCP';
     applyRole();
     return;
   }
@@ -3709,6 +3814,134 @@ function setCellState(m, key, st){
   else m.cells[key] = { on: st.on, mode: st.mode };
 }
 
+/* ---- article types ----
+   The kinds of article a cell can become. Kept on the board so each client can
+   have their own, edited under Settings. */
+const DEFAULT_ARTICLE_TYPES = ['Listicle', 'List item', 'Informational'];
+
+function articleTypes(){
+  const root = contentRoot();
+  if (!Array.isArray(root.articleTypes) || !root.articleTypes.length){
+    root.articleTypes = DEFAULT_ARTICLE_TYPES.map(function(x){ return { id: uid(), name: x }; });
+  }
+  return root.articleTypes;
+}
+
+/* ---- table cells ----
+   A cell used to be a bare string. It now carries the words, the mode and the
+   article type, because all three follow the keyword rather than the row.
+   Strings are still read, so nothing saved earlier is lost. */
+function cellOf(row, colId){
+  const c = row.cells[colId];
+  if (typeof c === 'string') return { v: c, mode: 'aeo', type: '' };
+  if (c && typeof c === 'object'){
+    return { v: c.v || '', mode: c.mode === 'seo' ? 'seo' : 'aeo', type: c.type || '' };
+  }
+  return { v: '', mode: 'aeo', type: '' };
+}
+
+/* An empty cell is left out of the record entirely, so a blank table saves as
+   a blank table rather than four hundred little objects. */
+function setCellIn(row, colId, patch){
+  const c = Object.assign(cellOf(row, colId), patch);
+  if (!c.v && !c.type && c.mode === 'aeo') delete row.cells[colId];
+  else row.cells[colId] = { v: c.v, mode: c.mode, type: c.type };
+}
+
+function renderArticleTypes(){
+  const host = $('typeList');
+  if (!host) return;
+  const list = articleTypes();
+  const ro = readOnly();
+  host.innerHTML = '';
+
+  /* how many cells across all three tables are using each one */
+  const used = {};
+  ['category', 'icp', 'value'].forEach(function(id){
+    const v = contentRoot().views[id];
+    if (!v || v.kind !== 'grid') return;
+    (v.rows || []).forEach(function(r){
+      Object.keys(r.cells || {}).forEach(function(k){
+        const c = cellOf(r, k);
+        if (c.type) used[c.type] = (used[c.type] || 0) + 1;
+      });
+    });
+  });
+
+  list.forEach(function(t){
+    const row = document.createElement('div');
+    row.className = 'at-row';
+    const nm = document.createElement('b');
+    nm.textContent = t.name;
+    nm.title = ro ? t.name : 'Double-click to rename';
+    if (!ro) nm.ondblclick = function(){
+      inlineRename(nm, t.name, function(nv){
+        t.name = nv || t.name; markDirty(); renderArticleTypes();
+      });
+    };
+    row.append(nm);
+    if (used[t.id]){
+      const c = document.createElement('span');
+      c.className = 'n';
+      c.textContent = used[t.id] + ' in use';
+      row.append(c);
+    }
+    if (!ro){
+      const x = document.createElement('button');
+      x.className = 'x';
+      x.innerHTML = '&times;';
+      x.title = 'Remove this article type';
+      x.onclick = function(){
+        const msg = used[t.id]
+          ? 'Remove "' + t.name + '"? ' + used[t.id] + ' cell' + (used[t.id] === 1 ? '' : 's')
+            + ' using it go back to having no type.'
+          : 'Remove "' + t.name + '"?';
+        if (!confirm(msg)) return;
+        contentRoot().articleTypes = list.filter(function(z){ return z.id !== t.id; });
+        ['category', 'icp', 'value'].forEach(function(id){
+          const v = contentRoot().views[id];
+          if (!v || v.kind !== 'grid') return;
+          (v.rows || []).forEach(function(r){
+            Object.keys(r.cells || {}).forEach(function(k){
+              if (cellOf(r, k).type === t.id) setCellIn(r, k, { type: '' });
+            });
+          });
+        });
+        markDirty(); renderArticleTypes();
+      };
+      row.append(x);
+    }
+    host.append(row);
+  });
+
+  if (!list.length){
+    const e = document.createElement('div');
+    e.className = 'repo-empty';
+    e.textContent = 'No article types yet — add one below.';
+    host.append(e);
+  }
+  $('typeNew').disabled = ro;
+  $('btnTypeAdd').hidden = ro;
+}
+
+/* Named apart from addArticleType, which adds a column to the competitor
+   matrix. This one grows the library the table cells choose from. */
+function addTypeToLibrary(){
+  if (readOnly()) return;
+  const box = $('typeNew');
+  const name = (box.value || '').trim();
+  if (!name) return;
+  const list = articleTypes();
+  if (list.some(function(t){ return t.name.toLowerCase() === name.toLowerCase(); })){
+    toast('"' + name + '" is already on the list.', true);
+    return;
+  }
+  list.push({ id: uid(), name: name });
+  box.value = '';
+  markDirty();
+  renderArticleTypes();
+}
+
 /* One switch, used by the matrix cells and by the table rows. */
 function modeSwitch(current, disabled, onPick){
   const wrap = document.createElement('div');
@@ -3977,23 +4210,21 @@ function renderGrid(){
 
   const heading = $('mxHeading');
   if (heading) heading.textContent = vd.label;
-  $('mxIntro').textContent = 'Type straight into the table. Double-click a heading to rename it, '
-    + 'and use + Row or + Column to grow it.';
+  $('mxIntro').textContent = 'Type straight into the table. Every cell carries its own '
+    + 'AEO or SEO choice and its own article type, because both follow the keyword. '
+    + 'The list of article types is under Settings.';
   $('mxSetup').hidden = true;
   $('btnAddCompetitor').textContent = '+ Row';
   $('btnAddType').textContent = '+ Column';
   $('btnAddType').hidden = ro || v.columns.length >= GRID_MAX_COLS;
 
-  const NUM_W = 46, MODE_W = 62, COL_W = 210;
-  table.style.width = (NUM_W + MODE_W + COL_W * v.columns.length) + 'px';
+  const NUM_W = 46, COL_W = 232;
+  table.style.width = (NUM_W + COL_W * v.columns.length) + 'px';
 
   const cg = document.createElement('colgroup');
   const c0 = document.createElement('col');
   c0.style.width = NUM_W + 'px';
   cg.append(c0);
-  const cm = document.createElement('col');
-  cm.style.width = MODE_W + 'px';
-  cg.append(cm);
   v.columns.forEach(function(){
     const c = document.createElement('col');
     c.style.width = COL_W + 'px';
@@ -4006,15 +4237,6 @@ function renderGrid(){
   const corner = document.createElement('th');
   corner.className = 'mx-corner-num';
   hr.append(corner);
-  const modeHead = document.createElement('th');
-  modeHead.className = 'mx-corner';
-  const mLab = document.createElement('div');
-  mLab.className = 'mx-lab';
-  const mName = document.createElement('b');
-  mName.textContent = 'Mode';
-  mLab.append(mName);
-  modeHead.append(mLab);
-  hr.append(modeHead);
 
   v.columns.forEach(function(col){
     const th = document.createElement('th');
@@ -4074,29 +4296,66 @@ function renderGrid(){
     num.append(wrap);
     tr.append(num);
 
-    /* every row is a piece of content, so it carries the same choice */
-    const md = document.createElement('td');
-    md.className = 'gr-mode';
-    md.append(modeSwitch(row.mode === 'seo' ? 'seo' : 'aeo', ro, function(kind){
-      row.mode = kind;
-      markDirty();
-      renderGrid();
-    }));
-    tr.append(md);
+    const types = articleTypes();
 
     v.columns.forEach(function(col, ci){
+      const cell = cellOf(row, col.id);
       const td = document.createElement('td');
-      td.className = 'gr-cell';
+      td.className = 'gr-cell' + (cell.v ? '' : ' empty');
+
       const inp = document.createElement('input');
       inp.type = 'text';
-      inp.value = row.cells[col.id] || '';
+      inp.value = cell.v;
       inp.disabled = ro;
       if (i === 0 && ci === 0) inp.placeholder = 'Type here\u2026';
       inp.oninput = function(){
-        row.cells[col.id] = inp.value;
+        setCellIn(row, col.id, { v: inp.value });
+        td.classList.toggle('empty', !inp.value);
         markDirty();
       };
       td.append(inp);
+
+      /* mode and article type belong to the keyword in this cell, not to the
+         row: the same category can be worth an AEO listicle in one column and
+         an SEO explainer in the next */
+      const foot = document.createElement('div');
+      foot.className = 'gr-foot';
+      foot.append(modeSwitch(cell.mode, ro, function(kind){
+        setCellIn(row, col.id, { mode: kind });
+        markDirty();
+        renderGrid();
+      }));
+
+      const kind = document.createElement('select');
+      kind.className = 'gr-kind' + (cell.type ? ' set' : '');
+      kind.disabled = ro;
+      kind.title = 'What kind of article is this?';
+      const none = document.createElement('option');
+      none.value = '';
+      none.textContent = 'Article type\u2026';
+      kind.append(none);
+      types.forEach(function(t){
+        const o = document.createElement('option');
+        o.value = t.id;
+        o.textContent = t.name;
+        kind.append(o);
+      });
+      /* a type deleted from Settings should not silently blank the cell */
+      if (cell.type && !types.some(function(t){ return t.id === cell.type; })){
+        const gone = document.createElement('option');
+        gone.value = cell.type;
+        gone.textContent = '(removed type)';
+        kind.append(gone);
+      }
+      kind.value = cell.type;
+      kind.onchange = function(){
+        setCellIn(row, col.id, { type: kind.value });
+        kind.classList.toggle('set', !!kind.value);
+        markDirty();
+      };
+      foot.append(kind);
+      td.append(foot);
+
       tr.append(td);
     });
 
@@ -4249,6 +4508,13 @@ function openFrame(i){
 }
 
 const inFrame = () => state.tab === FRAME_TAB && state.frameIndex > -1;
+
+/* True on any tab the canvas engine is drawing, frames included. */
+function isCanvasTab(){
+  if (state.screen !== 'board') return false;
+  if (inFrame()) return (state.frames[state.frameIndex] || {}).kind === 'canvas';
+  return [DOCS_TAB, CHANNELS_TAB, KEYWORDS_TAB, CONTENT_TAB].indexOf(state.tab) === -1;
+}
 const openFrameDef = () => (inFrame() ? state.frames[state.frameIndex] : null);
 
 /* Folds the open frame's working copy into the board — but only when it
@@ -4967,6 +5233,8 @@ $('btnKwAdd').onclick = function(){ openKeywordModal(''); };
 $('btnKwPaste').onclick = openPasteModal;
 $('kwSearch').oninput = ev => { kwFilter = ev.target.value; renderKeywordTables(); };
 $('btnAddChannel').onclick = addChannel;
+$('btnTypeAdd').onclick = addTypeToLibrary;
+$('typeNew').onkeydown = ev => { ev.stopPropagation(); if (ev.key === 'Enter') addTypeToLibrary(); };
 /* stop the browser opening a file dropped anywhere else on the page */
 ['dragover','drop'].forEach(t =>
   window.addEventListener(t, ev => { if (!ev.target.closest('#dropzone')) ev.preventDefault(); }));
