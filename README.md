@@ -22,8 +22,9 @@ per client, eight tabs per board, each tab its own canvas.
 | Move a group | Drag its label — every card inside travels with it |
 | Rename a group | Double-click its label |
 | Delete | Select a note, connection or group, press `Delete` |
-| Pan | `Space`+drag, or middle-mouse drag |
-| Zoom | Scroll, or the toolbar buttons |
+| Pan | Two-finger swipe on a trackpad, two fingers on a touchscreen, `Space`+drag, or middle-mouse drag |
+| Zoom | Pinch, `Ctrl`+scroll, a mouse wheel, or the toolbar buttons |
+| Align while dragging | Automatic — edges and centres snap to nearby cards and a guide line shows the match |
 | Frame everything | **Fit** |
 
 Connections are cubic bezier curves that leave each anchor perpendicular to its

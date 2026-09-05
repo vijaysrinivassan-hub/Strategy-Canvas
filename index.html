@@ -927,7 +927,7 @@ const SUPABASE_URL = 'https://cskamgfvebryahkljlll.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_MdkD-TxMCIwlu69seSHA3Q_A39GADsK';
 const CLIENT_ID    = '1059013355751-6g50dsgm7df37htl2fdqrtlkh5hmrc0c.apps.googleusercontent.com';
 const ALLOWED      = ['vijaysrinivassan@gmail.com'];
-const BUILD        = 'v4.1';
+const BUILD        = 'v4.2';
 
 const TABS = [
   'Product Architecture',
@@ -1449,7 +1449,7 @@ function renderHint(){
     '<div><b>' + state.tab + '</b> is empty</div>' +
     '<div>Double-click anywhere, or use the bar below, to add a card</div>' +
     '<div>Drag a card’s edge dot to connect it to another</div>' +
-    '<div>Drag across the canvas to select · <kbd>Space</kbd>+drag to pan · scroll to zoom</div>';
+    '<div>Drag across the canvas to select · two fingers to pan · pinch to zoom</div>';
 }
 
 function buildPalette(){
@@ -1611,6 +1611,58 @@ function beginEdit(nodeEl, n){
 }
 
 
+
+/* ===================================================================
+   TWO-FINGER GESTURES ON A TOUCHSCREEN
+   =================================================================== */
+const touches = new Map();          /* pointerId -> {x, y} */
+let gesture = null;                 /* set once a second finger lands */
+
+const midOf = pts => ({
+  x: (pts[0].x + pts[1].x) / 2,
+  y: (pts[0].y + pts[1].y) / 2
+});
+const distOf = pts => Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y);
+
+function beginGesture(){
+  const pts = [...touches.values()];
+  if (pts.length !== 2) return;
+  /* whatever the first finger started - a marquee, a card drag - is abandoned */
+  if (drag){
+    drag = null;
+    $('marquee').hidden = true;
+    clearGuides();
+    $('viewport').classList.remove('panning', 'connecting');
+    render();
+  }
+  gesture = {
+    dist: distOf(pts),
+    mid: midOf(pts),
+    view: { x: state.view.x, y: state.view.y, z: state.view.z }
+  };
+}
+
+function updateGesture(){
+  const pts = [...touches.values()];
+  if (!gesture || pts.length !== 2) return;
+  const mid = midOf(pts);
+  const dist = distOf(pts);
+
+  /* pinch about the midpoint, and pan by however far that midpoint moved */
+  const scale = gesture.dist > 8 ? dist / gesture.dist : 1;
+  const z = Math.max(0.15, Math.min(3.5, gesture.view.z * scale));
+
+  const r = $('viewport').getBoundingClientRect();
+  const mx = gesture.mid.x - r.left, my = gesture.mid.y - r.top;
+  const worldX = (mx - gesture.view.x) / gesture.view.z;
+  const worldY = (my - gesture.view.y) / gesture.view.z;
+
+  state.view.z = z;
+  state.view.x = (mid.x - r.left) - worldX * z;
+  state.view.y = (mid.y - r.top) - worldY * z;
+  applyView();
+}
+
 /* ===================================================================
    ALIGNMENT GUIDES
    =================================================================== */
@@ -1713,6 +1765,11 @@ const clearGuides = () => { $('guides').innerHTML = ''; };
 let drag = null;
 
 $('viewport').addEventListener('pointerdown', ev => {
+  if (ev.pointerType === 'touch'){
+    touches.set(ev.pointerId, { x: ev.clientX, y: ev.clientY });
+    if (touches.size === 2){ beginGesture(); return; }
+    if (touches.size > 2) return;
+  }
   if (ev.button !== 0 && ev.button !== 1 && ev.button !== 2) return;
   const ro = readOnly();
 
@@ -1822,6 +1879,10 @@ function movingSet(){
 }
 
 $('viewport').addEventListener('pointermove', ev => {
+  if (ev.pointerType === 'touch' && touches.has(ev.pointerId)){
+    touches.set(ev.pointerId, { x: ev.clientX, y: ev.clientY });
+    if (gesture){ updateGesture(); return; }
+  }
   if (!drag) return;
   if (drag.kind === 'pan'){
     state.view.x = drag.vx + (ev.clientX - drag.ox);
@@ -1924,6 +1985,10 @@ $('viewport').addEventListener('pointermove', ev => {
 });
 
 function endDrag(ev){
+  if (ev && ev.pointerType === 'touch'){
+    touches.delete(ev.pointerId);
+    if (touches.size < 2 && gesture){ gesture = null; return; }
+  }
   if (!drag) return;
   if (drag.kind === 'link'){
     const over = document.elementFromPoint(ev.clientX, ev.clientY);
@@ -1984,9 +2049,33 @@ $('viewport').addEventListener('dblclick', ev => {
   if (el) beginEdit(el, n);
 });
 
+/* A trackpad sends a plain wheel event for a two-finger swipe and sets ctrlKey
+   for a pinch, which is how the browser reports it. So: swipe pans in whatever
+   direction your fingers went, pinch zooms. A mouse wheel still zooms, since it
+   has no second axis to pan with. */
 $('viewport').addEventListener('wheel', ev => {
   ev.preventDefault();
-  zoomAt(ev.clientX, ev.clientY, ev.deltaY < 0 ? 1.12 : 1 / 1.12);
+
+  if (ev.ctrlKey || ev.metaKey){
+    const step = Math.exp(-ev.deltaY * 0.01);
+    zoomAt(ev.clientX, ev.clientY, Math.max(0.5, Math.min(2, step)));
+    return;
+  }
+
+  /* A mouse wheel gives a chunky vertical-only delta; a trackpad gives small
+     ones and usually some horizontal movement too. */
+  const mouseWheel = ev.deltaX === 0 && Math.abs(ev.deltaY) >= 100 && ev.deltaY % 1 === 0;
+  if (mouseWheel && !ev.shiftKey){
+    zoomAt(ev.clientX, ev.clientY, ev.deltaY < 0 ? 1.12 : 1 / 1.12);
+    return;
+  }
+
+  /* shift swaps the axes on most platforms; honour it either way */
+  const dx = ev.shiftKey && ev.deltaX === 0 ? ev.deltaY : ev.deltaX;
+  const dy = ev.shiftKey && ev.deltaX === 0 ? 0 : ev.deltaY;
+  state.view.x -= dx;
+  state.view.y -= dy;
+  applyView();
 }, { passive: false });
 
 /* Right-drag rubber-bands, so the browser menu has to stay out of the way. */
