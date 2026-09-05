@@ -95,7 +95,7 @@ export const TABS = [
   "Channel Strategy",
   "Content Strategy",
   "Keyword Repo",
-  "Repo"
+  "Grounded Evidences"
 ] as const;
 
 /** The five canvases every board starts with. A board can carry more:
@@ -114,7 +114,7 @@ export const PANEL_TABS = [
   "Channel Strategy",
   "Content Strategy",
   "Keyword Repo",
-  "Repo"
+  "Grounded Evidences"
 ] as const;
 
 export const CONTENT_VIEWS = ["category", "competitor", "icp", "value"] as const;
@@ -191,7 +191,7 @@ export function assertCanvasTab(tab: string): void {
   if ((PANEL_TABS as readonly string[]).includes(tab)) {
     throw new ToolError(
       `"${tab}" is a panel, not a canvas. Content Strategy uses content_* tools, ` +
-        `Keyword Repo uses keyword_* tools, Repo uses document_* tools.`
+        `Keyword Repo uses keyword_* tools, Grounded Evidences uses document_* tools.`
     );
   }
 }

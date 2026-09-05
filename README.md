@@ -42,7 +42,7 @@ The sidebar groups them:
   and the × beside it removes it. Added canvases are saved with the board.
 - **Channel Strategy** — a scope checklist.
 - **Content Strategy** opens into Category, Competitor, ICP and Value.
-- **Keyword Repo** and **Repo**.
+- **Keyword Repo** and **Grounded Evidences**.
 - **Frames** — the reference frames from the Obsidian vault, read-only.
 
 Only one group stands open at a time: expanding one closes the rest.
@@ -80,10 +80,10 @@ chosen and created on the Clients screen, saving happens on its own a couple of
 seconds after any change (`Ctrl/Cmd+S` forces it), and the save state sits at the
 foot of the sidebar.
 
-## Repo
+## Grounded Evidences
 
-**Repo** is not a canvas. The screen is six columns wide: the last one is the
-repo itself, and the five to its left are one writing area.
+**Grounded Evidences** is not a canvas. The screen is six columns wide: the last
+one is the file repo, and the five to its left are one writing area.
 
 The writing area is a stack of named rows. Each row holds free text, links and
 files. **+ Add row** adds one, double-click a heading to rename it, **+ Link**
@@ -99,8 +99,9 @@ Word, Excel, PDF, PowerPoint and images are recognised and badged; each file ope
 through a short-lived signed URL, or can be removed. Double-click a file's name to
 rename it — that is a display name only, so the stored object is never touched.
 
-Boards saved before the rename open unchanged: the old Document Gallery columns
-become rows, keeping their names and the files filed under them.
+The tab was called Document Gallery, then Repo. Boards saved under either name
+open unchanged: old columns become rows, keeping their names and the files filed
+under them.
 
 **Content Strategy** opens into four axes in the sidebar — Category, Competitor,
 ICP and Value. Each is its own matrix with its own rows and its own article-type

@@ -10,12 +10,13 @@ const display = (n: string) => n.replace(/^\d{13}-/, "");
 /** Text-ish files can be handed back inline; binaries cannot. */
 const TEXTUAL = /\.(txt|md|csv|tsv|json|xml|ya?ml|html?|js|ts|css|sql)$/i;
 
-/** The Repo tab, under its current name or the Document Gallery name older
- *  boards were saved with. Creates it if the board has never had one. */
+/** The Grounded Evidences tab, under its current name or either of the names
+ *  older boards were saved with. Creates it if the board has never had one. */
 function repoSlot(body: any): any {
-  const slot = body.tabs["Repo"] || body.tabs["Document Gallery"];
+  const slot =
+    body.tabs["Grounded Evidences"] || body.tabs["Repo"] || body.tabs["Document Gallery"];
   if (slot) return slot;
-  return (body.tabs["Repo"] = { nodes: [], edges: [], sections: [], files: {} });
+  return (body.tabs["Grounded Evidences"] = { nodes: [], edges: [], sections: [], files: {} });
 }
 
 export function registerDocumentTools(server: McpServer) {
@@ -24,8 +25,8 @@ export function registerDocumentTools(server: McpServer) {
     {
       title: "List documents",
       description:
-        "List the files attached to a board, with the Repo row each is filed under, its " +
-        "size and when it was uploaded. Files with no row sit in the repo column itself.",
+        "List the files attached to a board, with the Grounded Evidences row each is filed " +
+        "under, its size and when it was uploaded. Files with no row sit in the repo column.",
       inputSchema: { board_id: z.string() },
       annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true }
     },
@@ -124,13 +125,13 @@ export function registerDocumentTools(server: McpServer) {
     {
       title: "Upload a document",
       description:
-        "Upload a local file to a board's Repo. Leave row out and it lands in the repo " +
-        "column, where the user drags it wherever it belongs; give a row name to file it " +
-        "straight away.",
+        "Upload a local file to a board's Grounded Evidences tab. Leave row out and it " +
+        "lands in the repo column, where the user drags it wherever it belongs; give a row " +
+        "name to file it straight away.",
       inputSchema: {
         board_id: z.string(),
         file_path: z.string().describe("Absolute path to a file on this machine"),
-        row: z.string().optional().describe("Repo row name; omit to leave it in the repo column"),
+        row: z.string().optional().describe("Row name; omit to leave it in the repo column"),
         name: z.string().optional().describe("Display name; defaults to the file name")
       },
       annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false }
@@ -154,7 +155,7 @@ export function registerDocumentTools(server: McpServer) {
         target = sections.find((c: any) => String(c.name).toLowerCase() === row.toLowerCase());
         if (!target) {
           throw new ToolError(
-            `No Repo row called "${row}". Rows on this board: ` +
+            `No Grounded Evidences row called "${row}". Rows on this board: ` +
               (sections.length ? sections.map((c: any) => c.name).join(", ") : "(none yet)") +
               `. Leave row out to drop the file in the repo column instead.`
           );

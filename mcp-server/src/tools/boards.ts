@@ -65,7 +65,7 @@ export function registerBoardTools(server: McpServer) {
           );
         } else if (tab === "Channel Strategy") {
           summary[tab] = { channels: (slot.items || []).map((i: any) => ({ name: i.name, on: !!i.on })) };
-        } else if (tab === "Repo") {
+        } else if (tab === "Grounded Evidences") {
           summary[tab] = { rows: (slot.sections || []).map((c: any) => c.name) };
         } else {
           summary[tab] = {
