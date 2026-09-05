@@ -1,6 +1,6 @@
 import { z } from "zod";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { db, ok, OWNER_ID, ToolError } from "../lib.js";
+import { boardOwner, db, ok, ToolError } from "../lib.js";
 
 const KeywordInput = z.object({
   keyword: z.string().min(1),
@@ -85,6 +85,7 @@ export function registerKeywordTools(server: McpServer) {
       const byKey = new Map<string, string>();
       for (const r of existing || []) byKey.set(keyOf(r.keyword, r.country), r.id);
 
+      const owner = await boardOwner(board_id);
       const inserts: Record<string, unknown>[] = [];
       const updates: { id: string; patch: Record<string, unknown> }[] = [];
 
@@ -102,7 +103,7 @@ export function registerKeywordTools(server: McpServer) {
         };
         const id = byKey.get(key);
         if (id) updates.push({ id, patch });
-        else inserts.push({ owner_id: OWNER_ID(), board_id, ...patch });
+        else inserts.push({ owner_id: owner, board_id, ...patch });
       }
 
       let added = 0;

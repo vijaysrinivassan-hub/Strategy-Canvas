@@ -14,13 +14,16 @@ npm install
 npm run build
 ```
 
-## The three values it needs
+## The two values it needs
 
 | Variable | Where to find it |
 |---|---|
 | `SUPABASE_URL` | Supabase → Project Settings → API → Project URL |
 | `SUPABASE_SERVICE_ROLE_KEY` | Supabase → Project Settings → API → **service_role** |
-| `STRATEGY_BOARD_OWNER_ID` | Your user id — Supabase → Authentication → Users |
+
+Nothing else. Which account owns the boards is worked out from the boards
+themselves, and which board to act on is something you say in the conversation
+("use the Luca board") rather than something you configure.
 
 **About the service_role key.** It bypasses Row Level Security, which is exactly
 why it belongs here and nowhere near a browser. This server runs on your machine
@@ -44,8 +47,7 @@ Edit the config file:
       "args": ["C:\\Users\\vijay\\OneDrive\\Desktop\\strategy-canvas\\mcp-server\\dist\\index.js"],
       "env": {
         "SUPABASE_URL": "https://YOUR-PROJECT.supabase.co",
-        "SUPABASE_SERVICE_ROLE_KEY": "your service_role key",
-        "STRATEGY_BOARD_OWNER_ID": "your user uuid"
+        "SUPABASE_SERVICE_ROLE_KEY": "your service_role key"
       }
     }
   }

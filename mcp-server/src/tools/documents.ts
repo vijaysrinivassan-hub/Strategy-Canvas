@@ -2,9 +2,9 @@ import { z } from "zod";
 import { readFile } from "node:fs/promises";
 import { basename } from "node:path";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { BUCKET, db, loadBoard, ok, OWNER_ID, saveBoard, ToolError } from "../lib.js";
+import { boardOwner, BUCKET, db, loadBoard, ok, saveBoard, ToolError } from "../lib.js";
 
-const folder = (boardId: string) => `${OWNER_ID()}/${boardId}`;
+const folder = async (boardId: string) => `${await boardOwner(boardId)}/${boardId}`;
 const display = (n: string) => n.replace(/^\d{13}-/, "");
 
 /** Text-ish files can be handed back inline; binaries cannot. */
@@ -34,7 +34,7 @@ export function registerDocumentTools(server: McpServer) {
 
       const { data, error } = await db()
         .storage.from(BUCKET)
-        .list(folder(board_id), { limit: 500, sortBy: { column: "created_at", order: "desc" } });
+        .list(await folder(board_id), { limit: 500, sortBy: { column: "created_at", order: "desc" } });
       if (error) {
         throw new ToolError(
           `Could not list documents: ${error.message}. If the bucket is missing, run ` +
@@ -81,7 +81,7 @@ export function registerDocumentTools(server: McpServer) {
             `Use document_link to get a download URL for it.`
         );
       }
-      const { data, error } = await db().storage.from(BUCKET).download(`${folder(board_id)}/${storage_name}`);
+      const { data, error } = await db().storage.from(BUCKET).download(`${await folder(board_id)}/${storage_name}`);
       if (error) throw new ToolError(`Could not download that file: ${error.message}`);
       const full = await data.text();
       const cap = max_chars ?? 50000;
@@ -112,7 +112,7 @@ export function registerDocumentTools(server: McpServer) {
       const ttl = expires_seconds ?? 600;
       const { data, error } = await db()
         .storage.from(BUCKET)
-        .createSignedUrl(`${folder(board_id)}/${storage_name}`, ttl);
+        .createSignedUrl(`${await folder(board_id)}/${storage_name}`, ttl);
       if (error) throw new ToolError(`Could not sign that file: ${error.message}`);
       return ok({ name: display(storage_name), url: data.signedUrl, expires_seconds: ttl });
     }
@@ -167,7 +167,7 @@ export function registerDocumentTools(server: McpServer) {
       const storageName = `${Date.now()}-${safe}`;
       const { error } = await db()
         .storage.from(BUCKET)
-        .upload(`${folder(board_id)}/${storageName}`, bytes, { upsert: false });
+        .upload(`${await folder(board_id)}/${storageName}`, bytes, { upsert: false });
       if (error) throw new ToolError(`Upload failed: ${error.message}`);
 
       if (!gallery.files || typeof gallery.files !== "object") gallery.files = {};

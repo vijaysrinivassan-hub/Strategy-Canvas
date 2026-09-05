@@ -1,6 +1,6 @@
 import { z } from "zod";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { db, loadBoard, ok, OWNER_ID, TABS, ToolError } from "../lib.js";
+import { db, loadBoard, ok, ownerId, TABS, ToolError } from "../lib.js";
 
 export function registerBoardTools(server: McpServer) {
   server.registerTool(
@@ -112,7 +112,7 @@ export function registerBoardTools(server: McpServer) {
       const { data, error } = await db()
         .from("reports")
         .insert({
-          owner_id: OWNER_ID(),
+          owner_id: await ownerId(),
           title: `${client} Strategy Board`,
           body: JSON.stringify(body)
         })

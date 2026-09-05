@@ -29,8 +29,60 @@ export function db(): SupabaseClient {
   return client;
 }
 
-export const OWNER_ID = () => required("STRATEGY_BOARD_OWNER_ID");
 export const BUCKET = "documents";
+
+let cachedOwner: string | null = null;
+
+/** Which account owns the boards. Worked out rather than configured: the
+ *  service role key can see the existing boards, so there is nothing for a
+ *  human to look up and paste. */
+export async function ownerId(): Promise<string> {
+  if (cachedOwner) return cachedOwner;
+
+  const { data: boards } = await db()
+    .from("reports")
+    .select("owner_id")
+    .order("updated_at", { ascending: false })
+    .limit(1);
+  if (boards && boards.length && boards[0].owner_id) {
+    cachedOwner = boards[0].owner_id as string;
+    return cachedOwner;
+  }
+
+  /* no boards yet, so fall back to the only account that can have made one */
+  const { data: users, error } = await db().auth.admin.listUsers();
+  if (error) {
+    throw new ToolError(
+      `Could not work out which account owns these boards: ${error.message}. ` +
+        `Check that SUPABASE_SERVICE_ROLE_KEY is the service_role key, not the ` +
+        `publishable one.`
+    );
+  }
+  if (!users || !users.users.length) {
+    throw new ToolError(
+      "This Supabase project has no users yet. Sign in to the Strategy Board once " +
+        "in the browser, then try again."
+    );
+  }
+  cachedOwner = users.users[0].id;
+  return cachedOwner;
+}
+
+/** Files and rows belong to whoever owns that board, not to a global setting. */
+export async function boardOwner(boardId: string): Promise<string> {
+  const { data, error } = await db()
+    .from("reports")
+    .select("owner_id")
+    .eq("id", boardId)
+    .single();
+  if (error) {
+    throw new ToolError(
+      `Could not find board ${boardId}: ${error.message}. Call board_list to see ` +
+        `which boards exist.`
+    );
+  }
+  return data.owner_id as string;
+}
 
 /* ---------------------------------------------------------------- shapes */
 
