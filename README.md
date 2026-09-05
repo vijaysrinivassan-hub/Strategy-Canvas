@@ -72,8 +72,9 @@ read-only there too, so the look is an honest one, and the choice is remembered
 on that browser. Sign out lives in the same chip, and so does a board switcher
 whenever more than one board is to hand.
 
-There is no logo or client name in the sidebar any more. A client's name and
-logo are edited from the Clients screen — **Edit** on the card.
+The client's name heads the sidebar, with no logo beside it, and Settings sits
+at the very foot. Name and logo are edited from the Clients screen — **Edit** on
+the card, or double-click the name.
 
 ## Frames
 

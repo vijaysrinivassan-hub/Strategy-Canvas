@@ -92,7 +92,14 @@
   .logo-prev.has-img{width:auto; min-width:56px; padding:5px; background:#fff}
   .logo-prev.has-img img{width:auto; height:100%; max-width:180px}
   .logo-acts{display:flex; gap:8px; flex-wrap:wrap}
-  .tabs{padding:14px 10px 10px; flex:1; overflow-y:auto}
+  .side-head{padding:18px 18px 14px; border-bottom:1px solid var(--line-2); flex:none}
+  .client-head{font-size:15px; font-weight:800; letter-spacing:-.02em; color:var(--ink);
+               overflow:hidden; text-overflow:ellipsis; white-space:nowrap; cursor:default}
+  .side-head .sub{font-size:11px; color:var(--faint); margin-top:2px; font-weight:500}
+
+  /* a flex column, so the spacer can push Settings to the foot of the sidebar */
+  .tabs{padding:10px 10px 10px; flex:1; overflow-y:auto; display:flex; flex-direction:column}
+  .tabs > button, .tabs > div{flex:none}
   .tab{
     display:flex; align-items:center; gap:10px; width:100%; text-align:left;
     padding:8px 10px; border-radius:8px; border:none; background:transparent;
@@ -140,7 +147,7 @@
 
   /* In the dashboard `.who` is the row wrapper; here it is the text column,
      so the row lives on .side-foot itself. */
-  .nav-spacer{flex:1; min-height:12px}
+  .tabs > .nav-spacer{flex:1 1 12px; min-height:12px}
   .mcp{flex:1; min-height:0; overflow-y:auto; padding:24px 30px 40px; background:var(--bg)}
   .mcp h3{margin:0 0 4px; font-size:15px; font-weight:700}
   .mcp .pane{background:#fff; border:1px solid var(--line); border-radius:14px;
@@ -158,7 +165,7 @@
   .mcp .note{font-size:12.5px; color:var(--muted); margin:0 0 14px; max-width:680px}
 
   /* ---- the account chip, top right: who you are and which view you are in ---- */
-  .acct{position:relative; margin-left:8px; flex:none}
+  .acct{position:relative; margin-left:auto; flex:none}   /* always the far right */
   .acct-btn{display:flex; align-items:center; gap:8px; padding:4px 8px 4px 11px;
             background:var(--panel); border:1px solid var(--border); border-radius:999px;
             font:inherit; cursor:pointer; color:var(--ink-2)}
@@ -204,7 +211,6 @@
   .toolbar h2{margin:0; font-size:20px; font-weight:800; letter-spacing:-.02em; color:var(--ink)}
   .tool-sep{width:1px; height:20px; background:var(--line); margin:0 4px}
   .frame-pick{
-    margin-left:auto;                 /* pushed to the far end of the bar */
     font:inherit; font-size:12px; color:var(--ink-2); background:var(--panel);
     border:1px solid var(--border); border-radius:8px; padding:5px 8px;
     max-width:210px; cursor:pointer; outline:none;
@@ -894,6 +900,11 @@
 <div class="shell" id="shell" hidden>
 
   <aside class="sidebar">
+    <div class="side-head">
+      <div class="client-head" id="clientHead"
+           title="The client this board belongs to. Edit it under Settings &rsaquo; Clients">Client</div>
+      <div class="sub">Strategy Board</div>
+    </div>
     <nav class="tabs" id="tabs"></nav>
     <div class="save-line" id="saveState"></div>
   </aside>
@@ -1124,7 +1135,7 @@ const SUPABASE_URL = 'https://cskamgfvebryahkljlll.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_MdkD-TxMCIwlu69seSHA3Q_A39GADsK';
 const CLIENT_ID    = '1059013355751-6g50dsgm7df37htl2fdqrtlkh5hmrc0c.apps.googleusercontent.com';
 const ALLOWED      = ['vijaysrinivassan@gmail.com'];
-const BUILD        = 'v5.6';
+const BUILD        = 'v5.7';
 
 const TABS = [
   'Product Architecture',
@@ -3400,19 +3411,11 @@ function downscaleImage(file){
   });
 }
 
+/* The client's name heads the sidebar. The logo itself lives on the Clients
+   screen now, where the name and logo are edited. */
 function renderBrand(){
-  const el = $('brandLogo');
-  if (!el) return;
-  el.innerHTML = '';
-  el.classList.toggle('has-img', !!state.logo);
-  if (state.logo){
-    const img = document.createElement('img');
-    img.src = state.logo;
-    img.alt = '';
-    el.append(img);
-  } else {
-    el.textContent = (state.client || '?').trim().charAt(0).toUpperCase() || '?';
-  }
+  const head = $('clientHead');
+  if (head) head.textContent = (state.client || '').trim() || 'Untitled client';
 }
 
 function openClientSettings(){
@@ -5512,6 +5515,7 @@ $('btnFit').onclick = zoomToFit;
 $('btnFit').addEventListener('pointerdown', e => e.stopPropagation());
 
 $('btnSignOut').onclick = signOut;
+$('clientHead').ondblclick = () => { if (!clientView()) openClientSettings(); };
 $('acctBtn').onclick = ev => { ev.stopPropagation(); $('acctMenu').hidden = !$('acctMenu').hidden; };
 $('viewAdmin').onclick = () => { $('acctMenu').hidden = true; setView('admin'); };
 $('viewClient').onclick = () => { $('acctMenu').hidden = true; setView('client'); };
