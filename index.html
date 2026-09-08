@@ -736,7 +736,7 @@
   }
   .gr-cell input[type=text]:focus{background:#fff; box-shadow:inset 0 0 0 2px var(--accent)}
   .gr-cell input[type=text]::placeholder{color:#d5d7dd}
-  .gr-foot{display:flex; align-items:center; gap:5px; padding:0 7px 6px}
+  .gr-foot{display:flex; align-items:center; gap:4px; padding:0 6px 6px}
   .gr-foot .mx-mode{margin:0; flex:none}
   .gr-kind{
     flex:1; min-width:0; height:21px; font:inherit; font-size:10.5px; color:var(--muted);
@@ -748,7 +748,11 @@
   .gr-kind:focus{border-color:var(--accent)}
   /* a cell with nothing in it keeps its controls quiet until you touch it */
   .gr-ctl{display:flex; flex-direction:column}
-  .gr-foot .gr-kwadd{margin-left:auto}
+  .gr-foot .gr-status{flex:1 1 0; min-width:0; padding:0 2px}
+  .gr-foot .gr-kwadd{margin-left:0}
+  /* a written article: quietly done */
+  .gr-cell.written{background:#f5f5f6}
+  .gr-cell.written input[type=text]{color:var(--muted)}
   /* the awareness labels run longer than the type names, so that dropdown
      takes 1.3 times the width: measured, Competitor aware needs 90px */
   .gr-foot2{display:flex; gap:4px; padding:0 5px 7px}
@@ -762,7 +766,7 @@
   .gr-tick{margin:0; accent-color:#15803d; width:14px; height:14px; flex:none; cursor:pointer}
   .gr-cell.planned{background:#f4fbf6}
   .gr-cell.planned input[type=text]{font-weight:600; color:var(--ok)}
-  .gr-kwadd{flex:none; padding:0 6px; height:21px; font-size:10.5px; color:var(--muted);
+  .gr-kwadd{flex:none; padding:0 4px; height:21px; font-size:10.5px; color:var(--muted);
             border-color:transparent; background:transparent}
   .gr-kwadd:hover{color:var(--accent); background:var(--accent-soft); border-color:transparent}
   .gr-kws{margin:0}
@@ -1287,7 +1291,7 @@ const SUPABASE_URL = 'https://cskamgfvebryahkljlll.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_MdkD-TxMCIwlu69seSHA3Q_A39GADsK';
 const CLIENT_ID    = '1059013355751-6g50dsgm7df37htl2fdqrtlkh5hmrc0c.apps.googleusercontent.com';
 const ALLOWED      = ['vijaysrinivassan@gmail.com'];
-const BUILD        = 'v6.3';
+const BUILD        = 'v6.4';
 
 const TABS = [
   'Product Architecture',
@@ -4104,17 +4108,18 @@ function cellKeywords(comp, type){
    old boards are read forward rather than reset. */
 function cellState(m, key){
   const raw = m.cells[key];
-  if (raw === true) return { on: true, mode: 'aeo', type: '', v: '', aw: '' };
+  if (raw === true) return { on: true, mode: 'aeo', type: '', v: '', aw: '', st: '' };
   if (raw && typeof raw === 'object'){
     return { on: !!raw.on, mode: raw.mode === 'seo' ? 'seo' : 'aeo', type: raw.type || '',
-             v: raw.v || '', aw: raw.aw || '' };
+             v: raw.v || '', aw: raw.aw || '', st: raw.st || '' };
   }
-  return { on: false, mode: 'aeo', type: '', v: '', aw: '' };
+  return { on: false, mode: 'aeo', type: '', v: '', aw: '', st: '' };
 }
 function setCellState(m, key, st){
   /* the default — nothing chosen, nothing written — need not be stored */
-  if (!st.on && st.mode === 'aeo' && !st.type && !st.v && !st.aw) delete m.cells[key];
-  else m.cells[key] = { on: !!st.on, mode: st.mode, type: st.type || '', v: st.v || '', aw: st.aw || '' };
+  if (!st.on && st.mode === 'aeo' && !st.type && !st.v && !st.aw && !st.st) delete m.cells[key];
+  else m.cells[key] = { on: !!st.on, mode: st.mode, type: st.type || '', v: st.v || '',
+                        aw: st.aw || '', st: st.st || '' };
 }
 
 /* What a matrix cell catches: the repo keywords that mention the competitor
@@ -4207,10 +4212,43 @@ function awarenessSelect(current, disabled, onPick){
   return sel;
 }
 
+/* Where an article stands. A written one has no tick to offer: it is done. */
+const STATUS = [
+  { id: 'written',  label: 'Already written' },
+  { id: 'review',   label: 'Sent for review' },
+  { id: 'progress', label: 'In progress' },
+  { id: 'planned',  label: 'Planned' }
+];
+const statusLabel = id => (STATUS.find(x => x.id === id) || {}).label || '';
+
+function statusSelect(current, disabled, onPick){
+  const sel = document.createElement('select');
+  sel.className = 'gr-kind gr-status' + (current ? ' set' : '');
+  sel.disabled = disabled;
+  sel.title = 'Status: where this article stands';
+  const none = document.createElement('option');
+  none.value = '';
+  none.textContent = 'Status\u2026';
+  sel.append(none);
+  STATUS.forEach(function(x){
+    const o = document.createElement('option');
+    o.value = x.id;
+    o.textContent = x.label;
+    sel.append(o);
+  });
+  sel.value = STATUS.some(x => x.id === current) ? current : '';
+  sel.onchange = function(){
+    sel.classList.toggle('set', !!sel.value);
+    onPick(sel.value);
+  };
+  sel.onkeydown = function(ev){ ev.stopPropagation(); };
+  return sel;
+}
+
 /* The controls every content cell carries, in the tables and the competitor
-   matrix alike: the tick, the AEO/SEO choice and + kw on one line, the article
-   type and the awareness level on the next. `get` reads the cell and `set`
-   writes a patch to it, so the two views cannot drift apart. */
+   matrix alike: the tick, the AEO/SEO choice, the status and + kw on one line,
+   the article type and the awareness level on the next. `get` reads the cell
+   and `set` writes a patch to it, so the two views cannot drift apart. */
 function cellControls(td, o){
   const cell = o.get();
   const ctl = document.createElement('div');
@@ -4218,23 +4256,32 @@ function cellControls(td, o){
 
   const foot = document.createElement('div');
   foot.className = 'gr-foot';
-  const tick = document.createElement('input');
-  tick.type = 'checkbox';
-  tick.className = 'gr-tick';
-  tick.checked = !!cell.on;
-  tick.disabled = o.ro;
-  tick.title = 'Write this \u2014 mark it as an article you are producing';
-  tick.onchange = function(){
-    o.set({ on: tick.checked });
-    td.classList.toggle('planned', tick.checked);
-    o.refreshEmpty();
-    markDirty();
-  };
-  foot.append(tick);
+  /* an article already written is past ticking */
+  if (cell.st !== 'written'){
+    const tick = document.createElement('input');
+    tick.type = 'checkbox';
+    tick.className = 'gr-tick';
+    tick.checked = !!cell.on;
+    tick.disabled = o.ro;
+    tick.title = 'Write this \u2014 mark it as an article you are producing';
+    tick.onchange = function(){
+      o.set({ on: tick.checked });
+      td.classList.toggle('planned', tick.checked);
+      o.refreshEmpty();
+      markDirty();
+    };
+    foot.append(tick);
+  }
   foot.append(modeSwitch(cell.mode, o.ro, function(kind){
     o.set({ mode: kind });
     markDirty();
     o.rerender();
+  }));
+  foot.append(statusSelect(cell.st, o.ro, function(id){
+    o.set({ st: id });
+    o.refreshEmpty();
+    markDirty();
+    o.rerender();          /* the tick comes or goes with it */
   }));
   if (!o.ro){
     const add = document.createElement('button');
@@ -4323,25 +4370,25 @@ function articleTypes(){
    Strings are still read, so nothing saved earlier is lost. */
 function cellOf(row, colId){
   const c = row.cells[colId];
-  if (typeof c === 'string') return { v: c, mode: 'aeo', type: '', on: false, aw: '' };
+  if (typeof c === 'string') return { v: c, mode: 'aeo', type: '', on: false, aw: '', st: '' };
   if (c && typeof c === 'object'){
     return { v: c.v || '', mode: c.mode === 'seo' ? 'seo' : 'aeo', type: c.type || '',
-             on: !!c.on, aw: c.aw || '' };
+             on: !!c.on, aw: c.aw || '', st: c.st || '' };
   }
-  return { v: '', mode: 'aeo', type: '', on: false, aw: '' };
+  return { v: '', mode: 'aeo', type: '', on: false, aw: '', st: '' };
 }
 
 /* A cell with nothing chosen and nothing caught keeps its controls quiet. */
 function cellQuiet(c, keywordCount){
-  return !c.v && !c.on && !keywordCount && !c.type && !c.aw;
+  return !c.v && !c.on && !keywordCount && !c.type && !c.aw && !c.st;
 }
 
 /* An empty cell is left out of the record entirely, so a blank table saves as
    a blank table rather than four hundred little objects. */
 function setCellIn(row, colId, patch){
   const c = Object.assign(cellOf(row, colId), patch);
-  if (!c.v && !c.type && c.mode === 'aeo' && !c.on && !c.aw) delete row.cells[colId];
-  else row.cells[colId] = { v: c.v, mode: c.mode, type: c.type, on: c.on, aw: c.aw };
+  if (!c.v && !c.type && c.mode === 'aeo' && !c.on && !c.aw && !c.st) delete row.cells[colId];
+  else row.cells[colId] = { v: c.v, mode: c.mode, type: c.type, on: c.on, aw: c.aw, st: c.st };
 }
 
 function renderArticleTypes(){
@@ -4614,7 +4661,8 @@ function renderMatrix(){
       const cellKey = comp.id + '|' + ty.id;
       const st = cellState(m, cellKey);
       const rows = matrixCellKeywords(comp, ty, st.v);
-      td.className = 'gr-cell' + (cellQuiet(st, rows.length) ? ' empty' : '') + (st.on ? ' planned' : '');
+      td.className = 'gr-cell' + (cellQuiet(st, rows.length) ? ' empty' : '') + (st.on ? ' planned' : '')
+                   + (st.st === 'written' ? ' written' : '');
 
       /* the cell's own words: the title or keyword this article is about */
       const inp = document.createElement('input');
@@ -4767,7 +4815,8 @@ function renderGrid(){
       const cell = cellOf(row, col.id);
       const kws = gridCellKeywords(cell.v);
       const td = document.createElement('td');
-      td.className = 'gr-cell' + (cellQuiet(cell, kws.length) ? ' empty' : '') + (cell.on ? ' planned' : '');
+      td.className = 'gr-cell' + (cellQuiet(cell, kws.length) ? ' empty' : '') + (cell.on ? ' planned' : '')
+                   + (cell.st === 'written' ? ' written' : '');
 
       const inp = document.createElement('input');
       inp.type = 'text';

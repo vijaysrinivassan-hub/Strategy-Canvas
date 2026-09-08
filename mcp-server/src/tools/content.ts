@@ -9,21 +9,27 @@ const CONTENT_TAB = "Content Strategy";
  *  it becomes — all three follow the keyword, not the row. Old strings still
  *  read correctly. */
 const AWARENESS = ["Problem aware", "Solution aware", "Feature aware", "Competitor aware"] as const;
+/** Where an article stands. The app stores the short id. */
+const STATUS = ["written", "review", "progress", "planned"] as const;
+const STATUS_LABEL: Record<string, string> = {
+  written: "Already written", review: "Sent for review", progress: "In progress", planned: "Planned"
+};
 
 function readCell(raw: any): {
-  value: string; mode: "aeo" | "seo"; type: string; on: boolean; aw: string;
+  value: string; mode: "aeo" | "seo"; type: string; on: boolean; aw: string; st: string;
 } {
-  if (typeof raw === "string") return { value: raw, mode: "aeo", type: "", on: false, aw: "" };
+  if (typeof raw === "string") return { value: raw, mode: "aeo", type: "", on: false, aw: "", st: "" };
   if (raw && typeof raw === "object") {
     return {
       value: raw.v || "",
       mode: raw.mode === "seo" ? "seo" : "aeo",
       type: raw.type || "",
       on: !!raw.on,
-      aw: raw.aw || ""
+      aw: raw.aw || "",
+      st: raw.st || ""
     };
   }
-  return { value: "", mode: "aeo", type: "", on: false, aw: "" };
+  return { value: "", mode: "aeo", type: "", on: false, aw: "", st: "" };
 }
 
 /** Resolve an article-kind name (Listicle, Informational...) to its id. */
@@ -90,10 +96,11 @@ export function registerContentTools(server: McpServer) {
             const cells: Record<string, any> = {};
             for (const c of cols) {
               const cell = readCell(r.cells?.[c.id]);
-              if (!cell.value && !cell.type && !cell.on && !cell.aw) continue;
+              if (!cell.value && !cell.type && !cell.on && !cell.aw && !cell.st) continue;
               cells[c.name] = {
                 value: cell.value,
                 planned: cell.on,
+                status: cell.st ? STATUS_LABEL[cell.st] ?? cell.st : null,
                 mode: cell.mode,
                 article_type: cell.type ? typeName(cell.type) : null,
                 awareness: cell.aw || null
@@ -124,11 +131,12 @@ export function registerContentTools(server: McpServer) {
           const raw = v.cells?.[`${r.id}|${t.id}`];
           if (!raw) continue;
           const cell = readCell(raw);
-          if (cell.on || cell.value || cell.aw) {
+          if (cell.on || cell.value || cell.aw || cell.st) {
             cells.push({
               row: r.name,
               article_type: t.name,
               planned: cell.on,
+              status: cell.st ? STATUS_LABEL[cell.st] ?? cell.st : null,
               text: cell.value || null,
               mode: cell.mode,
               article_kind: cell.type ? kindName(cell.type) : null,
@@ -180,11 +188,15 @@ export function registerContentTools(server: McpServer) {
           .enum(AWARENESS)
           .optional()
           .describe("Reader's awareness level for the cells this call writes"),
+        status: z
+          .enum(STATUS)
+          .optional()
+          .describe("Where the article stands: written, review, progress or planned"),
         replace: z.boolean().default(false).optional()
       },
       annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false }
     },
-    async ({ board_id, view, rows, mode, article_type, planned, awareness, replace }) => {
+    async ({ board_id, view, rows, mode, article_type, planned, awareness, status, replace }) => {
       const { body } = await loadBoard(board_id);
       const v = viewOf(body, view);
       if (v.kind !== "grid") throw new ToolError(`The "${view}" view is a matrix, not a table.`);
@@ -208,7 +220,9 @@ export function registerContentTools(server: McpServer) {
         for (const [k, val] of Object.entries(r)) {
           const id = byName.get(k.toLowerCase());
           if (!id) { unknown.add(k); continue; }
-          slot.cells[id] = { v: val, mode: mode ?? "aeo", type: typeId, on: !!planned, aw: awareness ?? "" };
+          slot.cells[id] = {
+            v: val, mode: mode ?? "aeo", type: typeId, on: !!planned, aw: awareness ?? "", st: status ?? ""
+          };
         }
         written++;
       }
@@ -238,12 +252,13 @@ export function registerContentTools(server: McpServer) {
           .optional()
           .describe("The kind of piece, from Settings > Article Types: e.g. Listicle, Informational"),
         awareness: z.enum(AWARENESS).optional().describe("Reader's awareness level"),
+        status: z.enum(STATUS).optional().describe("written, review, progress or planned"),
         text: z.string().optional().describe("The article's own words: its title or keyword"),
         planned: z.boolean().default(true).optional()
       },
       annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true }
     },
-    async ({ board_id, competitor, article_type, mode, article_kind, awareness, text, planned }) => {
+    async ({ board_id, competitor, article_type, mode, article_kind, awareness, status, text, planned }) => {
       const { body } = await loadBoard(board_id);
       const v = viewOf(body, "competitor");
       const kindId = kindIdFor(body.tabs[CONTENT_TAB], article_kind);
@@ -274,9 +289,10 @@ export function registerContentTools(server: McpServer) {
       const prev = readCell(v.cells[key]);
       const type_ = kindId || prev.type;
       const aw = awareness ?? prev.aw;
+      const st = status ?? prev.st;
       const words = text ?? prev.value;
-      if (!on && m === "aeo" && !type_ && !aw && !words) delete v.cells[key];
-      else v.cells[key] = { on, mode: m, type: type_, v: words, aw };
+      if (!on && m === "aeo" && !type_ && !aw && !words && !st) delete v.cells[key];
+      else v.cells[key] = { on, mode: m, type: type_, v: words, aw, st };
 
       await saveBoard(board_id, body);
       return ok({
@@ -286,6 +302,7 @@ export function registerContentTools(server: McpServer) {
         mode: m,
         article_kind: article_kind ?? null,
         awareness: aw || null,
+        status: st ? STATUS_LABEL[st] ?? st : null,
         planned: on
       });
     }

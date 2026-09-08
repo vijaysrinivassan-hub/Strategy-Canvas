@@ -147,9 +147,11 @@ ICP and Value. Competitor is a matrix; Category, ICP and Value are plain tables
 of 20 rows.
 
 In those three the unit is the **cell**, not the row. Each cell holds the words,
-a green **Write this** tick, its own **AEO / SEO** choice, its **type** (from
-Settings) and the reader's **awareness** level — Problem aware, Solution aware,
-Feature aware or Competitor aware — because all of those follow the keyword: the
+a green **Write this** tick, its own **AEO / SEO** choice, a **status** — Already
+written, Sent for review, In progress or Planned — its **type** (from Settings)
+and the reader's **awareness** level — Problem aware, Solution aware, Feature
+aware or Competitor aware — because all of those follow the keyword. A cell marked
+*Already written* has no tick: it is past ticking. All of that follows the keyword: the
 same category can be worth an AEO listicle for the problem-aware in one column
 and an SEO explainer for the competitor-aware in the next. The controls stay
 faded on an empty cell and come up on hover, so a blank table still reads as a
