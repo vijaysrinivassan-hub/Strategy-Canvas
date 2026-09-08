@@ -158,6 +158,100 @@ export function registerContentTools(server: McpServer) {
   );
 
   server.registerTool(
+    "content_set_columns",
+    {
+      title: "Set a table's columns",
+      description:
+        "Set the columns of the category, icp or value table. Give the whole list, in the " +
+        "order you want them. A name that already exists keeps its column and everything " +
+        "in it; a new name is added empty; any column you leave out is removed along with " +
+        "its cells. To rename a column and keep its contents, give that entry as " +
+        '{"name":"New heading","replaces":"Old heading"} rather than a bare string. Ten ' +
+        "columns is the limit. Use this before content_set_rows when the table's headings " +
+        "do not suit what you are filling it with.",
+      inputSchema: {
+        board_id: z.string(),
+        view: z.enum(["category", "icp", "value"]),
+        columns: z
+          .array(
+            z.union([
+              z.string().min(1),
+              z.object({
+                name: z.string().min(1),
+                replaces: z
+                  .string()
+                  .optional()
+                  .describe("Existing column whose contents move to this one")
+              })
+            ])
+          )
+          .min(1)
+          .max(10)
+          .describe('The full list, in order, e.g. ["Slug","Category","Article type","URL"]')
+      },
+      annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true }
+    },
+    async ({ board_id, view, columns }) => {
+      const { body } = await loadBoard(board_id);
+      const v = viewOf(body, view);
+      if (v.kind !== "grid") throw new ToolError(`The "${view}" view is a matrix, not a table.`);
+
+      const want = columns
+        .map((c) => (typeof c === "string" ? { name: c.trim(), replaces: undefined } : {
+          name: c.name.trim(), replaces: c.replaces?.trim() || undefined
+        }))
+        .filter((c) => c.name);
+
+      const seen = new Set<string>();
+      for (const c of want) {
+        const k = c.name.toLowerCase();
+        if (seen.has(k)) throw new ToolError(`"${c.name}" is listed twice; column names must differ.`);
+        seen.add(k);
+      }
+
+      const before: any[] = v.columns || [];
+      const find = (name: string) =>
+        before.find((c: any) => String(c.name).toLowerCase() === name.toLowerCase());
+      const claimed = new Set<string>();
+      const kept: any[] = [];
+      for (const c of want) {
+        /* an explicit rename carries the old column's cells over; otherwise a
+           column is only the same column when its name has not changed */
+        let match = c.replaces ? find(c.replaces) : find(c.name);
+        if (c.replaces && !match) {
+          throw new ToolError(
+            `No column called "${c.replaces}" to rename. Columns are: ` +
+              before.map((x: any) => x.name).join(", ") + "."
+          );
+        }
+        if (match && claimed.has(match.id)) match = undefined;   // already spoken for
+        if (match) { claimed.add(match.id); kept.push({ id: match.id, name: c.name }); }
+        else kept.push({ id: uid(), name: c.name });
+      }
+
+      /* cells belonging to a column that has gone go with it */
+      const live = new Set(kept.map((c) => c.id));
+      let dropped = 0;
+      for (const r of v.rows || []) {
+        for (const key of Object.keys(r.cells || {})) {
+          if (!live.has(key)) { delete r.cells[key]; dropped++; }
+        }
+      }
+      v.columns = kept;
+      await saveBoard(board_id, body);
+
+      return ok({
+        view,
+        columns: kept.map((c) => c.name),
+        removed: before
+          .filter((c: any) => !live.has(c.id))
+          .map((c: any) => c.name),
+        cells_discarded: dropped
+      });
+    }
+  );
+
+  server.registerTool(
     "content_set_rows",
     {
       title: "Write rows into a content table",
@@ -192,11 +286,19 @@ export function registerContentTools(server: McpServer) {
           .enum(STATUS)
           .optional()
           .describe("Where the article stands: written, review, progress or planned"),
+        apply_to: z
+          .string()
+          .optional()
+          .describe(
+            "Column that carries the article: only its cell gets the mode, article type, " +
+              "awareness, status and tick, and the other columns are written as plain text. " +
+              "Omit to apply them to every cell in the row."
+          ),
         replace: z.boolean().default(false).optional()
       },
       annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false }
     },
-    async ({ board_id, view, rows, mode, article_type, planned, awareness, status, replace }) => {
+    async ({ board_id, view, rows, mode, article_type, planned, awareness, status, apply_to, replace }) => {
       const { body } = await loadBoard(board_id);
       const v = viewOf(body, view);
       if (v.kind !== "grid") throw new ToolError(`The "${view}" view is a matrix, not a table.`);
@@ -205,6 +307,18 @@ export function registerContentTools(server: McpServer) {
       for (const c of v.columns || []) byName.set(String(c.name).toLowerCase(), c.id);
 
       const typeId = kindIdFor(body.tabs[CONTENT_TAB], article_type);
+
+      let applyId: string | null = null;
+      if (apply_to) {
+        const id = byName.get(apply_to.trim().toLowerCase());
+        if (!id) {
+          throw new ToolError(
+            `No column called "${apply_to}" on the ${view} table. Columns are: ` +
+              (v.columns || []).map((c: any) => c.name).join(", ") + "."
+          );
+        }
+        applyId = id;
+      }
 
       const unknown = new Set<string>();
       if (replace) v.rows = [];
@@ -220,9 +334,13 @@ export function registerContentTools(server: McpServer) {
         for (const [k, val] of Object.entries(r)) {
           const id = byName.get(k.toLowerCase());
           if (!id) { unknown.add(k); continue; }
-          slot.cells[id] = {
-            v: val, mode: mode ?? "aeo", type: typeId, on: !!planned, aw: awareness ?? "", st: status ?? ""
-          };
+          /* a cell that is only holding a label carries no article furniture */
+          slot.cells[id] = applyId && id !== applyId
+            ? { v: val, mode: "aeo", type: "", on: false, aw: "", st: "" }
+            : {
+                v: val, mode: mode ?? "aeo", type: typeId, on: !!planned,
+                aw: awareness ?? "", st: status ?? ""
+              };
         }
         written++;
       }
