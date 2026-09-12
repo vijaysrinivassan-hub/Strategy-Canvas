@@ -79,6 +79,11 @@ saved with the board and can be changed later with Edit.
   where the product wins. Value Positioning connects four editable cards: functional
   value, core benefit, monetary benefit and strategic benefit.
 - **Strategy › Channel Strategy** shows the active and available acquisition levers.
+- **Strategy › Brand Radar** turns Product Evolution into a four-quadrant market map:
+  Technology access, Input access, Process access and People access. The chosen axis
+  is divided into quarter-circle stage bands, with Stage 1 nearest the centre and the
+  selected **We stand here** stage highlighted in green. Selecting a stage in Product
+  Evolution or directly on the radar updates the same saved position.
 - **Canvas** lists Product Architecture, Market Research Frame, Messaging Framework,
   Positioning Document and Growth Strategy directly, without a Brand Strategy parent
   row. Each is its own canvas; the count beside one is its card count. Those five always exist —

@@ -1026,6 +1026,10 @@
   .evo-step{position:relative; width:190px; min-height:90px; flex:none; padding:12px;
             border:1px solid #c9cac6; border-radius:6px; background:#fff}
   .evo-step.previous{border-style:dashed}
+  .evo-step.current{border-color:#57c982; background:#effbf3;
+                    box-shadow:0 0 0 1px rgba(87,201,130,.14)}
+  .evo-current{position:absolute; right:8px; bottom:7px; color:#2f7b49; font-size:7.5px;
+               font-weight:850; letter-spacing:.07em; text-transform:uppercase}
   .evo-step label{display:block; margin-bottom:8px; color:#777872; font-size:9px;
                   font-weight:800; letter-spacing:.08em; text-transform:uppercase}
   .evo-step input{width:100%; border:0; border-bottom:1px solid #deded9; border-radius:0;
@@ -1074,6 +1078,39 @@
   .pe-evidence-actions{display:flex; align-items:center; gap:4px}
   .pe-add-evidence{margin-top:10px; padding:5px 8px; background:#fff; color:#5d5e58; font-size:10px}
   .pe-empty-source{padding:28px!important; text-align:center; color:#777872; font-size:11px}
+
+  /* ================= brand radar ================= */
+  .radar{flex:1; min-height:0; overflow:auto; padding:30px; background:#f7f7f5}
+  .radar-canvas{width:min(1080px,100%); min-height:720px; margin:0 auto; padding:24px;
+                border:1px solid #deded9; border-radius:8px; background-color:#fbfbfa;
+                background-image:radial-gradient(circle at 1px 1px,#d4d5cf 1.1px,transparent 1.2px);
+                background-size:20px 20px}
+  .radar-head{display:flex; align-items:flex-start; gap:18px; margin-bottom:12px}
+  .radar-head h3{margin:3px 0 6px; color:#20211e; font-size:18px}
+  .radar-head p{max-width:700px; margin:0; color:#6f706a; font-size:11.5px; line-height:1.55}
+  .radar-head button{margin-left:auto; flex:none}
+  .radar-figure{width:min(700px,100%); margin:0 auto}
+  .radar-svg{display:block; width:100%; height:auto; overflow:visible}
+  .radar-quarter{stroke:#d4d5d0; stroke-width:1.2; transition:fill .15s}
+  .radar-quarter.active{stroke:#57c982; stroke-width:2}
+  .radar-axis-line{stroke:#999a95; stroke-width:1.4; vector-effect:non-scaling-stroke}
+  .radar-outline{fill:none; stroke:#aaaBA6; stroke-width:1.5; vector-effect:non-scaling-stroke}
+  .radar-axis-name{fill:#575852; font-size:15px; font-weight:700; text-anchor:middle}
+  .radar-axis-name.active{fill:#22663b}
+  .radar-stage{stroke:#73c891; stroke-width:1.2; cursor:pointer; transition:filter .12s}
+  .radar-stage:hover{filter:brightness(.97)}
+  .radar-stage.selected{stroke:#237a43; stroke-width:3}
+  .radar-stage-label{fill:#255e38; font-size:11px; font-weight:700; text-anchor:middle;
+                     pointer-events:none}
+  .radar-marker{fill:#176a37; stroke:#fff; stroke-width:4; pointer-events:none}
+  .radar-marker-label{fill:#176a37; font-size:9px; font-weight:850; letter-spacing:.06em;
+                      text-anchor:middle; text-transform:uppercase; pointer-events:none}
+  .radar-empty{fill:#777872; font-size:14px; font-weight:650; text-anchor:middle}
+  .radar-foot{display:flex; align-items:center; gap:12px; width:min(700px,100%); margin:4px auto 0;
+              padding:11px 13px; border-left:3px solid #57c982; background:rgba(255,255,255,.82);
+              color:#4e504a; font-size:11px; line-height:1.45}
+  .radar-foot strong{color:#22663b}.radar-foot span{flex:1}
+  .radar-foot button{padding:5px 8px; background:#fff; flex:none; font-size:10px}
 
   /* ================= positioning canvas ================= */
   .positioning{flex:1; min-height:0; overflow:auto; padding:30px; background:#f7f7f5}
@@ -1191,6 +1228,8 @@
       width:100%; min-height:60px}
     .evo-market{grid-column:1/-1; order:-1}.evo-wires{display:none}
     .pe-box{margin-top:26px}.pe-head{padding:14px}.pe-evidence{grid-template-columns:120px 150px 210px auto}
+    .radar{padding:14px}.radar-canvas{min-height:0; padding:18px 12px}.radar-head{display:block}
+    .radar-head button{margin-top:10px}.radar-foot{align-items:flex-start; flex-wrap:wrap}
   }
 
   .toast{position:fixed; left:50%; bottom:80px; transform:translateX(-50%); z-index:200;
@@ -1640,6 +1679,24 @@
       </div>
     </div>
 
+    <!-- Market-position radar driven by the selected Product Evolution axis and stage. -->
+    <div class="radar" id="brandRadarPane" hidden>
+      <div class="radar-canvas">
+        <div class="radar-head">
+          <div>
+            <span class="pos-axis-label">Market position</span>
+            <h3>Brand Radar</h3>
+            <p>The four quadrants are the four axes of evolution. The selected Product Evolution axis expands from Stage 1 at the centre to later stages at the edge.</p>
+          </div>
+          <button id="btnOpenProductEvolution" type="button">Open Product Evolution</button>
+        </div>
+        <div class="radar-figure">
+          <svg class="radar-svg" id="brandRadarSvg" viewBox="0 0 760 760" role="img" aria-label="Brand position across four evolution axes"></svg>
+        </div>
+        <div class="radar-foot" id="brandRadarStatus"></div>
+      </div>
+    </div>
+
     <!-- ICP and category positioning decisions, connected to Content Strategy. -->
     <div class="positioning" id="positioningPane" hidden>
       <section class="pos-section">
@@ -1808,11 +1865,12 @@ const SUPABASE_URL = 'https://cskamgfvebryahkljlll.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_MdkD-TxMCIwlu69seSHA3Q_A39GADsK';
 const CLIENT_ID    = '1059013355751-6g50dsgm7df37htl2fdqrtlkh5hmrc0c.apps.googleusercontent.com';
 const ALLOWED      = ['vijaysrinivassan@gmail.com'];
-const BUILD        = 'v7.10';
+const BUILD        = 'v7.11';
 
 const STRATEGY_ONE_TAB = 'Strategy 1 — Brand Strategy';
 const PRODUCT_EVOLUTION_TAB = 'Strategy 1 — Product Evolution';
 const POSITIONING_TAB = 'Strategy 1 — Positioning Canvas';
+const BRAND_RADAR_TAB = 'Strategy 1 — Brand Radar';
 
 const TABS = [
   'Product Architecture',
@@ -1823,6 +1881,7 @@ const TABS = [
   STRATEGY_ONE_TAB,
   PRODUCT_EVOLUTION_TAB,
   POSITIONING_TAB,
+  BRAND_RADAR_TAB,
   'Channel Strategy',
   'Content Strategy',
   'Keyword Repo',
@@ -2171,6 +2230,7 @@ const TAB_ICONS = {
   'Strategy 1 — Brand Strategy': '<path d="M4 5h16v14H4z"/><path d="M8 9h8M8 13h5M8 17h3"/>',
   'Strategy 1 — Product Evolution': '<path d="M4 12h16M12 4v16"/><circle cx="12" cy="12" r="3"/>',
   'Strategy 1 — Positioning Canvas': '<circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="8"/><path d="M12 1v3M12 20v3M1 12h3M20 12h3"/>',
+  'Strategy 1 — Brand Radar': '<circle cx="12" cy="12" r="8"/><path d="M12 1v22M1 12h22"/><circle cx="12" cy="12" r="3"/>',
   'Brand Strategy': '<path d="M12 3l2.6 5.6 6.1.8-4.5 4.2 1.2 6L12 16.8 6.6 19.6l1.2-6L3.3 9.4l6.1-.8z"/>',
   'New Canvas': '<path d="M12 5v14M5 12h14"/>',
   'MCP': '<path d="M5 7h14M5 12h14M5 17h9"/><circle cx="18" cy="17" r="2.2"/>',
@@ -2204,7 +2264,7 @@ function renderTabs(){
     label.textContent = displayLabel || name;
     b.append(label);
     const isPanel = [DOCS_TAB, CHANNELS_TAB, KEYWORDS_TAB, CONTENT_TAB,
-                     STRATEGY_ONE_TAB, PRODUCT_EVOLUTION_TAB, POSITIONING_TAB].indexOf(name) > -1;
+                     STRATEGY_ONE_TAB, PRODUCT_EVOLUTION_TAB, POSITIONING_TAB, BRAND_RADAR_TAB].indexOf(name) > -1;
     if (!isPanel){
       const c = document.createElement('span');
       c.className = 'n';
@@ -2275,6 +2335,7 @@ function renderTabs(){
       box.append(tabButton(STRATEGY_ONE_TAB, 'Brand Strategy'));
       box.append(tabButton(PRODUCT_EVOLUTION_TAB, 'Product Evolution'));
       box.append(tabButton(POSITIONING_TAB, 'Positioning Canvas'));
+      box.append(tabButton(BRAND_RADAR_TAB, 'Brand Radar'));
       box.append(tabButton(CHANNELS_TAB, 'Channel Strategy'));
       return;
     }
@@ -2418,7 +2479,8 @@ function renderTabs(){
     $('tabTitle').textContent = state.tab === CONTENT_TAB ? viewDef(state.contentView).label
       : state.tab === STRATEGY_ONE_TAB ? 'Brand Strategy'
       : state.tab === PRODUCT_EVOLUTION_TAB ? 'Product Evolution'
-      : state.tab === POSITIONING_TAB ? 'Positioning Canvas' : state.tab;
+      : state.tab === POSITIONING_TAB ? 'Positioning Canvas'
+      : state.tab === BRAND_RADAR_TAB ? 'Brand Radar' : state.tab;
   }
 }
 
@@ -2835,7 +2897,7 @@ function switchTab(name){
   state.tab = name;
   state.frameIndex = -1;
   state.screen = 'board';
-  if ([STRATEGY_ONE_TAB, PRODUCT_EVOLUTION_TAB, POSITIONING_TAB, CHANNELS_TAB].indexOf(name) !== -1) openNav('strategy1');
+  if ([STRATEGY_ONE_TAB, PRODUCT_EVOLUTION_TAB, POSITIONING_TAB, BRAND_RADAR_TAB, CHANNELS_TAB].indexOf(name) !== -1) openNav('strategy1');
   else if (isBrandTab(name)) closeNav();
   else if (name === CONTENT_TAB) openNav('content');
   clearSel();
@@ -4066,6 +4128,7 @@ function applyTabMode(){
     $('viewport').hidden = true; $('docsPane').hidden = true;
     $('chanPane').hidden = true; $('kwPane').hidden = true; $('mxPane').hidden = true;
     $('strategyGuidePane').hidden = true; $('evoPane').hidden = true; $('positioningPane').hidden = true;
+    $('brandRadarPane').hidden = true;
     $('framePane').hidden = true; $('roFrame').hidden = true;
     $('btnFrameExport').hidden = true;
     ['btnFit','framePick','btnFrameExport'].forEach(id => { $(id).hidden = true; });
@@ -4091,7 +4154,8 @@ function applyTabMode(){
   const isGuide = state.tab === STRATEGY_ONE_TAB;
   const isEvo = state.tab === PRODUCT_EVOLUTION_TAB;
   const isPositioning = state.tab === POSITIONING_TAB;
-  const isCanvas = !isDocs && !isChan && !isKw && !isMx && !isGuide && !isEvo && !isPositioning && !isNote;
+  const isRadar = state.tab === BRAND_RADAR_TAB;
+  const isCanvas = !isDocs && !isChan && !isKw && !isMx && !isGuide && !isEvo && !isPositioning && !isRadar && !isNote;
 
   if (frame){
     $('tabTitle').textContent = frame.name;
@@ -4109,6 +4173,7 @@ function applyTabMode(){
   $('strategyGuidePane').hidden = !isGuide;
   $('evoPane').hidden = !isEvo;
   $('positioningPane').hidden = !isPositioning;
+  $('brandRadarPane').hidden = !isRadar;
   $('btnFit').hidden = !isCanvas;
   /* a frame can be used as a template on a real canvas, but not inside a frame */
   $('framePick').hidden = !isCanvas || readOnly();
@@ -4127,6 +4192,7 @@ function applyTabMode(){
     }
   }
   if (isPositioning) renderPositioning();
+  if (isRadar) renderBrandRadar();
   renderCrumb();
   applyRole();
 }
@@ -6135,7 +6201,7 @@ function isCanvasTab(){
   if (state.screen !== 'board') return false;
   if (inFrame()) return (state.frames[state.frameIndex] || {}).kind === 'canvas';
   return [DOCS_TAB, CHANNELS_TAB, KEYWORDS_TAB, CONTENT_TAB,
-          STRATEGY_ONE_TAB, PRODUCT_EVOLUTION_TAB, POSITIONING_TAB].indexOf(state.tab) === -1;
+          STRATEGY_ONE_TAB, PRODUCT_EVOLUTION_TAB, POSITIONING_TAB, BRAND_RADAR_TAB].indexOf(state.tab) === -1;
 }
 const openFrameDef = () => (inFrame() ? state.frames[state.frameIndex] : null);
 
@@ -6562,7 +6628,7 @@ function renderCrumb(){
   let c = 'Strategy';
   if (state.screen !== 'board') c = 'Account';
   else if (inFrame()) c = 'Frames';
-  else if ([STRATEGY_ONE_TAB, PRODUCT_EVOLUTION_TAB, POSITIONING_TAB, CHANNELS_TAB, CONTENT_TAB].indexOf(state.tab) !== -1) c = 'Strategy';
+  else if ([STRATEGY_ONE_TAB, PRODUCT_EVOLUTION_TAB, POSITIONING_TAB, BRAND_RADAR_TAB, CHANNELS_TAB, CONTENT_TAB].indexOf(state.tab) !== -1) c = 'Strategy';
   else if (isBrandTab(state.tab)) c = 'Canvas';
   else if (state.tab === CONTENT_TAB) c = 'Content Strategy';
   else if (state.tab === KEYWORDS_TAB || state.tab === DOCS_TAB) c = 'Research';
@@ -6858,6 +6924,7 @@ function evolutionState(){
             (state.tabs[PRODUCT_EVOLUTION_TAB] = { nodes: [], edges: [] });
   if (!t.evolution || typeof t.evolution !== 'object') t.evolution = { axis: '', paths: {} };
   if (!t.evolution.paths || typeof t.evolution.paths !== 'object') t.evolution.paths = {};
+  if (!t.evolution.positions || typeof t.evolution.positions !== 'object') t.evolution.positions = {};
   EVOLUTION_AXES.forEach(axis => {
     const path = t.evolution.paths[axis.id];
     if (!path || typeof path !== 'object'){
@@ -6868,6 +6935,9 @@ function evolutionState(){
     if (!Array.isArray(path.stages)) path.stages = [''];
     path.stages = path.stages.map(x => typeof x === 'string' ? x : String(x || ''));
     if (!path.stages.length) path.stages.push('');
+    const position = Number(t.evolution.positions[axis.id]);
+    t.evolution.positions[axis.id] = Number.isInteger(position) && position >= 0 && position < path.stages.length
+      ? position : path.stages.length - 1;
   });
   if (!EVOLUTION_AXES.some(axis => axis.id === t.evolution.axis)) t.evolution.axis = '';
   return t.evolution;
@@ -7210,7 +7280,25 @@ function renderEvolution(focusLast){
     track.append(arrow);
 
     const step = document.createElement('div');
-    step.className = 'evo-step';
+    const current = evo.positions[evo.axis] === index;
+    step.className = 'evo-step' + (current ? ' current' : '');
+    step.tabIndex = readOnly() ? -1 : 0;
+    step.title = current ? 'Current market position' : 'Click to mark where we stand';
+    step.onclick = ev => {
+      if (readOnly() || ev.target.closest('input,button')) return;
+      evo.positions[evo.axis] = index;
+      markDirty(); renderEvolution();
+    };
+    step.onkeydown = ev => {
+      if (readOnly() || ev.target !== step || (ev.key !== 'Enter' && ev.key !== ' ')) return;
+      ev.preventDefault(); evo.positions[evo.axis] = index; markDirty(); renderEvolution();
+    };
+    step.title = 'Click the card to mark where we stand';
+    step.onclick = ev => {
+      if (readOnly() || ev.target.closest('input,button')) return;
+      evo.positions[evo.axis] = index;
+      markDirty(); renderEvolution();
+    };
     const label = document.createElement('label');
     label.textContent = 'Stage ' + (index + 1);
     const input = document.createElement('input');
@@ -7219,13 +7307,29 @@ function renderEvolution(focusLast){
     input.readOnly = readOnly();
     input.oninput = ev => { path.stages[index] = ev.target.value; markDirty(); };
     step.append(label, input);
+    if (current){
+      const badge = document.createElement('span');
+      badge.className = 'evo-current';
+      badge.textContent = 'We stand here';
+      step.append(badge);
+    }
+    if (current){
+      const here = document.createElement('span');
+      here.className = 'evo-current';
+      here.textContent = 'We stand here';
+      step.append(here);
+    }
     if (!readOnly() && path.stages.length > 1){
       const remove = document.createElement('button');
       remove.type = 'button';
       remove.className = 'evo-step-x';
       remove.title = 'Remove this stage';
       remove.textContent = '\u00d7';
-      remove.onclick = () => { path.stages.splice(index, 1); markDirty(); renderEvolution(); };
+      remove.onclick = () => {
+        path.stages.splice(index, 1);
+        evo.positions[evo.axis] = Math.min(evo.positions[evo.axis], path.stages.length - 1);
+        markDirty(); renderEvolution();
+      };
       step.append(remove);
     }
     track.append(step);
@@ -7256,6 +7360,142 @@ $('btnEvoChange').onclick = () => {
   markDirty();
   renderEvolution();
 };
+
+/* ===================================================================
+   BRAND RADAR — the Product Evolution choice as a four-quadrant map
+   =================================================================== */
+const RADAR_AXES = [
+  { id: 'technology', label: 'Technology access', start: 180, end: 270, lx: 190, ly: 178 },
+  { id: 'input',      label: 'Input access',      start: 270, end: 360, lx: 570, ly: 178 },
+  { id: 'process',    label: 'Process access',    start:   0, end:  90, lx: 570, ly: 590 },
+  { id: 'people',     label: 'People access',     start:  90, end: 180, lx: 190, ly: 590 }
+];
+
+function radarPoint(radius, degrees){
+  const angle = degrees * Math.PI / 180;
+  return { x: 380 + Math.cos(angle) * radius, y: 380 + Math.sin(angle) * radius };
+}
+
+function radarSector(inner, outer, start, end){
+  const a = radarPoint(outer, start);
+  const b = radarPoint(outer, end);
+  if (!inner) return 'M380 380 L' + a.x + ' ' + a.y + ' A' + outer + ' ' + outer +
+    ' 0 0 1 ' + b.x + ' ' + b.y + ' Z';
+  const c = radarPoint(inner, end);
+  const d = radarPoint(inner, start);
+  return 'M' + d.x + ' ' + d.y + ' L' + a.x + ' ' + a.y + ' A' + outer + ' ' + outer +
+    ' 0 0 1 ' + b.x + ' ' + b.y + ' L' + c.x + ' ' + c.y + ' A' + inner + ' ' + inner +
+    ' 0 0 0 ' + d.x + ' ' + d.y + ' Z';
+}
+
+function renderBrandRadar(){
+  const svg = $('brandRadarSvg');
+  const status = $('brandRadarStatus');
+  if (!svg || !status) return;
+  const evo = evolutionState();
+  const ns = 'http://www.w3.org/2000/svg';
+  svg.innerHTML = '';
+
+  RADAR_AXES.forEach(axis => {
+    const quarter = document.createElementNS(ns, 'path');
+    quarter.setAttribute('d', radarSector(0, 270, axis.start, axis.end));
+    quarter.setAttribute('fill', evo.axis === axis.id ? '#eaf8ef' : '#fff');
+    quarter.setAttribute('class', 'radar-quarter' + (evo.axis === axis.id ? ' active' : ''));
+    svg.append(quarter);
+  });
+
+  const active = RADAR_AXES.find(axis => axis.id === evo.axis);
+  if (active){
+    const path = evo.paths[active.id];
+    const stages = path.stages;
+    const band = 270 / stages.length;
+    const current = evo.positions[active.id];
+    stages.forEach((value, index) => {
+      const sector = document.createElementNS(ns, 'path');
+      sector.setAttribute('d', radarSector(index * band, (index + 1) * band, active.start, active.end));
+      sector.setAttribute('fill', index === current ? '#78d49a' : 'rgba(172,229,191,' + Math.min(.76, .32 + index * .08) + ')');
+      sector.setAttribute('class', 'radar-stage' + (index === current ? ' selected' : ''));
+      sector.setAttribute('role', 'button');
+      sector.setAttribute('tabindex', readOnly() ? '-1' : '0');
+      sector.setAttribute('aria-label', 'Stage ' + (index + 1) + ': ' + (value.trim() || 'Untitled stage'));
+      sector.onclick = () => {
+        if (readOnly()) return;
+        evo.positions[active.id] = index;
+        markDirty(); renderBrandRadar();
+      };
+      sector.onkeydown = ev => {
+        if (readOnly() || (ev.key !== 'Enter' && ev.key !== ' ')) return;
+        ev.preventDefault(); evo.positions[active.id] = index; markDirty(); renderBrandRadar();
+      };
+      svg.append(sector);
+
+      const point = radarPoint((index + .5) * band, (active.start + active.end) / 2);
+      const label = document.createElementNS(ns, 'text');
+      label.setAttribute('x', point.x); label.setAttribute('y', point.y - 5);
+      label.setAttribute('class', 'radar-stage-label');
+      const stageLine = document.createElementNS(ns, 'tspan');
+      stageLine.setAttribute('x', point.x); stageLine.textContent = 'Stage ' + (index + 1);
+      const valueLine = document.createElementNS(ns, 'tspan');
+      valueLine.setAttribute('x', point.x); valueLine.setAttribute('dy', '15');
+      const stageName = value.trim() || evolutionPlaceholder(active.id, index);
+      valueLine.textContent = stageName.length > 20 ? stageName.slice(0, 19) + '\u2026' : stageName;
+      label.append(stageLine, valueLine);
+      svg.append(label);
+
+      if (index === current){
+        const marker = document.createElementNS(ns, 'circle');
+        marker.setAttribute('cx', point.x); marker.setAttribute('cy', point.y + 28);
+        marker.setAttribute('r', '8'); marker.setAttribute('class', 'radar-marker');
+        svg.append(marker);
+        const markerLabel = document.createElementNS(ns, 'text');
+        markerLabel.setAttribute('x', point.x); markerLabel.setAttribute('y', point.y + 49);
+        markerLabel.setAttribute('class', 'radar-marker-label'); markerLabel.textContent = 'We stand here';
+        svg.append(markerLabel);
+      }
+    });
+  }
+
+  [['line', { x1: 380, y1: 42, x2: 380, y2: 718 }],
+   ['line', { x1: 42, y1: 380, x2: 718, y2: 380 }]].forEach(item => {
+    const line = document.createElementNS(ns, item[0]);
+    Object.keys(item[1]).forEach(key => line.setAttribute(key, item[1][key]));
+    line.setAttribute('class', 'radar-axis-line'); svg.append(line);
+  });
+  const outline = document.createElementNS(ns, 'circle');
+  outline.setAttribute('cx', '380'); outline.setAttribute('cy', '380'); outline.setAttribute('r', '270');
+  outline.setAttribute('class', 'radar-outline'); svg.append(outline);
+  RADAR_AXES.forEach(axis => {
+    const label = document.createElementNS(ns, 'text');
+    label.setAttribute('x', axis.lx); label.setAttribute('y', axis.ly);
+    label.setAttribute('class', 'radar-axis-name' + (evo.axis === axis.id ? ' active' : ''));
+    label.textContent = axis.label; svg.append(label);
+  });
+  if (!active){
+    const empty = document.createElementNS(ns, 'text');
+    empty.setAttribute('x', '380'); empty.setAttribute('y', '385');
+    empty.setAttribute('class', 'radar-empty'); empty.textContent = 'Choose an axis in Product Evolution';
+    svg.append(empty);
+  }
+
+  status.innerHTML = '';
+  const message = document.createElement('span');
+  if (active){
+    const current = evo.positions[active.id];
+    const value = evo.paths[active.id].stages[current].trim() || 'Stage ' + (current + 1);
+    const strong = document.createElement('strong');
+    strong.textContent = 'We stand here: ' + value;
+    message.append(strong, document.createTextNode(' — ' + active.label + ', Stage ' + (current + 1) + '.'));
+  } else {
+    message.textContent = 'Choose an evolution axis first; Brand Radar will update automatically.';
+  }
+  status.append(message);
+  const change = document.createElement('button');
+  change.type = 'button'; change.textContent = active ? 'Change in Product Evolution' : 'Choose axis';
+  change.onclick = () => switchTab(PRODUCT_EVOLUTION_TAB);
+  status.append(change);
+}
+
+$('btnOpenProductEvolution').onclick = () => switchTab(PRODUCT_EVOLUTION_TAB);
 
 /* ===================================================================
    STRATEGY 1 — clickable brand-strategy decision canvas
