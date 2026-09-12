@@ -42,7 +42,9 @@ automatically from the relative position of the two notes.
 
 The sidebar groups them:
 
-- **Strategy 1 › Brand Strategy** is a clickable decision canvas for customer acquisition.
+- **Strategy 1 › Brand Strategy** is a progressive, Obsidian-style decision canvas for
+  customer acquisition. Clicking the opening card reveals both ocean choices; selecting one
+  highlights that branch, leaves the alternative white, and reveals only its next steps.
   Start from Customer acquisition, reveal Red Ocean and Blue Ocean, then open either
   branch to see its two acquisition routes.
 - **Brand Strategy** opens into Product Architecture, Market Research Frame,
