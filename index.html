@@ -892,53 +892,47 @@
           border-color:transparent; background:transparent; flex:none}
   .chan-x:hover{color:var(--danger); background:var(--danger-bg); border-color:transparent}
 
-  /* ================= guided brand strategy ================= */
-  .strategy-guide{flex:1; min-height:0; overflow-y:auto; padding:34px 38px 64px; background:#f7f7f6}
-  .sg-shell{width:min(960px,100%); margin:0 auto; background:#fff; border:1px solid #d9d9d6}
-  .sg-intro{padding:30px 34px 26px; border-bottom:1px solid #dededb}
-  .sg-kicker{display:block; margin-bottom:9px; color:#73736f; font-size:10px; font-weight:700;
-             letter-spacing:.14em; text-transform:uppercase}
-  .sg-intro h3{margin:0 0 8px; color:#111; font-family:Georgia,'Times New Roman',serif;
-               font-size:29px; font-weight:700; letter-spacing:-.025em}
-  .sg-intro p{max-width:690px; margin:0; color:#5f5f5b; font-size:13px; line-height:1.65}
-  .sg-step{display:grid; grid-template-columns:210px minmax(0,1fr); gap:34px;
-           padding:26px 34px; border-bottom:1px solid #e5e5e2}
-  .sg-step:last-child{border-bottom:0}
-  .sg-num{display:block; margin-bottom:8px; color:#8a8a85; font-size:10px; font-weight:700;
-          letter-spacing:.12em; text-transform:uppercase}
-  .sg-question{color:#171716; font-family:Georgia,'Times New Roman',serif; font-size:18px;
-               font-weight:700; line-height:1.25}
-  .sg-control{align-self:center}
-  .sg-select{width:min(360px,100%); padding:11px 13px; border:1px solid #bcbcb8; border-radius:0;
-             background:#fff; color:#111; font:600 13px Inter,Arial,sans-serif; outline:none}
-  .sg-select:focus{border-color:#111; box-shadow:0 0 0 1px #111}
-  .sg-choices{display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px}
-  .sg-choice{min-height:72px; padding:13px 15px; border:1px solid #cfcfcb; border-radius:0;
-             background:#fff; color:#1b1b19; text-align:left; transition:border-color .12s,background .12s}
-  .sg-choice:hover{border-color:#111; transform:none; box-shadow:none}
-  .sg-choice.on{border-color:#111; background:#111; color:#fff}
-  .sg-choice b{display:block; margin-bottom:4px; font-size:13px}
-  .sg-choice span{display:block; color:#6d6d68; font-size:11.5px; font-weight:400; line-height:1.45}
-  .sg-choice.on span{color:#d3d3cf}
-  .sg-result{padding:30px 34px 36px; background:#fafaf9}
-  .sg-result-head{display:flex; align-items:flex-end; justify-content:space-between; gap:24px;
-                  margin-bottom:18px}
-  .sg-result-head h4{margin:0; color:#111; font-family:Georgia,'Times New Roman',serif;
-                     font-size:23px; letter-spacing:-.02em}
-  .sg-result-head p{max-width:430px; margin:0; color:#64645f; font-size:12px; line-height:1.55}
-  .sg-routes{display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); border:1px solid #cfcfcb}
-  .sg-route{min-height:150px; padding:22px 24px; background:#fff}
-  .sg-route + .sg-route{border-left:1px solid #cfcfcb}
-  .sg-route small{display:block; margin-bottom:13px; color:#858580; font-size:9.5px;
-                  font-weight:800; letter-spacing:.12em; text-transform:uppercase}
-  .sg-route h5{margin:0 0 9px; color:#111; font-family:Georgia,'Times New Roman',serif; font-size:19px}
-  .sg-route p{margin:0; color:#575752; font-size:12.5px; line-height:1.6}
-  .sg-posture{margin-top:14px; padding:12px 14px; border-left:2px solid #111; color:#4e4e4a;
-              background:#f1f1ef; font-size:12px; line-height:1.55}
-  @media(max-width:760px){
-    .strategy-guide{padding:18px 14px 40px}.sg-step{grid-template-columns:1fr; gap:14px}
-    .sg-choices,.sg-routes{grid-template-columns:1fr}.sg-route + .sg-route{border-left:0;border-top:1px solid #cfcfcb}
-    .sg-result-head{display:block}.sg-result-head p{margin-top:8px}
+  /* ================= clickable brand-strategy canvas ================= */
+  .strategy-guide{flex:1; min-height:0; overflow:auto; padding:30px; background:#f5f5f3}
+  .sg-canvas{position:relative; width:min(1040px,100%); min-height:650px; margin:0 auto;
+             padding:54px 34px 68px; border:1px solid #cfcfca; background:#f1f1ef}
+  .sg-flow{display:flex; flex-direction:column; align-items:center}
+  .sg-node{position:relative; z-index:2; display:block; width:220px; min-height:72px;
+           padding:15px 17px; border:1px solid #bdbdb8; border-radius:2px; background:#fff;
+           color:#111; text-align:left; box-shadow:none; white-space:normal}
+  .sg-node:hover:not(:disabled){border-color:#111; background:#fff}
+  .sg-node.on{border-color:#111; background:#111; color:#fff}
+  .sg-node b{display:block; margin-bottom:5px; font-family:Georgia,'Times New Roman',serif;
+             font-size:17px; line-height:1.15}
+  .sg-node span{display:block; color:#6b6b66; font-size:10.5px; font-weight:400; line-height:1.45}
+  .sg-node.on span{color:#d1d1cc}
+  .sg-root{text-align:center}
+  .sg-root::after{content:''; position:absolute; left:50%; top:100%; width:1px; height:54px; background:#9b9b96}
+  .sg-oceans{position:relative; display:grid; grid-template-columns:repeat(2,220px); gap:180px; margin-top:54px}
+  .sg-oceans::before{content:''; position:absolute; left:110px; right:110px; top:-1px;
+                     border-top:1px solid #9b9b96}
+  .sg-ocean::before{content:''; position:absolute; left:50%; bottom:100%; width:1px; height:1px; background:#9b9b96}
+  .sg-routes-wrap{position:relative; width:min(900px,100%); margin-top:70px}
+  .sg-routes-wrap::before{content:''; position:absolute; left:50%; bottom:100%; height:70px;
+                          border-left:1px solid #9b9b96}
+  .sg-routes{position:relative; display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:70px}
+  .sg-routes::before{content:''; position:absolute; left:25%; right:25%; top:-28px; border-top:1px solid #9b9b96}
+  .sg-route{position:relative; min-height:155px; padding:20px 22px; border:1px solid #bdbdb8; background:#fff}
+  .sg-route::before{content:''; position:absolute; left:50%; bottom:100%; height:28px; border-left:1px solid #9b9b96}
+  .sg-route small{display:block; margin-bottom:12px; color:#878781; font-size:9px; font-weight:700;
+                  letter-spacing:.13em; text-transform:uppercase}
+  .sg-route h4{margin:0 0 8px; color:#111; font-family:Georgia,'Times New Roman',serif; font-size:19px}
+  .sg-route p{margin:0; color:#555550; font-size:12px; line-height:1.6}
+  .sg-reset{position:absolute; right:16px; bottom:14px; padding:5px 9px; border:0; border-radius:0;
+            background:transparent; color:#777771; font-size:10.5px; box-shadow:none}
+  .sg-reset:hover:not(:disabled){background:#fff; color:#111}
+  @media(max-width:780px){
+    .strategy-guide{padding:14px}.sg-canvas{padding:38px 18px 60px}
+    .sg-oceans{grid-template-columns:repeat(2,minmax(0,1fr)); gap:38px; width:100%}
+    .sg-node{width:100%; min-width:0}.sg-oceans::before{left:25%; right:25%}
+    .sg-routes{grid-template-columns:1fr; gap:42px}.sg-routes::before{display:none}
+    .sg-route::before{height:42px}.sg-routes-wrap{margin-top:54px}
+    .sg-routes-wrap::before{height:54px}
   }
 
   .toast{position:fixed; left:50%; bottom:80px; transform:translateX(-50%); z-index:200;
@@ -1087,6 +1081,49 @@
   .set-h{margin:0 0 8px; font-size:22px; font-weight:700; letter-spacing:-.02em; color:var(--ink)}
   .settings .clients, .settings .mcp{flex:none; min-height:0; overflow:visible; padding:0; margin:0;
                                     background:transparent; border:none; box-shadow:none; border-radius:0}
+
+  /* ---- monochrome directory skin, shared by the entire board ---- */
+  :root{
+    --bg:#f3f3f1; --panel:#fff; --surface:#fff;
+    --ink:#111; --ink-2:#30302d; --muted:#686863; --faint:#92928c;
+    --line:#d7d7d2; --line-2:#e7e7e3; --border:#d7d7d2;
+    --accent:#111; --accent-d:#000; --accent-soft:#efefec;
+    --shadow:none; --shadow-lift:0 8px 24px rgba(0,0,0,.08); --dock-shadow:0 6px 18px rgba(0,0,0,.10);
+    --wire:#969690; --grid:#dededa;
+  }
+  .shell{grid-template-columns:248px minmax(0,1fr); background:#fff}
+  .sidebar{background:#fff; border-right:1px solid #cfcfca}
+  .side-head{padding:20px 18px 15px; border-bottom:1px solid var(--line)}
+  .tabs{padding:8px 0 12px}
+  .nav-label{padding:18px 18px 7px}
+  .tabs > .nav-label:first-child{padding-top:10px}
+  .tab,.tab-sub{border-radius:0; border-left:3px solid transparent; border-right:0;
+                border-top:0; border-bottom:0; box-shadow:none; margin:0}
+  .tab{padding:9px 16px}.tab-sub{padding:8px 16px 8px 42px}
+  .tab:hover,.tab-sub:hover{background:#f4f4f1}
+  .tab.active,.tab-sub.active{background:#111; color:#fff; border-color:#111; box-shadow:none}
+  .tab.active svg,.tab-sub.active .n{color:#fff}
+  .tab.active .n{background:#333; color:#fff}
+  .side-footer{padding:0; border-top:1px solid var(--line)}
+  .side-footer .tab{padding:11px 16px}
+  .side-footer .save-line{padding:8px 18px 10px}
+  .toolbar{padding:13px 18px; border-bottom:1px solid #cfcfca; background:#fff}
+  .main{background:#fff}
+  .main > .viewport,.main > .repo,.main > .chan,.main > .strategy-guide,.main > .kw,.main > .mx,
+  .main > .frame-note,.main > .clients,.main > .mcp,.main > .settings{
+    margin:0; border:0; border-radius:0; box-shadow:none;
+  }
+  button,.frame-pick,.acct-btn,.fit-dot,.palette,.pal-pop,.gate-card,.modal,.pane,.card,
+  .rrow,.repo-side,.kw-table-wrap,.at-row,.chan-card,.frame-note .sheet,.doc,.rlink,
+  .mx-mode,.gr-kind,.kw-head input[type=search]{border-radius:2px; box-shadow:none}
+  button.sp,button.primary,#btnAddColumn,#btnAddChannel,#btnKwAdd,#btnTypeAdd,#btnFrameExport,
+  .repo-newrow{border-radius:2px}
+  .card:hover,.chan-card:hover{transform:none; box-shadow:none; border-color:#111}
+  .mx-table thead th,.kw-table thead th{background:#f1f1ee}
+  .mx-table tbody tr:hover td,.mx-table tbody tr:hover th,.kw-table tbody tr:hover{background:#f5f5f2}
+  .mx-cell.planned,.gr-cell.planned{background:#ecece8}
+  .rlink{background:#f2f2ef; border-color:#d8d8d3}
+  .toast{border-radius:2px}
 </style>
 </head>
 <body>
@@ -1223,37 +1260,18 @@
       <div class="chan-grid" id="chanGrid"></div>
     </div>
 
-    <!-- A quiet, guided decision note for the first customer-acquisition choice. -->
+    <!-- A clickable decision canvas for the first customer-acquisition choice. -->
     <div class="strategy-guide" id="strategyGuidePane" hidden>
-      <div class="sg-shell">
-        <header class="sg-intro">
-          <span class="sg-kicker">Brand strategy / decision note</span>
-          <h3>Choose where growth will come from</h3>
-          <p>Start with the commercial goal, identify the kind of move you need to make,
-             then choose the market you are competing in. The board will show the two
-             acquisition routes that follow from that choice.</p>
-        </header>
-
-        <section class="sg-step">
-          <div><span class="sg-num">Question 01</span><div class="sg-question">What is your goal?</div></div>
-          <div class="sg-control">
-            <select class="sg-select" id="sgGoal" aria-label="Goal">
-              <option value="customer-acquisition">Customer acquisition</option>
-            </select>
-          </div>
-        </section>
-
-        <section class="sg-step">
-          <div><span class="sg-num">Question 02</span><div class="sg-question">Are you reduction or growth?</div></div>
-          <div class="sg-control sg-choices" id="sgPosture"></div>
-        </section>
-
-        <section class="sg-step" id="sgOceanStep" hidden>
-          <div><span class="sg-num">Question 03</span><div class="sg-question">Are you a Red Ocean or Blue Ocean product?</div></div>
-          <div class="sg-control sg-choices" id="sgOcean"></div>
-        </section>
-
-        <section class="sg-result" id="sgResult" hidden></section>
+      <div class="sg-canvas">
+        <div class="sg-flow">
+          <button class="sg-node sg-root" id="sgRoot" type="button">
+            <b>Customer acquisition</b>
+            <span>Click to map the source of growth</span>
+          </button>
+          <div class="sg-oceans" id="sgOceans" hidden></div>
+          <div class="sg-routes-wrap" id="sgRoutes" hidden></div>
+        </div>
+        <button class="sg-reset" id="sgReset" type="button" hidden>Reset canvas</button>
       </div>
     </div>
 
@@ -1374,7 +1392,7 @@ const SUPABASE_URL = 'https://cskamgfvebryahkljlll.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_MdkD-TxMCIwlu69seSHA3Q_A39GADsK';
 const CLIENT_ID    = '1059013355751-6g50dsgm7df37htl2fdqrtlkh5hmrc0c.apps.googleusercontent.com';
 const ALLOWED      = ['vijaysrinivassan@gmail.com'];
-const BUILD        = 'v6.6';
+const BUILD        = 'v6.7';
 
 const STRATEGY_ONE_TAB = 'Strategy 1 — Brand Strategy';
 
@@ -5751,22 +5769,24 @@ function addChannel(){
 }
 
 /* ===================================================================
-   STRATEGY 1 — a guided brand-strategy decision note
+   STRATEGY 1 — clickable brand-strategy decision canvas
    =================================================================== */
 function strategyOneState(){
   const t = state.tabs[STRATEGY_ONE_TAB] ||
             (state.tabs[STRATEGY_ONE_TAB] = { nodes: [], edges: [] });
   if (!t.guide || typeof t.guide !== 'object'){
-    t.guide = { goal: 'customer-acquisition', posture: '', ocean: '' };
+    t.guide = { opened: false, ocean: '' };
   }
-  if (!t.guide.goal) t.guide.goal = 'customer-acquisition';
+  delete t.guide.goal;
+  delete t.guide.posture;
+  if (typeof t.guide.opened !== 'boolean') t.guide.opened = !!t.guide.ocean;
   return t.guide;
 }
 
-function guideChoice(host, value, title, detail, current, set){
+function strategyNode(host, value, title, detail, current){
   const b = document.createElement('button');
   b.type = 'button';
-  b.className = 'sg-choice' + (current === value ? ' on' : '');
+  b.className = 'sg-node sg-ocean' + (current === value ? ' on' : '');
   b.disabled = readOnly();
   const strong = document.createElement('b');
   strong.textContent = title;
@@ -5775,7 +5795,7 @@ function guideChoice(host, value, title, detail, current, set){
   b.append(strong, small);
   b.onclick = () => {
     if (readOnly()) return;
-    set(value);
+    strategyOneState().ocean = value;
     markDirty();
     renderStrategyGuide();
   };
@@ -5784,54 +5804,44 @@ function guideChoice(host, value, title, detail, current, set){
 
 function renderStrategyGuide(){
   const g = strategyOneState();
-  const goal = $('sgGoal');
-  goal.value = g.goal;
-  goal.disabled = readOnly();
+  const root = $('sgRoot');
+  root.disabled = readOnly();
+  root.classList.toggle('on', g.opened);
+  root.onclick = () => {
+    if (readOnly()) return;
+    g.opened = true;
+    markDirty();
+    renderStrategyGuide();
+  };
 
-  const posture = $('sgPosture');
-  posture.innerHTML = '';
-  guideChoice(posture, 'reduction', 'Reduction',
-    'Remove cost, effort or risk from the customer’s current way of working.',
-    g.posture, v => { g.posture = v; });
-  guideChoice(posture, 'growth', 'Growth',
-    'Create a stronger reason for more customers to enter or switch.',
-    g.posture, v => { g.posture = v; });
-
-  const oceanStep = $('sgOceanStep');
-  oceanStep.hidden = !g.posture;
-  const ocean = $('sgOcean');
-  ocean.innerHTML = '';
-  if (g.posture){
-    guideChoice(ocean, 'red', 'Red Ocean',
-      'The category exists and customers already recognise competing products.',
-      g.ocean, v => { g.ocean = v; });
-    guideChoice(ocean, 'blue', 'Blue Ocean',
-      'The product creates a new category or a materially new way to solve the job.',
-      g.ocean, v => { g.ocean = v; });
+  const oceans = $('sgOceans');
+  oceans.hidden = !g.opened;
+  oceans.innerHTML = '';
+  if (g.opened){
+    strategyNode(oceans, 'red', 'Red Ocean',
+      'Win inside an established product category.', g.ocean);
+    strategyNode(oceans, 'blue', 'Blue Ocean',
+      'Create a new category or a new way to do the job.', g.ocean);
   }
 
-  const result = $('sgResult');
-  result.hidden = !g.ocean;
-  if (!g.ocean){ result.innerHTML = ''; return; }
+  const routes = $('sgRoutes');
+  const reset = $('sgReset');
+  routes.hidden = !g.ocean;
+  reset.hidden = !g.opened || readOnly();
+  if (!g.ocean){ routes.innerHTML = ''; return; }
 
   const red = g.ocean === 'red';
-  const postureCopy = g.posture === 'reduction'
-    ? '<b>Reduction lens:</b> make the move easier by removing cost, effort, delay or perceived risk.'
-    : '<b>Growth lens:</b> make the move desirable by increasing value, urgency or the number of people who can buy.';
-  result.innerHTML =
-    '<div class="sg-result-head"><h4>Two routes to customer acquisition</h4>' +
-      '<p>You will eventually need both. This choice shows where the customer comes from—not a permanent limit on the strategy.</p></div>' +
-    '<div class="sg-routes">' +
+  routes.innerHTML = '<div class="sg-routes">' +
       (red
-        ? '<article class="sg-route"><small>Route 01</small><h5>Win the switch</h5>' +
+        ? '<article class="sg-route"><small>Route 01</small><h4>Win the switch</h4>' +
             '<p>Take customers from an existing competitor by giving them a clear reason to replace the product they use today.</p></article>' +
-          '<article class="sg-route"><small>Route 02</small><h5>Move customers up</h5>' +
+          '<article class="sg-route"><small>Route 02</small><h4>Move customers up</h4>' +
             '<p>Acquire organisations graduating from a lower maturity level—for example, a growing company adopting HR software for the first time.</p></article>'
-        : '<article class="sg-route"><small>Route 01</small><h5>Replace the previous era</h5>' +
+        : '<article class="sg-route"><small>Route 01</small><h4>Replace the previous era</h4>' +
             '<p>Compete with the older way the job was done. A new SOC category, for example, first replaces the inefficient pre-SOC operating model.</p></article>' +
-          '<article class="sg-route"><small>Route 02</small><h5>Expand access</h5>' +
+          '<article class="sg-route"><small>Route 02</small><h4>Expand access</h4>' +
             '<p>Bring in customers who previously lacked the access, maturity or capability to participate in the category at all.</p></article>') +
-    '</div><div class="sg-posture">' + postureCopy + '</div>';
+    '</div>';
 }
 
 /* ===================================================================
@@ -5961,10 +5971,13 @@ $('btnKwAdd').onclick = function(){ openKeywordModal(''); };
 $('btnKwPaste').onclick = openPasteModal;
 $('kwSearch').oninput = ev => { kwFilter = ev.target.value; renderKeywordTables(); };
 $('btnAddChannel').onclick = addChannel;
-$('sgGoal').onchange = ev => {
+$('sgReset').onclick = () => {
   if (readOnly()) return;
-  strategyOneState().goal = ev.target.value;
+  const g = strategyOneState();
+  g.opened = false;
+  g.ocean = '';
   markDirty();
+  renderStrategyGuide();
 };
 $('btnTypeAdd').onclick = addTypeToLibrary;
 $('typeNew').onkeydown = ev => { ev.stopPropagation(); if (ev.key === 'Enter') addTypeToLibrary(); };

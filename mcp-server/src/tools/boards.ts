@@ -53,8 +53,7 @@ export function registerBoardTools(server: McpServer) {
         if (!slot) { summary[tab] = { empty: true }; continue; }
         if (tab === "Strategy 1 — Brand Strategy") {
           summary[tab] = {
-            goal: slot.guide?.goal || "customer-acquisition",
-            posture: slot.guide?.posture || null,
+            opened: !!slot.guide?.opened,
             ocean: slot.guide?.ocean || null
           };
         } else if (tab === "Content Strategy") {
