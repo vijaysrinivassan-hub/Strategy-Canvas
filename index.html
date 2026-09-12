@@ -1691,7 +1691,7 @@ const SUPABASE_URL = 'https://cskamgfvebryahkljlll.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_MdkD-TxMCIwlu69seSHA3Q_A39GADsK';
 const CLIENT_ID    = '1059013355751-6g50dsgm7df37htl2fdqrtlkh5hmrc0c.apps.googleusercontent.com';
 const ALLOWED      = ['vijaysrinivassan@gmail.com'];
-const BUILD        = 'v7.2';
+const BUILD        = 'v7.3';
 
 const STRATEGY_ONE_TAB = 'Strategy 1 — Brand Strategy';
 const PRODUCT_EVOLUTION_TAB = 'Strategy 1 — Product Evolution';
@@ -1746,10 +1746,10 @@ function moveCanvas(from, to, after){
 const isBrandTab = name => brandTabs().indexOf(name) > -1;
 const NAV = [
   { kind: 'label',  text: 'Strategy 1' },
-  { kind: 'group',  id: 'strategy1', label: 'Brand Strategy', tab: STRATEGY_ONE_TAB },
+  { kind: 'strategy1-tabs' },
+  { kind: 'group',  id: 'content', label: 'Content Strategy', tab: 'Content Strategy' },
   { kind: 'label',  text: 'Strategy' },
   { kind: 'group',  id: 'brand',   label: 'Brand Strategy' },
-  { kind: 'group',  id: 'content', label: 'Content Strategy', tab: 'Content Strategy' },
   { kind: 'label',  text: 'Research' },
   { kind: 'tab',    name: 'Keyword Repo' },
   { kind: 'tab',    name: 'Grounded Evidences' },
@@ -2143,6 +2143,21 @@ function renderTabs(){
       return;
     }
 
+    /* Strategy 1 is intentionally flat: these are canvases, not children of
+       another Brand Strategy heading. Content Strategy follows as its own
+       expandable workspace in this same section. */
+    if (item.kind === 'strategy1-tabs'){
+      box.append(subButton('Brand Strategy', onBoard && state.tab === STRATEGY_ONE_TAB,
+                           () => switchTab(STRATEGY_ONE_TAB), 0));
+      box.append(subButton('Product Evolution', onBoard && state.tab === PRODUCT_EVOLUTION_TAB,
+                           () => switchTab(PRODUCT_EVOLUTION_TAB), 0));
+      box.append(subButton('Positioning Canvas', onBoard && state.tab === POSITIONING_TAB,
+                           () => switchTab(POSITIONING_TAB), 0));
+      box.append(subButton('Channel Strategy', onBoard && state.tab === CHANNELS_TAB,
+                           () => switchTab(CHANNELS_TAB), 0));
+      return;
+    }
+
     if (item.kind === 'tab'){ box.append(tabButton(item.name)); return; }
 
     if (item.kind === 'screen'){
@@ -2164,18 +2179,6 @@ function renderTabs(){
       renderTabs();
     }));
     if (!open) return;
-
-    if (item.id === 'strategy1'){
-      box.append(subButton('Brand Strategy', onBoard && state.tab === STRATEGY_ONE_TAB,
-                           () => switchTab(STRATEGY_ONE_TAB), 0));
-      box.append(subButton('Product Evolution', onBoard && state.tab === PRODUCT_EVOLUTION_TAB,
-                           () => switchTab(PRODUCT_EVOLUTION_TAB), 0));
-      box.append(subButton('Positioning Canvas', onBoard && state.tab === POSITIONING_TAB,
-                           () => switchTab(POSITIONING_TAB), 0));
-      box.append(subButton('Channel Strategy', onBoard && state.tab === CHANNELS_TAB,
-                           () => switchTab(CHANNELS_TAB), 0));
-      return;
-    }
 
     if (item.id === 'brand'){
       brandTabs().forEach(name => {
@@ -6190,7 +6193,7 @@ function renderCrumb(){
   let c = 'Strategy';
   if (state.screen !== 'board') c = 'Account';
   else if (inFrame()) c = 'Frames';
-  else if ([STRATEGY_ONE_TAB, PRODUCT_EVOLUTION_TAB, POSITIONING_TAB, CHANNELS_TAB].indexOf(state.tab) !== -1) c = 'Strategy 1';
+  else if ([STRATEGY_ONE_TAB, PRODUCT_EVOLUTION_TAB, POSITIONING_TAB, CHANNELS_TAB, CONTENT_TAB].indexOf(state.tab) !== -1) c = 'Strategy 1';
   else if (isBrandTab(state.tab)) c = 'Brand Strategy';
   else if (state.tab === CONTENT_TAB) c = 'Content Strategy';
   else if (state.tab === KEYWORDS_TAB || state.tab === DOCS_TAB) c = 'Research';

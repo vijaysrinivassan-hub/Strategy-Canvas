@@ -42,6 +42,12 @@ automatically from the relative position of the two notes.
 
 The sidebar groups them:
 
+**Strategy 1** is a flat working section: Brand Strategy, Product Evolution,
+Positioning Canvas and Channel Strategy appear directly beneath its heading.
+Content Strategy lives in the same section and expands into Category, Competitor,
+ICP and Value. There is no extra Brand Strategy parent between Strategy 1 and its
+four canvases.
+
 - **Strategy 1 › Brand Strategy** is a progressive, Obsidian-style decision canvas for
   customer acquisition. Clicking the opening card reveals both ocean choices; selecting one
   highlights that branch, leaves the alternative white, and reveals only its next steps.
