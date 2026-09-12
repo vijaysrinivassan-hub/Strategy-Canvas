@@ -1136,10 +1136,52 @@
                  border-left:3px solid #c7c8c2; background:rgba(255,255,255,.75);
                  color:#676862; font-size:10.5px; line-height:1.5}
   .pos-sync-note.on{border-left-color:#57c982; color:#346847; background:#f2fbf5}
+  .competitive-context{width:min(820px,100%); margin:-8px auto 14px; color:#6f706a;
+                       font-size:10.5px; line-height:1.5}
+  .competitive-ladder{display:flex; flex-direction:column; align-items:stretch; gap:0;
+                      width:min(820px,100%); margin:0 auto}
+  .competitive-card{position:relative; display:grid;
+                    grid-template-columns:76px minmax(180px,.8fr) minmax(240px,1.2fr) auto;
+                    gap:12px; align-items:center; min-height:82px; padding:14px;
+                    border:1px solid #d0d1cc; border-radius:6px; background:#fff;
+                    box-shadow:0 1px 2px rgba(0,0,0,.04); cursor:pointer}
+  .competitive-card.on{border-color:#57c982; background:#effbf3;
+                       box-shadow:0 0 0 1px rgba(87,201,130,.14)}
+  .competitive-card input{width:100%; border:0; border-bottom:1px solid #deded9;
+                          border-radius:0; padding:6px 2px; outline:none; background:transparent;
+                          color:#2d2e2a; font:inherit; font-size:11.5px}
+  .competitive-card input:focus{border-color:#57c982}
+  .competitive-stage{color:#858680; font-size:8px; font-weight:800;
+                     letter-spacing:.08em; text-transform:uppercase}
+  .competitive-stack{font-weight:700!important}
+  .competitive-status{min-width:86px; color:#777872; font-size:9px; text-align:right}
+  .competitive-card.on .competitive-status{color:#2f7b49; font-weight:750}
+  .competitive-controls{grid-column:2/-1; display:flex; gap:3px; justify-content:flex-end}
+  .competitive-controls button{padding:3px 7px; border:0; background:transparent;
+                               color:#858680; font-size:10px}
+  .value-map{position:relative; width:min(920px,100%); height:300px; margin:2px auto 0}
+  .value-wires{position:absolute; inset:0; width:100%; height:100%; pointer-events:none}
+  .value-wire{fill:none; stroke:#b9bab6; stroke-width:1.6; stroke-linecap:round;
+              vector-effect:non-scaling-stroke}
+  .value-card{position:absolute; width:220px; min-height:94px; padding:13px 14px;
+              border:1px solid #d0d1cc; border-radius:6px; background:#fff;
+              box-shadow:0 1px 2px rgba(0,0,0,.04)}
+  .value-card span{display:block; margin-bottom:8px; color:#777872; font-size:8px;
+                   font-weight:800; letter-spacing:.08em; text-transform:uppercase}
+  .value-card textarea{display:block; width:100%; min-height:52px; resize:none; border:0;
+                       border-bottom:1px solid #deded9; border-radius:0; padding:4px 1px;
+                       outline:none; background:transparent; color:#292a27;
+                       font:inherit; font-size:11.5px; line-height:1.4}
+  .value-card textarea:focus{border-color:#57c982}
+  .value-functional{left:0; top:103px}.value-benefit{left:32%; top:103px}
+  .value-monetary{right:0; top:18px}.value-strategic{right:0; bottom:18px}
   @media(max-width:900px){
     .positioning{padding:14px}.pos-section{padding:18px 14px}.icp-card{grid-template-columns:1fr 1fr}
     .icp-name{grid-column:1/-1}.cat-main{grid-template-columns:66px 1fr}.cat-description{grid-column:1/-1}
     .cat-status{position:absolute; right:12px; top:10px}.cat-competitor{grid-template-columns:1fr}
+    .competitive-card{grid-template-columns:64px 1fr}.competitive-status{position:absolute; right:12px; top:10px}
+    .competitive-controls{grid-column:1/-1}.value-map{height:auto; display:grid; grid-template-columns:1fr 1fr; gap:12px}
+    .value-card{position:relative; inset:auto; width:auto}.value-wires{display:none}
   }
   .pe-empty-source{color:#858680; font-size:10.5px; line-height:1.4}
   @media(max-width:780px){
@@ -1626,6 +1668,30 @@
           Select a category to add its competitors to Content Strategy.
         </div>
       </section>
+
+      <section class="pos-section">
+        <div class="pos-head">
+          <div>
+            <span class="pos-axis-label">Positioning axis 03</span>
+            <h3>Competitive Positioning</h3>
+            <p>Show how the tool stack or product architecture evolved within the chosen category, and where your product is better.</p>
+          </div>
+          <button id="btnAddCompetitiveStage" type="button">+ Add evolution stage</button>
+        </div>
+        <div class="competitive-context" id="competitiveContext"></div>
+        <div class="competitive-ladder" id="competitiveStages"></div>
+      </section>
+
+      <section class="pos-section">
+        <div class="pos-head">
+          <div>
+            <span class="pos-axis-label">Positioning axis 04</span>
+            <h3>Value Positioning</h3>
+            <p>Connect what the product does to the benefit, monetary value and strategic value it creates.</p>
+          </div>
+        </div>
+        <div class="value-map" id="positioningValues"></div>
+      </section>
     </div>
 
     <!-- A frame from the Obsidian vault, rendered read-only -->
@@ -1742,7 +1808,7 @@ const SUPABASE_URL = 'https://cskamgfvebryahkljlll.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_MdkD-TxMCIwlu69seSHA3Q_A39GADsK';
 const CLIENT_ID    = '1059013355751-6g50dsgm7df37htl2fdqrtlkh5hmrc0c.apps.googleusercontent.com';
 const ALLOWED      = ['vijaysrinivassan@gmail.com'];
-const BUILD        = 'v7.9';
+const BUILD        = 'v7.10';
 
 const STRATEGY_ONE_TAB = 'Strategy 1 — Brand Strategy';
 const PRODUCT_EVOLUTION_TAB = 'Strategy 1 — Product Evolution';
@@ -5568,6 +5634,15 @@ function newPositioningIcp(){
 function newPositioningCategory(){
   return { id: uid(), name: '', maturity: '', competitors: [] };
 }
+function newCompetitiveStage(){
+  return { id: uid(), competitors: '', architecture: '' };
+}
+const VALUE_POSITIONING_FIELDS = [
+  ['functional', 'Functional value', 'What can we do for them, functionally?'],
+  ['benefit', 'Core benefit', 'What are the benefits they get?'],
+  ['monetary', 'Monetary benefit', 'What are the monetary benefits?'],
+  ['strategic', 'Strategic benefit', 'What strategic benefit do they get in their interconnected systems?']
+];
 function positioningState(){
   const t = state.tabs[POSITIONING_TAB] ||
             (state.tabs[POSITIONING_TAB] = { nodes: [], edges: [] });
@@ -5577,8 +5652,14 @@ function positioningState(){
   const p = t.positioning;
   if (!Array.isArray(p.icps)) p.icps = [];
   if (!Array.isArray(p.categories)) p.categories = [];
+  if (!p.competitive || typeof p.competitive !== 'object'){
+    p.competitive = { selectedStage: '', stages: [] };
+  }
+  if (!Array.isArray(p.competitive.stages)) p.competitive.stages = [];
+  if (!p.values || typeof p.values !== 'object') p.values = {};
   if (!p.icps.length) p.icps.push(newPositioningIcp());
   if (!p.categories.length) p.categories.push(newPositioningCategory());
+  while (p.competitive.stages.length < 3) p.competitive.stages.push(newCompetitiveStage());
   p.icps.forEach(icp => {
     if (!icp.id) icp.id = uid();
     ['name', 'people', 'process', 'technology', 'input'].forEach(key => {
@@ -5596,8 +5677,17 @@ function positioningState(){
       delete competitor.aliases;
     });
   });
+  p.competitive.stages.forEach(stage => {
+    if (!stage.id) stage.id = uid();
+    if (typeof stage.competitors !== 'string') stage.competitors = '';
+    if (typeof stage.architecture !== 'string') stage.architecture = '';
+  });
+  VALUE_POSITIONING_FIELDS.forEach(field => {
+    if (typeof p.values[field[0]] !== 'string') p.values[field[0]] = '';
+  });
   if (!p.icps.some(x => x.id === p.selectedIcp)) p.selectedIcp = '';
   if (!p.categories.some(x => x.id === p.selectedCategory)) p.selectedCategory = '';
+  if (!p.competitive.stages.some(x => x.id === p.competitive.selectedStage)) p.competitive.selectedStage = '';
   return p;
 }
 
@@ -5665,6 +5755,15 @@ function positioningInput(value, placeholder, readOnly, onInput, className){
   return input;
 }
 
+function positioningTextarea(value, placeholder, readOnly, onInput){
+  const textarea = document.createElement('textarea');
+  textarea.value = value || '';
+  textarea.placeholder = placeholder;
+  textarea.readOnly = readOnly;
+  textarea.oninput = ev => { onInput(ev.target.value); markDirty(); };
+  return textarea;
+}
+
 function renderPositioning(){
   const p = positioningState();
   const ro = readOnly();
@@ -5681,7 +5780,7 @@ function renderPositioning(){
     card.setAttribute('role', 'button');
     card.setAttribute('aria-pressed', selected ? 'true' : 'false');
     card.onclick = ev => {
-      if (ev.target.closest('input,button')) return;
+      if (ro || ev.target.closest('input,button')) return;
       selectPositioningIcp(icp.id);
     };
     card.onkeydown = ev => {
@@ -5862,6 +5961,98 @@ function renderPositioning(){
     ? 'Selected category: ' + (chosen.name.trim() || 'Untitled category') +
       '. Its named competitors are connected to Content Strategy.'
     : 'Select a category to add its competitors to Content Strategy.';
+
+  $('btnAddCompetitiveStage').hidden = ro;
+  const context = $('competitiveContext');
+  context.textContent = chosen
+    ? 'Architecture evolution for ' + (chosen.name.trim() || 'the selected category') + '.'
+    : 'Select a category above to anchor this architecture evolution to that market.';
+
+  const competitiveHost = $('competitiveStages');
+  competitiveHost.innerHTML = '';
+  p.competitive.stages.forEach((stage, index) => {
+    if (index){
+      const arrow = document.createElement('div');
+      arrow.className = 'cat-arrow';
+      arrow.textContent = '\u2193';
+      competitiveHost.append(arrow);
+    }
+    const card = document.createElement('article');
+    const selected = p.competitive.selectedStage === stage.id;
+    card.className = 'competitive-card' + (selected ? ' on' : '');
+    card.tabIndex = ro ? -1 : 0;
+    card.setAttribute('role', 'button');
+    card.setAttribute('aria-pressed', selected ? 'true' : 'false');
+    card.onclick = ev => {
+      if (ev.target.closest('input,button')) return;
+      p.competitive.selectedStage = stage.id;
+      markDirty(); renderPositioning();
+    };
+    card.onkeydown = ev => {
+      if (ev.target !== card || (ev.key !== 'Enter' && ev.key !== ' ')) return;
+      ev.preventDefault();
+      p.competitive.selectedStage = stage.id;
+      markDirty(); renderPositioning();
+    };
+    const stageLabel = document.createElement('span');
+    stageLabel.className = 'competitive-stage';
+    stageLabel.textContent = 'Evolution ' + (index + 1);
+    const competitors = positioningInput(stage.competitors, 'Competitors at this stage', ro,
+      value => { stage.competitors = value; });
+    const architecture = positioningInput(stage.architecture, 'Tool stack / product architecture', ro,
+      value => { stage.architecture = value; }, 'competitive-stack');
+    const status = document.createElement('span');
+    status.className = 'competitive-status';
+    status.textContent = selected ? 'Our position' : 'Select position';
+    card.append(stageLabel, competitors, architecture, status);
+
+    if (!ro){
+      const controls = document.createElement('div');
+      controls.className = 'competitive-controls';
+      const earlier = document.createElement('button');
+      earlier.type = 'button'; earlier.textContent = '\u2191 Earlier'; earlier.disabled = index === 0;
+      earlier.onclick = () => {
+        p.competitive.stages.splice(index - 1, 0, p.competitive.stages.splice(index, 1)[0]);
+        markDirty(); renderPositioning();
+      };
+      const later = document.createElement('button');
+      later.type = 'button'; later.textContent = 'Later \u2193';
+      later.disabled = index === p.competitive.stages.length - 1;
+      later.onclick = () => {
+        p.competitive.stages.splice(index + 1, 0, p.competitive.stages.splice(index, 1)[0]);
+        markDirty(); renderPositioning();
+      };
+      const remove = document.createElement('button');
+      remove.type = 'button'; remove.textContent = 'Remove';
+      remove.onclick = () => {
+        if ((stage.competitors + stage.architecture).trim() && !confirm('Remove this evolution stage?')) return;
+        p.competitive.stages = p.competitive.stages.filter(x => x.id !== stage.id);
+        if (p.competitive.selectedStage === stage.id) p.competitive.selectedStage = '';
+        if (!p.competitive.stages.length) p.competitive.stages.push(newCompetitiveStage());
+        markDirty(); renderPositioning();
+      };
+      controls.append(earlier, later, remove);
+      card.append(controls);
+    }
+    competitiveHost.append(card);
+  });
+
+  const valueHost = $('positioningValues');
+  valueHost.innerHTML = '<svg class="value-wires" viewBox="0 0 920 300" preserveAspectRatio="none" aria-hidden="true">' +
+    '<path class="value-wire" d="M220 150 C250 150 265 150 294 150"/>' +
+    '<path class="value-wire" d="M514 150 C570 150 570 65 700 65"/>' +
+    '<path class="value-wire" d="M514 150 C570 150 570 235 700 235"/>' +
+    '</svg>';
+  VALUE_POSITIONING_FIELDS.forEach(field => {
+    const card = document.createElement('label');
+    card.className = 'value-card value-' + field[0];
+    const label = document.createElement('span');
+    label.textContent = field[1];
+    const textarea = positioningTextarea(p.values[field[0]], field[2], ro,
+      value => { p.values[field[0]] = value; });
+    card.append(label, textarea);
+    valueHost.append(card);
+  });
 }
 
 $('btnAddPositioningIcp').onclick = () => {
@@ -5872,6 +6063,11 @@ $('btnAddPositioningIcp').onclick = () => {
 $('btnAddPositioningCategory').onclick = () => {
   if (readOnly()) return;
   positioningState().categories.push(newPositioningCategory());
+  markDirty(); renderPositioning();
+};
+$('btnAddCompetitiveStage').onclick = () => {
+  if (readOnly()) return;
+  positioningState().competitive.stages.push(newCompetitiveStage());
   markDirty(); renderPositioning();
 };
 

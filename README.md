@@ -74,7 +74,10 @@ saved with the board and can be changed later with Edit.
   from its oldest category to later stages, keeps competitors beneath each category,
   and lets one category be selected. The named competitors in that selected category
   are added to **Content Strategy › Competitor** without duplicating existing rows or
-  deleting competitors already entered there.
+  deleting competitors already entered there. Competitive Positioning then maps the
+  tool-stack or product-architecture evolution inside the selected category and marks
+  where the product wins. Value Positioning connects four editable cards: functional
+  value, core benefit, monetary benefit and strategic benefit.
 - **Strategy › Channel Strategy** shows the active and available acquisition levers.
 - **Canvas** lists Product Architecture, Market Research Frame, Messaging Framework,
   Positioning Document and Growth Strategy directly, without a Brand Strategy parent
