@@ -128,20 +128,20 @@
                         text-overflow:ellipsis; white-space:nowrap}
   .tab-sub.content-sub.active{background:#effbf3; color:#287343}
   .tab-sub.content-sub:hover{background:#f2f9f4}
-  /* canvases under Brand Strategy can be dragged into a new order */
-  .tab-sub .sub-grip{color:var(--faint); font-size:10px; letter-spacing:-1px;
+  /* canvases can be dragged directly into a new order */
+  .tab-sub .sub-grip,.canvas-tab .sub-grip{color:var(--faint); font-size:10px; letter-spacing:-1px;
                      margin:0 4px 0 -6px; flex:none; visibility:hidden; cursor:grab}
-  .tab-sub.sub-drag:hover .sub-grip{visibility:visible}
-  .tab-sub.dragging{opacity:.4}
-  .tab-sub.drop-before{box-shadow:inset 0 2px 0 var(--accent)}
-  .tab-sub.drop-after{box-shadow:inset 0 -2px 0 var(--accent)}
+  .tab-sub.sub-drag:hover .sub-grip,.canvas-tab.sub-drag:hover .sub-grip{visibility:visible}
+  .tab-sub.dragging,.canvas-tab.dragging{opacity:.4}
+  .tab-sub.drop-before,.canvas-tab.drop-before{box-shadow:inset 0 2px 0 var(--accent)}
+  .tab-sub.drop-after,.canvas-tab.drop-after{box-shadow:inset 0 -2px 0 var(--accent)}
   .tab-sub .n{margin-left:auto; font-size:9.5px; font-weight:700; letter-spacing:.04em;
               color:var(--faint); flex:none; padding-left:6px}
   .tab-sub.active .n{color:var(--accent)}
-  .tab-sub .sub-x{margin-left:auto; padding:0 4px; font-size:14px; line-height:1;
+  .tab-sub .sub-x,.canvas-tab .sub-x{margin-left:auto; padding:0 4px; font-size:14px; line-height:1;
                   color:var(--faint); border-radius:5px; visibility:hidden; flex:none}
-  .tab-sub:hover .sub-x{visibility:visible}
-  .tab-sub .sub-x:hover{color:var(--danger); background:var(--danger-bg)}
+  .tab-sub:hover .sub-x,.canvas-tab:hover .sub-x{visibility:visible}
+  .tab-sub .sub-x:hover,.canvas-tab .sub-x:hover{color:var(--danger); background:var(--danger-bg)}
   .tab-sub .sub-dot{color:var(--cli); font-size:15px; line-height:1; flex:none}
   .tab-sub.sub-add{color:var(--accent); font-weight:500}
   .tab-sub.sub-add:hover{background:var(--accent-soft)}
@@ -1748,7 +1748,7 @@ const SUPABASE_URL = 'https://cskamgfvebryahkljlll.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_MdkD-TxMCIwlu69seSHA3Q_A39GADsK';
 const CLIENT_ID    = '1059013355751-6g50dsgm7df37htl2fdqrtlkh5hmrc0c.apps.googleusercontent.com';
 const ALLOWED      = ['vijaysrinivassan@gmail.com'];
-const BUILD        = 'v7.7';
+const BUILD        = 'v7.8';
 
 const STRATEGY_ONE_TAB = 'Strategy 1 — Brand Strategy';
 const PRODUCT_EVOLUTION_TAB = 'Strategy 1 — Product Evolution';
@@ -1806,7 +1806,7 @@ const NAV = [
   { kind: 'strategy1-tabs' },
   { kind: 'group',  id: 'content', label: 'Content Strategy', tab: 'Content Strategy' },
   { kind: 'label',  text: 'Canvas' },
-  { kind: 'group',  id: 'brand',   label: 'Brand Strategy' },
+  { kind: 'canvas-tabs' },
   { kind: 'label',  text: 'Research' },
   { kind: 'tab',    name: 'Keyword Repo' },
   { kind: 'tab',    name: 'Grounded Evidences' },
@@ -1843,8 +1843,8 @@ const state = {
   logo: '',
   tab: TABS[0],
   tabs: {},                    /* tabName -> { nodes:[], edges:[] } */
-  extra: [],                   /* extra Brand Strategy canvases, by name */
-  brandOrder: [],              /* the order the canvases sit in under Brand Strategy */
+  extra: [],                   /* extra canvases, by name */
+  brandOrder: [],              /* the order the canvases sit in under Canvas */
   boards: [],                  /* [{id,title,updated_at}] */
   sel: { ids: [], edge: null },   /* many cards/groups, or one edge */
   role: 'admin',                  /* 'admin' owns the board, 'viewer' may only read */
@@ -1900,7 +1900,7 @@ function selectAll(){
   render();
 }
 
-/* ---- extra Brand Strategy canvases ----
+/* ---- extra canvases ----
    A canvas is identified by its name, which is also its key in state.tabs,
    so renaming one moves its contents across. Names have to stay unique. */
 function canvasNameTaken(name){
@@ -1924,10 +1924,9 @@ function addCanvas(){
   if (!name) return;
   state.extra.push(name);
   state.tabs[name] = { nodes: [], edges: [] };
-  openNav('brand');
   markDirty();
   switchTab(name);
-  toast('"' + name + '" added under Brand Strategy.');
+  toast('"' + name + '" added under Canvas.');
 }
 function renameCanvas(old){
   if (readOnly()) return;
@@ -2113,6 +2112,7 @@ const TAB_ICONS = {
   'Strategy 1 — Product Evolution': '<path d="M4 12h16M12 4v16"/><circle cx="12" cy="12" r="3"/>',
   'Strategy 1 — Positioning Canvas': '<circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="8"/><path d="M12 1v3M12 20v3M1 12h3M20 12h3"/>',
   'Brand Strategy': '<path d="M12 3l2.6 5.6 6.1.8-4.5 4.2 1.2 6L12 16.8 6.6 19.6l1.2-6L3.3 9.4l6.1-.8z"/>',
+  'New Canvas': '<path d="M12 5v14M5 12h14"/>',
   'MCP': '<path d="M5 7h14M5 12h14M5 17h9"/><circle cx="18" cy="17" r="2.2"/>',
   'Settings': '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1A1.7 1.7 0 0 0 9 19.4a1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1A1.7 1.7 0 0 0 4.6 9a1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.9.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/>'
 };
@@ -2219,40 +2219,18 @@ function renderTabs(){
       return;
     }
 
-    if (item.kind === 'tab'){ box.append(tabButton(item.name)); return; }
-
-    if (item.kind === 'screen'){
-      const b = document.createElement('button');
-      b.className = 'tab' + (state.screen === item.id ? ' active' : '');
-      b.append(tabIcon(item.label));
-      const lab = document.createElement('span');
-      lab.textContent = item.label;
-      b.append(lab);
-      b.onclick = () => goScreen(item.id);
-      box.append(b);
-      return;
-    }
-
-    /* ---- groups: one open at a time, and a second click closes it ---- */
-    const open = !!state.navOpen[item.id];
-    box.append(groupButton(item.label, item.label, open, () => {
-      if (open) closeNav(); else openNav(item.id);
-      renderTabs();
-    }));
-    if (!open) return;
-
-    if (item.id === 'brand'){
+    /* Canvas is also flat: each canvas is a full sidebar destination rather
+       than a child hidden behind a Brand Strategy parent row. */
+    if (item.kind === 'canvas-tabs'){
       brandTabs().forEach(name => {
-        const t = state.tabs[name] || { nodes: [] };
-        const cards = (t.nodes || []).filter(x => x.type !== 'group').length;
-        const b = subButton(name, onBoard && name === state.tab, () => switchTab(name), cards);
+        const b = tabButton(name);
+        b.classList.add('canvas-tab');
         if (!readOnly()){
-          /* drag to reorder: the grip shows on hover, a line shows where it lands */
           const grip = document.createElement('span');
           grip.className = 'sub-grip';
           grip.textContent = '\u22ee\u22ee';
           grip.title = 'Drag to reorder';
-          b.prepend(grip);
+          b.insertBefore(grip, b.children[1] || null);
           b.classList.add('sub-drag');
           b.draggable = true;
           b.addEventListener('dragstart', ev => {
@@ -2282,7 +2260,6 @@ function renderTabs(){
             if (from) moveCanvas(from, name, after);
           });
         }
-        /* the five that ship are fixed; only added ones can be renamed or removed */
         if (BRAND_DEFAULT.indexOf(name) === -1 && !readOnly()){
           b.title = name + ' \u2014 double-click to rename';
           b.ondblclick = ev => { ev.preventDefault(); renameCanvas(name); };
@@ -2296,13 +2273,40 @@ function renderTabs(){
         box.append(b);
       });
       if (!readOnly()){
-        const add = subButton('+ New canvas', false, addCanvas, 0);
-        add.classList.add('sub-add');
-        add.title = 'Add another canvas under Brand Strategy';
+        const add = document.createElement('button');
+        add.className = 'tab';
+        add.append(tabIcon('New Canvas'));
+        const label = document.createElement('span');
+        label.textContent = 'New canvas';
+        add.append(label);
+        add.title = 'Add another canvas';
+        add.onclick = addCanvas;
         box.append(add);
       }
       return;
     }
+
+    if (item.kind === 'tab'){ box.append(tabButton(item.name)); return; }
+
+    if (item.kind === 'screen'){
+      const b = document.createElement('button');
+      b.className = 'tab' + (state.screen === item.id ? ' active' : '');
+      b.append(tabIcon(item.label));
+      const lab = document.createElement('span');
+      lab.textContent = item.label;
+      b.append(lab);
+      b.onclick = () => goScreen(item.id);
+      box.append(b);
+      return;
+    }
+
+    /* ---- groups: one open at a time, and a second click closes it ---- */
+    const open = !!state.navOpen[item.id];
+    box.append(groupButton(item.label, item.label, open, () => {
+      if (open) closeNav(); else openNav(item.id);
+      renderTabs();
+    }));
+    if (!open) return;
 
     if (item.id === 'content'){
       const root = contentRoot();
@@ -2772,7 +2776,7 @@ function switchTab(name){
   state.frameIndex = -1;
   state.screen = 'board';
   if ([STRATEGY_ONE_TAB, PRODUCT_EVOLUTION_TAB, POSITIONING_TAB, CHANNELS_TAB].indexOf(name) !== -1) openNav('strategy1');
-  else if (isBrandTab(name)) openNav('brand');
+  else if (isBrandTab(name)) closeNav();
   else if (name === CONTENT_TAB) openNav('content');
   clearSel();
   render();

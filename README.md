@@ -76,9 +76,9 @@ saved with the board and can be changed later with Edit.
   are added to **Content Strategy › Competitor** without duplicating existing rows or
   deleting competitors already entered there.
 - **Strategy › Channel Strategy** shows the active and available acquisition levers.
-- **Brand Strategy** opens into Product Architecture, Market Research Frame,
-  Messaging Framework, Positioning Document and Growth Strategy. Each is its own
-  canvas; the count beside one is its card count. Those five always exist —
+- **Canvas** lists Product Architecture, Market Research Frame, Messaging Framework,
+  Positioning Document and Growth Strategy directly, without a Brand Strategy parent
+  row. Each is its own canvas; the count beside one is its card count. Those five always exist —
   **+ New canvas** adds as many more as you like, double-click one to rename it,
   and the × beside it removes it. **Drag any of them by the grip that appears on
   hover to change the order.** Added canvases and the order are saved with the board.
