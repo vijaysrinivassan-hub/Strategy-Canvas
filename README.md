@@ -46,7 +46,9 @@ The sidebar groups them:
   customer acquisition. Clicking the opening card reveals both ocean choices; selecting one
   highlights that branch, leaves the alternative white, and reveals only its next steps.
   Start from Customer acquisition, reveal Red Ocean and Blue Ocean, then open either
-  branch to see its two acquisition routes.
+  branch to see its two acquisition routes. A question rail runs beside the canvas so a
+  client can read each level without explanation: marketing objective, market type, and
+  who the strategy should pull into the funnel. Answered questions remain marked in green.
 - **Strategy 1 › Product Evolution** asks for one of four axes—People, Process,
   Technology / Access, or Input / Raw material—then maps a Previous state into an
   unlimited editable sequence of evolution stages. Each axis keeps its own sequence.
