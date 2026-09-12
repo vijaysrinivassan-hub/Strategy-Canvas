@@ -183,8 +183,8 @@ same restrained green interaction states; the presentation changes do not alter
 their fields or saved content.
 
 The tables start directly with their controls and column headers; there is no
-repeated table title above them. Every column header has an **i** summary and a
-pencil for its saved AI instruction. The same editor sets default AEO/SEO mode,
+repeated table title above them. Every column header has a right-aligned pencil
+for its saved AI instruction. The same editor sets default AEO/SEO mode,
 article type and awareness stage for that column. Untouched cells inherit those
 defaults, while a choice made in an individual cell remains an explicit override.
 The MCP `content_get` response includes the instructions and defaults as
@@ -209,7 +209,7 @@ volume, and the **total** underneath. Two keywords at 50 read as *100 total*.
 The competitor matrix uses the **very same cell** — one shared builder draws
 both — so a matrix cell also takes the article's own words, the tick, AEO / SEO,
 type and awareness, and shows its evidence with a total. What a matrix cell
-catches is the repo keywords that mention the competitor and the column's terms,
+catches is the repo keywords that mention the competitor and the article-type column name,
 plus any that contain the words you wrote in it.
 
 The list of article types lives under **Settings › Article Types** — Listicle,
@@ -220,10 +220,9 @@ Removing one that is in use leaves those cells their words and clears the type.
 Each matrix has rows down the side, article types across
 the top (Alternatives, Pricing, Reviews, Features to start). Every keyword in the
 repo drops into the cells it fits — a keyword matches a row when it mentions that
-competitor or one of its aliases, and a column when it contains one of that
-column's match terms. Both lists are editable: **+ Competitor**, **+ Article
-type**, double-click any heading to rename, and the small *terms* / *aliases*
-buttons widen what a row or column catches.
+competitor and a column when it contains that article-type column name. Use
+**+ Competitor** and **+ Article type** to expand the matrix, and double-click
+any heading to rename it.
 
 Each cell carries one **Write this** tick — a single approval for the article,
 present whether or not a keyword — plenty of articles get written without one. It is green, and tints

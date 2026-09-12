@@ -656,19 +656,15 @@
              color:var(--faint); border-color:transparent; background:transparent; flex:none;
              opacity:0; transition:opacity .12s}
   .mx-lab .x:hover{color:var(--danger); background:var(--danger-bg); border-color:transparent}
-  .mx-lab .cog{padding:0 5px; font-size:10.5px; line-height:1.6; color:var(--faint);
-               border-color:transparent; background:transparent; flex:none; font-weight:600;
-               opacity:0; transition:opacity .12s}
-  th:hover .mx-lab .cog, th:hover .mx-lab .x,
-  .mx-lab .cog:focus, .mx-lab .x:focus{opacity:1}
-  .mx-lab .cog:hover{color:var(--accent); background:var(--accent-soft); border-color:transparent}
+  th:hover .mx-lab .x, .mx-lab .x:focus{opacity:1}
   .col-tools{display:flex; align-items:center; gap:2px; margin-left:auto; flex:none}
   .col-tools button{width:20px; height:20px; display:grid; place-items:center; padding:0;
                     border:0; border-radius:3px; background:transparent; color:#858983;
                     font-size:10px; font-weight:750}
   .col-tools button:hover:not(:disabled){border:0; background:#e7f5ec; color:#287343}
-  .col-tools .col-edit{font-size:15px; font-weight:500}
+  .col-tools .col-edit{font-size:15px; font-weight:500; transform:scaleX(-1)}
   .col-tools .configured{color:#287343; background:#effbf3}
+  .col-tools + .x{margin-left:0}
   .column-guide{width:560px}
   .column-guide textarea{min-height:150px; resize:vertical; line-height:1.55}
   .column-defaults{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px;
@@ -678,8 +674,6 @@
                           border-radius:5px; padding:0 8px; background:#fff; color:var(--ink-2);
                           font:inherit; font-size:11.5px; outline:none}
   .column-defaults select:focus{border-color:#57c982}
-  /* match terms and aliases are still editable, just not printed in the grid */
-
   /* cells: a fixed-height scroller so every row in a band lines up */
   .mx-cell{padding:0}
   .mx-kws{display:flex; flex-direction:column; max-height:180px; overflow-y:auto}
@@ -1132,7 +1126,7 @@
   .cat-competitors-head b{font-size:11px}.cat-competitors-head span{color:#71726c; font-size:10px}
   .cat-competitors-head button{margin-left:auto; padding:5px 8px; background:#fff; font-size:10px}
   .cat-competitor-list{display:flex; flex-direction:column; gap:7px}
-  .cat-competitor{display:grid; grid-template-columns:minmax(160px,.8fr) minmax(220px,1.2fr) auto;
+  .cat-competitor{display:grid; grid-template-columns:minmax(220px,1fr) auto;
                   gap:8px; align-items:center}
   .cat-competitor input{width:100%; height:34px; padding:6px 8px; border:1px solid #d8d9d4;
                         border-radius:4px; background:#fff; color:#30312d; font:inherit; font-size:11px}
@@ -1748,7 +1742,7 @@ const SUPABASE_URL = 'https://cskamgfvebryahkljlll.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_MdkD-TxMCIwlu69seSHA3Q_A39GADsK';
 const CLIENT_ID    = '1059013355751-6g50dsgm7df37htl2fdqrtlkh5hmrc0c.apps.googleusercontent.com';
 const ALLOWED      = ['vijaysrinivassan@gmail.com'];
-const BUILD        = 'v7.8';
+const BUILD        = 'v7.9';
 
 const STRATEGY_ONE_TAB = 'Strategy 1 — Brand Strategy';
 const PRODUCT_EVOLUTION_TAB = 'Strategy 1 — Product Evolution';
@@ -4539,16 +4533,10 @@ function openPasteModal(){
 const CONTENT_TAB = 'Content Strategy';
 
 const COMPETITOR_TYPES = [
-  { name: 'Alternatives', terms: ['alternative', 'alternatives', 'vs', 'versus'] },
-  { name: 'Pricing',      terms: ['pricing', 'price', 'cost', 'how much'] },
-  { name: 'Reviews',      terms: ['review', 'reviews', 'rating', 'ratings'] },
-  { name: 'Features',     terms: ['feature', 'features', 'capabilities'] }
-];
-const GENERIC_TYPES = [
-  { name: 'Guides',      terms: ['guide', 'guides', 'what is', 'how to'] },
-  { name: 'Comparisons', terms: ['vs', 'versus', 'compare', 'comparison'] },
-  { name: 'Listicles',   terms: ['best', 'top', 'tools', 'examples'] },
-  { name: 'How-to',      terms: ['how to', 'steps', 'tutorial'] }
+  { name: 'Alternatives' },
+  { name: 'Pricing' },
+  { name: 'Reviews' },
+  { name: 'Features' }
 ];
 
 /* Four ways to slice the same article plan. Rows differ; the columns are
@@ -4611,14 +4599,15 @@ function contentRoot(){
       if (!cur.cells || typeof cur.cells !== 'object') cur.cells = {};
       if (!Array.isArray(cur.types) || !cur.types.length){
         cur.types = v.types.map(function(d){
-          return { id: uid(), name: d.name, terms: d.terms.slice() };
+          return { id: uid(), name: d.name };
         });
       }
       /* Stand the whole grid up so it is there to type into. Unnamed rows and
          columns match nothing, so the padding is inert until you fill it. */
-      while (cur.rows.length < GRID_ROWS) cur.rows.push({ id: uid(), name: '', aliases: [] });
-      while (cur.types.length < GRID_MAX_COLS) cur.types.push({ id: uid(), name: '', terms: [] });
-      cur.types.forEach(normalizeColumnMeta);
+      while (cur.rows.length < GRID_ROWS) cur.rows.push({ id: uid(), name: '' });
+      while (cur.types.length < GRID_MAX_COLS) cur.types.push({ id: uid(), name: '' });
+      cur.rows.forEach(function(row){ delete row.aliases; });
+      cur.types.forEach(function(type){ delete type.terms; normalizeColumnMeta(type); });
       if (!cur.rowColumn || typeof cur.rowColumn !== 'object') cur.rowColumn = {};
       normalizeColumnMeta(cur.rowColumn);
       return;
@@ -4639,21 +4628,13 @@ function matrixState(){
   return contentRoot().views[state.contentView] || contentRoot().views.competitor;
 }
 
-/* Loose containment is the right call here: Ahrefs keywords are messy and a
-   strict word boundary would drop "semrush's pricing" and the like. */
-function hit(text, needles){
-  const h = String(text || '').toLowerCase();
-  /* a type or row saved without its terms is a miss, not a crash */
-  return (Array.isArray(needles) ? needles : []).some(function(nd){
-    nd = String(nd || '').toLowerCase().trim();
-    return nd && h.indexOf(nd) !== -1;
-  });
-}
-
 function cellKeywords(comp, type){
-  const names = [comp.name].concat(comp.aliases || []);
+  const competitor = String(comp.name || '').trim().toLowerCase();
+  const articleType = String(type.name || '').trim().toLowerCase();
+  if (!competitor || !articleType) return [];
   return kwRows.filter(function(r){
-    return hit(r.keyword, names) && hit(r.keyword, type.terms);
+    const keyword = String(r.keyword || '').toLowerCase();
+    return keyword.indexOf(competitor) !== -1 && keyword.indexOf(articleType) !== -1;
   });
 }
 
@@ -4929,28 +4910,11 @@ function articleTypes(){
   return root.articleTypes;
 }
 
-function columnSummary(col){
-  const d = defaultsFor(col);
-  const kind = articleTypes().find(function(x){ return x.id === d.type; });
-  const parts = [];
-  if (col.instruction.trim()) parts.push(col.instruction.trim());
-  parts.push('Defaults: ' + [d.mode ? d.mode.toUpperCase() : 'none', kind ? kind.name : 'no article type', d.aw || 'no awareness stage'].join(' · '));
-  return parts.join('\n\n');
-}
-
 function columnTools(col, label, rerender){
   normalizeColumnMeta(col);
   const wrap = document.createElement('span');
   wrap.className = 'col-tools';
   const configured = !!(col.instruction.trim() || col.defaults.mode || col.defaults.type || col.defaults.aw);
-  const info = document.createElement('button');
-  info.type = 'button';
-  info.textContent = 'i';
-  info.className = configured ? 'configured' : '';
-  info.title = columnSummary(col);
-  info.setAttribute('aria-label', 'Information for ' + label);
-  info.onclick = function(ev){ ev.stopPropagation(); toast(columnSummary(col)); };
-  wrap.append(info);
   if (!readOnly()){
     const edit = document.createElement('button');
     edit.type = 'button';
@@ -5225,27 +5189,9 @@ function renderMatrix(){
     b.placeholder = 'Article type';
     b.disabled = ro;
     b.oninput = function(){ ty.name = b.value; markDirty(); };
-    b.onchange = function(){
-      /* a fresh column matches on its own name until you widen it */
-      if (!ty.terms || !ty.terms.length){
-        const t = b.value.trim().toLowerCase();
-        if (t) ty.terms = [t];
-      }
-      renderMatrix();
-    };
+    b.onchange = renderMatrix;
     lab.append(b, columnTools(ty, ty.name || 'Untitled article column', renderMatrix));
     if (!ro){
-      const cog = document.createElement('button');
-      cog.className = 'cog';
-      cog.textContent = '⋯';
-      cog.title = 'Words a keyword must contain to land in this column';
-      cog.onclick = function(){
-        const v = prompt('Match terms for "' + ty.name + '", comma separated',
-                         (ty.terms || []).join(', '));
-        if (v === null) return;
-        ty.terms = v.split(',').map(function(x){ return x.trim(); }).filter(Boolean);
-        markDirty(); renderMatrix();
-      };
       const x = document.createElement('button');
       x.className = 'x';
       x.innerHTML = '&times;';
@@ -5253,10 +5199,10 @@ function renderMatrix(){
       x.onclick = function(){
         if (ty.name && !confirm('Remove the "' + ty.name + '" column?')) return;
         m.types = m.types.filter(function(z){ return z.id !== ty.id; });
-        while (m.types.length < GRID_MAX_COLS) m.types.push({ id: uid(), name: '', terms: [] });
+        while (m.types.length < GRID_MAX_COLS) m.types.push({ id: uid(), name: '' });
         markDirty(); renderMatrix();
       };
-      lab.append(cog, x);
+      lab.append(x);
     }
     th.append(lab);
     hr.append(th);
@@ -5283,7 +5229,7 @@ function renderMatrix(){
       del.onclick = function(){
         if (comp.name && !confirm('Remove "' + comp.name + '" from the matrix?')) return;
         m.rows = m.rows.filter(function(z){ return z.id !== comp.id; });
-        while (m.rows.length < GRID_ROWS) m.rows.push({ id: uid(), name: '', aliases: [] });
+        while (m.rows.length < GRID_ROWS) m.rows.push({ id: uid(), name: '' });
         markDirty(); renderMatrix();
       };
       nw.append(del);
@@ -5303,20 +5249,6 @@ function renderMatrix(){
     b.oninput = function(){ comp.name = b.value; markDirty(); };
     b.onchange = function(){ renderMatrix(); };
     lab.append(b);
-    if (!ro){
-      const cog = document.createElement('button');
-      cog.className = 'cog';
-      cog.textContent = '⋯';
-      cog.title = 'Other spellings that also mean this competitor';
-      cog.onclick = function(){
-        const v = prompt('Aliases for "' + comp.name + '", comma separated',
-                         (comp.aliases || []).join(', '));
-        if (v === null) return;
-        comp.aliases = v.split(',').map(function(x){ return x.trim(); }).filter(Boolean);
-        markDirty(); renderMatrix();
-      };
-      lab.append(cog);   /* delete lives in the number gutter, as it does in the other tables */
-    }
     rh.append(lab);
     tr.append(rh);
 
@@ -5366,7 +5298,7 @@ function renderMatrix(){
           if ((now.v || '').trim()) return now.v.trim();
           /* nothing written yet: seed from the competitor and the column */
           return ((comp.name || '').toLowerCase() + ' ' +
-                  ((ty.terms && ty.terms[0]) || (ty.name || '').toLowerCase())).trim();
+                  (ty.name || '').toLowerCase()).trim();
         },
         refreshEmpty: function(){
           const now = cellState(m, cellKey, defaults);
@@ -5607,7 +5539,7 @@ function addCompetitor(){
   const v = name.trim();
   if (!v) return;
   const blank = m.rows.filter(function(r){ return !(r.name || '').trim(); })[0];
-  if (blank) blank.name = v; else m.rows.push({ id: uid(), name: v, aliases: [] });
+  if (blank) blank.name = v; else m.rows.push({ id: uid(), name: v });
   markDirty();
   renderMatrix();
 }
@@ -5620,11 +5552,11 @@ function addArticleType(){
   const v = name.trim();
   if (!v) return;
   const blankT = m.types.filter(function(t){ return !(t.name || '').trim(); })[0];
-  if (blankT){ blankT.name = v; blankT.terms = [v.toLowerCase()]; }
-  else m.types.push({ id: uid(), name: v, terms: [v.toLowerCase()] });
+  if (blankT) blankT.name = v;
+  else m.types.push({ id: uid(), name: v });
   markDirty();
   renderMatrix();
-  toast('Added. Use "terms" on the column to widen what it matches.');
+  toast('Article type added.');
 }
 
 /* ===================================================================
@@ -5661,9 +5593,7 @@ function positioningState(){
     category.competitors.forEach(competitor => {
       if (!competitor.id) competitor.id = uid();
       if (typeof competitor.name !== 'string') competitor.name = '';
-      if (typeof competitor.aliases !== 'string'){
-        competitor.aliases = Array.isArray(competitor.aliases) ? competitor.aliases.join(', ') : '';
-      }
+      delete competitor.aliases;
     });
   });
   if (!p.icps.some(x => x.id === p.selectedIcp)) p.selectedIcp = '';
@@ -5678,7 +5608,6 @@ function syncPositioningCompetitors(category){
   category.competitors.forEach(competitor => {
     const name = competitor.name.trim();
     if (!name) return;
-    const aliases = competitor.aliases.split(',').map(x => x.trim()).filter(Boolean);
     let row = competitor.contentRowId
       ? matrix.rows.find(x => x.id === competitor.contentRowId)
       : null;
@@ -5688,20 +5617,16 @@ function syncPositioningCompetitors(category){
     if (!row){
       row = matrix.rows.find(x => !(x.name || '').trim());
       if (!row){
-        row = { id: uid(), name: '', aliases: [] };
+        row = { id: uid(), name: '' };
         matrix.rows.push(row);
       }
       row.name = name;
-      row.aliases = aliases;
       row.positioningCompetitorId = competitor.id;
       row.positioningCategoryId = category.id;
       added++;
     } else if (row.positioningCompetitorId === competitor.id){
       row.name = name;
-      row.aliases = aliases;
       row.positioningCategoryId = category.id;
-    } else {
-      row.aliases = Array.from(new Set((row.aliases || []).concat(aliases)));
     }
     competitor.contentRowId = row.id;
   });
@@ -5889,7 +5814,7 @@ function renderPositioning(){
         const add = document.createElement('button');
         add.type = 'button'; add.textContent = '+ Add competitor';
         add.onclick = () => {
-          category.competitors.push({ id: uid(), name: '', aliases: '' });
+          category.competitors.push({ id: uid(), name: '' });
           markDirty(); renderPositioning();
           const inputs = card.querySelectorAll('.cat-competitor input:first-child');
           const last = inputs[inputs.length - 1];
@@ -5912,10 +5837,7 @@ function renderPositioning(){
         const competitorName = positioningInput(competitor.name, 'Competitor name', ro,
           value => { competitor.name = value; });
         competitorName.onchange = () => { syncPositioningCompetitors(category); markDirty(); };
-        const aliases = positioningInput(competitor.aliases, 'Aliases, comma separated', ro,
-          value => { competitor.aliases = value; });
-        aliases.onchange = () => { syncPositioningCompetitors(category); markDirty(); };
-        row.append(competitorName, aliases);
+        row.append(competitorName);
         if (!ro){
           const remove = document.createElement('button');
           remove.type = 'button'; remove.title = 'Remove competitor'; remove.textContent = '\u00d7';
