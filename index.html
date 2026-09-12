@@ -897,11 +897,12 @@
   .sg-canvas{position:relative; width:min(1040px,100%); min-height:650px; margin:0 auto;
              padding:54px 34px 68px; border:1px solid #deded9; overflow:hidden;
              background-color:#fbfbfa;
-             background-image:radial-gradient(circle,#d9d9d4 1px,transparent 1.2px);
+             background-image:radial-gradient(circle,#d3d4cf 1.1px,transparent 1.25px);
              background-size:20px 20px}
   .sg-wires{position:absolute; inset:0; z-index:1; width:100%; height:100%;
             overflow:visible; pointer-events:none}
-  .sg-wire{fill:none; stroke:#b9bab6; stroke-width:1.5; vector-effect:non-scaling-stroke}
+  .sg-wire{fill:none; stroke:#b9bab6; stroke-width:1.5; stroke-linecap:round;
+           stroke-linejoin:round; vector-effect:non-scaling-stroke}
   .sg-wire.chosen{stroke:#65c88a; stroke-width:2}
   .sg-flow{display:flex; flex-direction:column; align-items:center}
   .sg-node{position:relative; z-index:2; display:block; width:220px; min-height:72px;
@@ -5820,7 +5821,7 @@ function drawStrategyWires(){
     };
   };
   const path = (from, to, chosen) => {
-    const bend = Math.max(24, (to.y - from.y) * .55);
+    const bend = Math.max(30, (to.y - from.y) * .68);
     return '<path class="sg-wire' + (chosen ? ' chosen' : '') + '" ' +
       'marker-end="url(#' + (chosen ? 'sgArrowChosen' : 'sgArrow') + ')" d="M ' +
       from.x + ' ' + from.y + ' C ' + from.x + ' ' + (from.y + bend) + ', ' +
