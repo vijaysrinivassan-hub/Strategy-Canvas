@@ -1346,6 +1346,48 @@
   .mx-cell.planned,.gr-cell.planned{background:#ecece8}
   .rlink{background:#f2f2ef; border-color:#d8d8d3}
   .toast{border-radius:2px}
+
+  /* ---- Settings > Clients: a working directory, not a tile gallery ---- */
+  .client-directory{width:100%; margin-top:18px}
+  .client-dir-head{display:flex; align-items:center; justify-content:space-between; gap:20px;
+                   padding:15px 16px; border:1px solid var(--line); background:#f7f7f4}
+  .client-dir-head > div{display:flex; flex-direction:column; gap:2px}
+  .client-dir-head b{font-size:13px; color:var(--ink)}
+  .client-dir-head span{font-size:11.5px; color:var(--muted)}
+  .client-list{border:1px solid var(--line); border-top:0; background:#fff}
+  .client-entry{display:flex; min-width:0; min-height:72px; border-bottom:1px solid var(--line);
+                background:#fff; transition:background .12s}
+  .client-entry:last-child{border-bottom:0}
+  .client-entry:hover,.client-entry.current{background:#fafcf9}
+  .client-entry.current{box-shadow:inset 3px 0 #57c982}
+  .client-open{display:grid; grid-template-columns:42px minmax(170px,1fr) 120px 76px 22px;
+               align-items:center; gap:14px; min-width:0; flex:1; padding:13px 16px;
+               border:0; background:transparent; text-align:left}
+  .client-open:hover:not(:disabled){border:0; background:transparent}
+  .client-avatar{width:38px; height:38px; display:grid; place-items:center; overflow:hidden;
+                 border:1px solid #d4ddd6; border-radius:4px; background:#eff8f2;
+                 color:#287343; font-size:13px; font-weight:800}
+  .client-avatar.has-img{background:#fff}.client-avatar img{width:100%; height:100%; object-fit:contain}
+  .client-identity{display:flex; flex-direction:column; min-width:0}
+  .client-identity b{font-size:13px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+  .client-identity small{margin-top:2px; color:var(--muted); font-size:10.5px; font-weight:500}
+  .client-type,.client-role{width:max-content; max-width:100%; padding:3px 7px; border:1px solid #cfe9d8;
+                            border-radius:3px; background:#effbf3; color:#287343;
+                            font-size:9.5px; font-weight:750; letter-spacing:.04em; text-transform:uppercase}
+  .client-type.unset{border-color:var(--line); background:#f4f4f1; color:var(--muted)}
+  .client-role{border:0; background:transparent; color:var(--muted); padding-left:0}
+  .client-arrow{color:var(--faint); font-size:17px}
+  .client-actions{display:flex; align-items:center; gap:5px; padding:0 14px 0 8px;
+                  border-left:1px solid var(--line)}
+  .client-actions button{padding:5px 8px; border-color:transparent; background:transparent;
+                         color:var(--muted); font-size:10.5px}
+  .client-actions button:hover:not(:disabled){border-color:var(--line); background:#fff; color:var(--ink)}
+  .client-empty{padding:38px 18px; text-align:center; color:var(--muted); font-size:12px}
+  .client-create select.modal-in{height:40px; background:#fff}
+  @media(max-width:850px){
+    .client-open{grid-template-columns:40px minmax(130px,1fr) 96px 20px}
+    .client-role{display:none}.client-actions{padding-right:8px}
+  }
 </style>
 </head>
 <body>
@@ -1645,8 +1687,8 @@
 
     <!-- Clients: admin-only list of boards and who may read them -->
     <div class="clients" id="clientsPane" hidden>
-      <p class="page-intro">Every client gets their own board with all the same tabs.
-        Give people access by email — they can read everything and change nothing.</p>
+      <p class="page-intro">Create and manage a workspace for every client. Client type
+        records whether the engagement is Local, E-commerce or SaaS; access remains read-only.</p>
       <div class="grid" id="clientGrid"></div>
     </div>
 
@@ -1706,7 +1748,7 @@ const SUPABASE_URL = 'https://cskamgfvebryahkljlll.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_MdkD-TxMCIwlu69seSHA3Q_A39GADsK';
 const CLIENT_ID    = '1059013355751-6g50dsgm7df37htl2fdqrtlkh5hmrc0c.apps.googleusercontent.com';
 const ALLOWED      = ['vijaysrinivassan@gmail.com'];
-const BUILD        = 'v7.6';
+const BUILD        = 'v7.7';
 
 const STRATEGY_ONE_TAB = 'Strategy 1 — Brand Strategy';
 const PRODUCT_EVOLUTION_TAB = 'Strategy 1 — Product Evolution';
@@ -1760,10 +1802,10 @@ function moveCanvas(from, to, after){
 }
 const isBrandTab = name => brandTabs().indexOf(name) > -1;
 const NAV = [
-  { kind: 'label',  text: 'Strategy 1' },
+  { kind: 'label',  text: 'Strategy' },
   { kind: 'strategy1-tabs' },
   { kind: 'group',  id: 'content', label: 'Content Strategy', tab: 'Content Strategy' },
-  { kind: 'label',  text: 'Strategy' },
+  { kind: 'label',  text: 'Canvas' },
   { kind: 'group',  id: 'brand',   label: 'Brand Strategy' },
   { kind: 'label',  text: 'Research' },
   { kind: 'tab',    name: 'Keyword Repo' },
@@ -1771,6 +1813,13 @@ const NAV = [
   { kind: 'group',  id: 'frames',   label: 'Frames' },
   { kind: 'spacer' }
 ];
+
+const CLIENT_TYPES = [
+  { id: 'local', label: 'Local' },
+  { id: 'ecommerce', label: 'E-commerce' },
+  { id: 'saas', label: 'SaaS' }
+];
+const clientTypeLabel = id => (CLIENT_TYPES.find(x => x.id === id) || {}).label || 'Not classified';
 
 /* Only one sidebar group stands open at a time. */
 function openNav(id){
@@ -1790,6 +1839,7 @@ const state = {
   user: null,
   boardId: null,               /* uuid of the Supabase row, null = unsaved */
   client: 'XYZ',
+  clientType: '',
   logo: '',
   tab: TABS[0],
   tabs: {},                    /* tabName -> { nodes:[], edges:[] } */
@@ -3349,7 +3399,7 @@ function serialize(){
   /* the frame scratch tab is a working copy, not a tab of this board */
   const tabs = {};
   Object.keys(state.tabs).forEach(k => { if (k !== FRAME_TAB) tabs[k] = state.tabs[k]; });
-  return JSON.stringify({ version: 3, client: state.client, logo: state.logo || '',
+  return JSON.stringify({ version: 3, client: state.client, clientType: state.clientType || '', logo: state.logo || '',
                           extra: state.extra, brandOrder: state.brandOrder,
                           frameEdits: state.frameEdits, tabs: tabs });
 }
@@ -3389,6 +3439,7 @@ function hydrate(text){
     }
   }
   state.client = (d && d.client) || 'XYZ';
+  state.clientType = (d && CLIENT_TYPES.some(x => x.id === d.clientType)) ? d.clientType : '';
   state.logo = (d && d.logo) || '';
   void 0;   /* the client name is edited on the Clients screen */
   renderBrand();
@@ -3396,7 +3447,7 @@ function hydrate(text){
 
 async function refreshBoards(){
   const { data, error } = await sb.from('reports')
-    .select('id,title,updated_at,owner_id').order('updated_at', { ascending: false });
+    .select('id,title,updated_at,owner_id,body').order('updated_at', { ascending: false });
   if (error){ toast('Could not list boards: ' + error.message, true); return; }
   state.boards = data || [];
   /* boards are chosen on the Clients screen now, so nothing to fill here */
@@ -3447,11 +3498,13 @@ async function saveBoard(quiet){
   if (!quiet) toast('Board saved.');
 }
 
-function newBoard(){
+async function newBoard(clientName, clientType){
   state.boardId = null;
   state.ownerId = state.user ? state.user.id : null;
   state.role = 'admin';
-  state.client = 'New client';
+  state.client = (clientName || '').trim() || 'Untitled';
+  state.clientType = CLIENT_TYPES.some(x => x.id === clientType) ? clientType : '';
+  state.logo = '';
   state.tabs = blankTabs();
   state.extra = [];
   state.frameEdits = {};
@@ -3464,7 +3517,9 @@ function newBoard(){
   render();
   applyTabMode();
   zoomToFit();
-  toast('New board started — press Save to keep it.');
+  await saveBoard(true);
+  if (state.screen === 'settings') renderClients();
+  toast('Client workspace created.');
 }
 
 /* ===================================================================
@@ -4080,6 +4135,21 @@ function openClientSettings(){
   nameIn.value = state.client || '';
   nameIn.placeholder = 'Acme';
 
+  const typeLabel = document.createElement('label');
+  typeLabel.className = 'fl';
+  typeLabel.style.marginTop = '16px';
+  typeLabel.textContent = 'Client type';
+  const typeIn = document.createElement('select');
+  typeIn.className = 'modal-in';
+  const typeNone = document.createElement('option');
+  typeNone.value = ''; typeNone.textContent = 'Choose client type';
+  typeIn.append(typeNone);
+  CLIENT_TYPES.forEach(function(t){
+    const o = document.createElement('option');
+    o.value = t.id; o.textContent = t.label; typeIn.append(o);
+  });
+  typeIn.value = state.clientType || '';
+
   const logoLabel = document.createElement('label');
   logoLabel.className = 'fl';
   logoLabel.style.marginTop = '16px';
@@ -4156,6 +4226,7 @@ function openClientSettings(){
   save.onclick = async function(){
     const nm = nameIn.value.trim();
     state.client = nm || 'Untitled';
+    state.clientType = typeIn.value;
     state.logo = pendingLogo;
     void 0;   /* the client name is edited on the Clients screen */
     renderBrand();
@@ -4167,7 +4238,7 @@ function openClientSettings(){
   };
   foot.append(cancel, save);
 
-  modal.append(h, p, nameLabel, nameIn, logoLabel, row, fileIn, foot);
+  modal.append(h, p, nameLabel, nameIn, typeLabel, typeIn, logoLabel, row, fileIn, foot);
   overlay.append(modal);
   host.append(overlay);
   paint();
@@ -6151,71 +6222,111 @@ function openBoardScreen(){
   applyTabMode();
 }
 
+function boardPresentation(board){
+  let body = board && board.body;
+  if (typeof body === 'string'){
+    try { body = JSON.parse(body); } catch (e) { body = {}; }
+  }
+  if (!body || typeof body !== 'object') body = {};
+  return {
+    name: (body.client || String(board.title || '').replace(/\s+Strategy Board$/i, '') || 'Untitled').trim(),
+    type: CLIENT_TYPES.some(x => x.id === body.clientType) ? body.clientType : '',
+    logo: body.logo || ''
+  };
+}
+
+function openNewClientModal(){
+  const host = $('modalHost');
+  host.innerHTML = '';
+  const overlay = document.createElement('div');
+  overlay.className = 'overlay'; overlay.onclick = closeModal;
+  const modal = document.createElement('div');
+  modal.className = 'modal client-create'; modal.onclick = ev => ev.stopPropagation();
+  const h = document.createElement('h3'); h.textContent = 'Create a client workspace';
+  const p = document.createElement('p');
+  p.textContent = 'Choose the business model now so the workspace has the right client context from the start.';
+  const nameLabel = document.createElement('label'); nameLabel.className = 'fl'; nameLabel.textContent = 'Client name';
+  const name = document.createElement('input'); name.className = 'modal-in'; name.placeholder = 'Client or company name';
+  const typeLabel = document.createElement('label'); typeLabel.className = 'fl'; typeLabel.style.marginTop = '16px'; typeLabel.textContent = 'Client type';
+  const type = document.createElement('select'); type.className = 'modal-in';
+  const choose = document.createElement('option'); choose.value = ''; choose.textContent = 'Choose Local, E-commerce, or SaaS'; type.append(choose);
+  CLIENT_TYPES.forEach(function(t){
+    const o = document.createElement('option'); o.value = t.id; o.textContent = t.label; type.append(o);
+  });
+  const foot = document.createElement('div'); foot.className = 'mrow';
+  const cancel = document.createElement('button'); cancel.textContent = 'Cancel'; cancel.onclick = closeModal;
+  const create = document.createElement('button'); create.className = 'primary'; create.textContent = 'Create client';
+  create.onclick = async function(){
+    if (!name.value.trim()){ toast('Enter a client name.', true); name.focus(); return; }
+    if (!type.value){ toast('Choose a client type.', true); type.focus(); return; }
+    create.disabled = true; create.textContent = 'Creating…';
+    await newBoard(name.value, type.value);
+    closeModal();
+  };
+  name.onkeydown = function(ev){ if (ev.key === 'Enter') type.focus(); };
+  foot.append(cancel, create);
+  modal.append(h, p, nameLabel, name, typeLabel, type, foot);
+  overlay.append(modal); host.append(overlay); name.focus();
+}
+
 async function renderClients(){
   const grid = $('clientGrid');
+  grid.className = 'client-directory';
   grid.innerHTML = '';
 
-  for (const b of state.boards){
-    const card = document.createElement('button');
-    card.className = 'card';
-    card.onclick = () => { openBoardScreen(); openBoard(b.id); };
-
-    const ic = document.createElement('div');
-    ic.className = 'ic';
-    if (b.id === state.boardId && state.logo){
-      ic.classList.add('has-img');
-      const img = document.createElement('img');
-      img.src = state.logo; img.alt = '';
-      ic.append(img);
-    } else {
-      ic.textContent = (b.title || '?').trim().charAt(0).toUpperCase();
-    }
-
-    const h = document.createElement('h3');
-    h.textContent = b.title || 'Untitled board';
-
-    const meta = document.createElement('div');
-    meta.className = 'meta';
-    meta.textContent = b.updated_at ? 'Updated ' + new Date(b.updated_at).toLocaleDateString() : '';
-
-    const row = document.createElement('div');
-    row.className = 'row';
-    const mine = b.owner_id === state.user.id;
-    const tag = document.createElement('span');
-    tag.className = 'badge ' + (mine ? 'uni' : 'off');
-    tag.textContent = mine ? 'Owner' : 'View only';
-    row.append(tag);
-
-    if (mine){
-      const edit = document.createElement('button');
-      edit.style.cssText = 'padding:4px 9px;font-size:11.5px';
-      edit.textContent = 'Edit';
-      edit.onclick = async function(ev){
-        ev.stopPropagation();
-        if (b.id !== state.boardId) await openBoard(b.id);
-        openClientSettings();
-      };
-      row.append(edit);
-
-      const manage = document.createElement('button');
-      manage.className = 'btn sm';
-      manage.style.cssText = 'padding:4px 9px;font-size:11.5px';
-      manage.textContent = 'Access';
-      manage.onclick = ev => { ev.stopPropagation(); openAccessModal(b); };
-      row.append(manage);
-    }
-
-    card.append(ic, h, meta, row);
-    grid.append(card);
-  }
-
+  const bar = document.createElement('div');
+  bar.className = 'client-dir-head';
+  const summary = document.createElement('div');
+  const count = document.createElement('b');
+  count.textContent = state.boards.length + ' client' + (state.boards.length === 1 ? '' : 's');
+  const hint = document.createElement('span');
+  hint.textContent = 'Open a workspace or manage its identity and access.';
+  summary.append(count, hint); bar.append(summary);
   if (state.role === 'admin' || !state.boards.length){
     const add = document.createElement('button');
-    add.className = 'card add';
-    add.textContent = '+ New client';
-    add.onclick = newBoard;
-    grid.append(add);
+    add.className = 'primary'; add.textContent = '+ New client'; add.onclick = openNewClientModal;
+    bar.append(add);
   }
+  grid.append(bar);
+
+  const list = document.createElement('div');
+  list.className = 'client-list';
+  state.boards.forEach(function(b){
+    const data = boardPresentation(b);
+    const mine = b.owner_id === state.user.id;
+    const card = document.createElement('article');
+    card.className = 'client-entry' + (b.id === state.boardId ? ' current' : '');
+    const open = document.createElement('button');
+    open.className = 'client-open';
+    open.onclick = function(){ openBoardScreen(); openBoard(b.id); };
+    const avatar = document.createElement('span');
+    avatar.className = 'client-avatar' + (data.logo ? ' has-img' : '');
+    if (data.logo){
+      const img = document.createElement('img'); img.src = data.logo; img.alt = ''; avatar.append(img);
+    } else avatar.textContent = data.name.charAt(0).toUpperCase() || '?';
+    const identity = document.createElement('span'); identity.className = 'client-identity';
+    const clientName = document.createElement('b'); clientName.textContent = data.name;
+    const updated = document.createElement('small');
+    updated.textContent = b.updated_at ? 'Updated ' + new Date(b.updated_at).toLocaleDateString() : 'No recent activity';
+    identity.append(clientName, updated);
+    const type = document.createElement('span'); type.className = 'client-type ' + (data.type || 'unset'); type.textContent = clientTypeLabel(data.type);
+    const access = document.createElement('span'); access.className = 'client-role'; access.textContent = mine ? 'Owner' : 'View only';
+    const arrow = document.createElement('span'); arrow.className = 'client-arrow'; arrow.textContent = '→';
+    open.append(avatar, identity, type, access, arrow); card.append(open);
+    if (mine){
+      const actions = document.createElement('div'); actions.className = 'client-actions';
+      const edit = document.createElement('button'); edit.textContent = 'Edit';
+      edit.onclick = async function(){ if (b.id !== state.boardId) await openBoard(b.id); openClientSettings(); };
+      const manage = document.createElement('button'); manage.textContent = 'Access'; manage.onclick = function(){ openAccessModal(b); };
+      actions.append(edit, manage); card.append(actions);
+    }
+    list.append(card);
+  });
+  if (!state.boards.length){
+    const empty = document.createElement('div'); empty.className = 'client-empty';
+    empty.textContent = 'No clients yet. Create the first workspace to begin.'; list.append(empty);
+  }
+  grid.append(list);
 }
 
 /* ---- who may read one board ---- */
@@ -6329,8 +6440,8 @@ function renderCrumb(){
   let c = 'Strategy';
   if (state.screen !== 'board') c = 'Account';
   else if (inFrame()) c = 'Frames';
-  else if ([STRATEGY_ONE_TAB, PRODUCT_EVOLUTION_TAB, POSITIONING_TAB, CHANNELS_TAB, CONTENT_TAB].indexOf(state.tab) !== -1) c = 'Strategy 1';
-  else if (isBrandTab(state.tab)) c = 'Brand Strategy';
+  else if ([STRATEGY_ONE_TAB, PRODUCT_EVOLUTION_TAB, POSITIONING_TAB, CHANNELS_TAB, CONTENT_TAB].indexOf(state.tab) !== -1) c = 'Strategy';
+  else if (isBrandTab(state.tab)) c = 'Canvas';
   else if (state.tab === CONTENT_TAB) c = 'Content Strategy';
   else if (state.tab === KEYWORDS_TAB || state.tab === DOCS_TAB) c = 'Research';
   el.textContent = c;

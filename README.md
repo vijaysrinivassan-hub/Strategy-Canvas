@@ -42,35 +42,40 @@ automatically from the relative position of the two notes.
 
 The sidebar groups them:
 
-**Strategy 1** is a flat working section: Brand Strategy, Product Evolution,
+**Strategy** is a flat working section: Brand Strategy, Product Evolution,
 Positioning Canvas and Channel Strategy appear directly beneath its heading.
 Content Strategy lives in the same section and expands into Category, Competitor,
-ICP and Value. There is no extra Brand Strategy parent between Strategy 1 and its
+ICP and Value. There is no extra Brand Strategy parent between Strategy and its
 four canvases. Each canvas uses the same full-width icon-and-label row as Content
 Strategy; the four Content Strategy views remain clean, text-only child rows.
 
-- **Strategy 1 › Brand Strategy** is a progressive, Obsidian-style decision canvas for
+The separate free-form canvas collection appears under **Canvas**. In Settings,
+Clients is a compact workspace directory rather than a tile gallery. Creating a
+client asks for its name and whether it is Local, E-commerce or SaaS; the type is
+saved with the board and can be changed later with Edit.
+
+- **Strategy › Brand Strategy** is a progressive, Obsidian-style decision canvas for
   customer acquisition. Clicking the opening card reveals both ocean choices; selecting one
   highlights that branch, leaves the alternative white, and reveals only its next steps.
   Start from Customer acquisition, reveal Red Ocean and Blue Ocean, then open either
   branch to see its two acquisition routes. A numbered question rail sits outside the canvas
   so a client can read each level without explanation: marketing objective, market type,
   and who the strategy should pull into the funnel. Answered steps remain marked in green.
-- **Strategy 1 › Product Evolution** asks for one of four axes—People, Process,
+- **Strategy › Product Evolution** asks for one of four axes—People, Process,
   Technology / Access, or Input / Raw material—then maps a Previous state into an
   unlimited editable sequence of evolution stages. Each axis keeps its own sequence.
   A Problems & Evidence table beneath it stores any number of market problems and
   any number of sources per problem. Sources are explicitly marked as external links
   or Grounded Evidence documents: web evidence opens its URL, while document evidence
   opens the selected file through the board's existing signed-file viewer.
-- **Strategy 1 › Positioning Canvas** has two connected decisions. ICP Positioning
+- **Strategy › Positioning Canvas** has two connected decisions. ICP Positioning
   builds any number of client-ready ICP options from People, Process, Technology and
   Input maturity, with one visibly selected ICP. Category Positioning maps the market
   from its oldest category to later stages, keeps competitors beneath each category,
   and lets one category be selected. The named competitors in that selected category
   are added to **Content Strategy › Competitor** without duplicating existing rows or
   deleting competitors already entered there.
-- **Strategy 1 › Channel Strategy** shows the active and available acquisition levers.
+- **Strategy › Channel Strategy** shows the active and available acquisition levers.
 - **Brand Strategy** opens into Product Architecture, Market Research Frame,
   Messaging Framework, Positioning Document and Growth Strategy. Each is its own
   canvas; the count beside one is its card count. Those five always exist —
@@ -243,7 +248,7 @@ MCP server (or any script) can write them directly. Run `supabase-keywords.sql`
 once to create it. The unique index on `(board_id, lower(keyword), country)` means
 a re-import can upsert instead of duplicating.
 
-**Channel Strategy**, under Strategy 1, is a simple Obsidian-style scope canvas. Technical SEO,
+**Channel Strategy**, under Strategy, is a simple Obsidian-style scope canvas. Technical SEO,
 On-page SEO, Listicle outreach and Reddit begin as white "available lever" nodes
 connected to the strategy anchor. Click a node to mark it green and in scope, so
 a client can see both the work included now and the other levers available.
