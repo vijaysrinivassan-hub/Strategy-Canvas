@@ -914,7 +914,9 @@
 
   /* ================= clickable brand-strategy canvas ================= */
   .strategy-guide{flex:1; min-height:0; overflow:auto; padding:30px; background:#f7f7f5}
-  .sg-canvas{position:relative; width:min(1200px,100%); min-height:650px; margin:0 auto;
+  .sg-layout{display:grid; grid-template-columns:210px minmax(0,1200px); gap:22px;
+             align-items:start; justify-content:center; width:100%}
+  .sg-canvas{position:relative; width:100%; min-height:650px;
              padding:54px 34px 68px; border:1px solid #deded9; overflow:hidden;
              background-color:#fbfbfa;
              background-image:radial-gradient(circle,#d3d4cf 1.1px,transparent 1.25px);
@@ -924,18 +926,22 @@
   .sg-wire{fill:none; stroke:#b9bab6; stroke-width:1.5; stroke-linecap:round;
            stroke-linejoin:round; vector-effect:non-scaling-stroke}
   .sg-wire.chosen{stroke:#65c88a; stroke-width:2}
-  .sg-flow{display:flex; flex-direction:column; align-items:center; margin-left:220px}
-  .sg-questions{position:absolute; inset:0 auto 0 0; z-index:3; width:218px; pointer-events:none}
-  .sg-question{position:absolute; left:22px; width:180px; min-height:62px; padding:11px 12px;
-               border:1px solid #d4d5d0; border-left:3px solid #9a9b95; border-radius:2px;
-               background:#fff; color:#3b3c38; box-shadow:0 1px 2px rgba(0,0,0,.04);
-               transition:top .18s ease,border-color .15s,background .15s}
-  .sg-question small{display:block; margin-bottom:5px; color:#8a8b85; font-size:8.5px;
+  .sg-flow{display:flex; flex-direction:column; align-items:center}
+  .sg-questions{position:relative; min-height:650px; pointer-events:none}
+  .sg-question{position:absolute; left:0; width:100%; min-height:52px; display:grid;
+               grid-template-columns:32px 1fr; gap:10px; align-items:start; color:#70716c;
+               transition:top .18s ease,color .15s}
+  .sg-question::before{content:attr(data-step); width:28px; height:28px; display:grid;
+                       place-items:center; border:1px solid #cfd0ca; border-radius:50%;
+                       background:#fff; color:#7d7e78; font-size:9px; font-weight:800}
+  .sg-question small{display:block; margin:1px 0 4px; color:#999a94; font-size:8px;
                      font-weight:800; letter-spacing:.1em; text-transform:uppercase}
-  .sg-question span{display:block; font-size:11px; font-weight:650; line-height:1.4}
-  .sg-question.active{border-left-color:#111; background:#f6f6f3}
-  .sg-question.answered{border-left-color:#57c982; background:#f3fbf5}
-  .sg-question.answered small{color:#3b8555}
+  .sg-question span{display:block; font-size:11.5px; font-weight:650; line-height:1.4}
+  .sg-question.active{color:#181916}
+  .sg-question.active::before{border-color:#111; background:#111; color:#fff}
+  .sg-question.answered{color:#396a49}
+  .sg-question.answered::before{border-color:#57c982; background:#effbf3; color:#2f7b49}
+  .sg-question.answered small{color:#57a771}
   .sg-node{position:relative; z-index:2; display:block; width:220px; min-height:72px;
            padding:14px 16px; border:1px solid #c9cac6; border-radius:6px; background:#fff;
            color:#292a27; text-align:left; box-shadow:0 1px 2px rgba(0,0,0,.04);
@@ -961,9 +967,9 @@
             background:transparent; color:#777771; font-size:10.5px; box-shadow:none}
   .sg-reset:hover:not(:disabled){background:#fff; color:#111}
   @media(max-width:780px){
-    .strategy-guide{padding:14px}.sg-canvas{padding:38px 18px 60px}
-    .sg-flow{margin-left:0}.sg-questions{position:relative; width:100%; inset:auto;
-      display:flex; flex-direction:column; gap:8px; margin-bottom:18px}
+    .strategy-guide{padding:14px}.sg-layout{grid-template-columns:1fr; gap:14px}
+    .sg-canvas{padding:38px 18px 60px}.sg-questions{min-height:0; display:flex;
+      flex-direction:column; gap:10px}
     .sg-question{position:relative; left:auto!important; top:auto!important; width:100%}
     .sg-oceans{grid-template-columns:repeat(2,minmax(0,1fr)); gap:38px; width:100%}
     .sg-node{width:100%; min-width:0}
@@ -1402,28 +1408,30 @@
 
     <!-- A clickable decision canvas for the first customer-acquisition choice. -->
     <div class="strategy-guide" id="strategyGuidePane" hidden>
-      <div class="sg-canvas">
-        <svg class="sg-wires" id="sgWires" aria-hidden="true"></svg>
+      <div class="sg-layout">
         <aside class="sg-questions" aria-label="Brand strategy questions">
-          <div class="sg-question active" id="sgQuestionObjective">
-            <small>Question 01</small><span>What is the marketing objective?</span>
+          <div class="sg-question active" id="sgQuestionObjective" data-step="01">
+            <div><small>Marketing objective</small><span>What is the marketing objective?</span></div>
           </div>
-          <div class="sg-question" id="sgQuestionMarket" hidden>
-            <small>Question 02</small><span>What is the market type?</span>
+          <div class="sg-question" id="sgQuestionMarket" data-step="02" hidden>
+            <div><small>Market type</small><span>What is the market type?</span></div>
           </div>
-          <div class="sg-question" id="sgQuestionAudience" hidden>
-            <small>Question 03</small><span>Who should we pull into the funnel?</span>
+          <div class="sg-question" id="sgQuestionAudience" data-step="03" hidden>
+            <div><small>Acquisition audience</small><span>Who should we pull into the funnel?</span></div>
           </div>
         </aside>
-        <div class="sg-flow">
-          <button class="sg-node sg-root" id="sgRoot" type="button">
-            <b>Customer acquisition</b>
-            <span>Click to map the source of growth</span>
-          </button>
-          <div class="sg-oceans" id="sgOceans" hidden></div>
-          <div class="sg-routes-wrap" id="sgRoutes" hidden></div>
+        <div class="sg-canvas">
+          <svg class="sg-wires" id="sgWires" aria-hidden="true"></svg>
+          <div class="sg-flow">
+            <button class="sg-node sg-root" id="sgRoot" type="button">
+              <b>Customer acquisition</b>
+              <span>Click to map the source of growth</span>
+            </button>
+            <div class="sg-oceans" id="sgOceans" hidden></div>
+            <div class="sg-routes-wrap" id="sgRoutes" hidden></div>
+          </div>
+          <button class="sg-reset" id="sgReset" type="button" hidden>Reset canvas</button>
         </div>
-        <button class="sg-reset" id="sgReset" type="button" hidden>Reset canvas</button>
       </div>
     </div>
 
@@ -1586,7 +1594,7 @@ const SUPABASE_URL = 'https://cskamgfvebryahkljlll.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_MdkD-TxMCIwlu69seSHA3Q_A39GADsK';
 const CLIENT_ID    = '1059013355751-6g50dsgm7df37htl2fdqrtlkh5hmrc0c.apps.googleusercontent.com';
 const ALLOWED      = ['vijaysrinivassan@gmail.com'];
-const BUILD        = 'v7.0';
+const BUILD        = 'v7.1';
 
 const STRATEGY_ONE_TAB = 'Strategy 1 — Brand Strategy';
 const PRODUCT_EVOLUTION_TAB = 'Strategy 1 — Product Evolution';
