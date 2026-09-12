@@ -1005,12 +1005,51 @@
   .evo-step-x:hover:not(:disabled){color:var(--danger); background:transparent}
   .evo-arrow{align-self:center; color:#9b9c96; font-size:18px; flex:none}
   .evo-add{align-self:center; min-width:110px; min-height:42px; flex:none; background:#fff}
+  .pe-box{width:min(960px,100%); margin:34px auto 0; border:1px solid #d7d8d3;
+          border-radius:7px; background:#fff; overflow:hidden}
+  .pe-head{display:flex; align-items:flex-start; gap:16px; padding:18px 20px;
+           border-bottom:1px solid #e2e2de; background:#f8f8f6}
+  .pe-head h4{margin:0 0 4px; color:#20211e; font-size:14px}
+  .pe-head p{margin:0; color:#70716c; font-size:11px; line-height:1.5}
+  .pe-head button{margin-left:auto; flex:none}
+  .pe-scroll{overflow-x:auto}
+  .pe-table{width:100%; min-width:760px; border-collapse:collapse; table-layout:fixed}
+  .pe-table th{padding:9px 12px; border-bottom:1px solid #deded9; border-right:1px solid #e7e7e3;
+               background:#f3f3f0; color:#666761; font-size:9px; font-weight:800;
+               letter-spacing:.08em; text-align:left; text-transform:uppercase}
+  .pe-table th:first-child{width:54px}.pe-table th:nth-child(2){width:31%}.pe-table th:last-child{border-right:0}
+  .pe-table td{padding:12px; border-right:1px solid #e7e7e3; border-bottom:1px solid #e7e7e3;
+               vertical-align:top; background:#fff}
+  .pe-table td:last-child{border-right:0}.pe-table tbody:last-child tr:last-child td{border-bottom:0}
+  .pe-number{text-align:center; color:#777872; font-size:11px; font-weight:700}
+  .pe-problem{position:relative}
+  .pe-problem textarea{display:block; width:100%; min-height:64px; resize:vertical; border:0;
+                       padding:3px 20px 3px 1px; outline:none; color:#252622;
+                       font:inherit; font-size:12px; font-weight:500; line-height:1.5}
+  .pe-problem textarea:focus{box-shadow:inset 0 -1px #57c982}
+  .pe-remove-problem{position:absolute; top:5px; right:5px; padding:2px 5px; border:0;
+                     background:transparent; color:#92938d}
+  .pe-evidence{display:grid; grid-template-columns:132px minmax(120px,.8fr) minmax(180px,1.2fr) auto;
+               align-items:center; gap:8px}
+  .pe-evidence select,.pe-evidence input{width:100%; min-width:0; height:34px; padding:6px 8px;
+                                        border:1px solid #d8d9d4; border-radius:4px; background:#fff;
+                                        color:#30312d; font:inherit; font-size:11px; outline:none}
+  .pe-evidence select:focus,.pe-evidence input:focus{border-color:#57c982}
+  .pe-type{font-weight:700}
+  .pe-open{min-width:58px; height:34px; padding:5px 9px; font-size:10px; background:#fff}
+  .pe-open.web{color:#4569a8; border-color:#bfccec}.pe-open.file{color:#8a5c20; border-color:#dfc79d}
+  .pe-remove{padding:4px 6px; border:0; background:transparent; color:#92938d}
+  .pe-evidence-actions{display:flex; align-items:center; gap:4px}
+  .pe-add-evidence{margin-top:10px; padding:5px 8px; background:#fff; color:#5d5e58; font-size:10px}
+  .pe-empty-source{padding:28px!important; text-align:center; color:#777872; font-size:11px}
+  .pe-empty-source{color:#858680; font-size:10.5px; line-height:1.4}
   @media(max-width:780px){
     .evo{padding:14px}.evo-canvas{padding:28px 16px 48px}.evo-map{height:auto;
       display:grid; grid-template-columns:1fr 1fr; gap:12px}
     .evo-market,.evo-axis,.evo-axis[data-axis]{position:relative; inset:auto; transform:none;
       width:100%; min-height:60px}
     .evo-market{grid-column:1/-1; order:-1}.evo-wires{display:none}
+    .pe-box{margin-top:26px}.pe-head{padding:14px}.pe-evidence{grid-template-columns:120px 150px 210px auto}
   }
 
   .toast{position:fixed; left:50%; bottom:80px; transform:translateX(-50%); z-index:200;
@@ -1388,6 +1427,20 @@
           </div>
           <div class="evo-track-scroll"><div class="evo-track" id="evoTrack"></div></div>
         </section>
+        <section class="pe-box" id="problemEvidenceBox">
+          <div class="pe-head">
+            <div>
+              <h4>Problems &amp; Evidence</h4>
+              <p>Capture each market problem and connect it to web sources or documents in Grounded Evidences.</p>
+            </div>
+            <button id="btnAddProblem" type="button">+ Add problem</button>
+          </div>
+          <div class="pe-scroll">
+            <table class="pe-table" id="problemEvidenceTable">
+              <thead><tr><th>S No</th><th>Problems</th><th>Evidences</th></tr></thead>
+            </table>
+          </div>
+        </section>
       </div>
     </div>
 
@@ -1508,7 +1561,7 @@ const SUPABASE_URL = 'https://cskamgfvebryahkljlll.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_MdkD-TxMCIwlu69seSHA3Q_A39GADsK';
 const CLIENT_ID    = '1059013355751-6g50dsgm7df37htl2fdqrtlkh5hmrc0c.apps.googleusercontent.com';
 const ALLOWED      = ['vijaysrinivassan@gmail.com'];
-const BUILD        = 'v6.8';
+const BUILD        = 'v6.9';
 
 const STRATEGY_ONE_TAB = 'Strategy 1 — Brand Strategy';
 const PRODUCT_EVOLUTION_TAB = 'Strategy 1 — Product Evolution';
@@ -3792,7 +3845,14 @@ function applyTabMode(){
   if (isKw && state.user) refreshKeywords();
   if (isMx) refreshMatrix();   /* grids need no database, so no user check */
   if (isGuide) renderStrategyGuide();
-  if (isEvo) renderEvolution();
+  if (isEvo){
+    renderEvolution();
+    if (state.user){
+      refreshDocs().then(() => {
+        if (state.tab === PRODUCT_EVOLUTION_TAB) renderProblemEvidence();
+      }).catch(() => {});
+    }
+  }
   renderCrumb();
   applyRole();
 }
@@ -5976,6 +6036,246 @@ function evolutionState(){
   return t.evolution;
 }
 
+function newEvidence(){
+  return { id: uid(), type: 'url', label: '', url: '', document: '' };
+}
+
+function problemEvidenceState(){
+  const t = state.tabs[PRODUCT_EVOLUTION_TAB] ||
+            (state.tabs[PRODUCT_EVOLUTION_TAB] = { nodes: [], edges: [] });
+  if (!Array.isArray(t.problems)){
+    t.problems = [{ id: uid(), problem: '', evidences: [newEvidence()] }];
+  }
+  t.problems.forEach(problem => {
+    if (!problem.id) problem.id = uid();
+    if (typeof problem.problem !== 'string') problem.problem = '';
+    if (!Array.isArray(problem.evidences) || !problem.evidences.length){
+      problem.evidences = [newEvidence()];
+    }
+    problem.evidences.forEach(evidence => {
+      if (!evidence.id) evidence.id = uid();
+      if (evidence.type !== 'document') evidence.type = 'url';
+      ['label', 'url', 'document'].forEach(key => {
+        if (typeof evidence[key] !== 'string') evidence[key] = '';
+      });
+    });
+  });
+  return t.problems;
+}
+
+function externalEvidenceUrl(value){
+  let url = String(value || '').trim();
+  if (!url) return '';
+  if (!/^https?:\/\//i.test(url)) url = 'https://' + url;
+  try {
+    const parsed = new URL(url);
+    return /^https?:$/.test(parsed.protocol) ? parsed.href : '';
+  } catch (e){ return ''; }
+}
+
+function renderProblemEvidence(focus){
+  const problems = problemEvidenceState();
+  const host = $('problemEvidenceTable');
+  if (!host) return;
+  Array.from(host.querySelectorAll('tbody')).forEach(body => body.remove());
+  $('btnAddProblem').hidden = readOnly();
+
+  problems.forEach((problem, problemIndex) => {
+    const group = document.createElement('tbody');
+    group.dataset.problem = problem.id;
+    problem.evidences.forEach((evidence, evidenceIndex) => {
+      const row = document.createElement('tr');
+      if (evidenceIndex === 0){
+        const number = document.createElement('td');
+        number.className = 'pe-number';
+        number.rowSpan = problem.evidences.length;
+        number.textContent = String(problemIndex + 1);
+
+        const problemCell = document.createElement('td');
+        problemCell.className = 'pe-problem';
+        problemCell.rowSpan = problem.evidences.length;
+        const problemInput = document.createElement('textarea');
+        problemInput.rows = 3;
+        problemInput.value = problem.problem;
+        problemInput.placeholder = 'Describe the problem people face';
+        problemInput.readOnly = readOnly();
+        problemInput.oninput = ev => { problem.problem = ev.target.value; markDirty(); };
+        problemCell.append(problemInput);
+        if (!readOnly()){
+          const removeProblem = document.createElement('button');
+          removeProblem.type = 'button';
+          removeProblem.className = 'pe-remove-problem';
+          removeProblem.title = 'Remove this problem';
+          removeProblem.textContent = '\u00d7';
+          removeProblem.onclick = () => {
+            if (!confirm('Remove this problem and all of its evidence?')) return;
+            const t = state.tabs[PRODUCT_EVOLUTION_TAB];
+            t.problems = t.problems.filter(x => x.id !== problem.id);
+            markDirty();
+            renderProblemEvidence();
+          };
+          problemCell.append(removeProblem);
+        }
+        row.append(number, problemCell);
+      }
+
+      const evidenceCell = document.createElement('td');
+      const editor = document.createElement('div');
+      editor.className = 'pe-evidence';
+
+      const type = document.createElement('select');
+      type.className = 'pe-type';
+      type.disabled = readOnly();
+      [['url', 'External link'], ['document', 'Grounded Evidence']].forEach(pair => {
+        const option = document.createElement('option');
+        option.value = pair[0];
+        option.textContent = pair[1];
+        option.selected = evidence.type === pair[0];
+        type.append(option);
+      });
+      type.onchange = ev => {
+        evidence.type = ev.target.value;
+        markDirty();
+        renderProblemEvidence({ evidenceId: evidence.id, field: 'source' });
+      };
+
+      const label = document.createElement('input');
+      label.value = evidence.label;
+      label.placeholder = 'Evidence ' + (evidenceIndex + 1);
+      label.title = 'Evidence name';
+      label.readOnly = readOnly();
+      label.oninput = ev => { evidence.label = ev.target.value; markDirty(); };
+
+      let source;
+      if (evidence.type === 'document'){
+        source = document.createElement('select');
+        source.disabled = readOnly();
+        const empty = document.createElement('option');
+        empty.value = '';
+        empty.textContent = repoFiles.length ? 'Choose a Grounded Evidence file' : 'No Grounded Evidence files loaded';
+        source.append(empty);
+        repoFiles.forEach(file => {
+          const option = document.createElement('option');
+          option.value = file.name;
+          option.textContent = (docsMeta().files[file.name] || {}).title || displayName(file.name);
+          option.selected = evidence.document === file.name;
+          source.append(option);
+        });
+        if (evidence.document && !repoFiles.some(file => file.name === evidence.document)){
+          const missing = document.createElement('option');
+          missing.value = evidence.document;
+          missing.textContent = '[Unavailable] ' + displayName(evidence.document);
+          missing.selected = true;
+          source.append(missing);
+        }
+        source.onchange = ev => {
+          evidence.document = ev.target.value;
+          open.disabled = !evidence.document;
+          markDirty();
+        };
+      } else {
+        source = document.createElement('input');
+        source.value = evidence.url;
+        source.placeholder = 'https://reddit.com/...';
+        source.title = 'Source URL';
+        source.readOnly = readOnly();
+        source.oninput = ev => {
+          evidence.url = ev.target.value;
+          open.disabled = !externalEvidenceUrl(evidence.url);
+          markDirty();
+        };
+      }
+      source.dataset.evidenceSource = evidence.id;
+
+      const actions = document.createElement('div');
+      actions.className = 'pe-evidence-actions';
+      const open = document.createElement('button');
+      open.type = 'button';
+      open.className = 'pe-open ' + (evidence.type === 'document' ? 'file' : 'web');
+      open.textContent = 'Open';
+      open.disabled = evidence.type === 'document' ? !evidence.document : !externalEvidenceUrl(evidence.url);
+      open.title = evidence.type === 'document' ? 'Open the linked Grounded Evidence file' : 'Open the source page';
+      open.onclick = () => {
+        if (evidence.type === 'document'){
+          if (evidence.document) openDoc(evidence.document);
+          return;
+        }
+        const url = externalEvidenceUrl(evidence.url);
+        if (url) window.open(url, '_blank', 'noopener');
+      };
+      actions.append(open);
+      if (!readOnly()){
+        const remove = document.createElement('button');
+        remove.type = 'button';
+        remove.className = 'pe-remove';
+        remove.title = 'Remove this evidence';
+        remove.textContent = '\u00d7';
+        remove.onclick = () => {
+          if (problem.evidences.length === 1){
+            problem.evidences[0] = newEvidence();
+          } else {
+            problem.evidences = problem.evidences.filter(x => x.id !== evidence.id);
+          }
+          markDirty();
+          renderProblemEvidence();
+        };
+        actions.append(remove);
+      }
+      editor.append(type, label, source, actions);
+      evidenceCell.append(editor);
+
+      if (evidenceIndex === problem.evidences.length - 1 && !readOnly()){
+        const addEvidence = document.createElement('button');
+        addEvidence.type = 'button';
+        addEvidence.className = 'pe-add-evidence';
+        addEvidence.textContent = '+ Add evidence';
+        addEvidence.onclick = () => {
+          const next = newEvidence();
+          problem.evidences.push(next);
+          markDirty();
+          renderProblemEvidence({ evidenceId: next.id, field: 'label' });
+        };
+        evidenceCell.append(addEvidence);
+      }
+      row.append(evidenceCell);
+      group.append(row);
+    });
+    host.append(group);
+  });
+
+  if (!problems.length){
+    const group = document.createElement('tbody');
+    const row = document.createElement('tr');
+    const cell = document.createElement('td');
+    cell.colSpan = 3;
+    cell.className = 'pe-empty-source';
+    cell.textContent = 'No problems yet. Add one to begin collecting evidence.';
+    row.append(cell);
+    group.append(row);
+    host.append(group);
+  }
+  if (focus){
+    requestAnimationFrame(() => {
+      const group = host.querySelector('[data-problem="' + (focus.problemId || '') + '"]');
+      const target = focus.field === 'problem'
+        ? group && group.querySelector('textarea')
+        : host.querySelector('[data-evidence-source="' + (focus.evidenceId || '') + '"]');
+      if (target){ target.focus(); if (target.select) target.select(); }
+    });
+  }
+}
+
+$('btnAddProblem').onclick = () => {
+  if (readOnly()) return;
+  const problem = { id: uid(), problem: '', evidences: [newEvidence()] };
+  const t = state.tabs[PRODUCT_EVOLUTION_TAB] ||
+            (state.tabs[PRODUCT_EVOLUTION_TAB] = { nodes: [], edges: [] });
+  if (!Array.isArray(t.problems)) t.problems = [];
+  t.problems.push(problem);
+  markDirty();
+  renderProblemEvidence({ problemId: problem.id, field: 'problem' });
+};
+
 function evolutionPlaceholder(axis, index){
   const examples = {
     technology: ['EDR error', 'SOAR', 'MDR', 'AS'],
@@ -6029,6 +6329,7 @@ function drawEvolutionWires(){
 
 function renderEvolution(focusLast){
   const evo = evolutionState();
+  renderProblemEvidence();
   Array.from($('evoMap').querySelectorAll('.evo-axis')).forEach(button => {
     const on = button.dataset.axis === evo.axis;
     button.classList.toggle('on', on);

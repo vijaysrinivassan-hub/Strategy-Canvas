@@ -50,6 +50,10 @@ The sidebar groups them:
 - **Strategy 1 › Product Evolution** asks for one of four axes—People, Process,
   Technology / Access, or Input / Raw material—then maps a Previous state into an
   unlimited editable sequence of evolution stages. Each axis keeps its own sequence.
+  A Problems & Evidence table beneath it stores any number of market problems and
+  any number of sources per problem. Sources are explicitly marked as external links
+  or Grounded Evidence documents: web evidence opens its URL, while document evidence
+  opens the selected file through the board's existing signed-file viewer.
 - **Strategy 1 › Channel Strategy** shows the active and available acquisition levers.
 - **Brand Strategy** opens into Product Architecture, Market Research Frame,
   Messaging Framework, Positioning Document and Growth Strategy. Each is its own
