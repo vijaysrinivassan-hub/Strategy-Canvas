@@ -177,6 +177,14 @@ of 20 rows. All four use the full workspace width, square table edges and the
 same restrained green interaction states; the presentation changes do not alter
 their fields or saved content.
 
+The tables start directly with their controls and column headers; there is no
+repeated table title above them. Every column header has an **i** summary and a
+pencil for its saved AI instruction. The same editor sets default AEO/SEO mode,
+article type and awareness stage for that column. Untouched cells inherit those
+defaults, while a choice made in an individual cell remains an explicit override.
+The MCP `content_get` response includes the instructions and defaults as
+`column_guidance`, and MCP writes use them whenever the call omits a cell setting.
+
 In those three the unit is the **cell**, not the row. Each cell holds the words,
 a green **Write this** tick, its own **AEO / SEO** choice, a **status** — Already
 written, Sent for review, In progress or Planned — its **type** (from Settings)

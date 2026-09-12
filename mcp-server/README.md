@@ -93,6 +93,10 @@ coordinates are arranged in a grid to the right of whatever is already there.
 tables), `content_plan_article` (tick a competitor-matrix cell and set AEO or
 SEO), `channel_set`.
 
+`content_get` returns each column's saved AI instruction and default mode,
+article type and awareness stage in `column_guidance`. Content write tools use
+those defaults only when the call does not provide a cell-level choice.
+
 Things worth asking for:
 
 - *"Read the audit in Luca's Grounded Evidences and turn its findings into a

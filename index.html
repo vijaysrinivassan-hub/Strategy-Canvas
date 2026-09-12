@@ -607,12 +607,9 @@
   /* ================= content matrix (Airtable-style grid) ================= */
   .mx{flex:1; min-width:0; min-height:0; overflow:hidden; padding:0; background:#fff;
       display:flex; flex-direction:column}
-  .mx-head{display:flex; align-items:center; gap:10px; min-height:62px; margin:0;
+  .mx-head{display:flex; align-items:center; justify-content:flex-end; gap:10px; min-height:54px; margin:0;
            padding:12px 20px; border-bottom:1px solid var(--line); background:#fbfcfb}
-  .mx-head::before{content:""; width:4px; height:30px; flex:none; background:#57c982}
-  .mx-head h3{margin:0; font-size:15px; font-weight:700; letter-spacing:-.01em}
-  .mx-head p{margin:0; font-size:12.5px; color:var(--muted)}
-  .mx-head .sp{margin-left:auto}
+  .mx-head .sp{margin-left:0}
   .mx-head button{border-radius:4px}
   .mx-setup{border:0; border-bottom:1px solid var(--line); background:#fff; border-radius:0;
             padding:14px 20px; font-size:13px; color:var(--muted); margin:0}
@@ -665,6 +662,22 @@
   th:hover .mx-lab .cog, th:hover .mx-lab .x,
   .mx-lab .cog:focus, .mx-lab .x:focus{opacity:1}
   .mx-lab .cog:hover{color:var(--accent); background:var(--accent-soft); border-color:transparent}
+  .col-tools{display:flex; align-items:center; gap:2px; margin-left:auto; flex:none}
+  .col-tools button{width:20px; height:20px; display:grid; place-items:center; padding:0;
+                    border:0; border-radius:3px; background:transparent; color:#858983;
+                    font-size:10px; font-weight:750}
+  .col-tools button:hover:not(:disabled){border:0; background:#e7f5ec; color:#287343}
+  .col-tools .col-edit{font-size:15px; font-weight:500}
+  .col-tools .configured{color:#287343; background:#effbf3}
+  .column-guide{width:560px}
+  .column-guide textarea{min-height:150px; resize:vertical; line-height:1.55}
+  .column-defaults{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px;
+                   margin-top:16px}
+  .column-defaults label{min-width:0}
+  .column-defaults select{width:100%; height:36px; border:1px solid var(--line);
+                          border-radius:5px; padding:0 8px; background:#fff; color:var(--ink-2);
+                          font:inherit; font-size:11.5px; outline:none}
+  .column-defaults select:focus{border-color:#57c982}
   /* match terms and aliases are still editable, just not printed in the grid */
 
   /* cells: a fixed-height scroller so every row in a band lines up */
@@ -1655,9 +1668,6 @@
     <!-- Content Strategy: competitors x article types, filled from the keyword repo -->
     <div class="mx" id="mxPane" hidden>
       <div class="mx-head">
-        <div>
-          <h3 id="mxHeading">Competitor &times; article matrix</h3>
-        </div>
         <button class="sp" id="btnAddCompetitor">+ Competitor</button>
         <button id="btnAddType">+ Article type</button>
       </div>
@@ -1696,7 +1706,7 @@ const SUPABASE_URL = 'https://cskamgfvebryahkljlll.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_MdkD-TxMCIwlu69seSHA3Q_A39GADsK';
 const CLIENT_ID    = '1059013355751-6g50dsgm7df37htl2fdqrtlkh5hmrc0c.apps.googleusercontent.com';
 const ALLOWED      = ['vijaysrinivassan@gmail.com'];
-const BUILD        = 'v7.5';
+const BUILD        = 'v7.6';
 
 const STRATEGY_ONE_TAB = 'Strategy 1 — Brand Strategy';
 const PRODUCT_EVOLUTION_TAB = 'Strategy 1 — Product Evolution';
@@ -4487,6 +4497,19 @@ const viewDef = function(id){
   return CONTENT_VIEWS.filter(function(v){ return v.id === id; })[0] || CONTENT_VIEWS[1];
 };
 
+function normalizeColumnMeta(col){
+  if (!col || typeof col !== 'object') return col;
+  if (typeof col.instruction !== 'string') col.instruction = '';
+  if (!col.defaults || typeof col.defaults !== 'object') col.defaults = {};
+  col.defaults.mode = ['aeo', 'seo'].indexOf(col.defaults.mode) !== -1 ? col.defaults.mode : '';
+  if (typeof col.defaults.type !== 'string') col.defaults.type = '';
+  if (['Problem aware', 'Solution aware', 'Feature aware', 'Competitor aware'].indexOf(col.defaults.aw) === -1){
+    col.defaults.aw = '';
+  }
+  return col;
+}
+function defaultsFor(col){ return normalizeColumnMeta(col).defaults; }
+
 function contentRoot(){
   const t = state.tabs[CONTENT_TAB] || (state.tabs[CONTENT_TAB] = { nodes: [], edges: [] });
   if (!t.views || typeof t.views !== 'object') t.views = {};
@@ -4520,6 +4543,9 @@ function contentRoot(){
          columns match nothing, so the padding is inert until you fill it. */
       while (cur.rows.length < GRID_ROWS) cur.rows.push({ id: uid(), name: '', aliases: [] });
       while (cur.types.length < GRID_MAX_COLS) cur.types.push({ id: uid(), name: '', terms: [] });
+      cur.types.forEach(normalizeColumnMeta);
+      if (!cur.rowColumn || typeof cur.rowColumn !== 'object') cur.rowColumn = {};
+      normalizeColumnMeta(cur.rowColumn);
       return;
     }
 
@@ -4528,6 +4554,7 @@ function contentRoot(){
       cur.columns = v.columns.map(function(name){ return { id: uid(), name: name }; });
     }
     if (!Array.isArray(cur.rows)) cur.rows = [];
+    cur.columns.forEach(normalizeColumnMeta);
     while (cur.rows.length < GRID_ROWS) cur.rows.push({ id: uid(), cells: {} });
   });
   return t;
@@ -4557,20 +4584,21 @@ function cellKeywords(comp, type){
 
 /* A cell used to be a bare `true`. It now carries the SEO/AEO choice too, so
    old boards are read forward rather than reset. */
-function cellState(m, key){
+function cellState(m, key, defaults){
   const raw = m.cells[key];
-  if (raw === true) return { on: true, mode: 'aeo', type: '', v: '', aw: '', st: '' };
+  const d = defaults || {};
+  if (raw === true) return { on: true, mode: d.mode || 'aeo', type: d.type || '', v: '', aw: d.aw || '', st: '', cfg:false };
   if (raw && typeof raw === 'object'){
     return { on: !!raw.on, mode: raw.mode === 'seo' ? 'seo' : 'aeo', type: raw.type || '',
-             v: raw.v || '', aw: raw.aw || '', st: raw.st || '' };
+             v: raw.v || '', aw: raw.aw || '', st: raw.st || '', cfg:!!raw.cfg };
   }
-  return { on: false, mode: 'aeo', type: '', v: '', aw: '', st: '' };
+  return { on: false, mode: d.mode || 'aeo', type: d.type || '', v: '', aw: d.aw || '', st: '', cfg:false };
 }
 function setCellState(m, key, st){
   /* the default — nothing chosen, nothing written — need not be stored */
-  if (!st.on && st.mode === 'aeo' && !st.type && !st.v && !st.aw && !st.st) delete m.cells[key];
+  if (!st.cfg && !st.on && st.mode === 'aeo' && !st.type && !st.v && !st.aw && !st.st) delete m.cells[key];
   else m.cells[key] = { on: !!st.on, mode: st.mode, type: st.type || '', v: st.v || '',
-                        aw: st.aw || '', st: st.st || '' };
+                        aw: st.aw || '', st: st.st || '', cfg:!!st.cfg };
 }
 
 /* What a matrix cell catches: the repo keywords that mention the competitor
@@ -4826,18 +4854,115 @@ function articleTypes(){
   return root.articleTypes;
 }
 
+function columnSummary(col){
+  const d = defaultsFor(col);
+  const kind = articleTypes().find(function(x){ return x.id === d.type; });
+  const parts = [];
+  if (col.instruction.trim()) parts.push(col.instruction.trim());
+  parts.push('Defaults: ' + [d.mode ? d.mode.toUpperCase() : 'none', kind ? kind.name : 'no article type', d.aw || 'no awareness stage'].join(' · '));
+  return parts.join('\n\n');
+}
+
+function columnTools(col, label, rerender){
+  normalizeColumnMeta(col);
+  const wrap = document.createElement('span');
+  wrap.className = 'col-tools';
+  const configured = !!(col.instruction.trim() || col.defaults.mode || col.defaults.type || col.defaults.aw);
+  const info = document.createElement('button');
+  info.type = 'button';
+  info.textContent = 'i';
+  info.className = configured ? 'configured' : '';
+  info.title = columnSummary(col);
+  info.setAttribute('aria-label', 'Information for ' + label);
+  info.onclick = function(ev){ ev.stopPropagation(); toast(columnSummary(col)); };
+  wrap.append(info);
+  if (!readOnly()){
+    const edit = document.createElement('button');
+    edit.type = 'button';
+    edit.textContent = '✎';
+    edit.className = 'col-edit' + (configured ? ' configured' : '');
+    edit.title = 'Edit AI instruction and defaults';
+    edit.setAttribute('aria-label', 'Edit settings for ' + label);
+    edit.onclick = function(ev){ ev.stopPropagation(); openColumnGuide(col, label, rerender); };
+    wrap.append(edit);
+  }
+  return wrap;
+}
+
+function openColumnGuide(col, label, rerender){
+  normalizeColumnMeta(col);
+  const host = $('modalHost');
+  host.innerHTML = '';
+  const overlay = document.createElement('div');
+  overlay.className = 'overlay';
+  overlay.onclick = closeModal;
+  const modal = document.createElement('div');
+  modal.className = 'modal column-guide';
+  modal.onclick = function(ev){ ev.stopPropagation(); };
+  const h = document.createElement('h3');
+  h.textContent = label + ' — column guidance';
+  const p = document.createElement('p');
+  p.textContent = 'Tell a connected AI what belongs in this column, then choose the defaults inherited by untouched cells.';
+  const promptLabel = document.createElement('label');
+  promptLabel.className = 'fl';
+  promptLabel.textContent = 'Instruction for AI';
+  const promptBox = document.createElement('textarea');
+  promptBox.className = 'modal-in';
+  promptBox.value = col.instruction;
+  promptBox.placeholder = 'Describe the keywords or article ideas that should be placed in this column…';
+
+  const defaults = document.createElement('div');
+  defaults.className = 'column-defaults';
+  function selectField(name, options, current){
+    const lab = document.createElement('label');
+    const cap = document.createElement('span');
+    cap.className = 'fl';
+    cap.textContent = name;
+    const sel = document.createElement('select');
+    options.forEach(function(opt){
+      const o = document.createElement('option');
+      o.value = opt[0]; o.textContent = opt[1]; sel.append(o);
+    });
+    sel.value = current || '';
+    lab.append(cap, sel);
+    defaults.append(lab);
+    return sel;
+  }
+  const mode = selectField('Default channel', [['', 'No default'], ['aeo', 'AEO'], ['seo', 'SEO']], col.defaults.mode);
+  const typeOptions = [['', 'No default']].concat(articleTypes().map(function(t){ return [t.id, t.name]; }));
+  const type = selectField('Default article type', typeOptions, col.defaults.type);
+  const awareness = selectField('Default awareness', [['', 'No default']].concat(AWARENESS.map(function(a){ return [a, a]; })), col.defaults.aw);
+
+  const foot = document.createElement('div');
+  foot.className = 'mrow';
+  const cancel = document.createElement('button');
+  cancel.type = 'button'; cancel.textContent = 'Cancel'; cancel.onclick = closeModal;
+  const save = document.createElement('button');
+  save.type = 'button'; save.className = 'primary'; save.textContent = 'Save column settings';
+  save.onclick = function(){
+    col.instruction = promptBox.value.trim();
+    col.defaults = { mode: mode.value, type: type.value, aw: awareness.value };
+    markDirty(); closeModal(); rerender();
+    toast('Column guidance and defaults saved.');
+  };
+  foot.append(cancel, save);
+  modal.append(h, p, promptLabel, promptBox, defaults, foot);
+  overlay.append(modal); host.append(overlay); promptBox.focus();
+}
+
 /* ---- table cells ----
    A cell used to be a bare string. It now carries the words, the mode and the
    article type, because all three follow the keyword rather than the row.
    Strings are still read, so nothing saved earlier is lost. */
-function cellOf(row, colId){
+function cellOf(row, colId, defaults){
   const c = row.cells[colId];
-  if (typeof c === 'string') return { v: c, mode: 'aeo', type: '', on: false, aw: '', st: '' };
+  const d = defaults || {};
+  if (typeof c === 'string') return { v: c, mode: d.mode || 'aeo', type: d.type || '', on: false, aw: d.aw || '', st: '', cfg:false };
   if (c && typeof c === 'object'){
     return { v: c.v || '', mode: c.mode === 'seo' ? 'seo' : 'aeo', type: c.type || '',
-             on: !!c.on, aw: c.aw || '', st: c.st || '' };
+             on: !!c.on, aw: c.aw || '', st: c.st || '', cfg:!!c.cfg };
   }
-  return { v: '', mode: 'aeo', type: '', on: false, aw: '', st: '' };
+  return { v: '', mode: d.mode || 'aeo', type: d.type || '', on: false, aw: d.aw || '', st: '', cfg:false };
 }
 
 /* A cell with nothing chosen and nothing caught keeps its controls quiet. */
@@ -4847,10 +4972,10 @@ function cellQuiet(c, keywordCount){
 
 /* An empty cell is left out of the record entirely, so a blank table saves as
    a blank table rather than four hundred little objects. */
-function setCellIn(row, colId, patch){
-  const c = Object.assign(cellOf(row, colId), patch);
-  if (!c.v && !c.type && c.mode === 'aeo' && !c.on && !c.aw && !c.st) delete row.cells[colId];
-  else row.cells[colId] = { v: c.v, mode: c.mode, type: c.type, on: c.on, aw: c.aw, st: c.st };
+function setCellIn(row, colId, patch, defaults){
+  const c = Object.assign(cellOf(row, colId, defaults), patch);
+  if (!c.cfg && !c.v && !c.type && c.mode === 'aeo' && !c.on && !c.aw && !c.st) delete row.cells[colId];
+  else row.cells[colId] = { v: c.v, mode: c.mode, type: c.type, on: c.on, aw: c.aw, st: c.st, cfg:!!c.cfg };
 }
 
 function renderArticleTypes(){
@@ -4980,6 +5105,7 @@ function renderMatrix(){
   setup.hidden = true;   /* only a real error from refreshMatrix uses this box now */
 
   const ro = readOnly();
+  $('mxPane').querySelector('.mx-head').hidden = ro;
 
   /* Explicit widths, so the header and body can never disagree. */
   const NUM_W = 46, RH_W = 210, COL_W = 232;
@@ -5010,7 +5136,7 @@ function renderMatrix(){
   cLab.className = 'mx-lab';
   const cName = document.createElement('b');
   cName.textContent = vd.label + ' Name';
-  cLab.append(cName);
+  cLab.append(cName, columnTools(m.rowColumn, vd.label + ' Name', renderMatrix));
   corner.append(cLab);
   hr.append(corner);
 
@@ -5032,7 +5158,7 @@ function renderMatrix(){
       }
       renderMatrix();
     };
-    lab.append(b);
+    lab.append(b, columnTools(ty, ty.name || 'Untitled article column', renderMatrix));
     if (!ro){
       const cog = document.createElement('button');
       cog.className = 'cog';
@@ -5122,9 +5248,11 @@ function renderMatrix(){
     m.types.forEach(function(ty, ti){
       const td = document.createElement('td');
       const cellKey = comp.id + '|' + ty.id;
-      const st = cellState(m, cellKey);
+      const defaults = defaultsFor(ty);
+      const st = cellState(m, cellKey, defaults);
       const rows = matrixCellKeywords(comp, ty, st.v);
-      td.className = 'gr-cell' + (cellQuiet(st, rows.length) ? ' empty' : '') + (st.on ? ' planned' : '')
+      const untouched = !m.cells[cellKey];
+      td.className = 'gr-cell' + ((untouched || cellQuiet(st, rows.length)) ? ' empty' : '') + (st.on ? ' planned' : '')
                    + (st.st === 'written' ? ' written' : '');
 
       /* the cell's own words: the title or keyword this article is about */
@@ -5142,11 +5270,11 @@ function renderMatrix(){
 
       let paintTimer = null;
       inp.oninput = function(){
-        setCellState(m, cellKey, Object.assign(cellState(m, cellKey), { v: inp.value }));
+        setCellState(m, cellKey, Object.assign(cellState(m, cellKey, defaults), { v: inp.value }));
         markDirty();
         clearTimeout(paintTimer);
         paintTimer = setTimeout(function(){
-          const now = cellState(m, cellKey);
+          const now = cellState(m, cellKey, defaults);
           const rows2 = matrixCellKeywords(comp, ty, now.v);
           kwHost.innerHTML = '';
           kwHost.append(keywordBlock(rows2));
@@ -5156,17 +5284,17 @@ function renderMatrix(){
 
       cellControls(td, {
         ro: ro,
-        get: function(){ return cellState(m, cellKey); },
-        set: function(patch){ setCellState(m, cellKey, Object.assign(cellState(m, cellKey), patch)); },
+        get: function(){ return cellState(m, cellKey, defaults); },
+        set: function(patch){ setCellState(m, cellKey, Object.assign(cellState(m, cellKey, defaults), patch, { cfg:true })); },
         seed: function(){
-          const now = cellState(m, cellKey);
+          const now = cellState(m, cellKey, defaults);
           if ((now.v || '').trim()) return now.v.trim();
           /* nothing written yet: seed from the competitor and the column */
           return ((comp.name || '').toLowerCase() + ' ' +
                   ((ty.terms && ty.terms[0]) || (ty.name || '').toLowerCase())).trim();
         },
         refreshEmpty: function(){
-          const now = cellState(m, cellKey);
+          const now = cellState(m, cellKey, defaults);
           td.classList.toggle('empty', cellQuiet(now, matrixCellKeywords(comp, ty, now.v).length));
         },
         rerender: renderMatrix
@@ -5186,6 +5314,7 @@ function renderGrid(){
   const v = matrixState();
   const vd = viewDef(state.contentView);
   const ro = readOnly();
+  $('mxPane').querySelector('.mx-head').hidden = ro;
   const table = $('mxTable');
   table.innerHTML = '';
 
@@ -5229,7 +5358,7 @@ function renderGrid(){
         col.name = nv || 'Column'; markDirty(); renderGrid();
       });
     };
-    lab.append(b);
+    lab.append(b, columnTools(col, col.name, renderGrid));
     if (!ro && v.columns.length > 1){
       const x = document.createElement('button');
       x.className = 'x';
@@ -5276,10 +5405,12 @@ function renderGrid(){
     tr.append(num);
 
     v.columns.forEach(function(col, ci){
-      const cell = cellOf(row, col.id);
+      const defaults = defaultsFor(col);
+      const cell = cellOf(row, col.id, defaults);
       const kws = gridCellKeywords(cell.v);
       const td = document.createElement('td');
-      td.className = 'gr-cell' + (cellQuiet(cell, kws.length) ? ' empty' : '') + (cell.on ? ' planned' : '')
+      const untouched = !row.cells[col.id];
+      td.className = 'gr-cell' + ((untouched || cellQuiet(cell, kws.length)) ? ' empty' : '') + (cell.on ? ' planned' : '')
                    + (cell.st === 'written' ? ' written' : '');
 
       const inp = document.createElement('input');
@@ -5299,11 +5430,11 @@ function renderGrid(){
          a beat after typing stops, so the caret is never disturbed */
       let paintTimer = null;
       inp.oninput = function(){
-        setCellIn(row, col.id, { v: inp.value });
+        setCellIn(row, col.id, { v: inp.value }, defaults);
         markDirty();
         clearTimeout(paintTimer);
         paintTimer = setTimeout(function(){
-          const now = cellOf(row, col.id);
+          const now = cellOf(row, col.id, defaults);
           const rows2 = gridCellKeywords(now.v);
           kwHost.innerHTML = '';
           kwHost.append(keywordBlock(rows2));
@@ -5313,11 +5444,11 @@ function renderGrid(){
 
       cellControls(td, {
         ro: ro,
-        get: function(){ return cellOf(row, col.id); },
-        set: function(patch){ setCellIn(row, col.id, patch); },
-        seed: function(){ return (cellOf(row, col.id).v || '').trim(); },
+        get: function(){ return cellOf(row, col.id, defaults); },
+        set: function(patch){ setCellIn(row, col.id, Object.assign({}, patch, { cfg:true }), defaults); },
+        seed: function(){ return (cellOf(row, col.id, defaults).v || '').trim(); },
         refreshEmpty: function(){
-          const now = cellOf(row, col.id);
+          const now = cellOf(row, col.id, defaults);
           td.classList.toggle('empty', cellQuiet(now, gridCellKeywords(now.v).length));
         },
         rerender: renderGrid

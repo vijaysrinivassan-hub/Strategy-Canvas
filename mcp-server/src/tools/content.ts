@@ -52,6 +52,19 @@ function articleTypes(root: any): { id: string; name: string }[] {
   return Array.isArray(root?.articleTypes) ? root.articleTypes : [];
 }
 
+function guidanceFor(column: any, root: any) {
+  const defaults = column?.defaults || {};
+  const types = articleTypes(root);
+  return {
+    instruction: String(column?.instruction || ""),
+    defaults: {
+      mode: defaults.mode === "aeo" || defaults.mode === "seo" ? defaults.mode : null,
+      article_type: types.find((t) => t.id === defaults.type)?.name ?? null,
+      awareness: AWARENESS.includes(defaults.aw) ? defaults.aw : null
+    }
+  };
+}
+
 function viewOf(body: any, view: string) {
   const slot = tabSlot(body, CONTENT_TAB);
   if (!slot.views || typeof slot.views !== "object") {
@@ -75,7 +88,8 @@ export function registerContentTools(server: McpServer) {
       description:
         "Read one of the four Content Strategy views. 'competitor' is a matrix of rows by " +
         "article type, where each cell records whether you are writing that article and " +
-        "whether it targets AEO or SEO. 'category', 'icp' and 'value' are plain tables.",
+        "whether it targets AEO or SEO. 'category', 'icp' and 'value' are plain tables. " +
+        "Column guidance tells an AI what belongs in each column and lists its defaults.",
       inputSchema: {
         board_id: z.string(),
         view: z.enum(CONTENT_VIEWS)
@@ -115,6 +129,10 @@ export function registerContentTools(server: McpServer) {
           kind: "grid",
           data: {
             columns: cols.map((c: any) => c.name),
+            column_guidance: (v.columns || []).map((c: any) => ({
+              column: c.name,
+              ...guidanceFor(c, body.tabs[CONTENT_TAB])
+            })),
             article_types: types.map((t) => t.name),
             rows
           }
@@ -151,6 +169,11 @@ export function registerContentTools(server: McpServer) {
         data: {
           rows: rows.map((r: any) => r.name),
           article_types: types.map((t: any) => t.name),
+          column_guidance: types.map((t: any) => ({
+            column: t.name,
+            ...guidanceFor(t, body.tabs[CONTENT_TAB])
+          })),
+          competitor_column_guidance: guidanceFor(v.rowColumn, body.tabs[CONTENT_TAB]),
           planned: cells
         }
       });
@@ -225,7 +248,7 @@ export function registerContentTools(server: McpServer) {
           );
         }
         if (match && claimed.has(match.id)) match = undefined;   // already spoken for
-        if (match) { claimed.add(match.id); kept.push({ id: match.id, name: c.name }); }
+        if (match) { claimed.add(match.id); kept.push({ ...match, id: match.id, name: c.name }); }
         else kept.push({ id: uid(), name: c.name });
       }
 
@@ -269,7 +292,7 @@ export function registerContentTools(server: McpServer) {
           .min(1)
           .max(200)
           .describe('e.g. [{"Category name":"Attribution","Category synonyms":"MTA"}]'),
-        mode: z.enum(["aeo", "seo"]).default("aeo").optional(),
+        mode: z.enum(["aeo", "seo"]).optional(),
         article_type: z
           .string()
           .optional()
@@ -306,7 +329,7 @@ export function registerContentTools(server: McpServer) {
       const byName = new Map<string, string>();
       for (const c of v.columns || []) byName.set(String(c.name).toLowerCase(), c.id);
 
-      const typeId = kindIdFor(body.tabs[CONTENT_TAB], article_type);
+      const typeId = article_type ? kindIdFor(body.tabs[CONTENT_TAB], article_type) : null;
 
       let applyId: string | null = null;
       if (apply_to) {
@@ -334,12 +357,15 @@ export function registerContentTools(server: McpServer) {
         for (const [k, val] of Object.entries(r)) {
           const id = byName.get(k.toLowerCase());
           if (!id) { unknown.add(k); continue; }
+          const column = (v.columns || []).find((c: any) => c.id === id);
+          const defaults = column?.defaults || {};
           /* a cell that is only holding a label carries no article furniture */
           slot.cells[id] = applyId && id !== applyId
             ? { v: val, mode: "aeo", type: "", on: false, aw: "", st: "" }
             : {
-                v: val, mode: mode ?? "aeo", type: typeId, on: !!planned,
-                aw: awareness ?? "", st: status ?? ""
+                v: val, mode: mode ?? (defaults.mode || "aeo"),
+                type: typeId ?? defaults.type ?? "", on: !!planned,
+                aw: awareness ?? defaults.aw ?? "", st: status ?? ""
               };
         }
         written++;
@@ -364,7 +390,7 @@ export function registerContentTools(server: McpServer) {
         board_id: z.string(),
         competitor: z.string(),
         article_type: z.string().describe("The column: e.g. Alternatives, Pricing, Reviews, Features"),
-        mode: z.enum(["aeo", "seo"]).default("aeo").optional(),
+        mode: z.enum(["aeo", "seo"]).optional(),
         article_kind: z
           .string()
           .optional()
@@ -379,7 +405,6 @@ export function registerContentTools(server: McpServer) {
     async ({ board_id, competitor, article_type, mode, article_kind, awareness, status, text, planned }) => {
       const { body } = await loadBoard(board_id);
       const v = viewOf(body, "competitor");
-      const kindId = kindIdFor(body.tabs[CONTENT_TAB], article_kind);
 
       const findOrFill = (list: any[], name: string, make: () => any) => {
         let hit = list.find((x: any) => String(x.name || "").toLowerCase() === name.toLowerCase());
@@ -399,14 +424,18 @@ export function registerContentTools(server: McpServer) {
         terms: [article_type.toLowerCase()]
       }));
       if (!type.name) { type.name = article_type; type.terms = [article_type.toLowerCase()]; }
+      const defaults = type.defaults || {};
+      const kindId = article_kind
+        ? kindIdFor(body.tabs[CONTENT_TAB], article_kind)
+        : defaults.type || "";
 
       const key = `${row.id}|${type.id}`;
       const on = planned ?? true;
-      const m = mode ?? "aeo";
+      const m = mode ?? (defaults.mode || "aeo");
       /* keep whatever the cell already had unless a new value was given */
       const prev = readCell(v.cells[key]);
       const type_ = kindId || prev.type;
-      const aw = awareness ?? prev.aw;
+      const aw = awareness ?? (prev.aw || defaults.aw || "");
       const st = status ?? prev.st;
       const words = text ?? prev.value;
       if (!on && m === "aeo" && !type_ && !aw && !words && !st) delete v.cells[key];
