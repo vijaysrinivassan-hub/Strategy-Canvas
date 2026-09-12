@@ -209,11 +209,11 @@ MCP server (or any script) can write them directly. Run `supabase-keywords.sql`
 once to create it. The unique index on `(board_id, lower(keyword), country)` means
 a re-import can upsert instead of duplicating.
 
-**Channel Strategy** is not a canvas either. It is a scope checklist: one card
-per channel, ticked for in-scope and greyed for "not doing", so a client can see
-at a glance what is and isn't included. Click a card to toggle it, double-click
-its name to rename, and **+ Add channel** for anything new. The starting four are
-just defaults written into the board on first use — nothing is hardcoded.
+**Channel Strategy** is a simple Obsidian-style scope canvas. Technical SEO,
+On-page SEO, Listicle outreach and Reddit begin as white "available lever" nodes
+connected to the strategy anchor. Click a node to mark it green and in scope, so
+a client can see both the work included now and the other levers available.
+Double-click a name to rename it, or use **+ Add channel** to create more.
 
 Run `supabase-storage.sql` once to create the bucket and its policies. Until you
 do, the gallery says so plainly rather than failing on upload.

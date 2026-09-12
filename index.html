@@ -859,19 +859,36 @@
   .paste-hint b{color:var(--ink)}
 
   /* ================= channel strategy ================= */
-  .chan{flex:1; min-height:0; overflow-y:auto; padding:22px 22px 40px; background:var(--bg)}
+  .chan{flex:1; min-height:0; overflow-y:auto; padding:22px 22px 40px; background:#f7f7f5}
   .chan-head{display:flex; align-items:flex-start; gap:16px; margin-bottom:18px}
   .chan-head h3{margin:0 0 3px; font-size:15px; font-weight:600; letter-spacing:-.01em}
   .chan-head p{margin:0; font-size:12.5px; color:var(--muted)}
   .chan-head button{margin-left:auto; flex:none}
-  .chan-grid{display:grid; grid-template-columns:repeat(auto-fill, minmax(230px,1fr)); gap:12px}
-  .chan-card{
-    display:flex; align-items:center; gap:11px; padding:16px 15px;
-    background:#fff; border:1px solid var(--line); border-radius:14px;
-    box-shadow:var(--shadow); cursor:pointer; transition:.13s;
+  .chan-canvas{width:100%; overflow-x:auto; border:1px solid #deded9; border-radius:8px;
+               background-color:#fbfbfa;
+               background-image:radial-gradient(circle at 1px 1px,#d4d5cf 1.1px,transparent 1.2px);
+               background-size:20px 20px}
+  .chan-flow{position:relative; width:max-content; min-width:100%; min-height:390px;
+             padding:42px 42px 62px}
+  .chan-wires{position:absolute; inset:0; z-index:1; width:100%; height:100%; pointer-events:none}
+  .chan-wire{fill:none; stroke:#b9bab6; stroke-width:1.5; stroke-linecap:round;
+             stroke-linejoin:round; vector-effect:non-scaling-stroke}
+  .chan-wire.on{stroke:#65c88a; stroke-width:2}
+  .chan-root{position:relative; z-index:2; width:230px; min-height:72px; margin:0 auto 76px;
+             display:flex; flex-direction:column; justify-content:center; padding:14px 16px;
+             border:1px solid #c9cac6; border-radius:6px; background:#fff; text-align:center;
+             box-shadow:0 1px 2px rgba(0,0,0,.04)}
+  .chan-root strong{font-size:13px; color:#292a27}
+  .chan-root span{margin-top:5px; font-size:10.5px; line-height:1.4; color:#70716c}
+  .chan-grid{position:relative; z-index:2; display:flex; justify-content:center; gap:28px; min-width:100%}
+  .chan-canvas .chan-card{
+    display:flex; align-items:center; gap:11px; width:210px; min-height:76px; padding:14px 13px;
+    background:#fff; border:1px solid #c9cac6; border-radius:6px;
+    box-shadow:0 1px 2px rgba(0,0,0,.04); cursor:pointer; transition:.13s;
   }
-  .chan-card:hover{border-color:#d4d9e2; box-shadow:var(--shadow-lift); transform:translateY(-2px)}
-  .chan-card.on{border-color:var(--ok); background:var(--ok-bg)}
+  .chan-canvas .chan-card:hover{border-color:#8e8f89; box-shadow:0 2px 6px rgba(0,0,0,.07); transform:none}
+  .chan-canvas .chan-card.on,.chan-canvas .chan-card.on:hover{border-color:#57c982; background:#effbf3;
+                                                              box-shadow:0 0 0 1px rgba(87,201,130,.14)}
   .chan-tick{
     width:22px; height:22px; border-radius:6px; flex:none; display:grid; place-items:center;
     border:1.5px solid var(--border); background:var(--panel); color:transparent;
@@ -880,17 +897,20 @@
   .chan-card.on .chan-tick{background:var(--ok); border-color:var(--ok); color:#fff}
   .chan-name{flex:1; min-width:0; font-size:13.5px; font-weight:600;
              overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
-  .chan-card:not(.on) .chan-name{color:var(--muted); font-weight:500}
+  .chan-card:not(.on) .chan-name{color:#41423e; font-weight:500}
   .chan-scope{display:inline-block; margin-top:4px; font-size:10px; font-weight:800;
               letter-spacing:.03em; text-transform:uppercase; border-radius:20px;
               padding:3px 8px; color:var(--muted); background:#f1f2f4}
-  .chan-card.on .chan-scope{color:var(--ok); background:var(--ok-bg)}
+  .chan-card.on .chan-scope{color:#2b7a47; background:#ddf6e5}
   .chan-card input{font:inherit; font-size:13.5px; font-weight:600; color:var(--ink);
                    background:var(--bg); border:1px solid var(--accent); border-radius:5px;
                    padding:1px 5px; outline:none; width:100%}
   .chan-x{padding:2px 7px; font-size:13px; line-height:1; color:var(--muted);
           border-color:transparent; background:transparent; flex:none}
   .chan-x:hover{color:var(--danger); background:var(--danger-bg); border-color:transparent}
+  @media(max-width:780px){
+    .chan{padding:14px 14px 30px}.chan-flow{padding:36px 28px 52px}.chan-head{align-items:center}
+  }
 
   /* ================= clickable brand-strategy canvas ================= */
   .strategy-guide{flex:1; min-height:0; overflow:auto; padding:30px; background:#f7f7f5}
@@ -1249,16 +1269,25 @@
       <button class="repo-newrow" id="btnAddColumn">+ Add row</button>
     </div>
 
-    <!-- Channel Strategy is an in-scope / out-of-scope checklist, not a canvas -->
+    <!-- A simple client-facing canvas of active and available channel levers. -->
     <div class="chan" id="chanPane" hidden>
       <div class="chan-head">
         <div>
-          <h3>Channels for this client</h3>
-          <p>Ticked channels are in scope. Everything else reads as explicitly out of scope.</p>
+          <h3>Channel Strategy</h3>
+          <p>Select what is in scope. Unselected channels remain visible as levers you can activate later.</p>
         </div>
         <button id="btnAddChannel">+ Add channel</button>
       </div>
-      <div class="chan-grid" id="chanGrid"></div>
+      <div class="chan-canvas">
+        <div class="chan-flow" id="chanFlow">
+          <svg class="chan-wires" id="chanWires" aria-hidden="true"></svg>
+          <div class="chan-root">
+            <strong>Channel Strategy</strong>
+            <span id="chanSummary">Choose the levers in scope</span>
+          </div>
+          <div class="chan-grid" id="chanGrid"></div>
+        </div>
+      </div>
     </div>
 
     <!-- A clickable decision canvas for the first customer-acquisition choice. -->
@@ -5691,8 +5720,8 @@ function renderKeywordTables(overrideEmpty){
    =================================================================== */
 const CHANNELS_TAB = 'Channel Strategy';
 const DEFAULT_CHANNELS = [
-  { name: 'Technical SEO',     on: true  },
-  { name: 'On-page SEO',       on: true  },
+  { name: 'Technical SEO',     on: false },
+  { name: 'On-page SEO',       on: false },
   { name: 'Listicle outreach', on: false },
   { name: 'Reddit',            on: false }
 ];
@@ -5710,10 +5739,27 @@ function renderChannels(){
   const host = $('chanGrid');
   host.innerHTML = '';
 
+  const active = t.items.filter(item => item.on).length;
+  const available = t.items.length - active;
+  $('chanSummary').textContent = active
+    ? active + ' in scope \u00b7 ' + available + ' available'
+    : 'Choose the levers in scope';
+
   t.items.forEach(item => {
-    const card = document.createElement('div');
+    const card = document.createElement('article');
     card.className = 'chan-card' + (item.on ? ' on' : '');
+    card.tabIndex = readOnly() ? -1 : 0;
+    card.setAttribute('role', 'button');
+    card.setAttribute('aria-pressed', item.on ? 'true' : 'false');
+    card.setAttribute('aria-label', item.name + ': ' + (item.on ? 'in scope' : 'available lever'));
     card.onclick = () => { if (readOnly()) return; item.on = !item.on; markDirty(); renderChannels(); };
+    card.onkeydown = ev => {
+      if (ev.target !== card || readOnly() || (ev.key !== 'Enter' && ev.key !== ' ')) return;
+      ev.preventDefault();
+      item.on = !item.on;
+      markDirty();
+      renderChannels();
+    };
 
     const tick = document.createElement('div');
     tick.className = 'chan-tick';
@@ -5731,15 +5777,17 @@ function renderChannels(){
     };
     const scope = document.createElement('div');
     scope.className = 'chan-scope';
-    scope.textContent = item.on ? 'In scope' : 'Not doing';
+    scope.textContent = item.on ? 'In scope' : 'Available lever';
     wrap.append(nm, scope);
 
     const x = document.createElement('button');
     x.className = 'chan-x';
     x.innerHTML = '&times;';
     x.title = 'Remove channel';
+    x.hidden = readOnly();
     x.onclick = ev => {
       ev.stopPropagation();
+      if (readOnly()) return;
       if (!confirm('Remove "' + item.name + '" from this board?')) return;
       t.items = t.items.filter(i => i.id !== item.id);
       markDirty(); renderChannels();
@@ -5755,6 +5803,37 @@ function renderChannels(){
     e.textContent = 'No channels yet. Add the ones you run for this client.';
     host.append(e);
   }
+  requestAnimationFrame(drawChannelWires);
+}
+
+function drawChannelWires(){
+  const svg = $('chanWires');
+  const flow = $('chanFlow');
+  const root = flow && flow.querySelector('.chan-root');
+  if (!svg || !flow || !root || $('chanPane').hidden) return;
+
+  const box = flow.getBoundingClientRect();
+  const rootBox = root.getBoundingClientRect();
+  const from = { x: rootBox.left - box.left + rootBox.width / 2, y: rootBox.bottom - box.top };
+  const width = flow.scrollWidth;
+  const height = flow.scrollHeight;
+  svg.setAttribute('viewBox', '0 0 ' + width + ' ' + height);
+
+  let out = '<defs>' +
+    '<marker id="chanArrow" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0L8 4L0 8Z" fill="#b9bab6"/></marker>' +
+    '<marker id="chanArrowOn" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0L8 4L0 8Z" fill="#65c88a"/></marker>' +
+    '</defs>';
+  Array.from($('chanGrid').querySelectorAll('.chan-card')).forEach(card => {
+    const r = card.getBoundingClientRect();
+    const to = { x: r.left - box.left + r.width / 2, y: r.top - box.top };
+    const chosen = card.classList.contains('on');
+    const bend = Math.max(30, (to.y - from.y) * .68);
+    out += '<path class="chan-wire' + (chosen ? ' on' : '') + '" marker-end="url(#' +
+      (chosen ? 'chanArrowOn' : 'chanArrow') + ')" d="M ' + from.x + ' ' + from.y +
+      ' C ' + from.x + ' ' + (from.y + bend) + ', ' + to.x + ' ' + (to.y - bend) +
+      ', ' + to.x + ' ' + to.y + '"/>';
+  });
+  svg.innerHTML = out;
 }
 
 function addChannel(){
@@ -6058,7 +6137,7 @@ $('palette').addEventListener('pointerdown', e => e.stopPropagation());
 document.addEventListener('pointerdown', e => {
   if (!e.target.closest('#palette')) closePalPop();
 }, true);
-window.addEventListener('resize', () => { applyView(); drawStrategyWires(); });
+window.addEventListener('resize', () => { applyView(); drawStrategyWires(); drawChannelWires(); });
 window.addEventListener('beforeunload', e => { if (state.dirty){ e.preventDefault(); e.returnValue = ''; } });
 
 /* ===================================================================
