@@ -6537,13 +6537,13 @@ function renderStrategyGuide(){
   const red = g.ocean === 'red';
   routes.innerHTML = '<div class="sg-routes">' +
       (red
-        ? '<article class="sg-route"><small>Route 01</small><h4>Fight against competitors in route 1</h4>' +
+        ? '<article class="sg-route"><small>Route 01</small><h4>Compete with Existing Competitors</h4>' +
              '<p>Take customers from an existing competitor by giving them a clear reason to replace the product they use today.</p></article>' +
-          '<article class="sg-route"><small>Route 02</small><h4>new entrants</h4>' +
+          '<article class="sg-route"><small>Route 02</small><h4>Acquire New Entrants</h4>' +
              '<p>Acquire organisations graduating from a lower maturity level—for example, a growing company adopting HR software for the first time.</p></article>'
-        : '<article class="sg-route"><small>Route 01</small><h4>new entrants</h4>' +
+        : '<article class="sg-route"><small>Route 01</small><h4>Acquire New Entrants</h4>' +
             '<p>Bring in customers who previously lacked the access, maturity or capability to participate in the category at all.</p></article>' +
-          '<article class="sg-route"><small>Route 02</small><h4>Pull from the older category competitors</h4>' +
+          '<article class="sg-route"><small>Route 02</small><h4>Pull Customers from Competitors in Older Categories</h4>' +
             '<p>Compete with the older way the job was done and pull customers forward into the new category.</p></article>') +
     '</div>';
   requestAnimationFrame(drawStrategyWires);
