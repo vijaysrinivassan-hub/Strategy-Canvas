@@ -956,6 +956,63 @@
     .sg-routes{grid-template-columns:1fr; gap:42px}.sg-routes-wrap{margin-top:54px}
   }
 
+  /* ================= product evolution canvas ================= */
+  .evo{flex:1; min-height:0; overflow:auto; padding:30px; background:#f7f7f5}
+  .evo-canvas{position:relative; width:min(1080px,100%); min-height:720px; margin:0 auto;
+              padding:36px 34px 62px; border:1px solid #deded9; overflow:hidden;
+              background-color:#fbfbfa;
+              background-image:radial-gradient(circle at 1px 1px,#d4d5cf 1.1px,transparent 1.2px);
+              background-size:20px 20px}
+  .evo-head{text-align:center; margin-bottom:22px}
+  .evo-head h3{margin:0 0 6px; font-size:18px; color:#20211e}
+  .evo-head p{margin:0; color:#70716c; font-size:11.5px}
+  .evo-map{position:relative; width:min(760px,100%); height:330px; margin:0 auto}
+  .evo-wires{position:absolute; inset:0; z-index:1; width:100%; height:100%; pointer-events:none}
+  .evo-wire{fill:none; stroke:#b9bab6; stroke-width:1.5; stroke-linecap:round;
+            stroke-linejoin:round; vector-effect:non-scaling-stroke}
+  .evo-wire.on{stroke:#65c88a; stroke-width:2}
+  .evo-market,.evo-axis{position:absolute; z-index:2; width:190px; min-height:60px;
+                        padding:12px 14px; border:1px solid #c9cac6; border-radius:6px;
+                        background:#fff; color:#292a27; box-shadow:0 1px 2px rgba(0,0,0,.04)}
+  .evo-market{left:50%; top:50%; transform:translate(-50%,-50%); width:150px; text-align:center;
+              display:grid; place-items:center; font-size:12px; font-weight:700}
+  .evo-axis{font-size:11.5px; text-align:left; transition:.13s}
+  .evo-axis:hover:not(:disabled){border-color:#8e8f89; background:#fff}
+  .evo-axis.on{border-color:#57c982; background:#effbf3; color:#205f37;
+               box-shadow:0 0 0 1px rgba(87,201,130,.14)}
+  .evo-axis[data-axis="people"]{left:50%; top:4px; transform:translateX(-50%)}
+  .evo-axis[data-axis="process"]{left:50%; bottom:4px; transform:translateX(-50%)}
+  .evo-axis[data-axis="technology"]{left:4px; top:50%; transform:translateY(-50%)}
+  .evo-axis[data-axis="input"]{right:4px; top:50%; transform:translateY(-50%)}
+  .evo-sequence{width:min(960px,100%); margin:22px auto 0; padding-top:24px; border-top:1px solid #deded9}
+  .evo-sequence-head{display:flex; align-items:flex-start; gap:14px; margin-bottom:18px}
+  .evo-sequence-head h4{margin:0 0 4px; font-size:14px; color:#20211e}
+  .evo-sequence-head p{margin:0; font-size:11px; color:#70716c}
+  .evo-change{margin-left:auto; padding:6px 9px; background:#fff; font-size:10.5px}
+  .evo-track{display:flex; align-items:stretch; gap:12px; min-width:max-content}
+  .evo-track-scroll{overflow-x:auto; padding:4px 3px 14px}
+  .evo-step{position:relative; width:190px; min-height:90px; flex:none; padding:12px;
+            border:1px solid #c9cac6; border-radius:6px; background:#fff}
+  .evo-step.previous{border-style:dashed}
+  .evo-step label{display:block; margin-bottom:8px; color:#777872; font-size:9px;
+                  font-weight:800; letter-spacing:.08em; text-transform:uppercase}
+  .evo-step input{width:100%; border:0; border-bottom:1px solid #deded9; border-radius:0;
+                  padding:5px 1px; outline:none; background:transparent; color:#252622;
+                  font:inherit; font-size:12px; font-weight:500; line-height:1.3}
+  .evo-step input:focus{border-color:#57c982}
+  .evo-step-x{position:absolute; right:6px; top:5px; padding:2px 5px; border:0;
+              background:transparent; color:#92938d; font-size:12px}
+  .evo-step-x:hover:not(:disabled){color:var(--danger); background:transparent}
+  .evo-arrow{align-self:center; color:#9b9c96; font-size:18px; flex:none}
+  .evo-add{align-self:center; min-width:110px; min-height:42px; flex:none; background:#fff}
+  @media(max-width:780px){
+    .evo{padding:14px}.evo-canvas{padding:28px 16px 48px}.evo-map{height:auto;
+      display:grid; grid-template-columns:1fr 1fr; gap:12px}
+    .evo-market,.evo-axis,.evo-axis[data-axis]{position:relative; inset:auto; transform:none;
+      width:100%; min-height:60px}
+    .evo-market{grid-column:1/-1; order:-1}.evo-wires{display:none}
+  }
+
   .toast{position:fixed; left:50%; bottom:80px; transform:translateX(-50%); z-index:200;
          font-size:13px; font-weight:500; border-radius:10px; padding:10px 16px;
          box-shadow:var(--shadow); color:var(--ok); background:var(--ok-bg);
@@ -1306,6 +1363,34 @@
       </div>
     </div>
 
+    <!-- Four-axis product evolution mapper with an editable progression. -->
+    <div class="evo" id="evoPane" hidden>
+      <div class="evo-canvas">
+        <div class="evo-head">
+          <h3>What is the axis of evolution?</h3>
+          <p>Choose one axis, then map what came before and every stage that followed.</p>
+        </div>
+        <div class="evo-map" id="evoMap">
+          <svg class="evo-wires" id="evoWires" aria-hidden="true"></svg>
+          <div class="evo-market" id="evoMarket">Market</div>
+          <button class="evo-axis" data-axis="people" type="button">People</button>
+          <button class="evo-axis" data-axis="process" type="button">Process</button>
+          <button class="evo-axis" data-axis="technology" type="button">Technology / Access</button>
+          <button class="evo-axis" data-axis="input" type="button">Input / Raw material</button>
+        </div>
+        <section class="evo-sequence" id="evoSequence" hidden>
+          <div class="evo-sequence-head">
+            <div>
+              <h4 id="evoSequenceTitle">Evolution stages</h4>
+              <p>Start with the previous state, then add as many stages as you need.</p>
+            </div>
+            <button class="evo-change" id="btnEvoChange" type="button">Choose another axis</button>
+          </div>
+          <div class="evo-track-scroll"><div class="evo-track" id="evoTrack"></div></div>
+        </section>
+      </div>
+    </div>
+
     <!-- A frame from the Obsidian vault, rendered read-only -->
     <div class="frame-note" id="framePane" hidden>
       <div class="sheet"><textarea id="frameText" spellcheck="false"
@@ -1423,9 +1508,10 @@ const SUPABASE_URL = 'https://cskamgfvebryahkljlll.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_MdkD-TxMCIwlu69seSHA3Q_A39GADsK';
 const CLIENT_ID    = '1059013355751-6g50dsgm7df37htl2fdqrtlkh5hmrc0c.apps.googleusercontent.com';
 const ALLOWED      = ['vijaysrinivassan@gmail.com'];
-const BUILD        = 'v6.7';
+const BUILD        = 'v6.8';
 
 const STRATEGY_ONE_TAB = 'Strategy 1 — Brand Strategy';
+const PRODUCT_EVOLUTION_TAB = 'Strategy 1 — Product Evolution';
 
 const TABS = [
   'Product Architecture',
@@ -1434,6 +1520,7 @@ const TABS = [
   'Positioning Document',
   'Growth Strategy',
   STRATEGY_ONE_TAB,
+  PRODUCT_EVOLUTION_TAB,
   'Channel Strategy',
   'Content Strategy',
   'Keyword Repo',
@@ -1477,7 +1564,6 @@ const NAV = [
   { kind: 'group',  id: 'strategy1', label: 'Brand Strategy', tab: STRATEGY_ONE_TAB },
   { kind: 'label',  text: 'Strategy' },
   { kind: 'group',  id: 'brand',   label: 'Brand Strategy' },
-  { kind: 'tab',    name: 'Channel Strategy' },
   { kind: 'group',  id: 'content', label: 'Content Strategy', tab: 'Content Strategy' },
   { kind: 'label',  text: 'Research' },
   { kind: 'tab',    name: 'Keyword Repo' },
@@ -1774,6 +1860,7 @@ const TAB_ICONS = {
   'Keyword Repo': '<circle cx="8.5" cy="8.5" r="4.5"/><path d="M12 12l7 7"/><path d="M17 17l2-2"/>',
   'Grounded Evidences': '<path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>',
   'Strategy 1 — Brand Strategy': '<path d="M4 5h16v14H4z"/><path d="M8 9h8M8 13h5M8 17h3"/>',
+  'Strategy 1 — Product Evolution': '<path d="M4 12h16M12 4v16"/><circle cx="12" cy="12" r="3"/>',
   'Brand Strategy': '<path d="M12 3l2.6 5.6 6.1.8-4.5 4.2 1.2 6L12 16.8 6.6 19.6l1.2-6L3.3 9.4l6.1-.8z"/>',
   'MCP': '<path d="M5 7h14M5 12h14M5 17h9"/><circle cx="18" cy="17" r="2.2"/>',
   'Settings': '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1A1.7 1.7 0 0 0 9 19.4a1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1A1.7 1.7 0 0 0 4.6 9a1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.9.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/>'
@@ -1805,7 +1892,8 @@ function renderTabs(){
     const label = document.createElement('span');
     label.textContent = name;
     b.append(label);
-    const isPanel = [DOCS_TAB, CHANNELS_TAB, KEYWORDS_TAB, CONTENT_TAB, STRATEGY_ONE_TAB].indexOf(name) > -1;
+    const isPanel = [DOCS_TAB, CHANNELS_TAB, KEYWORDS_TAB, CONTENT_TAB,
+                     STRATEGY_ONE_TAB, PRODUCT_EVOLUTION_TAB].indexOf(name) > -1;
     if (!isPanel){
       const c = document.createElement('span');
       c.className = 'n';
@@ -1894,6 +1982,10 @@ function renderTabs(){
     if (item.id === 'strategy1'){
       box.append(subButton('Brand Strategy', onBoard && state.tab === STRATEGY_ONE_TAB,
                            () => switchTab(STRATEGY_ONE_TAB), 0));
+      box.append(subButton('Product Evolution', onBoard && state.tab === PRODUCT_EVOLUTION_TAB,
+                           () => switchTab(PRODUCT_EVOLUTION_TAB), 0));
+      box.append(subButton('Channel Strategy', onBoard && state.tab === CHANNELS_TAB,
+                           () => switchTab(CHANNELS_TAB), 0));
       return;
     }
 
@@ -2006,7 +2098,8 @@ function renderTabs(){
   if (onBoard && !inFrame()){
     /* the crumb already says Content Strategy; the title is the view itself */
     $('tabTitle').textContent = state.tab === CONTENT_TAB ? viewDef(state.contentView).label
-      : state.tab === STRATEGY_ONE_TAB ? 'Brand Strategy' : state.tab;
+      : state.tab === STRATEGY_ONE_TAB ? 'Brand Strategy'
+      : state.tab === PRODUCT_EVOLUTION_TAB ? 'Product Evolution' : state.tab;
   }
 }
 
@@ -2423,7 +2516,7 @@ function switchTab(name){
   state.tab = name;
   state.frameIndex = -1;
   state.screen = 'board';
-  if (name === STRATEGY_ONE_TAB) openNav('strategy1');
+  if ([STRATEGY_ONE_TAB, PRODUCT_EVOLUTION_TAB, CHANNELS_TAB].indexOf(name) !== -1) openNav('strategy1');
   else if (isBrandTab(name)) openNav('brand');
   else if (name === CONTENT_TAB) openNav('content');
   clearSel();
@@ -3648,7 +3741,7 @@ function applyTabMode(){
   if (onSettings){
     $('viewport').hidden = true; $('docsPane').hidden = true;
     $('chanPane').hidden = true; $('kwPane').hidden = true; $('mxPane').hidden = true;
-    $('strategyGuidePane').hidden = true;
+    $('strategyGuidePane').hidden = true; $('evoPane').hidden = true;
     $('framePane').hidden = true; $('roFrame').hidden = true;
     $('btnFrameExport').hidden = true;
     ['btnFit','framePick','btnFrameExport'].forEach(id => { $(id).hidden = true; });
@@ -3672,7 +3765,8 @@ function applyTabMode(){
   const isKw   = state.tab === KEYWORDS_TAB;
   const isMx   = state.tab === CONTENT_TAB;
   const isGuide = state.tab === STRATEGY_ONE_TAB;
-  const isCanvas = !isDocs && !isChan && !isKw && !isMx && !isGuide && !isNote;
+  const isEvo = state.tab === PRODUCT_EVOLUTION_TAB;
+  const isCanvas = !isDocs && !isChan && !isKw && !isMx && !isGuide && !isEvo && !isNote;
 
   if (frame){
     $('tabTitle').textContent = frame.name;
@@ -3688,6 +3782,7 @@ function applyTabMode(){
   $('kwPane').hidden   = !isKw;
   $('mxPane').hidden   = !isMx;
   $('strategyGuidePane').hidden = !isGuide;
+  $('evoPane').hidden = !isEvo;
   $('btnFit').hidden = !isCanvas;
   /* a frame can be used as a template on a real canvas, but not inside a frame */
   $('framePick').hidden = !isCanvas || readOnly();
@@ -3697,6 +3792,7 @@ function applyTabMode(){
   if (isKw && state.user) refreshKeywords();
   if (isMx) refreshMatrix();   /* grids need no database, so no user check */
   if (isGuide) renderStrategyGuide();
+  if (isEvo) renderEvolution();
   renderCrumb();
   applyRole();
 }
@@ -5181,7 +5277,8 @@ const inFrame = () => state.tab === FRAME_TAB && state.frameIndex > -1;
 function isCanvasTab(){
   if (state.screen !== 'board') return false;
   if (inFrame()) return (state.frames[state.frameIndex] || {}).kind === 'canvas';
-  return [DOCS_TAB, CHANNELS_TAB, KEYWORDS_TAB, CONTENT_TAB].indexOf(state.tab) === -1;
+  return [DOCS_TAB, CHANNELS_TAB, KEYWORDS_TAB, CONTENT_TAB,
+          STRATEGY_ONE_TAB, PRODUCT_EVOLUTION_TAB].indexOf(state.tab) === -1;
 }
 const openFrameDef = () => (inFrame() ? state.frames[state.frameIndex] : null);
 
@@ -5568,7 +5665,7 @@ function renderCrumb(){
   let c = 'Strategy';
   if (state.screen !== 'board') c = 'Account';
   else if (inFrame()) c = 'Frames';
-  else if (state.tab === STRATEGY_ONE_TAB) c = 'Strategy 1';
+  else if ([STRATEGY_ONE_TAB, PRODUCT_EVOLUTION_TAB, CHANNELS_TAB].indexOf(state.tab) !== -1) c = 'Strategy 1';
   else if (isBrandTab(state.tab)) c = 'Brand Strategy';
   else if (state.tab === CONTENT_TAB) c = 'Content Strategy';
   else if (state.tab === KEYWORDS_TAB || state.tab === DOCS_TAB) c = 'Research';
@@ -5850,6 +5947,179 @@ function addChannel(){
 }
 
 /* ===================================================================
+   PRODUCT EVOLUTION — pick an axis and map its progression
+   =================================================================== */
+const EVOLUTION_AXES = [
+  { id: 'people',     label: 'People' },
+  { id: 'process',    label: 'Process' },
+  { id: 'technology', label: 'Technology / Access' },
+  { id: 'input',      label: 'Input / Raw material' }
+];
+
+function evolutionState(){
+  const t = state.tabs[PRODUCT_EVOLUTION_TAB] ||
+            (state.tabs[PRODUCT_EVOLUTION_TAB] = { nodes: [], edges: [] });
+  if (!t.evolution || typeof t.evolution !== 'object') t.evolution = { axis: '', paths: {} };
+  if (!t.evolution.paths || typeof t.evolution.paths !== 'object') t.evolution.paths = {};
+  EVOLUTION_AXES.forEach(axis => {
+    const path = t.evolution.paths[axis.id];
+    if (!path || typeof path !== 'object'){
+      t.evolution.paths[axis.id] = { previous: '', stages: [''] };
+      return;
+    }
+    if (typeof path.previous !== 'string') path.previous = '';
+    if (!Array.isArray(path.stages)) path.stages = [''];
+    path.stages = path.stages.map(x => typeof x === 'string' ? x : String(x || ''));
+    if (!path.stages.length) path.stages.push('');
+  });
+  if (!EVOLUTION_AXES.some(axis => axis.id === t.evolution.axis)) t.evolution.axis = '';
+  return t.evolution;
+}
+
+function evolutionPlaceholder(axis, index){
+  const examples = {
+    technology: ['EDR error', 'SOAR', 'MDR', 'AS'],
+    process: ['Process 1', 'Process 2', 'Process 3', 'Process 4'],
+    people: ['People stage 1', 'People stage 2'],
+    input: ['Input stage 1', 'Input stage 2']
+  };
+  const list = examples[axis] || [];
+  return list[index] || 'Next stage';
+}
+
+function drawEvolutionWires(){
+  const svg = $('evoWires');
+  const map = $('evoMap');
+  const market = $('evoMarket');
+  if (!svg || !map || !market || $('evoPane').hidden) return;
+  if (window.matchMedia('(max-width:780px)').matches){ svg.innerHTML = ''; return; }
+
+  const box = map.getBoundingClientRect();
+  const middle = el => {
+    const r = el.getBoundingClientRect();
+    return { r, x: r.left - box.left + r.width / 2, y: r.top - box.top + r.height / 2 };
+  };
+  const source = middle(market);
+  const selected = evolutionState().axis;
+  svg.setAttribute('viewBox', '0 0 ' + map.clientWidth + ' ' + map.clientHeight);
+  let out = '<defs>' +
+    '<marker id="evoArrow" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0L8 4L0 8Z" fill="#b9bab6"/></marker>' +
+    '<marker id="evoArrowOn" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0L8 4L0 8Z" fill="#65c88a"/></marker>' +
+    '</defs>';
+  Array.from(map.querySelectorAll('.evo-axis')).forEach(button => {
+    const target = middle(button);
+    const dx = target.x - source.x;
+    const dy = target.y - source.y;
+    const horizontal = Math.abs(dx) > Math.abs(dy);
+    const from = horizontal
+      ? { x: source.x + Math.sign(dx) * source.r.width / 2, y: source.y }
+      : { x: source.x, y: source.y + Math.sign(dy) * source.r.height / 2 };
+    const to = horizontal
+      ? { x: target.x - Math.sign(dx) * target.r.width / 2, y: target.y }
+      : { x: target.x, y: target.y - Math.sign(dy) * target.r.height / 2 };
+    const on = button.dataset.axis === selected;
+    const c1 = horizontal ? { x: from.x + dx * .42, y: from.y } : { x: from.x, y: from.y + dy * .42 };
+    const c2 = horizontal ? { x: to.x - dx * .42, y: to.y } : { x: to.x, y: to.y - dy * .42 };
+    out += '<path class="evo-wire' + (on ? ' on' : '') + '" marker-end="url(#' +
+      (on ? 'evoArrowOn' : 'evoArrow') + ')" d="M ' + from.x + ' ' + from.y +
+      ' C ' + c1.x + ' ' + c1.y + ', ' + c2.x + ' ' + c2.y + ', ' + to.x + ' ' + to.y + '"/>';
+  });
+  svg.innerHTML = out;
+}
+
+function renderEvolution(focusLast){
+  const evo = evolutionState();
+  Array.from($('evoMap').querySelectorAll('.evo-axis')).forEach(button => {
+    const on = button.dataset.axis === evo.axis;
+    button.classList.toggle('on', on);
+    button.setAttribute('aria-pressed', on ? 'true' : 'false');
+    button.disabled = readOnly();
+    button.onclick = () => {
+      if (readOnly()) return;
+      evo.axis = button.dataset.axis;
+      markDirty();
+      renderEvolution();
+    };
+  });
+
+  const section = $('evoSequence');
+  section.hidden = !evo.axis;
+  $('btnEvoChange').hidden = readOnly();
+  if (!evo.axis){ requestAnimationFrame(drawEvolutionWires); return; }
+
+  const axis = EVOLUTION_AXES.find(x => x.id === evo.axis);
+  const path = evo.paths[evo.axis];
+  $('evoSequenceTitle').textContent = axis.label + ' evolution';
+  const track = $('evoTrack');
+  track.innerHTML = '';
+
+  const previous = document.createElement('div');
+  previous.className = 'evo-step previous';
+  const previousLabel = document.createElement('label');
+  previousLabel.textContent = 'Previous';
+  const previousInput = document.createElement('input');
+  previousInput.value = path.previous;
+  previousInput.placeholder = 'Manual triaging';
+  previousInput.readOnly = readOnly();
+  previousInput.oninput = ev => { path.previous = ev.target.value; markDirty(); };
+  previous.append(previousLabel, previousInput);
+  track.append(previous);
+
+  path.stages.forEach((value, index) => {
+    const arrow = document.createElement('span');
+    arrow.className = 'evo-arrow';
+    arrow.textContent = '\u2192';
+    track.append(arrow);
+
+    const step = document.createElement('div');
+    step.className = 'evo-step';
+    const label = document.createElement('label');
+    label.textContent = 'Stage ' + (index + 1);
+    const input = document.createElement('input');
+    input.value = value;
+    input.placeholder = evolutionPlaceholder(evo.axis, index);
+    input.readOnly = readOnly();
+    input.oninput = ev => { path.stages[index] = ev.target.value; markDirty(); };
+    step.append(label, input);
+    if (!readOnly() && path.stages.length > 1){
+      const remove = document.createElement('button');
+      remove.type = 'button';
+      remove.className = 'evo-step-x';
+      remove.title = 'Remove this stage';
+      remove.textContent = '\u00d7';
+      remove.onclick = () => { path.stages.splice(index, 1); markDirty(); renderEvolution(); };
+      step.append(remove);
+    }
+    track.append(step);
+  });
+
+  if (!readOnly()){
+    const arrow = document.createElement('span');
+    arrow.className = 'evo-arrow';
+    arrow.textContent = '\u2192';
+    const add = document.createElement('button');
+    add.type = 'button';
+    add.className = 'evo-add';
+    add.textContent = '+ Add stage';
+    add.onclick = () => { path.stages.push(''); markDirty(); renderEvolution(true); };
+    track.append(arrow, add);
+  }
+  if (focusLast){
+    const inputs = track.querySelectorAll('.evo-step:not(.previous) input');
+    const last = inputs[inputs.length - 1];
+    if (last){ last.focus(); last.scrollIntoView({ block: 'nearest', inline: 'center' }); }
+  }
+  requestAnimationFrame(drawEvolutionWires);
+}
+
+$('btnEvoChange').onclick = () => {
+  if (readOnly()) return;
+  evolutionState().axis = '';
+  markDirty();
+  renderEvolution();
+};
+
+/* ===================================================================
    STRATEGY 1 — clickable brand-strategy decision canvas
    =================================================================== */
 function strategyOneState(){
@@ -5966,14 +6236,14 @@ function renderStrategyGuide(){
   const red = g.ocean === 'red';
   routes.innerHTML = '<div class="sg-routes">' +
       (red
-        ? '<article class="sg-route"><small>Route 01</small><h4>Win the switch</h4>' +
-            '<p>Take customers from an existing competitor by giving them a clear reason to replace the product they use today.</p></article>' +
-          '<article class="sg-route"><small>Route 02</small><h4>Move customers up</h4>' +
-            '<p>Acquire organisations graduating from a lower maturity level—for example, a growing company adopting HR software for the first time.</p></article>'
-        : '<article class="sg-route"><small>Route 01</small><h4>Replace the previous era</h4>' +
-            '<p>Compete with the older way the job was done. A new SOC category, for example, first replaces the inefficient pre-SOC operating model.</p></article>' +
-          '<article class="sg-route"><small>Route 02</small><h4>Expand access</h4>' +
-            '<p>Bring in customers who previously lacked the access, maturity or capability to participate in the category at all.</p></article>') +
+        ? '<article class="sg-route"><small>Route 01</small><h4>Fight against competitors in route 1</h4>' +
+             '<p>Take customers from an existing competitor by giving them a clear reason to replace the product they use today.</p></article>' +
+          '<article class="sg-route"><small>Route 02</small><h4>new entrants</h4>' +
+             '<p>Acquire organisations graduating from a lower maturity level—for example, a growing company adopting HR software for the first time.</p></article>'
+        : '<article class="sg-route"><small>Route 01</small><h4>new entrants</h4>' +
+            '<p>Bring in customers who previously lacked the access, maturity or capability to participate in the category at all.</p></article>' +
+          '<article class="sg-route"><small>Route 02</small><h4>Pull from the older category competitors</h4>' +
+            '<p>Compete with the older way the job was done and pull customers forward into the new category.</p></article>') +
     '</div>';
   requestAnimationFrame(drawStrategyWires);
 }
@@ -6137,7 +6407,12 @@ $('palette').addEventListener('pointerdown', e => e.stopPropagation());
 document.addEventListener('pointerdown', e => {
   if (!e.target.closest('#palette')) closePalPop();
 }, true);
-window.addEventListener('resize', () => { applyView(); drawStrategyWires(); drawChannelWires(); });
+window.addEventListener('resize', () => {
+  applyView();
+  drawStrategyWires();
+  drawChannelWires();
+  drawEvolutionWires();
+});
 window.addEventListener('beforeunload', e => { if (state.dirty){ e.preventDefault(); e.returnValue = ''; } });
 
 /* ===================================================================

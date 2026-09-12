@@ -47,6 +47,10 @@ The sidebar groups them:
   highlights that branch, leaves the alternative white, and reveals only its next steps.
   Start from Customer acquisition, reveal Red Ocean and Blue Ocean, then open either
   branch to see its two acquisition routes.
+- **Strategy 1 › Product Evolution** asks for one of four axes—People, Process,
+  Technology / Access, or Input / Raw material—then maps a Previous state into an
+  unlimited editable sequence of evolution stages. Each axis keeps its own sequence.
+- **Strategy 1 › Channel Strategy** shows the active and available acquisition levers.
 - **Brand Strategy** opens into Product Architecture, Market Research Frame,
   Messaging Framework, Positioning Document and Growth Strategy. Each is its own
   canvas; the count beside one is its card count. Those five always exist —
@@ -209,7 +213,7 @@ MCP server (or any script) can write them directly. Run `supabase-keywords.sql`
 once to create it. The unique index on `(board_id, lower(keyword), country)` means
 a re-import can upsert instead of duplicating.
 
-**Channel Strategy** is a simple Obsidian-style scope canvas. Technical SEO,
+**Channel Strategy**, under Strategy 1, is a simple Obsidian-style scope canvas. Technical SEO,
 On-page SEO, Listicle outreach and Reddit begin as white "available lever" nodes
 connected to the strategy anchor. Click a node to mark it green and in scope, so
 a client can see both the work included now and the other levers available.
