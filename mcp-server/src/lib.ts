@@ -95,6 +95,7 @@ export const TABS = [
   "Messaging Framework",
   "Positioning Document",
   "Growth Strategy",
+  "Strategy 1 — Brand Strategy",
   "Channel Strategy",
   "Content Strategy",
   "Keyword Repo",
@@ -114,6 +115,7 @@ export const CANVAS_TABS = [
 
 /** Tabs that are panels, not canvases. Everything else on a board is one. */
 export const PANEL_TABS = [
+  "Strategy 1 — Brand Strategy",
   "Channel Strategy",
   "Content Strategy",
   "Keyword Repo",

@@ -9,7 +9,7 @@ export function registerBoardTools(server: McpServer) {
       title: "List boards",
       description:
         "List every Strategy Board, newest first. Each board belongs to one client and " +
-        "holds all nine tabs. Start here to find the board_id other tools need.",
+        "holds all ten tabs. Start here to find the board_id other tools need.",
       inputSchema: {},
       annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true }
     },
@@ -51,7 +51,13 @@ export function registerBoardTools(server: McpServer) {
       for (const tab of TABS) {
         const slot = body.tabs[tab];
         if (!slot) { summary[tab] = { empty: true }; continue; }
-        if (tab === "Content Strategy") {
+        if (tab === "Strategy 1 — Brand Strategy") {
+          summary[tab] = {
+            goal: slot.guide?.goal || "customer-acquisition",
+            posture: slot.guide?.posture || null,
+            ocean: slot.guide?.ocean || null
+          };
+        } else if (tab === "Content Strategy") {
           const views = slot.views || {};
           summary[tab] = Object.fromEntries(
             Object.keys(views).map((k) => [
@@ -84,7 +90,7 @@ export function registerBoardTools(server: McpServer) {
     {
       title: "Create a board",
       description:
-        "Create a new client board with all nine tabs empty. Returns the new board_id.",
+        "Create a new client board with all ten tabs empty. Returns the new board_id.",
       inputSchema: {
         client: z.string().min(1).describe("Client name, e.g. 'Triple Whale'")
       },

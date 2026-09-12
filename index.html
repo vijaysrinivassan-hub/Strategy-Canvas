@@ -892,6 +892,55 @@
           border-color:transparent; background:transparent; flex:none}
   .chan-x:hover{color:var(--danger); background:var(--danger-bg); border-color:transparent}
 
+  /* ================= guided brand strategy ================= */
+  .strategy-guide{flex:1; min-height:0; overflow-y:auto; padding:34px 38px 64px; background:#f7f7f6}
+  .sg-shell{width:min(960px,100%); margin:0 auto; background:#fff; border:1px solid #d9d9d6}
+  .sg-intro{padding:30px 34px 26px; border-bottom:1px solid #dededb}
+  .sg-kicker{display:block; margin-bottom:9px; color:#73736f; font-size:10px; font-weight:700;
+             letter-spacing:.14em; text-transform:uppercase}
+  .sg-intro h3{margin:0 0 8px; color:#111; font-family:Georgia,'Times New Roman',serif;
+               font-size:29px; font-weight:700; letter-spacing:-.025em}
+  .sg-intro p{max-width:690px; margin:0; color:#5f5f5b; font-size:13px; line-height:1.65}
+  .sg-step{display:grid; grid-template-columns:210px minmax(0,1fr); gap:34px;
+           padding:26px 34px; border-bottom:1px solid #e5e5e2}
+  .sg-step:last-child{border-bottom:0}
+  .sg-num{display:block; margin-bottom:8px; color:#8a8a85; font-size:10px; font-weight:700;
+          letter-spacing:.12em; text-transform:uppercase}
+  .sg-question{color:#171716; font-family:Georgia,'Times New Roman',serif; font-size:18px;
+               font-weight:700; line-height:1.25}
+  .sg-control{align-self:center}
+  .sg-select{width:min(360px,100%); padding:11px 13px; border:1px solid #bcbcb8; border-radius:0;
+             background:#fff; color:#111; font:600 13px Inter,Arial,sans-serif; outline:none}
+  .sg-select:focus{border-color:#111; box-shadow:0 0 0 1px #111}
+  .sg-choices{display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px}
+  .sg-choice{min-height:72px; padding:13px 15px; border:1px solid #cfcfcb; border-radius:0;
+             background:#fff; color:#1b1b19; text-align:left; transition:border-color .12s,background .12s}
+  .sg-choice:hover{border-color:#111; transform:none; box-shadow:none}
+  .sg-choice.on{border-color:#111; background:#111; color:#fff}
+  .sg-choice b{display:block; margin-bottom:4px; font-size:13px}
+  .sg-choice span{display:block; color:#6d6d68; font-size:11.5px; font-weight:400; line-height:1.45}
+  .sg-choice.on span{color:#d3d3cf}
+  .sg-result{padding:30px 34px 36px; background:#fafaf9}
+  .sg-result-head{display:flex; align-items:flex-end; justify-content:space-between; gap:24px;
+                  margin-bottom:18px}
+  .sg-result-head h4{margin:0; color:#111; font-family:Georgia,'Times New Roman',serif;
+                     font-size:23px; letter-spacing:-.02em}
+  .sg-result-head p{max-width:430px; margin:0; color:#64645f; font-size:12px; line-height:1.55}
+  .sg-routes{display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); border:1px solid #cfcfcb}
+  .sg-route{min-height:150px; padding:22px 24px; background:#fff}
+  .sg-route + .sg-route{border-left:1px solid #cfcfcb}
+  .sg-route small{display:block; margin-bottom:13px; color:#858580; font-size:9.5px;
+                  font-weight:800; letter-spacing:.12em; text-transform:uppercase}
+  .sg-route h5{margin:0 0 9px; color:#111; font-family:Georgia,'Times New Roman',serif; font-size:19px}
+  .sg-route p{margin:0; color:#575752; font-size:12.5px; line-height:1.6}
+  .sg-posture{margin-top:14px; padding:12px 14px; border-left:2px solid #111; color:#4e4e4a;
+              background:#f1f1ef; font-size:12px; line-height:1.55}
+  @media(max-width:760px){
+    .strategy-guide{padding:18px 14px 40px}.sg-step{grid-template-columns:1fr; gap:14px}
+    .sg-choices,.sg-routes{grid-template-columns:1fr}.sg-route + .sg-route{border-left:0;border-top:1px solid #cfcfcb}
+    .sg-result-head{display:block}.sg-result-head p{margin-top:8px}
+  }
+
   .toast{position:fixed; left:50%; bottom:80px; transform:translateX(-50%); z-index:200;
          font-size:13px; font-weight:500; border-radius:10px; padding:10px 16px;
          box-shadow:var(--shadow); color:var(--ok); background:var(--ok-bg);
@@ -949,7 +998,7 @@
   .ro-note, .ro-frame{border-radius:999px; font-size:12px}
 
   /* ---- the content panel, inset from the edges like a sheet on a desk ---- */
-  .main > .viewport, .main > .repo, .main > .chan, .main > .kw, .main > .mx,
+  .main > .viewport, .main > .repo, .main > .chan, .main > .strategy-guide, .main > .kw, .main > .mx,
   .main > .frame-note, .main > .clients, .main > .mcp, .main > .settings{
     margin:0 16px 16px 2px; border-radius:14px; border:1px solid var(--line);
     background:var(--surface); box-shadow:var(--shadow);
@@ -1174,6 +1223,40 @@
       <div class="chan-grid" id="chanGrid"></div>
     </div>
 
+    <!-- A quiet, guided decision note for the first customer-acquisition choice. -->
+    <div class="strategy-guide" id="strategyGuidePane" hidden>
+      <div class="sg-shell">
+        <header class="sg-intro">
+          <span class="sg-kicker">Brand strategy / decision note</span>
+          <h3>Choose where growth will come from</h3>
+          <p>Start with the commercial goal, identify the kind of move you need to make,
+             then choose the market you are competing in. The board will show the two
+             acquisition routes that follow from that choice.</p>
+        </header>
+
+        <section class="sg-step">
+          <div><span class="sg-num">Question 01</span><div class="sg-question">What is your goal?</div></div>
+          <div class="sg-control">
+            <select class="sg-select" id="sgGoal" aria-label="Goal">
+              <option value="customer-acquisition">Customer acquisition</option>
+            </select>
+          </div>
+        </section>
+
+        <section class="sg-step">
+          <div><span class="sg-num">Question 02</span><div class="sg-question">Are you reduction or growth?</div></div>
+          <div class="sg-control sg-choices" id="sgPosture"></div>
+        </section>
+
+        <section class="sg-step" id="sgOceanStep" hidden>
+          <div><span class="sg-num">Question 03</span><div class="sg-question">Are you a Red Ocean or Blue Ocean product?</div></div>
+          <div class="sg-control sg-choices" id="sgOcean"></div>
+        </section>
+
+        <section class="sg-result" id="sgResult" hidden></section>
+      </div>
+    </div>
+
     <!-- A frame from the Obsidian vault, rendered read-only -->
     <div class="frame-note" id="framePane" hidden>
       <div class="sheet"><textarea id="frameText" spellcheck="false"
@@ -1293,12 +1376,15 @@ const CLIENT_ID    = '1059013355751-6g50dsgm7df37htl2fdqrtlkh5hmrc0c.apps.google
 const ALLOWED      = ['vijaysrinivassan@gmail.com'];
 const BUILD        = 'v6.6';
 
+const STRATEGY_ONE_TAB = 'Strategy 1 — Brand Strategy';
+
 const TABS = [
   'Product Architecture',
   'Market Research Frame',
   'Messaging Framework',
   'Positioning Document',
   'Growth Strategy',
+  STRATEGY_ONE_TAB,
   'Channel Strategy',
   'Content Strategy',
   'Keyword Repo',
@@ -1338,6 +1424,8 @@ function moveCanvas(from, to, after){
 }
 const isBrandTab = name => brandTabs().indexOf(name) > -1;
 const NAV = [
+  { kind: 'label',  text: 'Strategy 1' },
+  { kind: 'group',  id: 'strategy1', label: 'Brand Strategy', tab: STRATEGY_ONE_TAB },
   { kind: 'label',  text: 'Strategy' },
   { kind: 'group',  id: 'brand',   label: 'Brand Strategy' },
   { kind: 'tab',    name: 'Channel Strategy' },
@@ -1378,7 +1466,7 @@ const state = {
   viewMode: 'admin',              /* 'admin' sees everything; 'client' sees what a client gets */
   screen: 'board',                /* 'board' | 'clients' */
   contentView: 'competitor',      /* which axis the content matrix is showing */
-  navOpen: { brand: false, content: false, settings: false, frames: false },
+  navOpen: { strategy1: false, brand: false, content: false, settings: false, frames: false },
   frames: [],                     /* the Obsidian Frames folder, loaded once */
   frameEdits: {},                 /* frame name -> your edited copy, saved with the board */
   frameIndex: -1,                 /* which frame is open, -1 for none */
@@ -1636,6 +1724,7 @@ const TAB_ICONS = {
   'Content Strategy': '<path d="M4 5h16v14H4z"/><path d="M8 9h8M8 13h5"/>',
   'Keyword Repo': '<circle cx="8.5" cy="8.5" r="4.5"/><path d="M12 12l7 7"/><path d="M17 17l2-2"/>',
   'Grounded Evidences': '<path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>',
+  'Strategy 1 — Brand Strategy': '<path d="M4 5h16v14H4z"/><path d="M8 9h8M8 13h5M8 17h3"/>',
   'Brand Strategy': '<path d="M12 3l2.6 5.6 6.1.8-4.5 4.2 1.2 6L12 16.8 6.6 19.6l1.2-6L3.3 9.4l6.1-.8z"/>',
   'MCP': '<path d="M5 7h14M5 12h14M5 17h9"/><circle cx="18" cy="17" r="2.2"/>',
   'Settings': '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1A1.7 1.7 0 0 0 9 19.4a1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1A1.7 1.7 0 0 0 4.6 9a1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.9.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/>'
@@ -1667,7 +1756,7 @@ function renderTabs(){
     const label = document.createElement('span');
     label.textContent = name;
     b.append(label);
-    const isPanel = [DOCS_TAB, CHANNELS_TAB, KEYWORDS_TAB, CONTENT_TAB].indexOf(name) > -1;
+    const isPanel = [DOCS_TAB, CHANNELS_TAB, KEYWORDS_TAB, CONTENT_TAB, STRATEGY_ONE_TAB].indexOf(name) > -1;
     if (!isPanel){
       const c = document.createElement('span');
       c.className = 'n';
@@ -1752,6 +1841,12 @@ function renderTabs(){
       renderTabs();
     }));
     if (!open) return;
+
+    if (item.id === 'strategy1'){
+      box.append(subButton('Brand Strategy', onBoard && state.tab === STRATEGY_ONE_TAB,
+                           () => switchTab(STRATEGY_ONE_TAB), 0));
+      return;
+    }
 
     if (item.id === 'brand'){
       brandTabs().forEach(name => {
@@ -1861,7 +1956,8 @@ function renderTabs(){
   /* off-board screens set their own title in applyTabMode */
   if (onBoard && !inFrame()){
     /* the crumb already says Content Strategy; the title is the view itself */
-    $('tabTitle').textContent = state.tab === CONTENT_TAB ? viewDef(state.contentView).label : state.tab;
+    $('tabTitle').textContent = state.tab === CONTENT_TAB ? viewDef(state.contentView).label
+      : state.tab === STRATEGY_ONE_TAB ? 'Brand Strategy' : state.tab;
   }
 }
 
@@ -2278,7 +2374,8 @@ function switchTab(name){
   state.tab = name;
   state.frameIndex = -1;
   state.screen = 'board';
-  if (isBrandTab(name)) openNav('brand');
+  if (name === STRATEGY_ONE_TAB) openNav('strategy1');
+  else if (isBrandTab(name)) openNav('brand');
   else if (name === CONTENT_TAB) openNav('content');
   clearSel();
   render();
@@ -3502,6 +3599,7 @@ function applyTabMode(){
   if (onSettings){
     $('viewport').hidden = true; $('docsPane').hidden = true;
     $('chanPane').hidden = true; $('kwPane').hidden = true; $('mxPane').hidden = true;
+    $('strategyGuidePane').hidden = true;
     $('framePane').hidden = true; $('roFrame').hidden = true;
     $('btnFrameExport').hidden = true;
     ['btnFit','framePick','btnFrameExport'].forEach(id => { $(id).hidden = true; });
@@ -3524,7 +3622,8 @@ function applyTabMode(){
   const isChan = state.tab === CHANNELS_TAB;
   const isKw   = state.tab === KEYWORDS_TAB;
   const isMx   = state.tab === CONTENT_TAB;
-  const isCanvas = !isDocs && !isChan && !isKw && !isMx && !isNote;
+  const isGuide = state.tab === STRATEGY_ONE_TAB;
+  const isCanvas = !isDocs && !isChan && !isKw && !isMx && !isGuide && !isNote;
 
   if (frame){
     $('tabTitle').textContent = frame.name;
@@ -3539,6 +3638,7 @@ function applyTabMode(){
   $('chanPane').hidden = !isChan;
   $('kwPane').hidden   = !isKw;
   $('mxPane').hidden   = !isMx;
+  $('strategyGuidePane').hidden = !isGuide;
   $('btnFit').hidden = !isCanvas;
   /* a frame can be used as a template on a real canvas, but not inside a frame */
   $('framePick').hidden = !isCanvas || readOnly();
@@ -3547,6 +3647,7 @@ function applyTabMode(){
   if (isChan) renderChannels();
   if (isKw && state.user) refreshKeywords();
   if (isMx) refreshMatrix();   /* grids need no database, so no user check */
+  if (isGuide) renderStrategyGuide();
   renderCrumb();
   applyRole();
 }
@@ -5418,6 +5519,7 @@ function renderCrumb(){
   let c = 'Strategy';
   if (state.screen !== 'board') c = 'Account';
   else if (inFrame()) c = 'Frames';
+  else if (state.tab === STRATEGY_ONE_TAB) c = 'Strategy 1';
   else if (isBrandTab(state.tab)) c = 'Brand Strategy';
   else if (state.tab === CONTENT_TAB) c = 'Content Strategy';
   else if (state.tab === KEYWORDS_TAB || state.tab === DOCS_TAB) c = 'Research';
@@ -5649,6 +5751,90 @@ function addChannel(){
 }
 
 /* ===================================================================
+   STRATEGY 1 — a guided brand-strategy decision note
+   =================================================================== */
+function strategyOneState(){
+  const t = state.tabs[STRATEGY_ONE_TAB] ||
+            (state.tabs[STRATEGY_ONE_TAB] = { nodes: [], edges: [] });
+  if (!t.guide || typeof t.guide !== 'object'){
+    t.guide = { goal: 'customer-acquisition', posture: '', ocean: '' };
+  }
+  if (!t.guide.goal) t.guide.goal = 'customer-acquisition';
+  return t.guide;
+}
+
+function guideChoice(host, value, title, detail, current, set){
+  const b = document.createElement('button');
+  b.type = 'button';
+  b.className = 'sg-choice' + (current === value ? ' on' : '');
+  b.disabled = readOnly();
+  const strong = document.createElement('b');
+  strong.textContent = title;
+  const small = document.createElement('span');
+  small.textContent = detail;
+  b.append(strong, small);
+  b.onclick = () => {
+    if (readOnly()) return;
+    set(value);
+    markDirty();
+    renderStrategyGuide();
+  };
+  host.append(b);
+}
+
+function renderStrategyGuide(){
+  const g = strategyOneState();
+  const goal = $('sgGoal');
+  goal.value = g.goal;
+  goal.disabled = readOnly();
+
+  const posture = $('sgPosture');
+  posture.innerHTML = '';
+  guideChoice(posture, 'reduction', 'Reduction',
+    'Remove cost, effort or risk from the customer’s current way of working.',
+    g.posture, v => { g.posture = v; });
+  guideChoice(posture, 'growth', 'Growth',
+    'Create a stronger reason for more customers to enter or switch.',
+    g.posture, v => { g.posture = v; });
+
+  const oceanStep = $('sgOceanStep');
+  oceanStep.hidden = !g.posture;
+  const ocean = $('sgOcean');
+  ocean.innerHTML = '';
+  if (g.posture){
+    guideChoice(ocean, 'red', 'Red Ocean',
+      'The category exists and customers already recognise competing products.',
+      g.ocean, v => { g.ocean = v; });
+    guideChoice(ocean, 'blue', 'Blue Ocean',
+      'The product creates a new category or a materially new way to solve the job.',
+      g.ocean, v => { g.ocean = v; });
+  }
+
+  const result = $('sgResult');
+  result.hidden = !g.ocean;
+  if (!g.ocean){ result.innerHTML = ''; return; }
+
+  const red = g.ocean === 'red';
+  const postureCopy = g.posture === 'reduction'
+    ? '<b>Reduction lens:</b> make the move easier by removing cost, effort, delay or perceived risk.'
+    : '<b>Growth lens:</b> make the move desirable by increasing value, urgency or the number of people who can buy.';
+  result.innerHTML =
+    '<div class="sg-result-head"><h4>Two routes to customer acquisition</h4>' +
+      '<p>You will eventually need both. This choice shows where the customer comes from—not a permanent limit on the strategy.</p></div>' +
+    '<div class="sg-routes">' +
+      (red
+        ? '<article class="sg-route"><small>Route 01</small><h5>Win the switch</h5>' +
+            '<p>Take customers from an existing competitor by giving them a clear reason to replace the product they use today.</p></article>' +
+          '<article class="sg-route"><small>Route 02</small><h5>Move customers up</h5>' +
+            '<p>Acquire organisations graduating from a lower maturity level—for example, a growing company adopting HR software for the first time.</p></article>'
+        : '<article class="sg-route"><small>Route 01</small><h5>Replace the previous era</h5>' +
+            '<p>Compete with the older way the job was done. A new SOC category, for example, first replaces the inefficient pre-SOC operating model.</p></article>' +
+          '<article class="sg-route"><small>Route 02</small><h5>Expand access</h5>' +
+            '<p>Bring in customers who previously lacked the access, maturity or capability to participate in the category at all.</p></article>') +
+    '</div><div class="sg-posture">' + postureCopy + '</div>';
+}
+
+/* ===================================================================
    AUTH
    =================================================================== */
 async function onCredential(response){
@@ -5775,6 +5961,11 @@ $('btnKwAdd').onclick = function(){ openKeywordModal(''); };
 $('btnKwPaste').onclick = openPasteModal;
 $('kwSearch').oninput = ev => { kwFilter = ev.target.value; renderKeywordTables(); };
 $('btnAddChannel').onclick = addChannel;
+$('sgGoal').onchange = ev => {
+  if (readOnly()) return;
+  strategyOneState().goal = ev.target.value;
+  markDirty();
+};
 $('btnTypeAdd').onclick = addTypeToLibrary;
 $('typeNew').onkeydown = ev => { ev.stopPropagation(); if (ev.key === 'Enter') addTypeToLibrary(); };
 /* stop the browser opening a file dropped anywhere else on the page */

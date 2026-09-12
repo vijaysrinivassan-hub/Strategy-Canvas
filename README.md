@@ -1,7 +1,7 @@
 # Strategy Board
 
 An infinite canvas for strategy work, in the style of Obsidian Canvas. One board
-per client, eight tabs per board, each tab its own canvas.
+per client, with canvases, guided notes and working tables saved together.
 
 ## The canvas
 
@@ -42,6 +42,9 @@ automatically from the relative position of the two notes.
 
 The sidebar groups them:
 
+- **Strategy 1 › Brand Strategy** is a guided decision note for customer acquisition.
+  It captures the reduction/growth posture and whether the product competes in a Red
+  Ocean or Blue Ocean, then explains the two acquisition routes that follow.
 - **Brand Strategy** opens into Product Architecture, Market Research Frame,
   Messaging Framework, Positioning Document and Growth Strategy. Each is its own
   canvas; the count beside one is its card count. Those five always exist —
