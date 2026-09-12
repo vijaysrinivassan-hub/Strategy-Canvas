@@ -46,8 +46,8 @@ The sidebar groups them:
 Positioning Canvas and Channel Strategy appear directly beneath its heading.
 Content Strategy lives in the same section and expands into Category, Competitor,
 ICP and Value. There is no extra Brand Strategy parent between Strategy 1 and its
-four canvases. Small visual symbols distinguish every Strategy 1 canvas and each
-Content Strategy view in the sidebar.
+four canvases. Each canvas uses the same full-width icon-and-label row as Content
+Strategy; the four Content Strategy views remain clean, text-only child rows.
 
 - **Strategy 1 › Brand Strategy** is a progressive, Obsidian-style decision canvas for
   customer acquisition. Clicking the opening card reveals both ocean choices; selecting one

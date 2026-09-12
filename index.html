@@ -126,10 +126,7 @@
   .tab-sub.active{background:var(--accent-soft); color:var(--accent); font-weight:600}
   .tab-sub > .sub-label{flex:1; min-width:0; overflow:hidden;
                         text-overflow:ellipsis; white-space:nowrap}
-  .tab-sub .sub-icon{width:18px; flex:none; display:grid; place-items:center;
-                     font-size:13px; line-height:1; filter:saturate(.72)}
   .tab-sub.content-sub.active{background:#effbf3; color:#287343}
-  .tab-sub.content-sub.active .sub-icon{filter:none}
   .tab-sub.content-sub:hover{background:#f2f9f4}
   /* canvases under Brand Strategy can be dragged into a new order */
   .tab-sub .sub-grip{color:var(--faint); font-size:10px; letter-spacing:-1px;
@@ -1699,7 +1696,7 @@ const SUPABASE_URL = 'https://cskamgfvebryahkljlll.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_MdkD-TxMCIwlu69seSHA3Q_A39GADsK';
 const CLIENT_ID    = '1059013355751-6g50dsgm7df37htl2fdqrtlkh5hmrc0c.apps.googleusercontent.com';
 const ALLOWED      = ['vijaysrinivassan@gmail.com'];
-const BUILD        = 'v7.4';
+const BUILD        = 'v7.5';
 
 const STRATEGY_ONE_TAB = 'Strategy 1 — Brand Strategy';
 const PRODUCT_EVOLUTION_TAB = 'Strategy 1 — Product Evolution';
@@ -2078,13 +2075,13 @@ function renderTabs(){
     foot.classList.toggle('active', state.screen === 'settings');
   }
 
-  function tabButton(name){
+  function tabButton(name, displayLabel){
     const t = state.tabs[name] || { nodes: [] };
     const b = document.createElement('button');
     b.className = 'tab' + (onBoard && name === state.tab ? ' active' : '');
     b.append(tabIcon(name));
     const label = document.createElement('span');
-    label.textContent = name;
+    label.textContent = displayLabel || name;
     b.append(label);
     const isPanel = [DOCS_TAB, CHANNELS_TAB, KEYWORDS_TAB, CONTENT_TAB,
                      STRATEGY_ONE_TAB, PRODUCT_EVOLUTION_TAB, POSITIONING_TAB].indexOf(name) > -1;
@@ -2114,17 +2111,10 @@ function renderTabs(){
     return b;
   }
 
-  function subButton(label, active, onClick, count, icon){
+  function subButton(label, active, onClick, count){
     const b = document.createElement('button');
     b.className = 'tab-sub' + (active ? ' active' : '');
     b.title = label;
-    if (icon){
-      const ic = document.createElement('span');
-      ic.className = 'sub-icon';
-      ic.textContent = icon;
-      ic.setAttribute('aria-hidden', 'true');
-      b.append(ic);
-    }
     const lab = document.createElement('span');
     lab.className = 'sub-label';
     lab.textContent = label;
@@ -2162,14 +2152,10 @@ function renderTabs(){
        another Brand Strategy heading. Content Strategy follows as its own
        expandable workspace in this same section. */
     if (item.kind === 'strategy1-tabs'){
-      box.append(subButton('Brand Strategy', onBoard && state.tab === STRATEGY_ONE_TAB,
-                           () => switchTab(STRATEGY_ONE_TAB), 0, '🎯'));
-      box.append(subButton('Product Evolution', onBoard && state.tab === PRODUCT_EVOLUTION_TAB,
-                           () => switchTab(PRODUCT_EVOLUTION_TAB), 0, '🧬'));
-      box.append(subButton('Positioning Canvas', onBoard && state.tab === POSITIONING_TAB,
-                           () => switchTab(POSITIONING_TAB), 0, '🧭'));
-      box.append(subButton('Channel Strategy', onBoard && state.tab === CHANNELS_TAB,
-                           () => switchTab(CHANNELS_TAB), 0, '📡'));
+      box.append(tabButton(STRATEGY_ONE_TAB, 'Brand Strategy'));
+      box.append(tabButton(PRODUCT_EVOLUTION_TAB, 'Product Evolution'));
+      box.append(tabButton(POSITIONING_TAB, 'Positioning Canvas'));
+      box.append(tabButton(CHANNELS_TAB, 'Channel Strategy'));
       return;
     }
 
@@ -2260,7 +2246,6 @@ function renderTabs(){
 
     if (item.id === 'content'){
       const root = contentRoot();
-      const contentIcons = { category: '🗂️', competitor: '⚔️', icp: '👥', value: '💎' };
       CONTENT_VIEWS.forEach(v => {
         const view = root.views[v.id];
         let planned = 0;
@@ -2271,7 +2256,7 @@ function renderTabs(){
           }).length;
         }
         const active = onBoard && state.tab === CONTENT_TAB && state.contentView === v.id;
-        const b = subButton(v.label, active, () => switchContentView(v.id), planned, contentIcons[v.id]);
+        const b = subButton(v.label, active, () => switchContentView(v.id), planned);
         b.classList.add('content-sub');
         box.append(b);
       });
