@@ -1062,6 +1062,73 @@
   .pe-evidence-actions{display:flex; align-items:center; gap:4px}
   .pe-add-evidence{margin-top:10px; padding:5px 8px; background:#fff; color:#5d5e58; font-size:10px}
   .pe-empty-source{padding:28px!important; text-align:center; color:#777872; font-size:11px}
+
+  /* ================= positioning canvas ================= */
+  .positioning{flex:1; min-height:0; overflow:auto; padding:30px; background:#f7f7f5}
+  .pos-section{width:min(1080px,100%); margin:0 auto 26px; padding:24px;
+               border:1px solid #deded9; border-radius:8px;
+               background-color:#fbfbfa;
+               background-image:radial-gradient(circle at 1px 1px,#d4d5cf 1.1px,transparent 1.2px);
+               background-size:20px 20px}
+  .pos-head{display:flex; align-items:flex-start; gap:18px; margin-bottom:22px}
+  .pos-head h3{margin:3px 0 6px; color:#20211e; font-size:18px}
+  .pos-head p{max-width:700px; margin:0; color:#6f706a; font-size:11.5px; line-height:1.55}
+  .pos-head button{margin-left:auto; flex:none}
+  .pos-axis-label{color:#878882; font-size:8.5px; font-weight:800; letter-spacing:.12em;
+                  text-transform:uppercase}
+  .icp-list{display:flex; flex-direction:column; gap:14px}
+  .icp-card{position:relative; display:grid; grid-template-columns:180px repeat(4,minmax(0,1fr));
+            gap:10px; padding:16px; border:1px solid #d0d1cc; border-radius:6px;
+            background:#fff; box-shadow:0 1px 2px rgba(0,0,0,.04); cursor:pointer}
+  .icp-card:hover{border-color:#a9aaa4}.icp-card.on{border-color:#57c982; background:#effbf3;
+    box-shadow:0 0 0 1px rgba(87,201,130,.14)}
+  .icp-card input{width:100%; min-width:0; border:0; border-bottom:1px solid #deded9;
+                  border-radius:0; padding:6px 2px; outline:none; background:transparent;
+                  color:#2d2e2a; font:inherit; font-size:11.5px}
+  .icp-card input:focus{border-color:#57c982}.icp-card.on input{border-color:#bde6cb}
+  .icp-name input{font-weight:750}.icp-field label{display:block; margin-bottom:5px;
+    color:#858680; font-size:8px; font-weight:800; letter-spacing:.08em; text-transform:uppercase}
+  .icp-selected{position:absolute; right:10px; top:8px; color:#32804d; font-size:8px;
+                font-weight:850; letter-spacing:.08em; text-transform:uppercase}
+  .pos-x{position:absolute; right:6px; bottom:5px; padding:2px 6px; border:0;
+         background:transparent; color:#969791}.pos-x:hover:not(:disabled){color:var(--danger); background:transparent}
+  .category-ladder{display:flex; flex-direction:column; align-items:stretch; gap:0; width:min(820px,100%); margin:0 auto}
+  .cat-arrow{height:34px; display:grid; place-items:center; color:#a4a59f; font-size:18px}
+  .category-card{position:relative; border:1px solid #d0d1cc; border-radius:6px;
+                 background:#fff; box-shadow:0 1px 2px rgba(0,0,0,.04); overflow:hidden}
+  .category-card.on{border-color:#57c982; background:#effbf3;
+                    box-shadow:0 0 0 1px rgba(87,201,130,.14)}
+  .cat-main{display:grid; grid-template-columns:76px minmax(180px,1fr) minmax(220px,1.35fr) auto;
+            gap:12px; align-items:center; min-height:78px; padding:14px; cursor:pointer}
+  .cat-stage{color:#858680; font-size:8px; font-weight:800; letter-spacing:.08em; text-transform:uppercase}
+  .cat-main input{width:100%; border:0; border-bottom:1px solid #deded9; border-radius:0;
+                  padding:6px 2px; outline:none; background:transparent; color:#2d2e2a;
+                  font:inherit; font-size:11.5px}
+  .cat-name{font-weight:750!important}.cat-main input:focus{border-color:#57c982}
+  .cat-status{min-width:96px; color:#777872; font-size:9px; text-align:right}
+  .category-card.on .cat-status{color:#2f7b49; font-weight:750}
+  .cat-controls{display:flex; gap:3px; padding:0 10px 9px; justify-content:flex-end}
+  .cat-controls button{padding:3px 7px; border:0; background:transparent; color:#858680; font-size:10px}
+  .cat-competitors{padding:14px; border-top:1px solid #cce9d5; background:rgba(255,255,255,.58)}
+  .cat-competitors-head{display:flex; align-items:center; gap:12px; margin-bottom:10px}
+  .cat-competitors-head b{font-size:11px}.cat-competitors-head span{color:#71726c; font-size:10px}
+  .cat-competitors-head button{margin-left:auto; padding:5px 8px; background:#fff; font-size:10px}
+  .cat-competitor-list{display:flex; flex-direction:column; gap:7px}
+  .cat-competitor{display:grid; grid-template-columns:minmax(160px,.8fr) minmax(220px,1.2fr) auto;
+                  gap:8px; align-items:center}
+  .cat-competitor input{width:100%; height:34px; padding:6px 8px; border:1px solid #d8d9d4;
+                        border-radius:4px; background:#fff; color:#30312d; font:inherit; font-size:11px}
+  .cat-competitor button{padding:3px 7px; border:0; background:transparent; color:#92938d}
+  .cat-empty{padding:9px 0; color:#777872; font-size:10.5px}
+  .pos-sync-note{width:min(820px,100%); margin:16px auto 0; padding:10px 12px;
+                 border-left:3px solid #c7c8c2; background:rgba(255,255,255,.75);
+                 color:#676862; font-size:10.5px; line-height:1.5}
+  .pos-sync-note.on{border-left-color:#57c982; color:#346847; background:#f2fbf5}
+  @media(max-width:900px){
+    .positioning{padding:14px}.pos-section{padding:18px 14px}.icp-card{grid-template-columns:1fr 1fr}
+    .icp-name{grid-column:1/-1}.cat-main{grid-template-columns:66px 1fr}.cat-description{grid-column:1/-1}
+    .cat-status{position:absolute; right:12px; top:10px}.cat-competitor{grid-template-columns:1fr}
+  }
   .pe-empty-source{color:#858680; font-size:10.5px; line-height:1.4}
   @media(max-width:780px){
     .evo{padding:14px}.evo-canvas{padding:28px 16px 48px}.evo-map{height:auto;
@@ -1477,6 +1544,36 @@
       </div>
     </div>
 
+    <!-- ICP and category positioning decisions, connected to Content Strategy. -->
+    <div class="positioning" id="positioningPane" hidden>
+      <section class="pos-section">
+        <div class="pos-head">
+          <div>
+            <span class="pos-axis-label">Positioning axis 01</span>
+            <h3>ICP Positioning</h3>
+            <p>Build ICP options from People, Process, Technology and Input maturity, then select the one agreed with the client.</p>
+          </div>
+          <button id="btnAddPositioningIcp" type="button">+ Add ICP</button>
+        </div>
+        <div class="icp-list" id="positioningIcps"></div>
+      </section>
+
+      <section class="pos-section">
+        <div class="pos-head">
+          <div>
+            <span class="pos-axis-label">Positioning axis 02</span>
+            <h3>Category Positioning</h3>
+            <p>Map categories from the oldest market solution to the most evolved, then select the category you compete in.</p>
+          </div>
+          <button id="btnAddPositioningCategory" type="button">+ Add category</button>
+        </div>
+        <div class="category-ladder" id="positioningCategories"></div>
+        <div class="pos-sync-note" id="positioningSyncNote">
+          Select a category to add its competitors to Content Strategy.
+        </div>
+      </section>
+    </div>
+
     <!-- A frame from the Obsidian vault, rendered read-only -->
     <div class="frame-note" id="framePane" hidden>
       <div class="sheet"><textarea id="frameText" spellcheck="false"
@@ -1594,10 +1691,11 @@ const SUPABASE_URL = 'https://cskamgfvebryahkljlll.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_MdkD-TxMCIwlu69seSHA3Q_A39GADsK';
 const CLIENT_ID    = '1059013355751-6g50dsgm7df37htl2fdqrtlkh5hmrc0c.apps.googleusercontent.com';
 const ALLOWED      = ['vijaysrinivassan@gmail.com'];
-const BUILD        = 'v7.1';
+const BUILD        = 'v7.2';
 
 const STRATEGY_ONE_TAB = 'Strategy 1 — Brand Strategy';
 const PRODUCT_EVOLUTION_TAB = 'Strategy 1 — Product Evolution';
+const POSITIONING_TAB = 'Strategy 1 — Positioning Canvas';
 
 const TABS = [
   'Product Architecture',
@@ -1607,6 +1705,7 @@ const TABS = [
   'Growth Strategy',
   STRATEGY_ONE_TAB,
   PRODUCT_EVOLUTION_TAB,
+  POSITIONING_TAB,
   'Channel Strategy',
   'Content Strategy',
   'Keyword Repo',
@@ -1947,6 +2046,7 @@ const TAB_ICONS = {
   'Grounded Evidences': '<path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>',
   'Strategy 1 — Brand Strategy': '<path d="M4 5h16v14H4z"/><path d="M8 9h8M8 13h5M8 17h3"/>',
   'Strategy 1 — Product Evolution': '<path d="M4 12h16M12 4v16"/><circle cx="12" cy="12" r="3"/>',
+  'Strategy 1 — Positioning Canvas': '<circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="8"/><path d="M12 1v3M12 20v3M1 12h3M20 12h3"/>',
   'Brand Strategy': '<path d="M12 3l2.6 5.6 6.1.8-4.5 4.2 1.2 6L12 16.8 6.6 19.6l1.2-6L3.3 9.4l6.1-.8z"/>',
   'MCP': '<path d="M5 7h14M5 12h14M5 17h9"/><circle cx="18" cy="17" r="2.2"/>',
   'Settings': '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1A1.7 1.7 0 0 0 9 19.4a1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1A1.7 1.7 0 0 0 4.6 9a1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.9.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/>'
@@ -1979,7 +2079,7 @@ function renderTabs(){
     label.textContent = name;
     b.append(label);
     const isPanel = [DOCS_TAB, CHANNELS_TAB, KEYWORDS_TAB, CONTENT_TAB,
-                     STRATEGY_ONE_TAB, PRODUCT_EVOLUTION_TAB].indexOf(name) > -1;
+                     STRATEGY_ONE_TAB, PRODUCT_EVOLUTION_TAB, POSITIONING_TAB].indexOf(name) > -1;
     if (!isPanel){
       const c = document.createElement('span');
       c.className = 'n';
@@ -2070,6 +2170,8 @@ function renderTabs(){
                            () => switchTab(STRATEGY_ONE_TAB), 0));
       box.append(subButton('Product Evolution', onBoard && state.tab === PRODUCT_EVOLUTION_TAB,
                            () => switchTab(PRODUCT_EVOLUTION_TAB), 0));
+      box.append(subButton('Positioning Canvas', onBoard && state.tab === POSITIONING_TAB,
+                           () => switchTab(POSITIONING_TAB), 0));
       box.append(subButton('Channel Strategy', onBoard && state.tab === CHANNELS_TAB,
                            () => switchTab(CHANNELS_TAB), 0));
       return;
@@ -2185,7 +2287,8 @@ function renderTabs(){
     /* the crumb already says Content Strategy; the title is the view itself */
     $('tabTitle').textContent = state.tab === CONTENT_TAB ? viewDef(state.contentView).label
       : state.tab === STRATEGY_ONE_TAB ? 'Brand Strategy'
-      : state.tab === PRODUCT_EVOLUTION_TAB ? 'Product Evolution' : state.tab;
+      : state.tab === PRODUCT_EVOLUTION_TAB ? 'Product Evolution'
+      : state.tab === POSITIONING_TAB ? 'Positioning Canvas' : state.tab;
   }
 }
 
@@ -2602,7 +2705,7 @@ function switchTab(name){
   state.tab = name;
   state.frameIndex = -1;
   state.screen = 'board';
-  if ([STRATEGY_ONE_TAB, PRODUCT_EVOLUTION_TAB, CHANNELS_TAB].indexOf(name) !== -1) openNav('strategy1');
+  if ([STRATEGY_ONE_TAB, PRODUCT_EVOLUTION_TAB, POSITIONING_TAB, CHANNELS_TAB].indexOf(name) !== -1) openNav('strategy1');
   else if (isBrandTab(name)) openNav('brand');
   else if (name === CONTENT_TAB) openNav('content');
   clearSel();
@@ -3827,7 +3930,7 @@ function applyTabMode(){
   if (onSettings){
     $('viewport').hidden = true; $('docsPane').hidden = true;
     $('chanPane').hidden = true; $('kwPane').hidden = true; $('mxPane').hidden = true;
-    $('strategyGuidePane').hidden = true; $('evoPane').hidden = true;
+    $('strategyGuidePane').hidden = true; $('evoPane').hidden = true; $('positioningPane').hidden = true;
     $('framePane').hidden = true; $('roFrame').hidden = true;
     $('btnFrameExport').hidden = true;
     ['btnFit','framePick','btnFrameExport'].forEach(id => { $(id).hidden = true; });
@@ -3852,7 +3955,8 @@ function applyTabMode(){
   const isMx   = state.tab === CONTENT_TAB;
   const isGuide = state.tab === STRATEGY_ONE_TAB;
   const isEvo = state.tab === PRODUCT_EVOLUTION_TAB;
-  const isCanvas = !isDocs && !isChan && !isKw && !isMx && !isGuide && !isEvo && !isNote;
+  const isPositioning = state.tab === POSITIONING_TAB;
+  const isCanvas = !isDocs && !isChan && !isKw && !isMx && !isGuide && !isEvo && !isPositioning && !isNote;
 
   if (frame){
     $('tabTitle').textContent = frame.name;
@@ -3869,6 +3973,7 @@ function applyTabMode(){
   $('mxPane').hidden   = !isMx;
   $('strategyGuidePane').hidden = !isGuide;
   $('evoPane').hidden = !isEvo;
+  $('positioningPane').hidden = !isPositioning;
   $('btnFit').hidden = !isCanvas;
   /* a frame can be used as a template on a real canvas, but not inside a frame */
   $('framePick').hidden = !isCanvas || readOnly();
@@ -3886,6 +3991,7 @@ function applyTabMode(){
       }).catch(() => {});
     }
   }
+  if (isPositioning) renderPositioning();
   renderCrumb();
   applyRole();
 }
@@ -5307,6 +5413,332 @@ function addArticleType(){
   toast('Added. Use "terms" on the column to widen what it matches.');
 }
 
+/* ===================================================================
+   POSITIONING CANVAS — ICP choice and category maturity ladder
+   =================================================================== */
+function newPositioningIcp(){
+  return { id: uid(), name: '', people: '', process: '', technology: '', input: '' };
+}
+function newPositioningCategory(){
+  return { id: uid(), name: '', maturity: '', competitors: [] };
+}
+function positioningState(){
+  const t = state.tabs[POSITIONING_TAB] ||
+            (state.tabs[POSITIONING_TAB] = { nodes: [], edges: [] });
+  if (!t.positioning || typeof t.positioning !== 'object'){
+    t.positioning = { selectedIcp: '', selectedCategory: '', icps: [], categories: [] };
+  }
+  const p = t.positioning;
+  if (!Array.isArray(p.icps)) p.icps = [];
+  if (!Array.isArray(p.categories)) p.categories = [];
+  if (!p.icps.length) p.icps.push(newPositioningIcp());
+  if (!p.categories.length) p.categories.push(newPositioningCategory());
+  p.icps.forEach(icp => {
+    if (!icp.id) icp.id = uid();
+    ['name', 'people', 'process', 'technology', 'input'].forEach(key => {
+      if (typeof icp[key] !== 'string') icp[key] = '';
+    });
+  });
+  p.categories.forEach(category => {
+    if (!category.id) category.id = uid();
+    if (typeof category.name !== 'string') category.name = '';
+    if (typeof category.maturity !== 'string') category.maturity = '';
+    if (!Array.isArray(category.competitors)) category.competitors = [];
+    category.competitors.forEach(competitor => {
+      if (!competitor.id) competitor.id = uid();
+      if (typeof competitor.name !== 'string') competitor.name = '';
+      if (typeof competitor.aliases !== 'string'){
+        competitor.aliases = Array.isArray(competitor.aliases) ? competitor.aliases.join(', ') : '';
+      }
+    });
+  });
+  if (!p.icps.some(x => x.id === p.selectedIcp)) p.selectedIcp = '';
+  if (!p.categories.some(x => x.id === p.selectedCategory)) p.selectedCategory = '';
+  return p;
+}
+
+function syncPositioningCompetitors(category){
+  if (!category) return 0;
+  const matrix = contentRoot().views.competitor;
+  let added = 0;
+  category.competitors.forEach(competitor => {
+    const name = competitor.name.trim();
+    if (!name) return;
+    const aliases = competitor.aliases.split(',').map(x => x.trim()).filter(Boolean);
+    let row = competitor.contentRowId
+      ? matrix.rows.find(x => x.id === competitor.contentRowId)
+      : null;
+    if (!row){
+      row = matrix.rows.find(x => (x.name || '').trim().toLowerCase() === name.toLowerCase());
+    }
+    if (!row){
+      row = matrix.rows.find(x => !(x.name || '').trim());
+      if (!row){
+        row = { id: uid(), name: '', aliases: [] };
+        matrix.rows.push(row);
+      }
+      row.name = name;
+      row.aliases = aliases;
+      row.positioningCompetitorId = competitor.id;
+      row.positioningCategoryId = category.id;
+      added++;
+    } else if (row.positioningCompetitorId === competitor.id){
+      row.name = name;
+      row.aliases = aliases;
+      row.positioningCategoryId = category.id;
+    } else {
+      row.aliases = Array.from(new Set((row.aliases || []).concat(aliases)));
+    }
+    competitor.contentRowId = row.id;
+  });
+  return added;
+}
+
+function selectPositioningIcp(id){
+  if (readOnly()) return;
+  positioningState().selectedIcp = id;
+  markDirty();
+  renderPositioning();
+}
+
+function selectPositioningCategory(id){
+  if (readOnly()) return;
+  const p = positioningState();
+  p.selectedCategory = id;
+  const category = p.categories.find(x => x.id === id);
+  const added = syncPositioningCompetitors(category);
+  markDirty();
+  renderPositioning();
+  const named = category ? category.competitors.filter(x => x.name.trim()).length : 0;
+  toast(named
+    ? named + ' competitor' + (named === 1 ? '' : 's') + ' synced to Content Strategy' +
+      (added ? ' (' + added + ' new).' : '.')
+    : 'Category selected. Add competitors to sync them to Content Strategy.');
+}
+
+function positioningInput(value, placeholder, readOnly, onInput, className){
+  const input = document.createElement('input');
+  input.value = value || '';
+  input.placeholder = placeholder;
+  input.readOnly = readOnly;
+  if (className) input.className = className;
+  input.oninput = ev => { onInput(ev.target.value); markDirty(); };
+  return input;
+}
+
+function renderPositioning(){
+  const p = positioningState();
+  const ro = readOnly();
+  $('btnAddPositioningIcp').hidden = ro;
+  $('btnAddPositioningCategory').hidden = ro;
+
+  const icpHost = $('positioningIcps');
+  icpHost.innerHTML = '';
+  p.icps.forEach((icp, index) => {
+    const card = document.createElement('article');
+    const selected = p.selectedIcp === icp.id;
+    card.className = 'icp-card' + (selected ? ' on' : '');
+    card.tabIndex = ro ? -1 : 0;
+    card.setAttribute('role', 'button');
+    card.setAttribute('aria-pressed', selected ? 'true' : 'false');
+    card.onclick = ev => {
+      if (ev.target.closest('input,button')) return;
+      selectPositioningIcp(icp.id);
+    };
+    card.onkeydown = ev => {
+      if (ev.target !== card || (ev.key !== 'Enter' && ev.key !== ' ')) return;
+      ev.preventDefault();
+      selectPositioningIcp(icp.id);
+    };
+
+    const nameField = document.createElement('div');
+    nameField.className = 'icp-name icp-field';
+    const nameLabel = document.createElement('label');
+    nameLabel.textContent = 'ICP ' + (index + 1);
+    const name = positioningInput(icp.name, 'ICP name / maturity stage', ro, value => { icp.name = value; }, 'icp-title');
+    nameField.append(nameLabel, name);
+    card.append(nameField);
+
+    [['people', 'People'], ['process', 'Process'], ['technology', 'Technology'], ['input', 'Input']].forEach(pair => {
+      const field = document.createElement('div');
+      field.className = 'icp-field';
+      const label = document.createElement('label');
+      label.textContent = pair[1];
+      const input = positioningInput(icp[pair[0]], pair[1] + ' maturity', ro,
+        value => { icp[pair[0]] = value; });
+      field.append(label, input);
+      card.append(field);
+    });
+    if (selected){
+      const status = document.createElement('span');
+      status.className = 'icp-selected';
+      status.textContent = 'Selected ICP';
+      card.append(status);
+    }
+    if (!ro){
+      const remove = document.createElement('button');
+      remove.type = 'button';
+      remove.className = 'pos-x';
+      remove.title = 'Remove this ICP';
+      remove.textContent = '\u00d7';
+      remove.onclick = () => {
+        if ((icp.name || '').trim() && !confirm('Remove this ICP?')) return;
+        p.icps = p.icps.filter(x => x.id !== icp.id);
+        if (p.selectedIcp === icp.id) p.selectedIcp = '';
+        if (!p.icps.length) p.icps.push(newPositioningIcp());
+        markDirty(); renderPositioning();
+      };
+      card.append(remove);
+    }
+    icpHost.append(card);
+  });
+
+  const categoryHost = $('positioningCategories');
+  categoryHost.innerHTML = '';
+  p.categories.forEach((category, index) => {
+    if (index){
+      const arrow = document.createElement('div');
+      arrow.className = 'cat-arrow';
+      arrow.textContent = '\u2193';
+      categoryHost.append(arrow);
+    }
+    const card = document.createElement('article');
+    const selected = p.selectedCategory === category.id;
+    card.className = 'category-card' + (selected ? ' on' : '');
+
+    const main = document.createElement('div');
+    main.className = 'cat-main';
+    main.tabIndex = ro ? -1 : 0;
+    main.setAttribute('role', 'button');
+    main.setAttribute('aria-pressed', selected ? 'true' : 'false');
+    main.onclick = ev => {
+      if (ev.target.closest('input,button')) return;
+      selectPositioningCategory(category.id);
+    };
+    main.onkeydown = ev => {
+      if (ev.target !== main || (ev.key !== 'Enter' && ev.key !== ' ')) return;
+      ev.preventDefault(); selectPositioningCategory(category.id);
+    };
+    const stage = document.createElement('span');
+    stage.className = 'cat-stage';
+    stage.textContent = (index === 0 ? 'Oldest' : 'Stage ' + (index + 1));
+    const name = positioningInput(category.name, 'Category name', ro,
+      value => { category.name = value; }, 'cat-name');
+    const maturity = positioningInput(category.maturity, 'Market served / maturity level', ro,
+      value => { category.maturity = value; }, 'cat-description');
+    const status = document.createElement('span');
+    status.className = 'cat-status';
+    const count = category.competitors.filter(x => x.name.trim()).length;
+    status.textContent = selected ? 'Selected \u00b7 ' + count + ' competitors' : count + ' competitors';
+    main.append(stage, name, maturity, status);
+    card.append(main);
+
+    if (!ro){
+      const controls = document.createElement('div');
+      controls.className = 'cat-controls';
+      const up = document.createElement('button');
+      up.type = 'button'; up.textContent = '\u2191 Earlier'; up.disabled = index === 0;
+      up.onclick = () => {
+        p.categories.splice(index - 1, 0, p.categories.splice(index, 1)[0]);
+        markDirty(); renderPositioning();
+      };
+      const down = document.createElement('button');
+      down.type = 'button'; down.textContent = 'Later \u2193'; down.disabled = index === p.categories.length - 1;
+      down.onclick = () => {
+        p.categories.splice(index + 1, 0, p.categories.splice(index, 1)[0]);
+        markDirty(); renderPositioning();
+      };
+      const remove = document.createElement('button');
+      remove.type = 'button'; remove.textContent = 'Remove';
+      remove.onclick = () => {
+        if ((category.name || '').trim() && !confirm('Remove this category and its competitor list?')) return;
+        p.categories = p.categories.filter(x => x.id !== category.id);
+        if (p.selectedCategory === category.id) p.selectedCategory = '';
+        if (!p.categories.length) p.categories.push(newPositioningCategory());
+        markDirty(); renderPositioning();
+      };
+      controls.append(up, down, remove);
+      card.append(controls);
+    }
+
+    if (selected){
+      const competitors = document.createElement('div');
+      competitors.className = 'cat-competitors';
+      const head = document.createElement('div');
+      head.className = 'cat-competitors-head';
+      const title = document.createElement('b');
+      title.textContent = 'Competitors in this category';
+      const helper = document.createElement('span');
+      helper.textContent = 'These sync to Content Strategy';
+      head.append(title, helper);
+      if (!ro){
+        const add = document.createElement('button');
+        add.type = 'button'; add.textContent = '+ Add competitor';
+        add.onclick = () => {
+          category.competitors.push({ id: uid(), name: '', aliases: '' });
+          markDirty(); renderPositioning();
+          const inputs = card.querySelectorAll('.cat-competitor input:first-child');
+          const last = inputs[inputs.length - 1];
+          if (last) last.focus();
+        };
+        head.append(add);
+      }
+      competitors.append(head);
+      const list = document.createElement('div');
+      list.className = 'cat-competitor-list';
+      if (!category.competitors.length){
+        const empty = document.createElement('div');
+        empty.className = 'cat-empty';
+        empty.textContent = 'No competitors yet. Add the players that belong to this category.';
+        list.append(empty);
+      }
+      category.competitors.forEach(competitor => {
+        const row = document.createElement('div');
+        row.className = 'cat-competitor';
+        const competitorName = positioningInput(competitor.name, 'Competitor name', ro,
+          value => { competitor.name = value; });
+        competitorName.onchange = () => { syncPositioningCompetitors(category); markDirty(); };
+        const aliases = positioningInput(competitor.aliases, 'Aliases, comma separated', ro,
+          value => { competitor.aliases = value; });
+        aliases.onchange = () => { syncPositioningCompetitors(category); markDirty(); };
+        row.append(competitorName, aliases);
+        if (!ro){
+          const remove = document.createElement('button');
+          remove.type = 'button'; remove.title = 'Remove competitor'; remove.textContent = '\u00d7';
+          remove.onclick = () => {
+            category.competitors = category.competitors.filter(x => x.id !== competitor.id);
+            markDirty(); renderPositioning();
+          };
+          row.append(remove);
+        }
+        list.append(row);
+      });
+      competitors.append(list);
+      card.append(competitors);
+    }
+    categoryHost.append(card);
+  });
+
+  const chosen = p.categories.find(x => x.id === p.selectedCategory);
+  const note = $('positioningSyncNote');
+  note.classList.toggle('on', !!chosen);
+  note.textContent = chosen
+    ? 'Selected category: ' + (chosen.name.trim() || 'Untitled category') +
+      '. Its named competitors are connected to Content Strategy.'
+    : 'Select a category to add its competitors to Content Strategy.';
+}
+
+$('btnAddPositioningIcp').onclick = () => {
+  if (readOnly()) return;
+  positioningState().icps.push(newPositioningIcp());
+  markDirty(); renderPositioning();
+};
+$('btnAddPositioningCategory').onclick = () => {
+  if (readOnly()) return;
+  positioningState().categories.push(newPositioningCategory());
+  markDirty(); renderPositioning();
+};
+
 
 /* ===================================================================
    FRAMES  —  the Obsidian Frames folder
@@ -5371,7 +5803,7 @@ function isCanvasTab(){
   if (state.screen !== 'board') return false;
   if (inFrame()) return (state.frames[state.frameIndex] || {}).kind === 'canvas';
   return [DOCS_TAB, CHANNELS_TAB, KEYWORDS_TAB, CONTENT_TAB,
-          STRATEGY_ONE_TAB, PRODUCT_EVOLUTION_TAB].indexOf(state.tab) === -1;
+          STRATEGY_ONE_TAB, PRODUCT_EVOLUTION_TAB, POSITIONING_TAB].indexOf(state.tab) === -1;
 }
 const openFrameDef = () => (inFrame() ? state.frames[state.frameIndex] : null);
 
@@ -5758,7 +6190,7 @@ function renderCrumb(){
   let c = 'Strategy';
   if (state.screen !== 'board') c = 'Account';
   else if (inFrame()) c = 'Frames';
-  else if ([STRATEGY_ONE_TAB, PRODUCT_EVOLUTION_TAB, CHANNELS_TAB].indexOf(state.tab) !== -1) c = 'Strategy 1';
+  else if ([STRATEGY_ONE_TAB, PRODUCT_EVOLUTION_TAB, POSITIONING_TAB, CHANNELS_TAB].indexOf(state.tab) !== -1) c = 'Strategy 1';
   else if (isBrandTab(state.tab)) c = 'Brand Strategy';
   else if (state.tab === CONTENT_TAB) c = 'Content Strategy';
   else if (state.tab === KEYWORDS_TAB || state.tab === DOCS_TAB) c = 'Research';

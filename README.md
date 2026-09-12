@@ -56,6 +56,13 @@ The sidebar groups them:
   any number of sources per problem. Sources are explicitly marked as external links
   or Grounded Evidence documents: web evidence opens its URL, while document evidence
   opens the selected file through the board's existing signed-file viewer.
+- **Strategy 1 › Positioning Canvas** has two connected decisions. ICP Positioning
+  builds any number of client-ready ICP options from People, Process, Technology and
+  Input maturity, with one visibly selected ICP. Category Positioning maps the market
+  from its oldest category to later stages, keeps competitors beneath each category,
+  and lets one category be selected. The named competitors in that selected category
+  are added to **Content Strategy › Competitor** without duplicating existing rows or
+  deleting competitors already entered there.
 - **Strategy 1 › Channel Strategy** shows the active and available acquisition levers.
 - **Brand Strategy** opens into Product Architecture, Market Research Frame,
   Messaging Framework, Positioning Document and Growth Strategy. Each is its own
