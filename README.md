@@ -46,7 +46,8 @@ The sidebar groups them:
 Positioning Canvas and Channel Strategy appear directly beneath its heading.
 Content Strategy lives in the same section and expands into Category, Competitor,
 ICP and Value. There is no extra Brand Strategy parent between Strategy 1 and its
-four canvases.
+four canvases. Small visual symbols distinguish every Strategy 1 canvas and each
+Content Strategy view in the sidebar.
 
 - **Strategy 1 › Brand Strategy** is a progressive, Obsidian-style decision canvas for
   customer acquisition. Clicking the opening card reveals both ocean choices; selecting one
@@ -172,7 +173,9 @@ under them.
 
 **Content Strategy** opens into four axes in the sidebar — Category, Competitor,
 ICP and Value. Competitor is a matrix; Category, ICP and Value are plain tables
-of 20 rows.
+of 20 rows. All four use the full workspace width, square table edges and the
+same restrained green interaction states; the presentation changes do not alter
+their fields or saved content.
 
 In those three the unit is the **cell**, not the row. Each cell holds the words,
 a green **Write this** tick, its own **AEO / SEO** choice, a **status** — Already

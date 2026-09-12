@@ -126,6 +126,11 @@
   .tab-sub.active{background:var(--accent-soft); color:var(--accent); font-weight:600}
   .tab-sub > .sub-label{flex:1; min-width:0; overflow:hidden;
                         text-overflow:ellipsis; white-space:nowrap}
+  .tab-sub .sub-icon{width:18px; flex:none; display:grid; place-items:center;
+                     font-size:13px; line-height:1; filter:saturate(.72)}
+  .tab-sub.content-sub.active{background:#effbf3; color:#287343}
+  .tab-sub.content-sub.active .sub-icon{filter:none}
+  .tab-sub.content-sub:hover{background:#f2f9f4}
   /* canvases under Brand Strategy can be dragged into a new order */
   .tab-sub .sub-grip{color:var(--faint); font-size:10px; letter-spacing:-1px;
                      margin:0 4px 0 -6px; flex:none; visibility:hidden; cursor:grab}
@@ -603,22 +608,25 @@
            padding:7px 12px; margin-left:8px}
 
   /* ================= content matrix (Airtable-style grid) ================= */
-  .mx{flex:1; min-height:0; overflow:auto; padding:22px 30px 40px; background:var(--bg)}
-  .mx-head{display:flex; align-items:flex-start; gap:12px; margin-bottom:16px}
-  .mx-head h3{margin:0 0 3px; font-size:15px; font-weight:700; letter-spacing:-.01em}
+  .mx{flex:1; min-width:0; min-height:0; overflow:hidden; padding:0; background:#fff;
+      display:flex; flex-direction:column}
+  .mx-head{display:flex; align-items:center; gap:10px; min-height:62px; margin:0;
+           padding:12px 20px; border-bottom:1px solid var(--line); background:#fbfcfb}
+  .mx-head::before{content:""; width:4px; height:30px; flex:none; background:#57c982}
+  .mx-head h3{margin:0; font-size:15px; font-weight:700; letter-spacing:-.01em}
   .mx-head p{margin:0; font-size:12.5px; color:var(--muted)}
   .mx-head .sp{margin-left:auto}
-  .mx-setup{border:1px solid var(--line); background:#fff; border-radius:12px;
-            padding:14px 16px; font-size:13px; color:var(--muted); margin-bottom:16px}
+  .mx-head button{border-radius:4px}
+  .mx-setup{border:0; border-bottom:1px solid var(--line); background:#fff; border-radius:0;
+            padding:14px 20px; font-size:13px; color:var(--muted); margin:0}
 
-  .mx-wrap{border:1px solid var(--line); border-radius:12px; background:#fff;
-           box-shadow:var(--shadow); overflow:auto; max-height:70vh}
+  .mx-wrap{width:100%; flex:1; min-height:0; border:0; border-radius:0; background:#fff;
+           box-shadow:none; overflow:auto; max-height:none}
 
-  /* Fixed layout is the whole fix: without it every column negotiates its own
-     width and the header stops lining up with the body. */
-  /* width is set in JS to the exact sum of the columns; max-content here
-     would quietly override table-layout:fixed and let a column grow. */
-  .mx-table{table-layout:fixed; border-collapse:separate; border-spacing:0; font-size:13px}
+  /* Fixed layout keeps headers aligned. The table fills the workspace, while
+     its JS minimum width preserves usable columns and enables horizontal
+     scrolling only when the view genuinely needs it. */
+  .mx-table{width:100%; table-layout:fixed; border-collapse:separate; border-spacing:0; font-size:13px}
   .mx-table th, .mx-table td{
     padding:0; margin:0; vertical-align:top; overflow:hidden;
     border-right:1px solid var(--line); border-bottom:1px solid var(--line);
@@ -628,12 +636,12 @@
   /* header band */
   .mx-table thead th{
     position:sticky; top:0; z-index:3; height:40px;
-    background:#f9fafb; padding:0 10px;
+    background:#f4faf6; padding:0 10px;
   }
   /* two frozen columns: the number gutter, then the row name */
-  .mx-corner-num{position:sticky; left:0; top:0; z-index:6; background:#f9fafb !important}
-  .mx-corner{position:sticky; left:46px; top:0; z-index:5; background:#f9fafb !important}
-  .mx-num{position:sticky; left:0; z-index:3; background:#f9fafb; padding:0}
+  .mx-corner-num{position:sticky; left:0; top:0; z-index:6; background:#f4faf6 !important}
+  .mx-corner{position:sticky; left:46px; top:0; z-index:5; background:#f4faf6 !important}
+  .mx-num{position:sticky; left:0; z-index:3; background:#f8fbf9; padding:0}
   .mx-numwrap{display:flex; align-items:center; justify-content:center; gap:2px;
               height:30px; font-size:11px; color:var(--faint);
               font-variant-numeric:tabular-nums}
@@ -648,8 +656,8 @@
     font:inherit; font-size:12.5px; font-weight:700; color:var(--ink); padding:2px 0;
   }
   .mx-lab input.hd::placeholder{color:#c9ccd3; font-weight:600}
-  .mx-lab input.hd:focus{background:#fff; box-shadow:inset 0 0 0 2px var(--accent);
-                         border-radius:5px; padding:2px 6px}
+  .mx-lab input.hd:focus{background:#fff; box-shadow:inset 0 -2px 0 #57c982;
+                         border-radius:0; padding:2px 6px}
   .mx-lab .x{margin-left:auto; padding:0 5px; font-size:13px; line-height:1.4;
              color:var(--faint); border-color:transparent; background:transparent; flex:none;
              opacity:0; transition:opacity .12s}
@@ -688,15 +696,15 @@
   .mx-cell.planned{background:#f4fbf6}
   /* SEO / AEO segmented switch, one per cell */
   .mx-mode{display:inline-flex; flex:none; border:1px solid var(--line);
-           border-radius:5px; overflow:hidden; background:#fff; margin-left:auto}
+           border-radius:3px; overflow:hidden; background:#fff; margin-left:auto}
   .mx-mode button{
     padding:0 4px; height:14px; font-size:8px; font-weight:700; letter-spacing:.02em;
     border:none; border-radius:0; background:transparent; color:var(--faint); line-height:1;
   }
   .mx-mode button + button{border-left:1px solid var(--line)}
   .mx-mode button:hover:not(:disabled){background:#f5f5f6; color:var(--ink)}
-  .mx-mode button.on{background:var(--accent); color:#fff}
-  .mx-mode button.on:hover:not(:disabled){background:var(--accent-d); color:#fff}
+  .mx-mode button.on{background:#398b57; color:#fff}
+  .mx-mode button.on:hover:not(:disabled){background:#2f7b49; color:#fff}
   .mx-cell.planned .mx-plan{color:var(--ok)}
   .mx-cell.planned .mx-kw{background:transparent}
   .mx-cell.planned .mx-kw:hover{background:var(--accent-soft)}
@@ -719,7 +727,7 @@
                font-variant-numeric:tabular-nums}
 
   /* free-form data grids: Category, ICP, Value */
-  .gr-num{position:sticky; left:0; z-index:3; background:#f9fafb; width:46px;
+  .gr-num{position:sticky; left:0; z-index:3; background:#f8fbf9; width:46px;
           text-align:center; font-size:11px; color:var(--faint);
           font-variant-numeric:tabular-nums; padding:0}
   .gr-numwrap{display:flex; align-items:center; justify-content:center; height:32px; gap:2px}
@@ -734,7 +742,7 @@
     width:100%; height:30px; border:none; outline:none; background:transparent;
     font:inherit; font-size:12.5px; color:var(--ink); padding:0 9px;
   }
-  .gr-cell input[type=text]:focus{background:#fff; box-shadow:inset 0 0 0 2px var(--accent)}
+  .gr-cell input[type=text]:focus{background:#fff; box-shadow:inset 0 -2px 0 #57c982}
   .gr-cell input[type=text]::placeholder{color:#d5d7dd}
   .gr-foot{display:flex; align-items:center; gap:4px; padding:0 6px 6px}
   .gr-foot .mx-mode{margin:0; flex:none}
@@ -1691,7 +1699,7 @@ const SUPABASE_URL = 'https://cskamgfvebryahkljlll.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_MdkD-TxMCIwlu69seSHA3Q_A39GADsK';
 const CLIENT_ID    = '1059013355751-6g50dsgm7df37htl2fdqrtlkh5hmrc0c.apps.googleusercontent.com';
 const ALLOWED      = ['vijaysrinivassan@gmail.com'];
-const BUILD        = 'v7.3';
+const BUILD        = 'v7.4';
 
 const STRATEGY_ONE_TAB = 'Strategy 1 — Brand Strategy';
 const PRODUCT_EVOLUTION_TAB = 'Strategy 1 — Product Evolution';
@@ -2106,10 +2114,17 @@ function renderTabs(){
     return b;
   }
 
-  function subButton(label, active, onClick, count){
+  function subButton(label, active, onClick, count, icon){
     const b = document.createElement('button');
     b.className = 'tab-sub' + (active ? ' active' : '');
     b.title = label;
+    if (icon){
+      const ic = document.createElement('span');
+      ic.className = 'sub-icon';
+      ic.textContent = icon;
+      ic.setAttribute('aria-hidden', 'true');
+      b.append(ic);
+    }
     const lab = document.createElement('span');
     lab.className = 'sub-label';
     lab.textContent = label;
@@ -2148,13 +2163,13 @@ function renderTabs(){
        expandable workspace in this same section. */
     if (item.kind === 'strategy1-tabs'){
       box.append(subButton('Brand Strategy', onBoard && state.tab === STRATEGY_ONE_TAB,
-                           () => switchTab(STRATEGY_ONE_TAB), 0));
+                           () => switchTab(STRATEGY_ONE_TAB), 0, '🎯'));
       box.append(subButton('Product Evolution', onBoard && state.tab === PRODUCT_EVOLUTION_TAB,
-                           () => switchTab(PRODUCT_EVOLUTION_TAB), 0));
+                           () => switchTab(PRODUCT_EVOLUTION_TAB), 0, '🧬'));
       box.append(subButton('Positioning Canvas', onBoard && state.tab === POSITIONING_TAB,
-                           () => switchTab(POSITIONING_TAB), 0));
+                           () => switchTab(POSITIONING_TAB), 0, '🧭'));
       box.append(subButton('Channel Strategy', onBoard && state.tab === CHANNELS_TAB,
-                           () => switchTab(CHANNELS_TAB), 0));
+                           () => switchTab(CHANNELS_TAB), 0, '📡'));
       return;
     }
 
@@ -2245,6 +2260,7 @@ function renderTabs(){
 
     if (item.id === 'content'){
       const root = contentRoot();
+      const contentIcons = { category: '🗂️', competitor: '⚔️', icp: '👥', value: '💎' };
       CONTENT_VIEWS.forEach(v => {
         const view = root.views[v.id];
         let planned = 0;
@@ -2255,7 +2271,9 @@ function renderTabs(){
           }).length;
         }
         const active = onBoard && state.tab === CONTENT_TAB && state.contentView === v.id;
-        box.append(subButton(v.label, active, () => switchContentView(v.id), planned));
+        const b = subButton(v.label, active, () => switchContentView(v.id), planned, contentIcons[v.id]);
+        b.classList.add('content-sub');
+        box.append(b);
       });
       return;
     }
@@ -4979,7 +4997,7 @@ function renderMatrix(){
   const ro = readOnly();
 
   /* Explicit widths, so the header and body can never disagree. */
-  const NUM_W = 46, RH_W = 190, COL_W = 232;
+  const NUM_W = 46, RH_W = 210, COL_W = 232;
   const cg = document.createElement('colgroup');
   const cn = document.createElement('col');
   cn.style.width = NUM_W + 'px';
@@ -4992,7 +5010,8 @@ function renderMatrix(){
     c.style.width = COL_W + 'px';
     cg.append(c);
   });
-  table.style.width = (NUM_W + RH_W + COL_W * m.types.length) + 'px';
+  table.style.width = '100%';
+  table.style.minWidth = (NUM_W + RH_W + COL_W * m.types.length) + 'px';
   table.append(cg);
 
   const thead = document.createElement('thead');
@@ -5192,8 +5211,9 @@ function renderGrid(){
   $('btnAddType').textContent = '+ Column';
   $('btnAddType').hidden = ro || v.columns.length >= GRID_MAX_COLS;
 
-  const NUM_W = 46, COL_W = 232;
-  table.style.width = (NUM_W + COL_W * v.columns.length) + 'px';
+  const NUM_W = 46, COL_W = 220;
+  table.style.width = '100%';
+  table.style.minWidth = (NUM_W + COL_W * v.columns.length) + 'px';
 
   const cg = document.createElement('colgroup');
   const c0 = document.createElement('col');
