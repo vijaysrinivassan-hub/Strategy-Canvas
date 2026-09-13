@@ -911,10 +911,6 @@
   .chan-name{flex:1; min-width:0; font-size:13.5px; font-weight:600;
              overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
   .chan-card:not(.on) .chan-name{color:#41423e; font-weight:500}
-  .chan-scope{display:inline-block; margin-top:4px; font-size:10px; font-weight:800;
-              letter-spacing:.03em; text-transform:uppercase; border-radius:20px;
-              padding:3px 8px; color:var(--muted); background:#f1f2f4}
-  .chan-card.on .chan-scope{color:#2b7a47; background:#ddf6e5}
   .chan-card input{font:inherit; font-size:13.5px; font-weight:600; color:var(--ink);
                    background:var(--bg); border:1px solid var(--accent); border-radius:5px;
                    padding:1px 5px; outline:none; width:100%}
@@ -934,15 +930,22 @@
   .gtm-node:hover,.gtm-motion-head:hover{border-color:#8f938d}
   .gtm-node small{margin-bottom:4px; color:#8b8d87; font-size:8px; font-weight:800;
                   letter-spacing:.1em; text-transform:uppercase}
-  .gtm-node strong{color:#292b27; font-size:12px}.gtm-company,.gtm-product{margin-bottom:34px}
+  .gtm-node strong{color:#292b27; font-size:12px}.gtm-company{margin-bottom:34px}
+  .gtm-node-add,.gtm-motion-add{position:absolute; top:6px; right:8px; width:auto; height:auto;
+              padding:0; border:0; background:transparent; color:#4f5a51; font-size:16px;
+              line-height:1; box-shadow:none}
+  .gtm-node-add:hover,.gtm-motion-add:hover{background:transparent; color:#2f8b50; border:0}
+  .gtm-product-row{position:relative; z-index:2; display:flex; justify-content:center; gap:12px;
+              width:max-content; min-width:220px; margin:0 auto 34px}
+  .gtm-product{flex:0 0 220px; margin:0}
+  .gtm-product.on{border-color:#65c88a; background:#effbf3; box-shadow:0 0 0 1px rgba(87,201,130,.14)}
   .gtm-strategy-node{margin-bottom:62px; border-color:#65c88a; background:#effbf3}
   .gtm-motions{position:relative; z-index:2; display:flex; align-items:flex-start;
                gap:70px; width:max-content; min-width:900px; margin:0 auto}
-  .gtm-motion{flex:0 0 auto; width:max-content; min-width:420px}.gtm-motion-head{width:210px; min-height:50px; margin:0 auto 42px;
+  .gtm-motion{flex:0 0 auto; width:max-content; min-width:420px}.gtm-motion-head{position:relative; width:210px; min-height:50px; margin:0 auto 42px;
               display:flex; align-items:center; justify-content:center; gap:10px;
               padding:10px 12px; border:1px solid #c9cac6; background:#fff; cursor:pointer}
-  .gtm-motion-head strong{font-size:11.5px}.gtm-motion-head button{width:22px; height:22px;
-              padding:0; border-color:#d4d7d1; background:#fafaf8; font-size:13px}
+  .gtm-motion-head strong{font-size:11.5px}
   .gtm-channel-grid{display:flex; flex-wrap:nowrap; justify-content:center; gap:10px}
   .gtm-channel-grid .chan-card{flex:0 0 210px; width:210px; min-width:210px; min-height:68px}
   .gtm-motion .buyer-journey{position:relative; z-index:2; width:470px; margin:34px 0 0;
@@ -1922,15 +1925,14 @@
             </dl>
           </aside>
           <div class="gtm-node gtm-company" id="gtmCompanyNode" role="button" tabindex="0" aria-expanded="false">
+            <button class="gtm-node-add" id="btnAddGtmProduct" type="button" title="Add product">+</button>
             <small>Company</small><strong id="gtmCompanyName">Company name</strong>
           </div>
-          <div class="gtm-node gtm-product" id="gtmProductNode" role="button" tabindex="0" aria-expanded="false" hidden>
-            <small>Target product</small><strong id="gtmProductName">Product name</strong>
-          </div>
+          <div class="gtm-product-row" id="gtmProductRow" hidden></div>
           <div class="gtm-node gtm-strategy-node" id="gtmStrategyNode" role="button" tabindex="0" aria-expanded="false" hidden><strong>GTM Strategy</strong></div>
           <div class="gtm-motions" id="gtmMotions" hidden>
             <section class="gtm-motion" data-motion="inbound">
-              <div class="gtm-motion-head" id="gtmInboundHead" role="button" tabindex="0" aria-expanded="false"><strong>Inbound</strong><button id="btnAddInbound" type="button">+</button></div>
+              <div class="gtm-motion-head" id="gtmInboundHead" role="button" tabindex="0" aria-expanded="false"><strong>Inbound</strong><button class="gtm-motion-add" id="btnAddInbound" type="button" title="Add inbound channel">+</button></div>
               <div class="gtm-channel-grid" id="chanInboundGrid"></div>
               <section class="buyer-journey" id="buyerJourney" hidden>
                 <div class="buyer-head"><div><h4>Buyer Journey</h4></div></div>
@@ -1938,7 +1940,7 @@
               </section>
             </section>
             <section class="gtm-motion" data-motion="outbound">
-              <div class="gtm-motion-head" id="gtmOutboundHead" role="button" tabindex="0" aria-expanded="false"><strong>Outbound</strong><button id="btnAddOutbound" type="button">+</button></div>
+              <div class="gtm-motion-head" id="gtmOutboundHead" role="button" tabindex="0" aria-expanded="false"><strong>Outbound</strong><button class="gtm-motion-add" id="btnAddOutbound" type="button" title="Add outbound channel">+</button></div>
               <div class="gtm-channel-grid" id="chanOutboundGrid"></div>
             </section>
           </div>
@@ -2239,7 +2241,7 @@ const SUPABASE_URL = 'https://cskamgfvebryahkljlll.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_MdkD-TxMCIwlu69seSHA3Q_A39GADsK';
 const CLIENT_ID    = '1059013355751-6g50dsgm7df37htl2fdqrtlkh5hmrc0c.apps.googleusercontent.com';
 const ALLOWED      = ['vijaysrinivassan@gmail.com'];
-const BUILD        = 'v7.39';
+const BUILD        = 'v7.40';
 
 const STRATEGY_ONE_TAB = 'Strategy 1 — Brand Strategy';
 const PRODUCT_EVOLUTION_TAB = 'Strategy 1 — Product Evolution';
@@ -8692,6 +8694,22 @@ function channelState(){
   }
   const t = brand.channels;
   if (!Array.isArray(t.items)) t.items = [];
+  if (!Array.isArray(t.products)) t.products = [];
+  const seededProduct = (state.clientProduct || '').trim();
+  if (!t.products.length){
+    t.products.push({ id: uid(), name: seededProduct || 'Product name' });
+    t.activeProductId = t.products[0].id;
+    if (!readOnly()) setTimeout(markDirty, 0);
+  }
+  if (seededProduct && !t.products.some(product => String(product.name || '').trim() === seededProduct)){
+    const first = t.products[0];
+    if (first && (!first.name || first.name === 'Product name')) first.name = seededProduct;
+  }
+  t.products.forEach(product => {
+    if (!product.id) product.id = uid();
+    product.name = String(product.name || '').trim() || 'Product name';
+  });
+  if (!t.products.some(product => product.id === t.activeProductId)) t.activeProductId = t.products[0].id;
   t.items.forEach(item => {
     if (!item.id) item.id = uid();
     if (!item.kind && /on[\s-]*page\s+seo/i.test(item.name || '')) item.kind = 'onpage';
@@ -8708,6 +8726,14 @@ function channelState(){
   return t;
 }
 
+function activeGtmProduct(t){
+  return (t.products || []).find(product => product.id === t.activeProductId) || (t.products || [])[0] || null;
+}
+function gtmProductTargetName(product){
+  const name = product ? String(product.name || '').trim() : '';
+  return name && name !== 'Product name' ? name : '';
+}
+
 function isOnPageChannel(item){
   return item && (item.kind === 'onpage' || /on[\s-]*page\s+seo/i.test(item.name || ''));
 }
@@ -8720,6 +8746,20 @@ function revealGtmLevel(level){
 function revealGtmMotion(motion){
   gtmOpenMotions[motion] = true;
   renderChannels();
+}
+
+function addGtmProduct(){
+  if (readOnly()) return;
+  const t = channelState();
+  const product = { id: uid(), name: 'New product' };
+  t.products.push(product);
+  t.activeProductId = product.id;
+  state.clientProduct = gtmProductTargetName(product);
+  markDirty();
+  renderChannels();
+  const names = $('gtmProductRow').querySelectorAll('.gtm-product-name');
+  const last = names[names.length - 1];
+  if (last) last.dispatchEvent(new MouseEvent('dblclick', { bubbles: true }));
 }
 
 function chooseChannel(t, item){
@@ -8736,15 +8776,53 @@ function renderChannels(){
   const t = channelState();
   const hosts = { inbound: $('chanInboundGrid'), outbound: $('chanOutboundGrid') };
   hosts.inbound.innerHTML = ''; hosts.outbound.innerHTML = '';
+  const productRow = $('gtmProductRow');
+  productRow.innerHTML = '';
   $('gtmCompanyName').textContent = state.client || 'Company name';
-  $('gtmProductName').textContent = state.clientProduct || 'Product name';
+  const selectedProduct = activeGtmProduct(t);
+  const targetProductName = gtmProductTargetName(selectedProduct);
+  if (selectedProduct && state.clientProduct !== targetProductName) state.clientProduct = targetProductName;
+  $('sgAboutProduct').textContent = state.clientProduct || 'Not selected';
   const depth = gtmRevealDepth;
-  $('gtmProductNode').hidden = depth < 1;
+  productRow.hidden = depth < 1;
   $('gtmStrategyNode').hidden = depth < 2;
   $('gtmMotions').hidden = depth < 3;
   $('gtmCompanyNode').setAttribute('aria-expanded', depth >= 1 ? 'true' : 'false');
-  $('gtmProductNode').setAttribute('aria-expanded', depth >= 2 ? 'true' : 'false');
   $('gtmStrategyNode').setAttribute('aria-expanded', depth >= 3 ? 'true' : 'false');
+  $('btnAddGtmProduct').hidden = readOnly();
+  t.products.forEach(product => {
+    const card = document.createElement('div');
+    card.className = 'gtm-node gtm-product' + (product.id === t.activeProductId ? ' on' : '');
+    card.tabIndex = 0;
+    card.setAttribute('role', 'button');
+    card.setAttribute('aria-expanded', depth >= 2 && product.id === t.activeProductId ? 'true' : 'false');
+    const label = document.createElement('small');
+    label.textContent = 'Target product';
+    const name = document.createElement('strong');
+    name.className = 'gtm-product-name';
+    name.textContent = product.name;
+    name.title = 'Double-click to rename';
+    name.ondblclick = ev => {
+      ev.stopPropagation();
+      inlineRename(name, product.name, value => {
+        product.name = value || 'Product name';
+        t.activeProductId = product.id;
+        state.clientProduct = gtmProductTargetName(product);
+        markDirty();
+        renderChannels();
+      });
+    };
+    const choose = () => {
+      t.activeProductId = product.id;
+      state.clientProduct = gtmProductTargetName(product);
+      if (!readOnly()) markDirty();
+      revealGtmLevel(2);
+    };
+    card.onclick = choose;
+    card.onkeydown = event => gtmKeyboardActivate(event, choose);
+    card.append(label, name);
+    productRow.append(card);
+  });
   ['inbound', 'outbound'].forEach(motion => {
     const open = depth >= 3 && !!gtmOpenMotions[motion];
     const grid = hosts[motion];
@@ -8761,7 +8839,7 @@ function renderChannels(){
     card.tabIndex = readOnly() && !isOnPageChannel(item) ? -1 : 0;
     card.setAttribute('role', 'button');
     card.setAttribute('aria-pressed', item.on ? 'true' : 'false');
-    card.setAttribute('aria-label', item.name + ': ' + (item.on ? 'in scope' : 'available lever'));
+    card.setAttribute('aria-label', item.name + ': ' + (item.on ? 'selected' : 'not selected'));
     card.dataset.motion = item.motion;
     card.onclick = () => chooseChannel(t, item);
     card.onkeydown = ev => {
@@ -8784,10 +8862,7 @@ function renderChannels(){
       ev.stopPropagation();
       inlineRename(nm, item.name, v => { item.name = v || 'Untitled'; markDirty(); renderChannels(); });
     };
-    const scope = document.createElement('div');
-    scope.className = 'chan-scope';
-    scope.textContent = item.on ? 'In scope' : 'Available lever';
-    wrap.append(nm, scope);
+    wrap.append(nm);
 
     const x = document.createElement('button');
     x.className = 'chan-x';
@@ -8881,9 +8956,9 @@ function drawChannelWires(){
   const svg = $('chanWires');
   const flow = $('chanFlow');
   const company = flow && flow.querySelector('.gtm-company');
-  const product = flow && flow.querySelector('.gtm-product');
+  const productRow = $('gtmProductRow');
   const strategy = flow && flow.querySelector('.gtm-strategy-node');
-  if (!svg || !flow || !company || !product || !strategy || $('chanPane').hidden) return;
+  if (!svg || !flow || !company || !productRow || !strategy || $('chanPane').hidden) return;
 
   const box = flow.getBoundingClientRect();
   const width = flow.scrollWidth;
@@ -8899,15 +8974,15 @@ function drawChannelWires(){
     return { x: rect.left - box.left + rect.width / 2,
       y: (side === 'top' ? rect.top : rect.bottom) - box.top };
   };
-  const path = (from, to, chosen) => {
-    const bend = Math.max(24, (to.y - from.y) * .58);
-    return '<path class="chan-wire' + (chosen ? ' on' : '') + '" marker-end="url(#' +
-      (chosen ? 'chanArrowOn' : 'chanArrow') + ')" d="M ' + from.x + ' ' + from.y +
-      ' C ' + from.x + ' ' + (from.y + bend) + ', ' + to.x + ' ' + (to.y - bend) +
-      ', ' + to.x + ' ' + to.y + '"/>';
-  };
-  if (!product.hidden) out += path(point(company, 'bottom'), point(product, 'top'), true);
-  if (!strategy.hidden) out += path(point(product, 'bottom'), point(strategy, 'top'), true);
+  const path = (from, to, chosen) => '<line class="chan-wire' + (chosen ? ' on' : '') +
+    '" marker-end="url(#' + (chosen ? 'chanArrowOn' : 'chanArrow') + ')" x1="' +
+    from.x + '" y1="' + from.y + '" x2="' + to.x + '" y2="' + to.y + '"/>';
+  const products = Array.from(productRow.querySelectorAll('.gtm-product'));
+  if (!productRow.hidden) products.forEach(product => {
+    out += path(point(company, 'bottom'), point(product, 'top'), product.classList.contains('on'));
+  });
+  const selectedProduct = productRow.querySelector('.gtm-product.on') || products[0];
+  if (!strategy.hidden && selectedProduct) out += path(point(selectedProduct, 'bottom'), point(strategy, 'top'), true);
   if (!$('gtmMotions').hidden) Array.from(flow.querySelectorAll('.gtm-motion')).forEach(motion => {
     const head = motion.querySelector('.gtm-motion-head');
     const grid = motion.querySelector('.gtm-channel-grid');
@@ -9803,7 +9878,6 @@ function renderStrategyGuide(){
   $('sgAboutIcp1').textContent = state.clientIcp1 || 'New Entrants';
   $('sgAboutIcp2').textContent = clientIcp2Label(g.ocean);
   $('gtmCompanyName').textContent = state.client || 'Company name';
-  $('gtmProductName').textContent = state.clientProduct || 'Product name';
   requestAnimationFrame(drawChannelWires);
 }
 
@@ -9939,16 +10013,16 @@ function gtmKeyboardActivate(event, action){
 }
 $('gtmCompanyNode').onclick = () => revealGtmLevel(1);
 $('gtmCompanyNode').onkeydown = event => gtmKeyboardActivate(event, () => revealGtmLevel(1));
-$('gtmProductNode').onclick = () => revealGtmLevel(2);
-$('gtmProductNode').onkeydown = event => gtmKeyboardActivate(event, () => revealGtmLevel(2));
 $('gtmStrategyNode').onclick = () => revealGtmLevel(3);
 $('gtmStrategyNode').onkeydown = event => gtmKeyboardActivate(event, () => revealGtmLevel(3));
 $('gtmInboundHead').onclick = () => revealGtmMotion('inbound');
 $('gtmInboundHead').onkeydown = event => gtmKeyboardActivate(event, () => revealGtmMotion('inbound'));
 $('gtmOutboundHead').onclick = () => revealGtmMotion('outbound');
 $('gtmOutboundHead').onkeydown = event => gtmKeyboardActivate(event, () => revealGtmMotion('outbound'));
+$('btnAddGtmProduct').onclick = event => { event.stopPropagation(); addGtmProduct(); };
 $('btnAddInbound').onclick = event => { event.stopPropagation(); addChannel('inbound'); };
 $('btnAddOutbound').onclick = event => { event.stopPropagation(); addChannel('outbound'); };
+$('btnAddGtmProduct').onkeydown = event => event.stopPropagation();
 $('btnAddInbound').onkeydown = event => event.stopPropagation();
 $('btnAddOutbound').onkeydown = event => event.stopPropagation();
 $('btnTypeAdd').onclick = addTypeToLibrary;
