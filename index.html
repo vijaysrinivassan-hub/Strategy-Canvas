@@ -1492,13 +1492,16 @@
   .competitive-controls{grid-column:2/-1; display:flex; gap:3px; justify-content:flex-end}
   .competitive-controls button{padding:3px 7px; border:0; background:transparent;
                                color:#858680; font-size:10px}
-  .value-map{position:relative; width:min(920px,100%); height:300px; margin:2px auto 0}
-  .value-wires{position:absolute; inset:0; width:100%; height:100%; pointer-events:none}
-  .value-wire{fill:none; stroke:#b9bab6; stroke-width:1.6; stroke-linecap:round;
-              vector-effect:non-scaling-stroke}
-  .value-card{position:absolute; width:220px; min-height:94px; padding:13px 14px;
-              border:1px solid #d0d1cc; border-radius:6px; background:#fff;
-              box-shadow:0 1px 2px rgba(0,0,0,.04)}
+  .value-map{display:flex; flex-direction:column; gap:14px; width:min(920px,100%); margin:2px auto 0}
+  .value-row{position:relative; padding:14px; border:1px solid #d0d1cc; border-radius:6px;
+             background:rgba(255,255,255,.92); box-shadow:0 1px 2px rgba(0,0,0,.04)}
+  .value-row-head{display:flex; align-items:center; gap:10px; margin-bottom:12px}
+  .value-row-head b{color:#5e615b; font-size:8.5px; font-weight:850; letter-spacing:.09em; text-transform:uppercase}
+  .value-row-head button{margin-left:auto; padding:3px 7px; border:0; background:transparent;
+                         color:#858680; font-size:12px}
+  .value-row-grid{display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:12px}
+  .value-card{position:relative; min-height:94px; padding:13px 14px;
+              border:1px solid #d0d1cc; border-radius:6px; background:#fff}
   .value-card span{display:block; margin-bottom:8px; color:#777872; font-size:8px;
                    font-weight:800; letter-spacing:.08em; text-transform:uppercase}
   .value-card textarea{display:block; width:100%; min-height:52px; resize:none; border:0;
@@ -1506,8 +1509,8 @@
                        outline:none; background:transparent; color:#292a27;
                        font:inherit; font-size:11.5px; line-height:1.4}
   .value-card textarea:focus{border-color:#57c982}
-  .value-functional{left:0; top:103px}.value-benefit{left:32%; top:103px}
-  .value-monetary{right:0; top:18px}.value-strategic{right:0; bottom:18px}
+  .value-add-row{width:min(920px,100%); margin:12px auto 0; padding:8px 10px;
+                 border-color:#cbd8ce; background:#fff; color:#3f7550; font-size:10px}
   @media(max-width:900px){
     .positioning{padding:14px}.pos-section{padding:18px 14px}.icp-card-head{padding-right:0}
     .icp-name{width:100%}.icp-row{grid-template-columns:28px 1fr 1fr 28px}
@@ -1516,8 +1519,7 @@
     .cat-main{grid-template-columns:66px 1fr}.cat-description{grid-column:1/-1}
     .cat-status{position:absolute; right:12px; top:10px}.cat-competitor{grid-template-columns:1fr}
     .competitive-card{grid-template-columns:64px 1fr}.competitive-status{position:absolute; right:12px; top:10px}
-    .competitive-controls{grid-column:1/-1}.value-map{height:auto; display:grid; grid-template-columns:1fr 1fr; gap:12px}
-    .value-card{position:relative; inset:auto; width:auto}.value-wires{display:none}
+    .competitive-controls{grid-column:1/-1}.value-row-grid{grid-template-columns:1fr 1fr}
   }
   .pe-empty-source{color:#858680; font-size:10.5px; line-height:1.4}
   @media(max-width:780px){
@@ -1963,7 +1965,7 @@
     <!-- Four-axis product evolution mapper with an editable progression. -->
     <div class="evo" id="evoPane" hidden>
       <div class="evo-canvas">
-        <div class="evo-head">
+        <div class="evo-head" id="evoHead">
           <h3>What is the axis of evolution?</h3>
           <p>Choose one axis, then map what came before and every stage that followed.</p>
         </div>
@@ -1984,20 +1986,6 @@
             <button class="evo-change" id="btnEvoChange" type="button">Choose another axis</button>
           </div>
           <div class="evo-track-scroll"><div class="evo-track" id="evoTrack"></div></div>
-        </section>
-        <section class="pe-box" id="problemEvidenceBox">
-          <div class="pe-head">
-            <div>
-              <h4>Problems &amp; Evidence</h4>
-              <p>Capture each market problem and connect it to web sources or documents in Grounded Evidences.</p>
-            </div>
-            <button id="btnAddProblem" type="button">+ Add problem</button>
-          </div>
-          <div class="pe-scroll">
-            <table class="pe-table" id="problemEvidenceTable">
-              <thead><tr><th>S No</th><th>Problems</th><th>Evidences</th></tr></thead>
-            </table>
-          </div>
         </section>
       </div>
     </div>
@@ -2048,7 +2036,7 @@
       </div>
     </div>
 
-    <!-- Zoomable category radar driven by Product Evolution and Category Positioning. -->
+    <!-- Zoomable category radar driven by the selected evolution direction and Category Positioning. -->
     <div class="radar" id="brandRadarPane" hidden>
       <div class="radar-canvas">
         <div class="radar-head">
@@ -2062,6 +2050,7 @@
             <button id="btnOpenCategoryPositioning" type="button">Edit categories</button>
           </div>
         </div>
+        <section class="pos-section radar-evolution-section" id="radarEvolutionHost"></section>
         <div class="radar-figure">
           <aside class="radar-market-type" id="radarMarketType">
             <span>Market type</span>
@@ -2122,8 +2111,23 @@
             <h3>Value Positioning</h3>
             <p>Connect what the product does to the benefit, monetary value and strategic value it creates.</p>
           </div>
+          <button id="btnAddValuePositioningRow" type="button">+ Add value</button>
         </div>
         <div class="value-map" id="positioningValues"></div>
+        <section class="pe-box" id="problemEvidenceBox">
+          <div class="pe-head">
+            <div>
+              <h4>Problems &amp; Evidence</h4>
+              <p>Capture each market problem and connect it to web sources or documents in Grounded Evidences.</p>
+            </div>
+            <button id="btnAddProblem" type="button">+ Add problem</button>
+          </div>
+          <div class="pe-scroll">
+            <table class="pe-table" id="problemEvidenceTable">
+              <thead><tr><th>S No</th><th>Problems</th><th>Evidences</th></tr></thead>
+            </table>
+          </div>
+        </section>
       </section>
     </div>
 
@@ -2248,7 +2252,7 @@ const SUPABASE_URL = 'https://cskamgfvebryahkljlll.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_MdkD-TxMCIwlu69seSHA3Q_A39GADsK';
 const CLIENT_ID    = '1059013355751-6g50dsgm7df37htl2fdqrtlkh5hmrc0c.apps.googleusercontent.com';
 const ALLOWED      = ['vijaysrinivassan@gmail.com'];
-const BUILD        = 'v7.45';
+const BUILD        = 'v7.46';
 
 const STRATEGY_ONE_TAB = 'Strategy 1 — Brand Strategy';
 const PRODUCT_EVOLUTION_TAB = 'Strategy 1 — Product Evolution';
@@ -2264,7 +2268,6 @@ const TABS = [
   'Positioning Document',
   'Growth Strategy',
   STRATEGY_ONE_TAB,
-  PRODUCT_EVOLUTION_TAB,
   PRODUCT_ARCHITECTURE_TAB,
   POSITIONING_TAB,
   POSITIONING_DOCUMENT_TAB,
@@ -2306,6 +2309,7 @@ function moveCanvas(from, to, after){
   markDirty();
   renderTabs();
 }
+const LEGACY_HIDDEN_TABS = [PRODUCT_EVOLUTION_TAB];
 const isBrandTab = name => brandTabs().indexOf(name) > -1;
 const NAV = [
   { kind: 'label',  text: 'Strategy' },
@@ -2342,6 +2346,7 @@ function closeNav(){
 const $ = id => document.getElementById(id);
 const uid = () => Math.random().toString(36).slice(2, 10) + Date.now().toString(36).slice(-4);
 $('brandChannelHost').append($('chanPane'));
+$('radarEvolutionHost').append($('evoHead'), $('evoMap'), $('evoSequence'));
 
 /* ===================================================================
    STATE
@@ -2667,7 +2672,7 @@ function renderTabs(){
     label.textContent = displayLabel || name;
     b.append(label);
     const isPanel = [DOCS_TAB, CHANNELS_TAB, KEYWORDS_TAB, CONTENT_TAB,
-                     STRATEGY_ONE_TAB, PRODUCT_EVOLUTION_TAB, PRODUCT_ARCHITECTURE_TAB,
+                     STRATEGY_ONE_TAB, PRODUCT_ARCHITECTURE_TAB,
                      POSITIONING_TAB, POSITIONING_DOCUMENT_TAB, BRAND_RADAR_TAB].indexOf(name) > -1;
     if (!isPanel){
       const c = document.createElement('span');
@@ -2736,7 +2741,6 @@ function renderTabs(){
        Strategy rather than taking another sidebar row. */
     if (item.kind === 'strategy1-tabs'){
       box.append(tabButton(STRATEGY_ONE_TAB, 'GTM Strategy'));
-      box.append(tabButton(PRODUCT_EVOLUTION_TAB, 'Product Evolution'));
       box.append(tabButton(PRODUCT_ARCHITECTURE_TAB, 'Product Architecture'));
       box.append(tabButton(POSITIONING_TAB, 'Positioning Canvas'));
       box.append(tabButton(POSITIONING_DOCUMENT_TAB, 'Positioning Document'));
@@ -2906,7 +2910,6 @@ function renderTabs(){
     /* The Keywords section uses the selected matrix as its page title. */
     $('tabTitle').textContent = state.tab === CONTENT_TAB ? viewDef(state.contentView).label
       : state.tab === STRATEGY_ONE_TAB || state.tab === CHANNELS_TAB ? 'GTM Strategy'
-      : state.tab === PRODUCT_EVOLUTION_TAB ? 'Product Evolution'
       : state.tab === PRODUCT_ARCHITECTURE_TAB ? 'Product Architecture'
       : state.tab === POSITIONING_TAB ? 'Positioning Canvas'
       : state.tab === POSITIONING_DOCUMENT_TAB ? 'Positioning Document'
@@ -3327,7 +3330,7 @@ function switchTab(name){
   state.tab = name;
   state.frameIndex = -1;
   state.screen = 'board';
-  if ([STRATEGY_ONE_TAB, PRODUCT_EVOLUTION_TAB, PRODUCT_ARCHITECTURE_TAB,
+  if ([STRATEGY_ONE_TAB, PRODUCT_ARCHITECTURE_TAB,
        POSITIONING_TAB, POSITIONING_DOCUMENT_TAB, BRAND_RADAR_TAB, CHANNELS_TAB].indexOf(name) !== -1) openNav('strategy1');
   else if (isBrandTab(name)) closeNav();
   else if (name === CONTENT_TAB) openNav('content');
@@ -3955,7 +3958,9 @@ function serialize(){
   captureFrame();
   /* the frame scratch tab is a working copy, not a tab of this board */
   const tabs = {};
-  Object.keys(state.tabs).forEach(k => { if (k !== FRAME_TAB) tabs[k] = state.tabs[k]; });
+  Object.keys(state.tabs).forEach(k => {
+    if (k !== FRAME_TAB && LEGACY_HIDDEN_TABS.indexOf(k) === -1) tabs[k] = state.tabs[k];
+  });
   return JSON.stringify({ version: 3, client: state.client, clientProduct: state.clientProduct || '',
                           clientType: state.clientType || '',
                           clientGoal: state.clientGoal || 'Customer Acquisition',
@@ -3995,9 +4000,11 @@ function hydrate(text){
     });
     /* Anything saved that is not a built-in tab is a canvas the user added. */
     if (Array.isArray(d.extra)){
-      state.extra = d.extra.filter(x => typeof x === 'string' && TABS.indexOf(x) === -1);
+      state.extra = d.extra.filter(x => typeof x === 'string' && TABS.indexOf(x) === -1 &&
+        LEGACY_HIDDEN_TABS.indexOf(x) === -1);
     } else {
-      state.extra = Object.keys(d.tabs).filter(x => TABS.indexOf(x) === -1 && x !== FRAME_TAB);
+      state.extra = Object.keys(d.tabs).filter(x => TABS.indexOf(x) === -1 && x !== FRAME_TAB &&
+        LEGACY_HIDDEN_TABS.indexOf(x) === -1);
     }
   }
   state.client = (d && d.client) || 'XYZ';
@@ -4612,7 +4619,7 @@ function applyTabMode(){
   const isKw   = state.tab === KEYWORDS_TAB;
   const isMx   = state.tab === CONTENT_TAB;
   const isGuide = state.tab === STRATEGY_ONE_TAB || isChan;
-  const isEvo = state.tab === PRODUCT_EVOLUTION_TAB;
+  const isEvo = false;
   const isArchitecture = state.tab === PRODUCT_ARCHITECTURE_TAB;
   const isPositioning = state.tab === POSITIONING_TAB;
   const isPositioningDocument = state.tab === POSITIONING_DOCUMENT_TAB;
@@ -4647,18 +4654,16 @@ function applyTabMode(){
   if (isKw && state.user) refreshKeywords();
   if (isMx) refreshMatrix();   /* grids need no database, so no user check */
   if (isGuide){ renderStrategyGuide(); renderChannels(); }
-  if (isEvo){
-    renderEvolution();
-    if (state.user){
-      refreshDocs().then(() => {
-        if (state.tab === PRODUCT_EVOLUTION_TAB) renderProblemEvidence();
-      }).catch(() => {});
-    }
+  if (isPositioning){
+    renderPositioning();
+    renderProblemEvidence();
+    if (state.user) refreshDocs().then(() => {
+      if (state.tab === POSITIONING_TAB) renderProblemEvidence();
+    }).catch(() => {});
   }
-  if (isPositioning) renderPositioning();
   if (isPositioningDocument) renderPositioningDocument();
   if (isArchitecture) renderProductArchitecture();
-  if (isRadar) renderBrandRadar();
+  if (isRadar){ renderEvolution(); renderBrandRadar(); }
   renderCrumb();
   applyRole();
 }
@@ -7495,7 +7500,10 @@ function positioningState(){
     p.competitive = { selectedStage: '', stages: [] };
   }
   if (!Array.isArray(p.competitive.stages)) p.competitive.stages = [];
-  if (!p.values || typeof p.values !== 'object') p.values = {};
+  if (!Array.isArray(p.valueRows)){
+    const oldValues = p.values && typeof p.values === 'object' ? p.values : {};
+    p.valueRows = [newValuePositioningRow(oldValues)];
+  }
   if (!p.icps.length) p.icps.push(newPositioningIcp());
   if (!p.categories.length) p.categories.push(newPositioningCategory());
   while (p.competitive.stages.length < 3) p.competitive.stages.push(newCompetitiveStage());
@@ -7524,13 +7532,21 @@ function positioningState(){
     if (typeof stage.competitors !== 'string') stage.competitors = '';
     if (typeof stage.architecture !== 'string') stage.architecture = '';
   });
-  VALUE_POSITIONING_FIELDS.forEach(field => {
-    if (typeof p.values[field[0]] !== 'string') p.values[field[0]] = '';
-  });
+  if (!p.valueRows.length) p.valueRows.push(newValuePositioningRow());
+  p.valueRows = p.valueRows.map(row => newValuePositioningRow(row));
   if (!p.icps.some(x => x.id === p.selectedIcp)) p.selectedIcp = '';
   if (!p.categories.some(x => x.id === p.selectedCategory)) p.selectedCategory = '';
   if (!p.competitive.stages.some(x => x.id === p.competitive.selectedStage)) p.competitive.selectedStage = '';
   return p;
+}
+
+function newValuePositioningRow(seed){
+  const row = seed && typeof seed === 'object' ? Object.assign({}, seed) : {};
+  if (!row.id) row.id = uid();
+  VALUE_POSITIONING_FIELDS.forEach(field => {
+    if (typeof row[field[0]] !== 'string') row[field[0]] = '';
+  });
+  return row;
 }
 
 function syncPositioningCompetitors(category){
@@ -7928,20 +7944,46 @@ function renderPositioning(){
   });
 
   const valueHost = $('positioningValues');
-  valueHost.innerHTML = '<svg class="value-wires" viewBox="0 0 920 300" preserveAspectRatio="none" aria-hidden="true">' +
-    '<path class="value-wire" d="M220 150 C250 150 265 150 294 150"/>' +
-    '<path class="value-wire" d="M514 150 C570 150 570 65 700 65"/>' +
-    '<path class="value-wire" d="M514 150 C570 150 570 235 700 235"/>' +
-    '</svg>';
-  VALUE_POSITIONING_FIELDS.forEach(field => {
-    const card = document.createElement('label');
-    card.className = 'value-card value-' + field[0];
-    const label = document.createElement('span');
-    label.textContent = field[1];
-    const textarea = positioningTextarea(p.values[field[0]], field[2], ro,
-      value => { p.values[field[0]] = value; });
-    card.append(label, textarea);
-    valueHost.append(card);
+  valueHost.innerHTML = '';
+  $('btnAddValuePositioningRow').hidden = ro;
+  p.valueRows.forEach((valueRow, rowIndex) => {
+    const row = document.createElement('article');
+    row.className = 'value-row';
+    const head = document.createElement('div');
+    head.className = 'value-row-head';
+    const title = document.createElement('b');
+    title.textContent = 'Value ' + (rowIndex + 1);
+    head.append(title);
+    if (!ro){
+      const remove = document.createElement('button');
+      remove.type = 'button';
+      remove.title = 'Remove this value';
+      remove.textContent = '\u00d7';
+      remove.onclick = () => {
+        if (p.valueRows.length === 1){
+          p.valueRows[0] = newValuePositioningRow();
+        } else {
+          p.valueRows = p.valueRows.filter(item => item.id !== valueRow.id);
+        }
+        markDirty();
+        renderPositioning();
+      };
+      head.append(remove);
+    }
+    const grid = document.createElement('div');
+    grid.className = 'value-row-grid';
+    VALUE_POSITIONING_FIELDS.forEach(field => {
+      const card = document.createElement('label');
+      card.className = 'value-card value-' + field[0];
+      const label = document.createElement('span');
+      label.textContent = field[1];
+      const textarea = positioningTextarea(valueRow[field[0]], field[2], ro,
+        value => { valueRow[field[0]] = value; });
+      card.append(label, textarea);
+      grid.append(card);
+    });
+    row.append(head, grid);
+    valueHost.append(row);
   });
 }
 
@@ -7958,6 +8000,11 @@ $('btnAddPositioningCategory').onclick = () => {
 $('btnAddCompetitiveStage').onclick = () => {
   if (readOnly()) return;
   positioningState().competitive.stages.push(newCompetitiveStage());
+  markDirty(); renderPositioning();
+};
+$('btnAddValuePositioningRow').onclick = () => {
+  if (readOnly()) return;
+  positioningState().valueRows.push(newValuePositioningRow());
   markDirty(); renderPositioning();
 };
 
@@ -8068,7 +8115,7 @@ function isCanvasTab(){
   if (state.screen !== 'board') return false;
   if (inFrame()) return (state.frames[state.frameIndex] || {}).kind === 'canvas';
   return [DOCS_TAB, CHANNELS_TAB, KEYWORDS_TAB, CONTENT_TAB,
-          STRATEGY_ONE_TAB, PRODUCT_EVOLUTION_TAB, PRODUCT_ARCHITECTURE_TAB,
+          STRATEGY_ONE_TAB, PRODUCT_ARCHITECTURE_TAB,
           POSITIONING_TAB, POSITIONING_DOCUMENT_TAB, BRAND_RADAR_TAB].indexOf(state.tab) === -1;
 }
 const openFrameDef = () => (inFrame() ? state.frames[state.frameIndex] : null);
@@ -8521,7 +8568,7 @@ function renderCrumb(){
   let c = 'Strategy';
   if (state.screen !== 'board') c = 'Account';
   else if (inFrame()) c = 'Frames';
-  else if ([STRATEGY_ONE_TAB, PRODUCT_EVOLUTION_TAB, PRODUCT_ARCHITECTURE_TAB,
+  else if ([STRATEGY_ONE_TAB, PRODUCT_ARCHITECTURE_TAB,
             POSITIONING_TAB, POSITIONING_DOCUMENT_TAB, BRAND_RADAR_TAB, CHANNELS_TAB].indexOf(state.tab) !== -1) c = 'Strategy';
   else if (isBrandTab(state.tab)) c = 'Canvas';
   else if (state.tab === CONTENT_TAB) c = 'Keywords';
@@ -9140,8 +9187,10 @@ const EVOLUTION_AXES = [
 ];
 
 function evolutionState(){
-  const t = state.tabs[PRODUCT_EVOLUTION_TAB] ||
-            (state.tabs[PRODUCT_EVOLUTION_TAB] = { nodes: [], edges: [] });
+  const t = state.tabs[BRAND_RADAR_TAB] ||
+            (state.tabs[BRAND_RADAR_TAB] = { nodes: [], edges: [] });
+  const legacy = state.tabs[PRODUCT_EVOLUTION_TAB];
+  if (!t.evolution && legacy && legacy.evolution) t.evolution = legacy.evolution;
   if (!t.evolution || typeof t.evolution !== 'object') t.evolution = { axis: '', paths: {} };
   if (!t.evolution.paths || typeof t.evolution.paths !== 'object') t.evolution.paths = {};
   if (!t.evolution.positions || typeof t.evolution.positions !== 'object') t.evolution.positions = {};
@@ -9168,8 +9217,10 @@ function newEvidence(){
 }
 
 function problemEvidenceState(){
-  const t = state.tabs[PRODUCT_EVOLUTION_TAB] ||
-            (state.tabs[PRODUCT_EVOLUTION_TAB] = { nodes: [], edges: [] });
+  const t = state.tabs[POSITIONING_TAB] ||
+            (state.tabs[POSITIONING_TAB] = { nodes: [], edges: [] });
+  const legacy = state.tabs[PRODUCT_EVOLUTION_TAB];
+  if (!Array.isArray(t.problems) && legacy && Array.isArray(legacy.problems)) t.problems = legacy.problems;
   if (!Array.isArray(t.problems)){
     t.problems = [{ id: uid(), problem: '', evidences: [newEvidence()] }];
   }
@@ -9236,7 +9287,7 @@ function renderProblemEvidence(focus){
           removeProblem.textContent = '\u00d7';
           removeProblem.onclick = () => {
             if (!confirm('Remove this problem and all of its evidence?')) return;
-            const t = state.tabs[PRODUCT_EVOLUTION_TAB];
+            const t = state.tabs[POSITIONING_TAB];
             t.problems = t.problems.filter(x => x.id !== problem.id);
             markDirty();
             renderProblemEvidence();
@@ -9395,8 +9446,8 @@ function renderProblemEvidence(focus){
 $('btnAddProblem').onclick = () => {
   if (readOnly()) return;
   const problem = { id: uid(), problem: '', evidences: [newEvidence()] };
-  const t = state.tabs[PRODUCT_EVOLUTION_TAB] ||
-            (state.tabs[PRODUCT_EVOLUTION_TAB] = { nodes: [], edges: [] });
+  const t = state.tabs[POSITIONING_TAB] ||
+            (state.tabs[POSITIONING_TAB] = { nodes: [], edges: [] });
   if (!Array.isArray(t.problems)) t.problems = [];
   t.problems.push(problem);
   markDirty();
@@ -9418,7 +9469,7 @@ function drawEvolutionWires(){
   const svg = $('evoWires');
   const map = $('evoMap');
   const market = $('evoMarket');
-  if (!svg || !map || !market || $('evoPane').hidden) return;
+  if (!svg || !map || !market || $('brandRadarPane').hidden) return;
   if (window.matchMedia('(max-width:780px)').matches){ svg.innerHTML = ''; return; }
 
   const box = map.getBoundingClientRect();
@@ -9456,7 +9507,6 @@ function drawEvolutionWires(){
 
 function renderEvolution(focusLast){
   const evo = evolutionState();
-  renderProblemEvidence();
   Array.from($('evoMap').querySelectorAll('.evo-axis')).forEach(button => {
     const on = button.dataset.axis === evo.axis;
     button.classList.toggle('on', on);
@@ -9554,6 +9604,7 @@ function renderEvolution(focusLast){
     if (last){ last.focus(); last.scrollIntoView({ block: 'nearest', inline: 'center' }); }
   }
   requestAnimationFrame(drawEvolutionWires);
+  if (!$('brandRadarPane').hidden) requestAnimationFrame(renderBrandRadar);
 }
 
 $('btnEvoChange').onclick = () => {
@@ -9564,7 +9615,7 @@ $('btnEvoChange').onclick = () => {
 };
 
 /* ===================================================================
-   BRAND RADAR — the Product Evolution choice as a four-quadrant map
+   BRAND RADAR — the evolution direction as a four-quadrant map
    =================================================================== */
 const RADAR_AXES = [
   { id: 'technology', label: 'TECHNOLOGY', angle: -90, direction: '\u2191' },
@@ -9874,12 +9925,12 @@ function renderBrandRadar(){
   } else if (active){
     message.textContent = 'Select your category in Positioning Canvas to locate your brand on this radar.';
   } else {
-    message.textContent = 'Choose an evolution direction in Product Evolution to orient the radar.';
+    message.textContent = 'Choose an evolution direction above to orient the radar.';
   }
   status.append(message);
 }
 
-$('btnOpenProductEvolution').onclick = () => switchTab(PRODUCT_EVOLUTION_TAB);
+$('btnOpenProductEvolution').onclick = () => $('radarEvolutionHost').scrollIntoView({ behavior: 'smooth', block: 'start' });
 $('btnOpenCategoryPositioning').onclick = () => switchTab(POSITIONING_TAB);
 
 /* ===================================================================

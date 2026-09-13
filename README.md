@@ -42,8 +42,8 @@ automatically from the relative position of the two notes.
 
 The sidebar groups them:
 
-**Strategy** is a flat working section: GTM Strategy, Product Evolution,
-Product Architecture, Positioning Canvas and Brand Radar appear directly beneath
+**Strategy** is a flat working section: GTM Strategy,
+Product Architecture, Positioning Canvas, Positioning Document and Brand Radar appear directly beneath
 its heading. Channel selection and the Buyer Journey are part of the GTM Strategy
 canvas, not separate
 sidebar tab. **Keywords** is its own sidebar section, with Category, Competitor,
@@ -72,8 +72,8 @@ Services; those details are saved with the board and can be changed later with E
   or channels from the relevant parent. Product cards can be renamed or removed,
   and the bottom-right reset control collapses the GTM journey back to the company
   node without deleting the canvas data. When a selected product is the only active
-  child path, GTM Strategy sits directly below that product. Selecting On-page SEO
-  reveals a compact **Buyer Journey** directly beneath that On-page SEO branch only:
+  child path, GTM Strategy sits directly below that product. Selecting AEO
+  reveals a compact **Buyer Journey** directly beneath that AEO branch only:
   the GTM canvas includes extra side gutter so the centered journey card remains
   visible and scrollable even when it sits under a far-left channel.
   Top of funnel contains JTBD,
@@ -88,13 +88,6 @@ Services; those details are saved with the board and can be changed later with E
   The same card and client settings include ICP 1 and ICP 2. ICP 1 defaults to
   **New Entrants**. ICP 2 is derived from Market Type: **Customers from the Older
   Category** for Blue Ocean, or **Customers from our Category** for Red Ocean.
-- **Strategy › Product Evolution** asks for one of four axes—People, Process,
-  Technology / Access, or Input / Raw material—then maps a Previous state into an
-  unlimited editable sequence of evolution stages. Each axis keeps its own sequence.
-  A Problems & Evidence table beneath it stores any number of market problems and
-  any number of sources per problem. Sources are explicitly marked as external links
-  or Grounded Evidence documents: web evidence opens its URL, while document evidence
-  opens the selected file through the board's existing signed-file viewer.
 - **Strategy › Product Architecture** is a stacked system-of-systems canvas.
   Each adjustable horizontal row is itself the process and can hold any number
   of draggable notes. Notes represent only **Technology** or **People**—inputs,
@@ -120,16 +113,22 @@ Services; those details are saved with the board and can be changed later with E
   are added to **Keywords › Competitor** without duplicating existing rows or
   deleting competitors already entered there. Competitive Positioning then maps the
   tool-stack or product-architecture evolution inside the selected category and marks
-  where the product wins. Value Positioning connects four editable cards: functional
-  value, core benefit, monetary benefit and strategic benefit.
+  where the product wins. Value Positioning supports any number of value rows, and
+  each row captures functional value, core benefit, monetary benefit and strategic
+  benefit. A Problems & Evidence table at the bottom stores any number of market
+  problems and any number of sources per problem. Sources are explicitly marked as
+  external links or Grounded Evidence documents: web evidence opens its URL, while
+  document evidence opens the selected file through the board's existing signed-file
+  viewer.
 - **Strategy › Positioning Document** is the concise written output: five editable
   fields for the Positioning Statement, ICP Positioning, Category Positioning,
   Competitive Positioning and Value Positioning. The connected MCP server can read
   or update the same five fields through `positioning_document_get` and
   `positioning_document_set`.
-- **Strategy › Brand Radar** turns Product Evolution into a four-quadrant market map:
-  Technology access, Input access, Process access and People access. Product Evolution
-  chooses the active direction; the Category Positioning ladder becomes concentric
+- **Strategy › Brand Radar** includes the evolution direction picker: People,
+  Process, Technology / Access, or Input / Raw material, plus the editable Previous
+  state and unlimited evolution stages. That active direction drives the four-quadrant
+  market map; the Category Positioning ladder becomes concentric
   bands inside that direction's sector, with earlier categories toward the centre and
   later categories toward the edge. The client brand is plotted as a crosshair and
   every competitor around the client marker inside the active sector. The client is
