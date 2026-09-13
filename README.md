@@ -88,7 +88,9 @@ saved with the board and can be changed later with Edit.
   in full whenever the available spacing permits and use an ellipsis only when they
   would overlap; decorative player circles are not shown. Dragging
   either green sector boundary expands that direction while compressing the other
-  three. Clicking the centre restores equal quarters. Brand Radar remains read-only
+  three. Only the active sector has wedge-boundary lines; a horizontal/vertical
+  cross points from the centre to the four fixed evolution axes. Clicking the centre
+  restores equal quarters. Brand Radar remains read-only
   for market position; the selected category can only be changed in Category Positioning.
 - **Canvas** lists Product Architecture, Market Research Frame, Messaging Framework,
   Positioning Document and Growth Strategy directly, without a Brand Strategy parent
