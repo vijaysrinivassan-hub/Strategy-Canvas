@@ -1028,8 +1028,6 @@
   .evo-step.previous{border-style:dashed}
   .evo-step.current{border-color:#57c982; background:#effbf3;
                     box-shadow:0 0 0 1px rgba(87,201,130,.14)}
-  .evo-current{position:absolute; right:8px; bottom:7px; color:#2f7b49; font-size:7.5px;
-               font-weight:850; letter-spacing:.07em; text-transform:uppercase}
   .evo-step label{display:block; margin-bottom:8px; color:#777872; font-size:9px;
                   font-weight:800; letter-spacing:.08em; text-transform:uppercase}
   .evo-step input{width:100%; border:0; border-bottom:1px solid #deded9; border-radius:0;
@@ -1089,22 +1087,23 @@
   .radar-head h3{margin:3px 0 6px; color:#20211e; font-size:18px}
   .radar-head p{max-width:700px; margin:0; color:#6f706a; font-size:11.5px; line-height:1.55}
   .radar-head button{margin-left:auto; flex:none}
-  .radar-figure{width:min(700px,100%); margin:0 auto}
+  .radar-figure{width:min(760px,100%); margin:0 auto}
   .radar-svg{display:block; width:100%; height:auto; overflow:visible}
-  .radar-quarter{stroke:#d4d5d0; stroke-width:1.2; transition:fill .15s}
-  .radar-quarter.active{stroke:#57c982; stroke-width:2}
-  .radar-axis-line{stroke:#999a95; stroke-width:1.4; vector-effect:non-scaling-stroke}
-  .radar-outline{fill:none; stroke:#aaaBA6; stroke-width:1.5; vector-effect:non-scaling-stroke}
-  .radar-axis-name{fill:#575852; font-size:15px; font-weight:700; text-anchor:middle}
+  .radar-quarter{stroke:#e0e1dc; stroke-width:1; transition:fill .15s}
+  .radar-quarter.active{stroke:#68c98b; stroke-width:1.8}
+  .radar-axis-line{stroke:#b8b9b3; stroke-width:1.2; vector-effect:non-scaling-stroke}
+  .radar-outline{fill:none; stroke:#969891; stroke-width:1.7; vector-effect:non-scaling-stroke}
+  .radar-axis-card{fill:#fff; stroke:#d5d6d1; stroke-width:1.2}
+  .radar-axis-card.active{fill:#effbf3; stroke:#57c982; stroke-width:1.7}
+  .radar-axis-name{fill:#575852; font-size:14px; font-weight:700; text-anchor:middle}
   .radar-axis-name.active{fill:#22663b}
-  .radar-stage{stroke:#73c891; stroke-width:1.2; cursor:pointer; transition:filter .12s}
-  .radar-stage:hover{filter:brightness(.97)}
-  .radar-stage.selected{stroke:#237a43; stroke-width:3}
+  .radar-axis-dot{fill:#c7c9c3}.radar-axis-dot.active{fill:#42b76d}
+  .radar-stage{stroke:#86cfa0; stroke-width:1; cursor:pointer; transition:filter .12s,opacity .12s}
+  .radar-stage:hover{filter:brightness(.96)}
+  .radar-stage.selected{stroke:#1f743f; stroke-width:2.6}
   .radar-stage-label{fill:#255e38; font-size:11px; font-weight:700; text-anchor:middle;
                      pointer-events:none}
-  .radar-marker{fill:#176a37; stroke:#fff; stroke-width:4; pointer-events:none}
-  .radar-marker-label{fill:#176a37; font-size:9px; font-weight:850; letter-spacing:.06em;
-                      text-anchor:middle; text-transform:uppercase; pointer-events:none}
+  .radar-hub{fill:#fff; stroke:#57c982; stroke-width:2.2; pointer-events:none}
   .radar-empty{fill:#777872; font-size:14px; font-weight:650; text-anchor:middle}
   .radar-foot{display:flex; align-items:center; gap:12px; width:min(700px,100%); margin:4px auto 0;
               padding:11px 13px; border-left:3px solid #57c982; background:rgba(255,255,255,.82);
@@ -1865,7 +1864,7 @@ const SUPABASE_URL = 'https://cskamgfvebryahkljlll.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_MdkD-TxMCIwlu69seSHA3Q_A39GADsK';
 const CLIENT_ID    = '1059013355751-6g50dsgm7df37htl2fdqrtlkh5hmrc0c.apps.googleusercontent.com';
 const ALLOWED      = ['vijaysrinivassan@gmail.com'];
-const BUILD        = 'v7.11';
+const BUILD        = 'v7.12';
 
 const STRATEGY_ONE_TAB = 'Strategy 1 — Brand Strategy';
 const PRODUCT_EVOLUTION_TAB = 'Strategy 1 — Product Evolution';
@@ -7283,7 +7282,7 @@ function renderEvolution(focusLast){
     const current = evo.positions[evo.axis] === index;
     step.className = 'evo-step' + (current ? ' current' : '');
     step.tabIndex = readOnly() ? -1 : 0;
-    step.title = current ? 'Current market position' : 'Click to mark where we stand';
+    step.title = current ? 'Current market position' : 'Click to mark the current position';
     step.onclick = ev => {
       if (readOnly() || ev.target.closest('input,button')) return;
       evo.positions[evo.axis] = index;
@@ -7293,12 +7292,6 @@ function renderEvolution(focusLast){
       if (readOnly() || ev.target !== step || (ev.key !== 'Enter' && ev.key !== ' ')) return;
       ev.preventDefault(); evo.positions[evo.axis] = index; markDirty(); renderEvolution();
     };
-    step.title = 'Click the card to mark where we stand';
-    step.onclick = ev => {
-      if (readOnly() || ev.target.closest('input,button')) return;
-      evo.positions[evo.axis] = index;
-      markDirty(); renderEvolution();
-    };
     const label = document.createElement('label');
     label.textContent = 'Stage ' + (index + 1);
     const input = document.createElement('input');
@@ -7307,18 +7300,6 @@ function renderEvolution(focusLast){
     input.readOnly = readOnly();
     input.oninput = ev => { path.stages[index] = ev.target.value; markDirty(); };
     step.append(label, input);
-    if (current){
-      const badge = document.createElement('span');
-      badge.className = 'evo-current';
-      badge.textContent = 'We stand here';
-      step.append(badge);
-    }
-    if (current){
-      const here = document.createElement('span');
-      here.className = 'evo-current';
-      here.textContent = 'We stand here';
-      step.append(here);
-    }
     if (!readOnly() && path.stages.length > 1){
       const remove = document.createElement('button');
       remove.type = 'button';
@@ -7365,10 +7346,10 @@ $('btnEvoChange').onclick = () => {
    BRAND RADAR — the Product Evolution choice as a four-quadrant map
    =================================================================== */
 const RADAR_AXES = [
-  { id: 'technology', label: 'Technology access', start: 180, end: 270, lx: 190, ly: 178 },
-  { id: 'input',      label: 'Input access',      start: 270, end: 360, lx: 570, ly: 178 },
-  { id: 'process',    label: 'Process access',    start:   0, end:  90, lx: 570, ly: 590 },
-  { id: 'people',     label: 'People access',     start:  90, end: 180, lx: 190, ly: 590 }
+  { id: 'technology', label: 'Technology access', start: 180, end: 270, bx: 70,  by: 48 },
+  { id: 'input',      label: 'Input access',      start: 270, end: 360, bx: 500, by: 48 },
+  { id: 'process',    label: 'Process access',    start:   0, end:  90, bx: 500, by: 668 },
+  { id: 'people',     label: 'People access',     start:  90, end: 180, bx: 70,  by: 668 }
 ];
 
 function radarPoint(radius, degrees){
@@ -7398,8 +7379,9 @@ function renderBrandRadar(){
 
   RADAR_AXES.forEach(axis => {
     const quarter = document.createElementNS(ns, 'path');
-    quarter.setAttribute('d', radarSector(0, 270, axis.start, axis.end));
-    quarter.setAttribute('fill', evo.axis === axis.id ? '#eaf8ef' : '#fff');
+    quarter.setAttribute('d', radarSector(0, 245, axis.start, axis.end));
+    const alternating = RADAR_AXES.indexOf(axis) % 2 ? '#fafbf9' : '#f5f7f4';
+    quarter.setAttribute('fill', evo.axis === axis.id ? '#eaf8ef' : alternating);
     quarter.setAttribute('class', 'radar-quarter' + (evo.axis === axis.id ? ' active' : ''));
     svg.append(quarter);
   });
@@ -7408,7 +7390,7 @@ function renderBrandRadar(){
   if (active){
     const path = evo.paths[active.id];
     const stages = path.stages;
-    const band = 270 / stages.length;
+    const band = 245 / stages.length;
     const current = evo.positions[active.id];
     stages.forEach((value, index) => {
       const sector = document.createElementNS(ns, 'path');
@@ -7442,31 +7424,33 @@ function renderBrandRadar(){
       label.append(stageLine, valueLine);
       svg.append(label);
 
-      if (index === current){
-        const marker = document.createElementNS(ns, 'circle');
-        marker.setAttribute('cx', point.x); marker.setAttribute('cy', point.y + 28);
-        marker.setAttribute('r', '8'); marker.setAttribute('class', 'radar-marker');
-        svg.append(marker);
-        const markerLabel = document.createElementNS(ns, 'text');
-        markerLabel.setAttribute('x', point.x); markerLabel.setAttribute('y', point.y + 49);
-        markerLabel.setAttribute('class', 'radar-marker-label'); markerLabel.textContent = 'We stand here';
-        svg.append(markerLabel);
-      }
     });
   }
 
-  [['line', { x1: 380, y1: 42, x2: 380, y2: 718 }],
-   ['line', { x1: 42, y1: 380, x2: 718, y2: 380 }]].forEach(item => {
+  [['line', { x1: 380, y1: 135, x2: 380, y2: 625 }],
+   ['line', { x1: 135, y1: 380, x2: 625, y2: 380 }]].forEach(item => {
     const line = document.createElementNS(ns, item[0]);
     Object.keys(item[1]).forEach(key => line.setAttribute(key, item[1][key]));
     line.setAttribute('class', 'radar-axis-line'); svg.append(line);
   });
   const outline = document.createElementNS(ns, 'circle');
-  outline.setAttribute('cx', '380'); outline.setAttribute('cy', '380'); outline.setAttribute('r', '270');
+  outline.setAttribute('cx', '380'); outline.setAttribute('cy', '380'); outline.setAttribute('r', '245');
   outline.setAttribute('class', 'radar-outline'); svg.append(outline);
+  const hub = document.createElementNS(ns, 'circle');
+  hub.setAttribute('cx', '380'); hub.setAttribute('cy', '380'); hub.setAttribute('r', '15');
+  hub.setAttribute('class', 'radar-hub'); svg.append(hub);
   RADAR_AXES.forEach(axis => {
+    const card = document.createElementNS(ns, 'rect');
+    card.setAttribute('x', axis.bx); card.setAttribute('y', axis.by);
+    card.setAttribute('width', '190'); card.setAttribute('height', '44'); card.setAttribute('rx', '8');
+    card.setAttribute('class', 'radar-axis-card' + (evo.axis === axis.id ? ' active' : ''));
+    svg.append(card);
+    const dot = document.createElementNS(ns, 'circle');
+    dot.setAttribute('cx', axis.bx + 18); dot.setAttribute('cy', axis.by + 22); dot.setAttribute('r', '4');
+    dot.setAttribute('class', 'radar-axis-dot' + (evo.axis === axis.id ? ' active' : ''));
+    svg.append(dot);
     const label = document.createElementNS(ns, 'text');
-    label.setAttribute('x', axis.lx); label.setAttribute('y', axis.ly);
+    label.setAttribute('x', axis.bx + 103); label.setAttribute('y', axis.by + 27);
     label.setAttribute('class', 'radar-axis-name' + (evo.axis === axis.id ? ' active' : ''));
     label.textContent = axis.label; svg.append(label);
   });
@@ -7483,7 +7467,7 @@ function renderBrandRadar(){
     const current = evo.positions[active.id];
     const value = evo.paths[active.id].stages[current].trim() || 'Stage ' + (current + 1);
     const strong = document.createElement('strong');
-    strong.textContent = 'We stand here: ' + value;
+    strong.textContent = 'Current position: ' + value;
     message.append(strong, document.createTextNode(' — ' + active.label + ', Stage ' + (current + 1) + '.'));
   } else {
     message.textContent = 'Choose an evolution axis first; Brand Radar will update automatically.';
