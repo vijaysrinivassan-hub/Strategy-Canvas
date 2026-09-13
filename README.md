@@ -81,12 +81,13 @@ saved with the board and can be changed later with Edit.
 - **Strategy › Channel Strategy** shows the active and available acquisition levers.
 - **Strategy › Brand Radar** turns Product Evolution into a four-quadrant market map:
   Technology access, Input access, Process access and People access. Product Evolution
-  chooses the compass direction; the Category Positioning ladder becomes full
-  concentric category circles, with earlier categories toward the centre and later
-  categories toward the edge. The client brand is plotted as a crosshair and
-  competitors as labeled radar contacts on their respective category circles. Every
-  competitor is visible without zooming. Brand Radar is a read-only market view;
-  the selected category can only be changed in Category Positioning.
+  chooses the active direction; the Category Positioning ladder becomes concentric
+  bands inside that direction's sector, with earlier categories toward the centre and
+  later categories toward the edge. The client brand is plotted as a crosshair and
+  every competitor as a labeled radar contact inside the active sector. Dragging
+  either green sector boundary expands that direction while compressing the other
+  three. Clicking the centre restores equal quarters. Brand Radar remains read-only
+  for market position; the selected category can only be changed in Category Positioning.
 - **Canvas** lists Product Architecture, Market Research Frame, Messaging Framework,
   Positioning Document and Growth Strategy directly, without a Brand Strategy parent
   row. Each is its own canvas; the count beside one is its card count. Those five always exist —

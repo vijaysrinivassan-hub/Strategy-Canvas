@@ -1094,9 +1094,14 @@
               pointer-events:none; vector-effect:non-scaling-stroke}
   .radar-band.alt{fill:rgba(255,255,255,.2)}
   .radar-band.selected{fill:rgba(151,220,172,.26); stroke:#31995a; stroke-width:2.4}
+  .radar-axis-zone{fill:rgba(239,243,239,.32); stroke:#c1cbc3; stroke-width:1;
+                   vector-effect:non-scaling-stroke}
+  .radar-axis-zone.active{fill:rgba(111,207,142,.11); stroke:#71b989}
   .radar-sweep{fill:rgba(90,201,126,.09); stroke:none; pointer-events:none}
   .radar-axis-line{stroke:#a9b7ac; stroke-width:1; stroke-dasharray:3 7; vector-effect:non-scaling-stroke}
   .radar-bearing{stroke:#7fa58b; stroke-width:1.5; vector-effect:non-scaling-stroke}
+  .radar-boundary{stroke:#258c4b; stroke-width:2; vector-effect:non-scaling-stroke}
+  .radar-boundary-hit{stroke:transparent; stroke-width:18; pointer-events:stroke; cursor:ew-resize}
   .radar-outline{fill:none; stroke:#66856f; stroke-width:2; vector-effect:non-scaling-stroke}
   .radar-tick{stroke:#77927f; stroke-width:1.2; vector-effect:non-scaling-stroke}
   .radar-axis-name{fill:#737d75; font-size:11px; font-weight:750; letter-spacing:.7px; text-anchor:middle}
@@ -1117,7 +1122,8 @@
   .radar-target-ring{fill:none; stroke:#168840; stroke-width:2; vector-effect:non-scaling-stroke}
   .radar-target-label{fill:#0e622c; font-size:11px; font-weight:800; text-anchor:middle;
                       pointer-events:none; paint-order:stroke; stroke:#f8f9f6; stroke-width:4px}
-  .radar-hub{fill:#f8f9f6; stroke:#5a9d6e; stroke-width:1.8; pointer-events:none}
+  .radar-hub{fill:#f8f9f6; stroke:#329456; stroke-width:2; cursor:pointer; pointer-events:all}
+  .radar-hub-dot{fill:#329456; pointer-events:none}
   .radar-empty{fill:#777872; font-size:14px; font-weight:650; text-anchor:middle}
   .radar-foot{display:flex; align-items:center; gap:12px; width:min(760px,100%); margin:-8px auto 0;
               padding:9px 12px; border-left:3px solid #57c982; background:rgba(248,249,246,.9);
@@ -1699,7 +1705,7 @@
           <div>
             <span class="pos-axis-label">Market position</span>
             <h3>Brand Radar</h3>
-            <p>Read the market like a radar: your brand is the crosshair, nearby contacts share your category, and earlier or later categories sit on the inner and outer circles.</p>
+            <p>The selected evolution axis is the active field. Every category band and competitor sits inside it; drag either green edge to widen the field and click the centre to reset.</p>
           </div>
           <div class="radar-head-actions">
             <button id="btnOpenProductEvolution" type="button">Set direction</button>
@@ -1881,7 +1887,7 @@ const SUPABASE_URL = 'https://cskamgfvebryahkljlll.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_MdkD-TxMCIwlu69seSHA3Q_A39GADsK';
 const CLIENT_ID    = '1059013355751-6g50dsgm7df37htl2fdqrtlkh5hmrc0c.apps.googleusercontent.com';
 const ALLOWED      = ['vijaysrinivassan@gmail.com'];
-const BUILD        = 'v7.15';
+const BUILD        = 'v7.16';
 
 const STRATEGY_ONE_TAB = 'Strategy 1 — Brand Strategy';
 const PRODUCT_EVOLUTION_TAB = 'Strategy 1 — Product Evolution';
@@ -7368,6 +7374,7 @@ const RADAR_AXES = [
   { id: 'process',    label: 'PROCESS',    angle:  90, direction: '\u2193' },
   { id: 'people',     label: 'PEOPLE',     angle: 180, direction: '\u2190' }
 ];
+let radarDragSide = '';
 function radarPoint(radius, degrees){
   const angle = degrees * Math.PI / 180;
   return { x: 380 + Math.cos(angle) * radius, y: 380 + Math.sin(angle) * radius };
@@ -7376,13 +7383,14 @@ function radarPoint(radius, degrees){
 function radarSector(inner, outer, start, end){
   const a = radarPoint(outer, start);
   const b = radarPoint(outer, end);
+  const large = end - start > 180 ? 1 : 0;
   if (!inner) return 'M380 380 L' + a.x + ' ' + a.y + ' A' + outer + ' ' + outer +
-    ' 0 0 1 ' + b.x + ' ' + b.y + ' Z';
+    ' 0 ' + large + ' 1 ' + b.x + ' ' + b.y + ' Z';
   const c = radarPoint(inner, end);
   const d = radarPoint(inner, start);
   return 'M' + d.x + ' ' + d.y + ' L' + a.x + ' ' + a.y + ' A' + outer + ' ' + outer +
-    ' 0 0 1 ' + b.x + ' ' + b.y + ' L' + c.x + ' ' + c.y + ' A' + inner + ' ' + inner +
-    ' 0 0 0 ' + d.x + ' ' + d.y + ' Z';
+    ' 0 ' + large + ' 1 ' + b.x + ' ' + b.y + ' L' + c.x + ' ' + c.y + ' A' + inner + ' ' + inner +
+    ' 0 ' + large + ' 0 ' + d.x + ' ' + d.y + ' Z';
 }
 
 function radarText(svg, ns, x, y, className, value){
@@ -7396,15 +7404,51 @@ function radarLine(svg, ns, x1, y1, x2, y2, className){
   line.setAttribute('x1', x1); line.setAttribute('y1', y1);
   line.setAttribute('x2', x2); line.setAttribute('y2', y2);
   line.setAttribute('class', className); svg.append(line);
+  return line;
 }
 
-function radarContactAngle(categoryIndex, playerIndex, count, activeAngle, selected){
-  if (selected){
-    const step = Math.min(24, 104 / Math.max(2, count));
-    const distance = (Math.floor(playerIndex / 2) + 1) * step;
-    return activeAngle + (playerIndex % 2 === 0 ? distance : -distance);
+function radarFocusState(positioning, axisId){
+  if (!positioning.radarFocus || positioning.radarFocus.axis !== axisId){
+    positioning.radarFocus = { axis: axisId, left: 45, right: 45 };
   }
-  return -72 + categoryIndex * 29 + playerIndex * (360 / Math.max(1, count));
+  const focus = positioning.radarFocus;
+  focus.left = Math.max(15, Math.min(150, Number(focus.left) || 45));
+  focus.right = Math.max(15, Math.min(150, Number(focus.right) || 45));
+  return focus;
+}
+
+function radarAxisLayout(activeIndex, focus){
+  const active = RADAR_AXES[activeIndex];
+  const start = active.angle - focus.left;
+  const end = active.angle + focus.right;
+  const remainder = (360 - focus.left - focus.right) / 3;
+  const layout = [{ axis: active, start, end, active: true }];
+  for (let offset = 1; offset < 4; offset++){
+    layout.push({
+      axis: RADAR_AXES[(activeIndex + offset) % 4],
+      start: end + (offset - 1) * remainder,
+      end: end + offset * remainder,
+      active: false
+    });
+  }
+  return layout;
+}
+
+function radarContactAngle(playerIndex, count, start, end){
+  const padding = Math.min(12, (end - start) * .12);
+  if (count <= 1) return (start + end) / 2;
+  return start + padding + playerIndex * ((end - start - padding * 2) / (count - 1));
+}
+
+function radarPointerAngle(svg, ev){
+  const point = svg.createSVGPoint();
+  point.x = ev.clientX; point.y = ev.clientY;
+  const local = point.matrixTransform(svg.getScreenCTM().inverse());
+  return Math.atan2(local.y - 380, local.x - 380) * 180 / Math.PI;
+}
+
+function radarClockwiseDistance(from, to){
+  return ((to - from) % 360 + 360) % 360;
 }
 
 function renderBrandRadar(){
@@ -7419,32 +7463,42 @@ function renderBrandRadar(){
   svg.innerHTML = '';
 
   const active = RADAR_AXES.find(axis => axis.id === evo.axis);
+  const activeIndex = RADAR_AXES.findIndex(axis => axis.id === evo.axis);
   const categories = positioning.categories;
   const band = (outerRadius - innerRadius) / Math.max(1, categories.length);
+  const focus = radarFocusState(positioning, evo.axis || 'technology');
+  const layout = radarAxisLayout(Math.max(0, activeIndex), active ? focus : { left: 45, right: 45 });
+  if (!active) layout.forEach(zone => { zone.active = false; });
+  const activeZone = active ? layout[0] : null;
 
-  for (let index = categories.length - 1; index >= 0; index--){
+  layout.forEach(zone => {
+    const sector = document.createElementNS(ns, 'path');
+    sector.setAttribute('d', radarSector(0, outerRadius, zone.start, zone.end));
+    sector.setAttribute('class', 'radar-axis-zone' + (zone.active ? ' active' : ''));
+    svg.append(sector);
+  });
+
+  for (let index = 0; activeZone && index < categories.length; index++){
     const category = categories[index];
     const selected = positioning.selectedCategory === category.id;
-    const circle = document.createElementNS(ns, 'circle');
-    circle.setAttribute('cx', '380'); circle.setAttribute('cy', '380');
-    circle.setAttribute('r', innerRadius + (index + 1) * band);
-    circle.setAttribute('class', 'radar-band' + (index % 2 ? ' alt' : '') + (selected ? ' selected' : ''));
-    circle.setAttribute('aria-label', category.name.trim() || 'Untitled category');
-    svg.append(circle);
+    const sector = document.createElementNS(ns, 'path');
+    sector.setAttribute('d', radarSector(innerRadius + index * band,
+      innerRadius + (index + 1) * band, activeZone.start, activeZone.end));
+    sector.setAttribute('class', 'radar-band' + (index % 2 ? ' alt' : '') + (selected ? ' selected' : ''));
+    sector.setAttribute('aria-label', category.name.trim() || 'Untitled category');
+    svg.append(sector);
   }
 
-  if (active){
-    const sweep = document.createElementNS(ns, 'path');
-    sweep.setAttribute('d', radarSector(0, outerRadius, active.angle - 38, active.angle + 38));
-    sweep.setAttribute('class', 'radar-sweep');
-    svg.append(sweep);
-  }
-
-  RADAR_AXES.forEach(axis => {
-    const end = radarPoint(outerRadius, axis.angle);
+  layout.forEach((zone, index) => {
+    const end = radarPoint(outerRadius, zone.start);
+    const activeBoundary = active && (index === 0 || index === 1);
     radarLine(svg, ns, 380, 380, end.x, end.y,
-      axis.id === evo.axis ? 'radar-bearing' : 'radar-axis-line');
+      activeBoundary ? 'radar-boundary' : 'radar-axis-line');
   });
+  if (active){
+    const bearing = radarPoint(outerRadius, active.angle);
+    radarLine(svg, ns, 380, 380, bearing.x, bearing.y, 'radar-bearing');
+  }
   for (let angle = 0; angle < 360; angle += 15){
     const major = angle % 45 === 0;
     const from = radarPoint(outerRadius + (major ? 2 : 5), angle);
@@ -7453,9 +7507,11 @@ function renderBrandRadar(){
   }
 
   categories.forEach((category, index) => {
+    if (!activeZone) return;
     const selected = positioning.selectedCategory === category.id;
     const radius = innerRadius + (index + .5) * band;
-    const labelPoint = radarPoint(radius, 218);
+    const labelAngle = activeZone.start + Math.min(11, (activeZone.end - activeZone.start) * .14);
+    const labelPoint = radarPoint(radius, labelAngle);
     const categoryName = category.name.trim() || 'Untitled category';
     const categoryLabel = radarText(svg, ns, labelPoint.x + 7, labelPoint.y + 3,
       'radar-category-label' + (selected ? ' selected' : ''),
@@ -7466,8 +7522,8 @@ function renderBrandRadar(){
 
     const players = category.competitors.filter(player => player.name.trim());
     players.forEach((player, playerIndex) => {
-      const angle = radarContactAngle(index, playerIndex, players.length,
-        active ? active.angle : -90, selected);
+      const angle = radarContactAngle(playerIndex, players.length,
+        activeZone.start, activeZone.end);
       const point = radarPoint(radius, angle);
       if (selected){
         const pulse = document.createElementNS(ns, 'circle');
@@ -7515,21 +7571,67 @@ function renderBrandRadar(){
   const hub = document.createElementNS(ns, 'circle');
   hub.setAttribute('cx', '380'); hub.setAttribute('cy', '380');
   hub.setAttribute('r', '8'); hub.setAttribute('class', 'radar-hub');
+  hub.setAttribute('role', 'button'); hub.setAttribute('tabindex', readOnly() ? '-1' : '0');
+  hub.setAttribute('aria-label', 'Reset axes to equal quarters');
+  const resetFocus = () => {
+    if (readOnly()) return;
+    focus.left = 45; focus.right = 45;
+    markDirty(); renderBrandRadar();
+  };
+  hub.onclick = resetFocus;
+  hub.onkeydown = ev => {
+    if (ev.key !== 'Enter' && ev.key !== ' ') return;
+    ev.preventDefault(); resetFocus();
+  };
   svg.append(hub);
+  const hubDot = document.createElementNS(ns, 'circle');
+  hubDot.setAttribute('cx', '380'); hubDot.setAttribute('cy', '380'); hubDot.setAttribute('r', '2.5');
+  hubDot.setAttribute('class', 'radar-hub-dot'); svg.append(hubDot);
 
-  RADAR_AXES.forEach(axis => {
-    const point = radarPoint(outerRadius + 36, axis.angle);
-    const activeAxis = evo.axis === axis.id;
+  layout.forEach(zone => {
+    const labelAngle = zone.active ? active.angle : (zone.start + zone.end) / 2;
+    const point = radarPoint(outerRadius + 36, labelAngle);
+    const activeAxis = zone.active;
     const dot = document.createElementNS(ns, 'circle');
     dot.setAttribute('cx', point.x); dot.setAttribute('cy', point.y - 4);
     dot.setAttribute('r', activeAxis ? '4' : '2.8');
     dot.setAttribute('class', 'radar-axis-dot' + (activeAxis ? ' active' : ''));
     svg.append(dot);
-    const yOffset = axis.angle === -90 ? -13 : axis.angle === 90 ? 19 : 0;
+    const yOffset = Math.sin(labelAngle * Math.PI / 180) < -.7 ? -13 :
+      Math.sin(labelAngle * Math.PI / 180) > .7 ? 19 : 0;
     radarText(svg, ns, point.x, point.y + yOffset + 1,
       'radar-axis-name' + (activeAxis ? ' active' : ''),
-      axis.direction + ' ' + axis.label);
+      zone.axis.label);
   });
+
+  if (activeZone){
+    [['left', activeZone.start], ['right', activeZone.end]].forEach(boundary => {
+      const start = radarPoint(14, boundary[1]);
+      const end = radarPoint(outerRadius, boundary[1]);
+      const hit = radarLine(svg, ns, start.x, start.y, end.x, end.y, 'radar-boundary-hit');
+      hit.onpointerdown = ev => {
+        if (readOnly()) return;
+        ev.preventDefault();
+        radarDragSide = boundary[0];
+        svg.setPointerCapture(ev.pointerId);
+      };
+    });
+  }
+
+  svg.onpointermove = ev => {
+    if (!radarDragSide || !active) return;
+    const angle = radarPointerAngle(svg, ev);
+    if (radarDragSide === 'left'){
+      focus.left = Math.max(15, Math.min(150, radarClockwiseDistance(angle, active.angle)));
+    } else {
+      focus.right = Math.max(15, Math.min(150, radarClockwiseDistance(active.angle, angle)));
+    }
+    markDirty(); renderBrandRadar();
+  };
+  svg.onpointerup = svg.onpointercancel = ev => {
+    radarDragSide = '';
+    if (svg.hasPointerCapture(ev.pointerId)) svg.releasePointerCapture(ev.pointerId);
+  };
 
   if (!active){
     radarText(svg, ns, 380, 385, 'radar-empty', 'Choose an evolution direction');
@@ -7545,7 +7647,7 @@ function renderBrandRadar(){
       active.label.toLowerCase();
     message.append(strong, document.createTextNode(' \u2014 ' + peers + ' nearby player' +
       (peers === 1 ? '' : 's') +
-      '. Inner circles are earlier categories; outer circles are later categories. Edit the market position in Category Positioning.'));
+      '. Inner bands are earlier categories; outer bands are later categories. Drag either green boundary to widen this axis; click the centre to reset.'));
   } else if (active){
     message.textContent = 'Select your category in Positioning Canvas to locate your brand on this radar.';
   } else {
