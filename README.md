@@ -64,8 +64,10 @@ Services; those details are saved with the board and can be changed later with E
   the screen. Product, motion and channel connectors are L-shaped on this canvas,
   using only vertical and horizontal segments.
   Existing
-  Technical SEO, On-page SEO, Listicle outreach and Reddit channels migrate to
-  Inbound; Email, LinkedIn and ABM initialize under Outbound. Channel cards show
+  AEO, SEO, Listicle Outreach and Reddit migrate to
+  Inbound in that order; Email, LinkedIn and ABM initialize under Outbound. The
+  Inbound and Outbound motion labels can be renamed by double-clicking the label.
+  Channel cards show
   only the channel name and selection state, while bare plus controls add products
   or channels from the relevant parent. Product cards can be renamed or removed,
   and the bottom-right reset control collapses the GTM journey back to the company

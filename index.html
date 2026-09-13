@@ -1938,7 +1938,7 @@
           <div class="gtm-node gtm-strategy-node" id="gtmStrategyNode" role="button" tabindex="0" aria-expanded="false" hidden><strong>GTM Strategy</strong></div>
           <div class="gtm-motions" id="gtmMotions" hidden>
             <section class="gtm-motion" data-motion="inbound">
-              <div class="gtm-motion-head" id="gtmInboundHead" role="button" tabindex="0" aria-expanded="false"><strong>Inbound</strong><button class="gtm-motion-add" id="btnAddInbound" type="button" title="Add inbound channel">+</button></div>
+              <div class="gtm-motion-head" id="gtmInboundHead" role="button" tabindex="0" aria-expanded="false"><strong id="gtmInboundLabel">Inbound</strong><button class="gtm-motion-add" id="btnAddInbound" type="button" title="Add inbound channel">+</button></div>
               <div class="gtm-channel-grid" id="chanInboundGrid"></div>
               <section class="buyer-journey" id="buyerJourney" hidden>
                 <div class="buyer-head"><div><h4>Buyer Journey</h4></div></div>
@@ -1946,7 +1946,7 @@
               </section>
             </section>
             <section class="gtm-motion" data-motion="outbound">
-              <div class="gtm-motion-head" id="gtmOutboundHead" role="button" tabindex="0" aria-expanded="false"><strong>Outbound</strong><button class="gtm-motion-add" id="btnAddOutbound" type="button" title="Add outbound channel">+</button></div>
+              <div class="gtm-motion-head" id="gtmOutboundHead" role="button" tabindex="0" aria-expanded="false"><strong id="gtmOutboundLabel">Outbound</strong><button class="gtm-motion-add" id="btnAddOutbound" type="button" title="Add outbound channel">+</button></div>
               <div class="gtm-channel-grid" id="chanOutboundGrid"></div>
             </section>
           </div>
@@ -2248,7 +2248,7 @@ const SUPABASE_URL = 'https://cskamgfvebryahkljlll.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_MdkD-TxMCIwlu69seSHA3Q_A39GADsK';
 const CLIENT_ID    = '1059013355751-6g50dsgm7df37htl2fdqrtlkh5hmrc0c.apps.googleusercontent.com';
 const ALLOWED      = ['vijaysrinivassan@gmail.com'];
-const BUILD        = 'v7.44';
+const BUILD        = 'v7.45';
 
 const STRATEGY_ONE_TAB = 'Strategy 1 — Brand Strategy';
 const PRODUCT_EVOLUTION_TAB = 'Strategy 1 — Product Evolution';
@@ -8674,14 +8674,15 @@ function renderKeywordTables(overrideEmpty){
    =================================================================== */
 const CHANNELS_TAB = 'Channel Strategy';
 const DEFAULT_CHANNELS = [
-  { name: 'Technical SEO',     on: false, motion: 'inbound' },
-  { name: 'On-page SEO',       on: false, motion: 'inbound', kind: 'onpage' },
-  { name: 'Listicle outreach', on: false, motion: 'inbound' },
+  { name: 'AEO',               on: false, motion: 'inbound', kind: 'onpage' },
+  { name: 'SEO',               on: false, motion: 'inbound' },
+  { name: 'Listicle Outreach', on: false, motion: 'inbound' },
   { name: 'Reddit',            on: false, motion: 'inbound' },
   { name: 'Email',             on: false, motion: 'outbound' },
   { name: 'LinkedIn',          on: false, motion: 'outbound' },
   { name: 'ABM',               on: false, motion: 'outbound' }
 ];
+const CORE_INBOUND_CHANNELS = ['AEO', 'SEO', 'Listicle Outreach', 'Reddit'];
 let activeJourneyChannel = '';
 let gtmRevealDepth = 0;
 let gtmOpenMotions = {};
@@ -8701,6 +8702,9 @@ function channelState(){
   }
   const t = brand.channels;
   if (!Array.isArray(t.items)) t.items = [];
+  if (!t.motionLabels || typeof t.motionLabels !== 'object') t.motionLabels = {};
+  if (typeof t.motionLabels.inbound !== 'string' || !t.motionLabels.inbound.trim()) t.motionLabels.inbound = 'Inbound';
+  if (typeof t.motionLabels.outbound !== 'string' || !t.motionLabels.outbound.trim()) t.motionLabels.outbound = 'Outbound';
   if (!Array.isArray(t.products)) t.products = [];
   const seededProduct = (state.clientProduct || '').trim();
   if (!t.products.length){
@@ -8722,6 +8726,7 @@ function channelState(){
     if (!item.kind && /on[\s-]*page\s+seo/i.test(item.name || '')) item.kind = 'onpage';
     if (item.motion !== 'outbound') item.motion = 'inbound';
   });
+  if (!t.inboundCoreMigrated) normalizeInboundChannels(t);
   if (!t.gtmMigrated){
     DEFAULT_CHANNELS.filter(item => item.motion === 'outbound').forEach(defaultItem => {
       if (t.items.some(item => String(item.name).trim().toLowerCase() === defaultItem.name.toLowerCase())) return;
@@ -8731,6 +8736,50 @@ function channelState(){
     if (!readOnly()) setTimeout(markDirty, 0);
   }
   return t;
+}
+
+function normalizeInboundChannels(t){
+  let changed = false;
+  const inbound = t.items.filter(item => item.motion !== 'outbound');
+  inbound.forEach(item => {
+    const name = String(item.name || '').trim();
+    if (/^on[\s-]*page\s+seo$/i.test(name)){
+      item.name = 'AEO';
+      item.kind = 'onpage';
+      changed = true;
+    } else if (/^technical\s+seo$/i.test(name)){
+      item.name = 'SEO';
+      changed = true;
+    } else if (/^listicle\s+outreach$/i.test(name) && name !== 'Listicle Outreach'){
+      item.name = 'Listicle Outreach';
+      changed = true;
+    }
+  });
+  if (!inbound.some(item => String(item.name || '').trim().toLowerCase() === 'seo')){
+    const placeholder = inbound.find(item => /^new\s+channel$/i.test(String(item.name || '').trim()));
+    if (placeholder){
+      placeholder.name = 'SEO';
+      placeholder.kind = '';
+      changed = true;
+    }
+  }
+  CORE_INBOUND_CHANNELS.forEach(name => {
+    if (inbound.some(item => String(item.name || '').trim().toLowerCase() === name.toLowerCase())) return;
+    t.items.push({ id: uid(), name, on: false, kind: name === 'AEO' ? 'onpage' : '', motion: 'inbound' });
+    changed = true;
+  });
+  const rank = name => {
+    const index = CORE_INBOUND_CHANNELS.findIndex(core => core.toLowerCase() === String(name || '').trim().toLowerCase());
+    return index === -1 ? 100 : index;
+  };
+  t.items.sort((a, b) => {
+    if (a.motion !== b.motion) return a.motion === 'outbound' ? 1 : -1;
+    if (a.motion === 'outbound') return 0;
+    return rank(a.name) - rank(b.name);
+  });
+  t.inboundCoreMigrated = true;
+  changed = true;
+  if (changed && !readOnly()) setTimeout(markDirty, 0);
 }
 
 function activeGtmProduct(t){
@@ -8807,6 +8856,8 @@ function renderChannels(){
   const productRow = $('gtmProductRow');
   productRow.innerHTML = '';
   $('gtmCompanyName').textContent = state.client || 'Company name';
+  $('gtmInboundLabel').textContent = t.motionLabels.inbound || 'Inbound';
+  $('gtmOutboundLabel').textContent = t.motionLabels.outbound || 'Outbound';
   const selectedProduct = activeGtmProduct(t);
   const targetProductName = gtmProductTargetName(selectedProduct);
   if (selectedProduct && state.clientProduct !== targetProductName) state.clientProduct = targetProductName;
@@ -10076,6 +10127,16 @@ function gtmKeyboardActivate(event, action){
   if (event.key !== 'Enter' && event.key !== ' ') return;
   event.preventDefault(); action();
 }
+function renameGtmMotionLabel(motion, el){
+  if (readOnly()) return;
+  const t = channelState();
+  const fallback = motion === 'outbound' ? 'Outbound' : 'Inbound';
+  inlineRename(el, t.motionLabels[motion] || fallback, value => {
+    t.motionLabels[motion] = value || fallback;
+    markDirty();
+    renderChannels();
+  });
+}
 $('gtmCompanyNode').onclick = () => revealGtmLevel(1);
 $('gtmCompanyNode').onkeydown = event => gtmKeyboardActivate(event, () => revealGtmLevel(1));
 $('gtmStrategyNode').onclick = () => revealGtmLevel(3);
@@ -10084,6 +10145,8 @@ $('gtmInboundHead').onclick = () => revealGtmMotion('inbound');
 $('gtmInboundHead').onkeydown = event => gtmKeyboardActivate(event, () => revealGtmMotion('inbound'));
 $('gtmOutboundHead').onclick = () => revealGtmMotion('outbound');
 $('gtmOutboundHead').onkeydown = event => gtmKeyboardActivate(event, () => revealGtmMotion('outbound'));
+$('gtmInboundLabel').ondblclick = event => { event.stopPropagation(); renameGtmMotionLabel('inbound', event.currentTarget); };
+$('gtmOutboundLabel').ondblclick = event => { event.stopPropagation(); renameGtmMotionLabel('outbound', event.currentTarget); };
 $('btnAddGtmProduct').onclick = event => { event.stopPropagation(); addGtmProduct(); };
 $('btnAddInbound').onclick = event => { event.stopPropagation(); addChannel('inbound'); };
 $('btnAddOutbound').onclick = event => { event.stopPropagation(); addChannel('outbound'); };
