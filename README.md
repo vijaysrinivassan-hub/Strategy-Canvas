@@ -75,8 +75,9 @@ Services; those details are saved with the board and can be changed later with E
   Inbound in that order; Email, LinkedIn and ABM initialize under Outbound. Channel cards show
   only the channel name and selection state, while bare plus controls add products
   or channels from the relevant parent. Product cards can be renamed or removed,
-  and channel cards can be renamed with their own GTM-safe inline editor; the
-  Inbound and Outbound motion labels stay fixed.
+  and channel cards can be renamed with their own GTM-safe inline editor; their
+  name clicks do not toggle the card while editing, and the Inbound and Outbound
+  motion labels stay fixed.
   The bottom-right reset control collapses the GTM journey back to the company
   node without deleting the canvas data. When a selected product is the only active
   child path, GTM Strategy sits directly below that product. Selecting AEO
