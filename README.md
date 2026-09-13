@@ -76,7 +76,10 @@ saved with the board and can be changed later with Edit.
   between different system rows. An empty connection shows a small **+** at its
   midpoint; click it, type the output and press Enter to place that text in a
   clean break in the line. Click the text to edit it, or double-click the line
-  to remove the connection. Systems and notes can be
+  to remove the connection. Shift-click two or more notes in one workflow and
+  choose **Group selected** to place a named, light container behind them. The
+  group follows moved notes and can be renamed or removed without deleting its
+  contents. Systems and notes can be
   added, renamed, moved and deleted, while system rows can be reordered and
   resized vertically. Complete connected examples for **AI Data Platform** and
   **AI SOC Product** can be loaded from the template picker; matching client

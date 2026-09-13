@@ -1185,7 +1185,11 @@
   .arch-v2-guide{display:flex; align-items:center; gap:14px; margin-bottom:12px; padding:9px 12px;
                  border-left:3px solid #76c890; background:rgba(247,251,247,.92); color:#62655f;
                  font-size:9.5px; line-height:1.4}
-  .arch-v2-guide b{color:#276c3e}.arch-v2-guide span:last-child{margin-left:auto; color:#898b85}
+  .arch-v2-guide b{color:#276c3e}.arch-v2-guide .arch-guide-tail{margin-left:auto; color:#898b85}
+  .arch-selection-tools{display:flex; align-items:center; gap:6px; margin-left:auto; padding-left:12px;
+                        border-left:1px solid #d9dfd9}
+  .arch-selection-tools span{color:#39744d; font-weight:750}
+  .arch-selection-tools button{padding:4px 7px; background:#fff; font-size:8.5px}
   .arch-flow-board{position:relative; min-width:1060px; padding:0 0 36px}
   .arch-flow-wires{position:absolute; z-index:2; inset:0; width:100%; height:100%; overflow:visible;
                    pointer-events:none}
@@ -1223,10 +1227,20 @@
                                        letter-spacing:.09em; text-transform:uppercase}
   .arch-flow-system-head button{padding:4px 7px; background:#fff; color:#686b65; font-size:9px}
   .arch-flow-system-head .system-remove{border-color:transparent; background:transparent; color:#9a6c68}
+  .arch-node-group{position:absolute; z-index:1; border:1px dashed #91b49a; background:rgba(222,242,228,.22);
+                   pointer-events:none}
+  .arch-node-group-head{position:absolute; left:8px; top:-11px; display:flex; align-items:center; gap:4px;
+                        height:22px; padding:1px 5px; border:1px solid #bed5c4; background:#f5fbf7;
+                        pointer-events:auto}
+  .arch-node-group-head input{width:140px; padding:2px 3px; border:0; outline:none; background:transparent;
+                              color:#3d6549; font:inherit; font-size:8.5px; font-weight:750}
+  .arch-node-group-head button{padding:0 3px; border:0; background:transparent; color:#8d9a90;
+                               font-size:11px; box-shadow:none}
   .arch-flow-node{position:absolute; z-index:4; width:154px; min-height:72px; padding:9px 11px 8px;
                   border:1px solid #cfd2cc; background:#fff; box-shadow:0 1px 2px rgba(28,35,29,.05);
                   cursor:grab; user-select:none}
   .arch-flow-node:active{cursor:grabbing}.arch-flow-node:hover{border-color:#91ae98}
+  .arch-flow-node.selected{border-color:#3da461; box-shadow:0 0 0 3px rgba(75,178,106,.14)}
   .arch-flow-node[data-type="technology"]{border-color:#71bf88; background:#f2faf4}
   .arch-flow-node[data-type="people"]{border-color:#d2bea0}
   .arch-flow-node input{display:block; width:100%; margin:1px 0 7px; padding:2px 0 4px; border:0;
@@ -1909,7 +1923,12 @@
         <div class="arch-v2-guide">
           <b>Draw a connection</b>
           <span>Drag the green dot from one Technology or People note to another. Click + on the connector to name its output.</span>
-          <span>Enter saves a label · Drag a row edge to resize · Double-click a line to remove</span>
+          <span class="arch-guide-tail">Shift-click notes to group them</span>
+          <div class="arch-selection-tools" id="archSelectionTools" hidden>
+            <span id="archSelectionCount"></span>
+            <button id="btnArchGroup" type="button">Group selected</button>
+            <button id="btnArchClearSelection" type="button">Clear</button>
+          </div>
         </div>
         <div class="arch-flow-board" id="archBoard">
           <svg class="arch-flow-wires" id="archWires" aria-hidden="true"></svg>
@@ -2112,7 +2131,7 @@ const SUPABASE_URL = 'https://cskamgfvebryahkljlll.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_MdkD-TxMCIwlu69seSHA3Q_A39GADsK';
 const CLIENT_ID    = '1059013355751-6g50dsgm7df37htl2fdqrtlkh5hmrc0c.apps.googleusercontent.com';
 const ALLOWED      = ['vijaysrinivassan@gmail.com'];
-const BUILD        = 'v7.28';
+const BUILD        = 'v7.29';
 
 const STRATEGY_ONE_TAB = 'Strategy 1 — Brand Strategy';
 const PRODUCT_EVOLUTION_TAB = 'Strategy 1 — Product Evolution';
@@ -6651,6 +6670,7 @@ const ARCH_NODE_TYPES = [
   ['people', 'People']
 ];
 let architectureConnection = null;
+let architectureSelection = new Set();
 
 function archFlowSystem(name, height){
   return { id: uid(), name: name || 'New system', height: Math.max(230, Number(height) || 300) };
@@ -6662,7 +6682,7 @@ function archFlowNode(systemId, label, type, x, y){
 function archFlowEdge(from, to, label){ return { id: uid(), from, to, label: label || '' }; }
 
 function buildFlowArchitecture(sample, name, summary, specifications, crossLinks){
-  const architecture = { version: 3, sample, name, summary, systems: [], nodes: [], edges: [] };
+  const architecture = { version: 3, sample, name, summary, systems: [], nodes: [], edges: [], groups: [] };
   const nodeByKey = {};
   specifications.forEach(specification => {
     const system = archFlowSystem(specification.name, specification.height);
@@ -6686,7 +6706,7 @@ function buildFlowArchitecture(sample, name, summary, specifications, crossLinks
 blankArchitecture = function(){
   return { version: 3, sample: 'blank', name: 'Product Architecture',
     summary: 'Each workflow row is the process. Map only the Technology and People that create value, then name the output on each connection.',
-    systems: [archFlowSystem('System 1', 300)], nodes: [], edges: [] };
+    systems: [archFlowSystem('System 1', 300)], nodes: [], edges: [], groups: [] };
 };
 
 dataPlatformArchitecture = function(){
@@ -6755,6 +6775,7 @@ productArchitectureState = function(){
   if (!Array.isArray(architecture.systems)) architecture.systems = [];
   if (!Array.isArray(architecture.nodes)) architecture.nodes = [];
   if (!Array.isArray(architecture.edges)) architecture.edges = [];
+  if (!Array.isArray(architecture.groups)) architecture.groups = [];
   architecture.systems.forEach(system => {
     if (!system.id) system.id = uid();
     if (typeof system.name !== 'string') system.name = 'Untitled system';
@@ -6772,6 +6793,22 @@ productArchitectureState = function(){
     architecture.nodes.some(node => node.id === edge.from) &&
     architecture.nodes.some(node => node.id === edge.to) && edge.from !== edge.to);
   architecture.edges.forEach(edge => { if (typeof edge.label !== 'string') edge.label = ''; });
+  architecture.groups = architecture.groups.filter(group => {
+    if (!group.id) group.id = uid();
+    if (typeof group.name !== 'string') group.name = 'Grouped system';
+    if (!Array.isArray(group.nodeIds)) group.nodeIds = [];
+    group.nodeIds = group.nodeIds.filter(id => architecture.nodes.some(node => node.id === id));
+    const members = architecture.nodes.filter(node => group.nodeIds.includes(node.id));
+    if (!members.length) return false;
+    group.systemId = members[0].systemId;
+    group.nodeIds = group.nodeIds.filter(id => {
+      const node = architecture.nodes.find(item => item.id === id);
+      return node && node.systemId === group.systemId;
+    });
+    return group.nodeIds.length >= 2;
+  });
+  architectureSelection = new Set([...architectureSelection].filter(id =>
+    architecture.nodes.some(node => node.id === id)));
   return architecture;
 };
 
@@ -6916,6 +6953,73 @@ function beginArchitectureConnection(event, architecture, nodeId){
   drawArchitectureWires(architecture);
 }
 
+function architectureGroupBounds(group, architecture){
+  const members = architecture.nodes.filter(node => group.nodeIds.includes(node.id));
+  if (!members.length) return null;
+  const left = Math.max(6, Math.min(...members.map(node => node.x)) - 22);
+  const top = Math.max(52, Math.min(...members.map(node => node.y)) - 24);
+  const right = Math.max(...members.map(node => node.x + (node.width || 154))) + 22;
+  const bottom = Math.max(...members.map(node => node.y + 72)) + 22;
+  return { left, top, width: right - left, height: bottom - top };
+}
+
+function positionArchitectureGroups(architecture){
+  $('archSystems').querySelectorAll('.arch-node-group').forEach(element => {
+    const group = architecture.groups.find(item => item.id === element.dataset.groupId);
+    const bounds = group && architectureGroupBounds(group, architecture);
+    if (!bounds) return;
+    element.style.left = bounds.left + 'px'; element.style.top = bounds.top + 'px';
+    element.style.width = bounds.width + 'px'; element.style.height = bounds.height + 'px';
+  });
+}
+
+function renderArchitectureGroups(row, system, architecture){
+  architecture.groups.filter(group => group.systemId === system.id).forEach(group => {
+    const bounds = architectureGroupBounds(group, architecture);
+    if (!bounds) return;
+    const box = document.createElement('div'); box.className = 'arch-node-group'; box.dataset.groupId = group.id;
+    box.style.left = bounds.left + 'px'; box.style.top = bounds.top + 'px';
+    box.style.width = bounds.width + 'px'; box.style.height = bounds.height + 'px';
+    const head = document.createElement('div'); head.className = 'arch-node-group-head';
+    const name = document.createElement('input'); name.value = group.name; name.placeholder = 'Group name';
+    name.readOnly = readOnly(); name.oninput = () => { group.name = name.value; markDirty(); };
+    head.append(name);
+    if (!readOnly()){
+      const remove = document.createElement('button'); remove.type = 'button'; remove.textContent = '×';
+      remove.title = 'Remove group without deleting notes'; remove.onclick = () => {
+        architecture.groups = architecture.groups.filter(item => item.id !== group.id);
+        markDirty(); renderProductArchitecture();
+      }; head.append(remove);
+    }
+    box.append(head); row.append(box);
+  });
+}
+
+function renderArchitectureSelectionTools(architecture){
+  const tools = $('archSelectionTools');
+  const ids = [...architectureSelection];
+  tools.hidden = readOnly() || ids.length === 0;
+  if (tools.hidden) return;
+  $('archSelectionCount').textContent = ids.length + ' selected';
+  const selected = architecture.nodes.filter(node => architectureSelection.has(node.id));
+  const sameSystem = selected.length > 1 && selected.every(node => node.systemId === selected[0].systemId);
+  const groupButton = $('btnArchGroup'); groupButton.disabled = !sameSystem;
+  groupButton.title = sameSystem ? 'Give these notes one shared group name' : 'Select at least two notes in the same workflow';
+  groupButton.onclick = () => {
+    if (!sameSystem) return;
+    const proposed = prompt('Name this group', 'Grouped system');
+    if (proposed === null || !proposed.trim()) return;
+    architecture.groups.forEach(group => {
+      group.nodeIds = group.nodeIds.filter(id => !architectureSelection.has(id));
+    });
+    architecture.groups = architecture.groups.filter(group => group.nodeIds.length >= 2);
+    architecture.groups.push({ id: uid(), systemId: selected[0].systemId,
+      name: proposed.trim(), nodeIds: selected.map(node => node.id) });
+    architectureSelection.clear(); markDirty(); renderProductArchitecture();
+  };
+  $('btnArchClearSelection').onclick = () => { architectureSelection.clear(); renderProductArchitecture(); };
+}
+
 function enableArchitectureNodeDrag(element, node, system, architecture){
   element.addEventListener('pointerdown', event => {
     if (readOnly() || event.target.closest('input,select,button,.arch-flow-port')) return;
@@ -6927,6 +7031,7 @@ function enableArchitectureNodeDrag(element, node, system, architecture){
       node.y = Math.max(54, Math.min(system.height - element.offsetHeight - 12,
         nodeY + moveEvent.clientY - startY));
       element.style.left = node.x + 'px'; element.style.top = node.y + 'px';
+      positionArchitectureGroups(architecture);
       drawArchitectureWires(architecture);
     };
     const up = () => {
@@ -6971,18 +7076,23 @@ function renderArchitectureSystem(system, index, architecture){
       architecture.systems = architecture.systems.filter(item => item.id !== system.id);
       architecture.nodes = architecture.nodes.filter(node => node.systemId !== system.id);
       architecture.edges = architecture.edges.filter(edge => !removed.has(edge.from) && !removed.has(edge.to));
+      architecture.groups = architecture.groups.filter(group => group.systemId !== system.id);
+      removed.forEach(id => architectureSelection.delete(id));
       markDirty(); renderProductArchitecture();
     }; head.append(remove);
   }
   row.append(head);
   const nodes = architecture.nodes.filter(node => node.systemId === system.id);
+  renderArchitectureGroups(row, system, architecture);
   if (!nodes.length){
     const empty = document.createElement('div'); empty.className = 'arch-flow-empty';
     empty.textContent = readOnly() ? 'This workflow has no visible nodes.' : 'Add a node, choose what it represents, then drag it into place.';
     row.append(empty);
   }
   nodes.forEach(node => {
-    const card = document.createElement('article'); card.className = 'arch-flow-node'; card.dataset.nodeId = node.id;
+    const card = document.createElement('article');
+    card.className = 'arch-flow-node' + (architectureSelection.has(node.id) ? ' selected' : '');
+    card.dataset.nodeId = node.id;
     card.dataset.type = node.type; card.style.left = node.x + 'px'; card.style.top = node.y + 'px';
     const input = document.createElement('input'); input.value = node.label; input.placeholder = 'Describe this node';
     input.readOnly = readOnly(); input.oninput = () => { node.label = input.value; markDirty(); };
@@ -6998,6 +7108,9 @@ function renderArchitectureSystem(system, index, architecture){
       remove.textContent = '×'; remove.title = 'Delete node'; remove.onclick = () => {
         architecture.nodes = architecture.nodes.filter(item => item.id !== node.id);
         architecture.edges = architecture.edges.filter(edge => edge.from !== node.id && edge.to !== node.id);
+        architecture.groups.forEach(group => { group.nodeIds = group.nodeIds.filter(id => id !== node.id); });
+        architecture.groups = architecture.groups.filter(group => group.nodeIds.length >= 2);
+        architectureSelection.delete(node.id);
         markDirty(); renderProductArchitecture();
       }; foot.append(remove);
     }
@@ -7008,6 +7121,16 @@ function renderArchitectureSystem(system, index, architecture){
       outPort.onpointerdown = event => beginArchitectureConnection(event, architecture, node.id);
       card.append(inPort, outPort);
     }
+    card.onclick = event => {
+      if (readOnly() || event.target.closest('input,select,button,.arch-flow-port')) return;
+      if (event.shiftKey || event.ctrlKey || event.metaKey){
+        if (architectureSelection.has(node.id)) architectureSelection.delete(node.id);
+        else architectureSelection.add(node.id);
+      } else {
+        architectureSelection.clear(); architectureSelection.add(node.id);
+      }
+      renderProductArchitecture();
+    };
     row.append(card); enableArchitectureNodeDrag(card, node, system, architecture);
   });
   if (!readOnly()){
@@ -7035,6 +7158,7 @@ renderProductArchitecture = function(){
   name.oninput = () => { architecture.name = name.value; markDirty(); };
   const summary = $('archProductSummary'); summary.value = architecture.summary || ''; summary.readOnly = ro;
   summary.oninput = () => { architecture.summary = summary.value; markDirty(); };
+  renderArchitectureSelectionTools(architecture);
   const systems = $('archSystems'); systems.innerHTML = '';
   architecture.systems.forEach((system, index) => systems.append(renderArchitectureSystem(system, index, architecture)));
   if (!architecture.systems.length){
@@ -7049,6 +7173,7 @@ $('btnArchAddDomain').onclick = () => {
   if (readOnly()) return;
   const architecture = productArchitectureState();
   architecture.systems.push(archFlowSystem('System ' + (architecture.systems.length + 1), 300));
+  architectureSelection.clear();
   architecture.sample = 'blank'; markDirty(); renderProductArchitecture();
 };
 
@@ -7060,6 +7185,7 @@ $('btnArchLoadSample').onclick = () => {
   const sample = $('archSample').value;
   state.tabs[PRODUCT_ARCHITECTURE_TAB].architecture = sample === 'data' ? dataPlatformArchitecture() :
     sample === 'soc' ? socProductArchitecture() : blankArchitecture();
+  architectureSelection.clear();
   markDirty(); renderProductArchitecture();
 };
 

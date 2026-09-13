@@ -72,6 +72,9 @@ export function registerBoardTools(server: McpServer) {
               })),
               nodes: nodes.length,
               connections: Array.isArray(architecture.edges) ? architecture.edges.length : 0,
+              groups: Array.isArray(architecture.groups)
+                ? architecture.groups.map((group: any) => ({ name: group.name, nodes: group.nodeIds?.length || 0 }))
+                : [],
               outputs: Array.isArray(architecture.edges)
                 ? architecture.edges.map((edge: any) => edge.label).filter(Boolean)
                 : []
