@@ -49,8 +49,9 @@ canvas, not separate
 sidebar tab. **Keywords** is its own sidebar section, with Category, Competitor,
 ICP and Value as four direct destinations. Canvas and Research remain separate
 top-level sections.
-Those Keywords tables and the Keyword Repo use the same higher-contrast green-tinted
-surface language as the strategy canvases, without changing their layout or behavior.
+Those Keywords tables and the Keyword Repo now use a table-first green
+planning-sheet style: stronger visible headers, cleaner row contrast and clearer
+in-cell controls, without changing the underlying content or behavior.
 
 The separate free-form canvas collection appears under **Canvas**. In Settings,
 Clients is a compact workspace directory rather than a tile gallery. Creating a
