@@ -1368,8 +1368,7 @@
   .pos-axis-label{color:#878882; font-size:8.5px; font-weight:800; letter-spacing:.12em;
                   text-transform:uppercase}
   .icp-list{display:flex; flex-direction:column; gap:14px}
-  .icp-card{position:relative; display:grid; grid-template-columns:180px repeat(4,minmax(0,1fr));
-            gap:10px; padding:16px; border:1px solid #d0d1cc; border-radius:6px;
+  .icp-card{position:relative; padding:16px; border:1px solid #d0d1cc; border-radius:6px;
             background:#fff; box-shadow:0 1px 2px rgba(0,0,0,.04); cursor:pointer}
   .icp-card:hover{border-color:#a9aaa4}.icp-card.on{border-color:#57c982; background:#effbf3;
     box-shadow:0 0 0 1px rgba(87,201,130,.14)}
@@ -1377,8 +1376,20 @@
                   border-radius:0; padding:6px 2px; outline:none; background:transparent;
                   color:#2d2e2a; font:inherit; font-size:11.5px}
   .icp-card input:focus{border-color:#57c982}.icp-card.on input{border-color:#bde6cb}
-  .icp-name input{font-weight:750}.icp-field label{display:block; margin-bottom:5px;
+  .icp-card-head{display:flex; align-items:flex-end; gap:14px; padding-right:92px}
+  .icp-name{width:min(360px,100%)}.icp-name input{font-weight:750}.icp-field label{display:block; margin-bottom:5px;
     color:#858680; font-size:8px; font-weight:800; letter-spacing:.08em; text-transform:uppercase}
+  .icp-rows{display:flex; flex-direction:column; gap:8px; margin-top:14px}
+  .icp-row{display:grid; grid-template-columns:34px repeat(4,minmax(0,1fr)) 28px;
+           gap:10px; align-items:end; padding:10px; border:1px solid #e0e1dc;
+           background:rgba(250,250,248,.86)}
+  .icp-card.on .icp-row{border-color:#cce8d5; background:rgba(255,255,255,.68)}
+  .icp-row-number{align-self:center; color:#999b95; font-size:8px; font-weight:850;
+                  letter-spacing:.08em; text-align:center}
+  .icp-row-x{align-self:center; padding:3px 6px; border:0; background:transparent;
+             color:#9a9c96; font-size:14px}.icp-row-x:hover:not(:disabled){color:var(--danger); background:transparent}
+  .icp-add-row{margin-top:10px; padding:5px 8px; border-color:#cbd8ce; background:#fff;
+               color:#3f7550; font-size:9.5px}
   .icp-selected{position:absolute; right:10px; top:8px; color:#32804d; font-size:8px;
                 font-weight:850; letter-spacing:.08em; text-transform:uppercase}
   .pos-x{position:absolute; right:6px; bottom:5px; padding:2px 6px; border:0;
@@ -1455,8 +1466,11 @@
   .value-functional{left:0; top:103px}.value-benefit{left:32%; top:103px}
   .value-monetary{right:0; top:18px}.value-strategic{right:0; bottom:18px}
   @media(max-width:900px){
-    .positioning{padding:14px}.pos-section{padding:18px 14px}.icp-card{grid-template-columns:1fr 1fr}
-    .icp-name{grid-column:1/-1}.cat-main{grid-template-columns:66px 1fr}.cat-description{grid-column:1/-1}
+    .positioning{padding:14px}.pos-section{padding:18px 14px}.icp-card-head{padding-right:0}
+    .icp-name{width:100%}.icp-row{grid-template-columns:28px 1fr 1fr 28px}
+    .icp-row .icp-field:nth-of-type(3),.icp-row .icp-field:nth-of-type(4){grid-row:2}
+    .icp-row .icp-field:nth-of-type(3){grid-column:2}.icp-row .icp-field:nth-of-type(4){grid-column:3}
+    .cat-main{grid-template-columns:66px 1fr}.cat-description{grid-column:1/-1}
     .cat-status{position:absolute; right:12px; top:10px}.cat-competitor{grid-template-columns:1fr}
     .competitive-card{grid-template-columns:64px 1fr}.competitive-status{position:absolute; right:12px; top:10px}
     .competitive-controls{grid-column:1/-1}.value-map{height:auto; display:grid; grid-template-columns:1fr 1fr; gap:12px}
@@ -2168,7 +2182,7 @@ const SUPABASE_URL = 'https://cskamgfvebryahkljlll.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_MdkD-TxMCIwlu69seSHA3Q_A39GADsK';
 const CLIENT_ID    = '1059013355751-6g50dsgm7df37htl2fdqrtlkh5hmrc0c.apps.googleusercontent.com';
 const ALLOWED      = ['vijaysrinivassan@gmail.com'];
-const BUILD        = 'v7.30';
+const BUILD        = 'v7.31';
 
 const STRATEGY_ONE_TAB = 'Strategy 1 — Brand Strategy';
 const PRODUCT_EVOLUTION_TAB = 'Strategy 1 — Product Evolution';
@@ -7257,7 +7271,21 @@ $('btnArchLoadSample').onclick = () => {
    POSITIONING CANVAS — ICP choice and category maturity ladder
    =================================================================== */
 function newPositioningIcp(){
-  return { id: uid(), name: '', people: '', process: '', technology: '', input: '' };
+  return { id: uid(), name: '', rows: [newPositioningIcpRow()] };
+}
+function newPositioningIcpRow(values){
+  const source = values || {};
+  return {
+    id: source.id || uid(),
+    people: typeof source.people === 'string' ? source.people : '',
+    process: typeof source.process === 'string' ? source.process : '',
+    technology: typeof source.technology === 'string' ? source.technology : '',
+    input: typeof source.input === 'string' ? source.input : ''
+  };
+}
+function syncLegacyIcpFields(icp){
+  const first = icp.rows[0] || newPositioningIcpRow();
+  ['people', 'process', 'technology', 'input'].forEach(key => { icp[key] = first[key] || ''; });
 }
 function newPositioningCategory(){
   return { id: uid(), name: '', maturity: '', competitors: [] };
@@ -7290,9 +7318,12 @@ function positioningState(){
   while (p.competitive.stages.length < 3) p.competitive.stages.push(newCompetitiveStage());
   p.icps.forEach(icp => {
     if (!icp.id) icp.id = uid();
-    ['name', 'people', 'process', 'technology', 'input'].forEach(key => {
-      if (typeof icp[key] !== 'string') icp[key] = '';
-    });
+    if (typeof icp.name !== 'string') icp.name = '';
+    if (!Array.isArray(icp.rows) || !icp.rows.length){
+      icp.rows = [newPositioningIcpRow(icp)];
+    }
+    icp.rows = icp.rows.map(row => newPositioningIcpRow(row));
+    syncLegacyIcpFields(icp);
   });
   p.categories.forEach(category => {
     if (!category.id) category.id = uid();
@@ -7417,24 +7448,72 @@ function renderPositioning(){
       selectPositioningIcp(icp.id);
     };
 
+    const cardHead = document.createElement('div');
+    cardHead.className = 'icp-card-head';
     const nameField = document.createElement('div');
     nameField.className = 'icp-name icp-field';
     const nameLabel = document.createElement('label');
     nameLabel.textContent = 'ICP ' + (index + 1);
     const name = positioningInput(icp.name, 'ICP name / maturity stage', ro, value => { icp.name = value; }, 'icp-title');
     nameField.append(nameLabel, name);
-    card.append(nameField);
+    cardHead.append(nameField);
+    card.append(cardHead);
 
-    [['people', 'People'], ['process', 'Process'], ['technology', 'Technology'], ['input', 'Input']].forEach(pair => {
-      const field = document.createElement('div');
-      field.className = 'icp-field';
-      const label = document.createElement('label');
-      label.textContent = pair[1];
-      const input = positioningInput(icp[pair[0]], pair[1] + ' maturity', ro,
-        value => { icp[pair[0]] = value; });
-      field.append(label, input);
-      card.append(field);
+    const rows = document.createElement('div');
+    rows.className = 'icp-rows';
+    icp.rows.forEach((rowData, rowIndex) => {
+      const row = document.createElement('div');
+      row.className = 'icp-row';
+      const rowNumber = document.createElement('span');
+      rowNumber.className = 'icp-row-number';
+      rowNumber.textContent = String(rowIndex + 1).padStart(2, '0');
+      row.append(rowNumber);
+      [['people', 'People'], ['process', 'Process'], ['technology', 'Technology'], ['input', 'Input']].forEach(pair => {
+        const field = document.createElement('div');
+        field.className = 'icp-field';
+        const label = document.createElement('label');
+        label.textContent = pair[1];
+        const input = positioningInput(rowData[pair[0]], pair[1] + ' maturity', ro, value => {
+          rowData[pair[0]] = value;
+          if (rowIndex === 0) syncLegacyIcpFields(icp);
+        });
+        field.append(label, input);
+        row.append(field);
+      });
+      if (!ro){
+        const removeRow = document.createElement('button');
+        removeRow.type = 'button';
+        removeRow.className = 'icp-row-x';
+        removeRow.title = 'Remove this row';
+        removeRow.setAttribute('aria-label', 'Remove ICP row ' + (rowIndex + 1));
+        removeRow.textContent = '\u00d7';
+        removeRow.onclick = ev => {
+          ev.stopPropagation();
+          if (icp.rows.length === 1){
+            icp.rows[0] = newPositioningIcpRow();
+          } else {
+            icp.rows.splice(rowIndex, 1);
+          }
+          syncLegacyIcpFields(icp);
+          markDirty(); renderPositioning();
+        };
+        row.append(removeRow);
+      }
+      rows.append(row);
     });
+    card.append(rows);
+    if (!ro){
+      const addRow = document.createElement('button');
+      addRow.type = 'button';
+      addRow.className = 'icp-add-row';
+      addRow.textContent = '+ Add row';
+      addRow.onclick = ev => {
+        ev.stopPropagation();
+        icp.rows.push(newPositioningIcpRow());
+        markDirty(); renderPositioning();
+      };
+      card.append(addRow);
+    }
     if (selected){
       const status = document.createElement('span');
       status.className = 'icp-selected';

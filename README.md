@@ -89,8 +89,9 @@ saved with the board and can be changed later with Edit.
   **AI SOC Product** can be loaded from the template picker; matching client
   names start with the appropriate sample automatically.
 - **Strategy › Positioning Canvas** has two connected decisions. ICP Positioning
-  builds any number of client-ready ICP options from People, Process, Technology and
-  Input maturity, with one visibly selected ICP. Category Positioning maps the market
+  builds any number of client-ready ICP options, and each ICP can contain multiple
+  People / Process / Technology / Input maturity rows, with one visibly selected ICP.
+  Category Positioning maps the market
   from its oldest category to later stages, keeps competitors beneath each category,
   and lets one category be selected. The named competitors in that selected category
   are added to **Keywords › Competitor** without duplicating existing rows or
