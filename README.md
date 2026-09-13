@@ -80,10 +80,11 @@ saved with the board and can be changed later with Edit.
   value, core benefit, monetary benefit and strategic benefit.
 - **Strategy › Channel Strategy** shows the active and available acquisition levers.
 - **Strategy › Brand Radar** turns Product Evolution into a four-quadrant market map:
-  Technology access, Input access, Process access and People access. The chosen axis
-  is divided into quarter-circle stage bands, with Stage 1 nearest the centre and the
-  selected current stage highlighted in green. Selecting a stage in Product
-  Evolution or directly on the radar updates the same saved position.
+  Technology access, Input access, Process access and People access. Product Evolution
+  chooses the direction; the Category Positioning ladder becomes concentric ranks in
+  that quadrant, with the oldest category nearest the centre. Each rank carries its
+  competitors. Zooming progressively reveals player names, and the map can be panned
+  at closer levels. Selecting a rank also selects that category in Positioning Canvas.
 - **Canvas** lists Product Architecture, Market Research Frame, Messaging Framework,
   Positioning Document and Growth Strategy directly, without a Brand Strategy parent
   row. Each is its own canvas; the count beside one is its card count. Those five always exist —

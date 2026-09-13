@@ -1086,9 +1086,23 @@
   .radar-head{display:flex; align-items:flex-start; gap:18px; margin-bottom:12px}
   .radar-head h3{margin:3px 0 6px; color:#20211e; font-size:18px}
   .radar-head p{max-width:700px; margin:0; color:#6f706a; font-size:11.5px; line-height:1.55}
-  .radar-head button{margin-left:auto; flex:none}
-  .radar-figure{width:min(760px,100%); margin:0 auto}
-  .radar-svg{display:block; width:100%; height:auto; overflow:visible}
+  .radar-head-actions{display:flex; gap:8px; margin-left:auto; flex:none}
+  .radar-head-actions button{background:#fff; font-size:10.5px}
+  .radar-figure{position:relative; width:min(860px,100%); margin:18px auto 0; overflow:hidden;
+                border:1px solid #deded9; border-radius:12px; background:rgba(255,255,255,.76);
+                box-shadow:0 8px 28px rgba(28,34,29,.06)}
+  .radar-svg{display:block; width:100%; height:auto; cursor:grab; touch-action:none; user-select:none}
+  .radar-svg.dragging{cursor:grabbing}
+  .radar-zoom{position:absolute; z-index:3; top:14px; right:14px; display:flex; overflow:hidden;
+              border:1px solid #d4d5d0; border-radius:8px; background:#fff;
+              box-shadow:0 3px 12px rgba(28,34,29,.1)}
+  .radar-zoom button{width:36px; height:34px; padding:0; border:0; border-right:1px solid #e2e3df;
+                     border-radius:0; background:#fff; color:#4e504a; font-size:17px}
+  .radar-zoom button:last-child{border-right:0; font-size:11px; font-weight:750}
+  .radar-zoom button:hover{background:#effbf3; color:#22663b}
+  .radar-zoom-level{position:absolute; z-index:3; left:14px; bottom:14px; padding:5px 8px;
+                    border:1px solid #deded9; border-radius:7px; background:rgba(255,255,255,.92);
+                    color:#777872; font-size:9.5px; font-weight:700}
   .radar-quarter{stroke:#e0e1dc; stroke-width:1; transition:fill .15s}
   .radar-quarter.active{stroke:#68c98b; stroke-width:1.8}
   .radar-axis-line{stroke:#b8b9b3; stroke-width:1.2; vector-effect:non-scaling-stroke}
@@ -1103,6 +1117,11 @@
   .radar-stage.selected{stroke:#1f743f; stroke-width:2.6}
   .radar-stage-label{fill:#255e38; font-size:11px; font-weight:700; text-anchor:middle;
                      pointer-events:none}
+  .radar-player-count{fill:#698071; font-size:8.5px; font-weight:600}
+  .radar-player{fill:#345d42; font-size:8.5px; font-weight:650; text-anchor:middle;
+                pointer-events:none; paint-order:stroke; stroke:#fff; stroke-width:2.5px;
+                stroke-linejoin:round}
+  .radar-more{fill:#6b756d; font-style:italic}
   .radar-hub{fill:#fff; stroke:#57c982; stroke-width:2.2; pointer-events:none}
   .radar-empty{fill:#777872; font-size:14px; font-weight:650; text-anchor:middle}
   .radar-foot{display:flex; align-items:center; gap:12px; width:min(700px,100%); margin:4px auto 0;
@@ -1228,7 +1247,7 @@
     .evo-market{grid-column:1/-1; order:-1}.evo-wires{display:none}
     .pe-box{margin-top:26px}.pe-head{padding:14px}.pe-evidence{grid-template-columns:120px 150px 210px auto}
     .radar{padding:14px}.radar-canvas{min-height:0; padding:18px 12px}.radar-head{display:block}
-    .radar-head button{margin-top:10px}.radar-foot{align-items:flex-start; flex-wrap:wrap}
+    .radar-head-actions{margin:10px 0 0; flex-wrap:wrap}.radar-foot{align-items:flex-start; flex-wrap:wrap}
   }
 
   .toast{position:fixed; left:50%; bottom:80px; transform:translateX(-50%); z-index:200;
@@ -1678,19 +1697,28 @@
       </div>
     </div>
 
-    <!-- Market-position radar driven by the selected Product Evolution axis and stage. -->
+    <!-- Zoomable category radar driven by Product Evolution and Category Positioning. -->
     <div class="radar" id="brandRadarPane" hidden>
       <div class="radar-canvas">
         <div class="radar-head">
           <div>
             <span class="pos-axis-label">Market position</span>
             <h3>Brand Radar</h3>
-            <p>The four quadrants are the four axes of evolution. The selected Product Evolution axis expands from Stage 1 at the centre to later stages at the edge.</p>
+            <p>The selected Product Evolution axis sets the direction. Category Positioning becomes the radial ladder, with the oldest category at the centre and later categories toward the edge.</p>
           </div>
-          <button id="btnOpenProductEvolution" type="button">Open Product Evolution</button>
+          <div class="radar-head-actions">
+            <button id="btnOpenProductEvolution" type="button">Set direction</button>
+            <button id="btnOpenCategoryPositioning" type="button">Edit categories</button>
+          </div>
         </div>
         <div class="radar-figure">
           <svg class="radar-svg" id="brandRadarSvg" viewBox="0 0 760 760" role="img" aria-label="Brand position across four evolution axes"></svg>
+          <div class="radar-zoom" aria-label="Radar zoom controls">
+            <button id="btnRadarZoomIn" type="button" title="Zoom in">+</button>
+            <button id="btnRadarZoomOut" type="button" title="Zoom out">−</button>
+            <button id="btnRadarReset" type="button" title="Reset radar view">Reset</button>
+          </div>
+          <span class="radar-zoom-level" id="radarZoomLevel">100%</span>
         </div>
         <div class="radar-foot" id="brandRadarStatus"></div>
       </div>
@@ -1864,7 +1892,7 @@ const SUPABASE_URL = 'https://cskamgfvebryahkljlll.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_MdkD-TxMCIwlu69seSHA3Q_A39GADsK';
 const CLIENT_ID    = '1059013355751-6g50dsgm7df37htl2fdqrtlkh5hmrc0c.apps.googleusercontent.com';
 const ALLOWED      = ['vijaysrinivassan@gmail.com'];
-const BUILD        = 'v7.12';
+const BUILD        = 'v7.13';
 
 const STRATEGY_ONE_TAB = 'Strategy 1 — Brand Strategy';
 const PRODUCT_EVOLUTION_TAB = 'Strategy 1 — Product Evolution';
@@ -7346,11 +7374,12 @@ $('btnEvoChange').onclick = () => {
    BRAND RADAR — the Product Evolution choice as a four-quadrant map
    =================================================================== */
 const RADAR_AXES = [
-  { id: 'technology', label: 'Technology access', start: 180, end: 270, bx: 70,  by: 48 },
-  { id: 'input',      label: 'Input access',      start: 270, end: 360, bx: 500, by: 48 },
-  { id: 'process',    label: 'Process access',    start:   0, end:  90, bx: 500, by: 668 },
-  { id: 'people',     label: 'People access',     start:  90, end: 180, bx: 70,  by: 668 }
+  { id: 'technology', label: 'Technology access', start: 180, end: 270, bx: 30,  by: 24 },
+  { id: 'input',      label: 'Input access',      start: 270, end: 360, bx: 540, by: 24 },
+  { id: 'process',    label: 'Process access',    start:   0, end:  90, bx: 540, by: 692 },
+  { id: 'people',     label: 'People access',     start:  90, end: 180, bx: 30,  by: 692 }
 ];
+const radarView = { zoom: 1, cx: 380, cy: 380, drag: null };
 
 function radarPoint(radius, degrees){
   const angle = degrees * Math.PI / 180;
@@ -7369,17 +7398,40 @@ function radarSector(inner, outer, start, end){
     ' 0 0 0 ' + d.x + ' ' + d.y + ' Z';
 }
 
+function applyRadarView(svg){
+  const size = 760 / radarView.zoom;
+  const half = size / 2;
+  radarView.cx = Math.max(half, Math.min(760 - half, radarView.cx));
+  radarView.cy = Math.max(half, Math.min(760 - half, radarView.cy));
+  svg.setAttribute('viewBox', (radarView.cx - half) + ' ' + (radarView.cy - half) + ' ' + size + ' ' + size);
+  $('radarZoomLevel').textContent = Math.round(radarView.zoom * 100) + '%';
+}
+
+function setRadarZoom(next){
+  radarView.zoom = Math.max(1, Math.min(2.5, Math.round(next * 10) / 10));
+  if (radarView.zoom === 1){ radarView.cx = 380; radarView.cy = 380; }
+  renderBrandRadar();
+}
+
+function radarText(svg, ns, x, y, className, value){
+  const text = document.createElementNS(ns, 'text');
+  text.setAttribute('x', x); text.setAttribute('y', y); text.setAttribute('class', className);
+  text.textContent = value; svg.append(text); return text;
+}
+
 function renderBrandRadar(){
   const svg = $('brandRadarSvg');
   const status = $('brandRadarStatus');
   if (!svg || !status) return;
   const evo = evolutionState();
+  const positioning = positioningState();
   const ns = 'http://www.w3.org/2000/svg';
   svg.innerHTML = '';
+  applyRadarView(svg);
 
   RADAR_AXES.forEach(axis => {
     const quarter = document.createElementNS(ns, 'path');
-    quarter.setAttribute('d', radarSector(0, 245, axis.start, axis.end));
+    quarter.setAttribute('d', radarSector(0, 285, axis.start, axis.end));
     const alternating = RADAR_AXES.indexOf(axis) % 2 ? '#fafbf9' : '#f5f7f4';
     quarter.setAttribute('fill', evo.axis === axis.id ? '#eaf8ef' : alternating);
     quarter.setAttribute('class', 'radar-quarter' + (evo.axis === axis.id ? ' active' : ''));
@@ -7388,26 +7440,29 @@ function renderBrandRadar(){
 
   const active = RADAR_AXES.find(axis => axis.id === evo.axis);
   if (active){
-    const path = evo.paths[active.id];
-    const stages = path.stages;
-    const band = 245 / stages.length;
-    const current = evo.positions[active.id];
-    stages.forEach((value, index) => {
+    const categories = positioning.categories;
+    const band = 285 / categories.length;
+    categories.forEach((category, index) => {
+      const selected = positioning.selectedCategory === category.id;
       const sector = document.createElementNS(ns, 'path');
       sector.setAttribute('d', radarSector(index * band, (index + 1) * band, active.start, active.end));
-      sector.setAttribute('fill', index === current ? '#78d49a' : 'rgba(172,229,191,' + Math.min(.76, .32 + index * .08) + ')');
-      sector.setAttribute('class', 'radar-stage' + (index === current ? ' selected' : ''));
+      sector.setAttribute('fill', selected ? '#79d39a' : 'rgba(172,229,191,' + Math.min(.72, .24 + index * .07) + ')');
+      sector.setAttribute('class', 'radar-stage' + (selected ? ' selected' : ''));
       sector.setAttribute('role', 'button');
       sector.setAttribute('tabindex', readOnly() ? '-1' : '0');
-      sector.setAttribute('aria-label', 'Stage ' + (index + 1) + ': ' + (value.trim() || 'Untitled stage'));
+      sector.setAttribute('aria-label', 'Rank ' + (index + 1) + ': ' + (category.name.trim() || 'Untitled category'));
       sector.onclick = () => {
         if (readOnly()) return;
-        evo.positions[active.id] = index;
+        positioning.selectedCategory = category.id;
+        syncPositioningCompetitors(category);
         markDirty(); renderBrandRadar();
       };
       sector.onkeydown = ev => {
         if (readOnly() || (ev.key !== 'Enter' && ev.key !== ' ')) return;
-        ev.preventDefault(); evo.positions[active.id] = index; markDirty(); renderBrandRadar();
+        ev.preventDefault();
+        positioning.selectedCategory = category.id;
+        syncPositioningCompetitors(category);
+        markDirty(); renderBrandRadar();
       };
       svg.append(sector);
 
@@ -7415,30 +7470,60 @@ function renderBrandRadar(){
       const label = document.createElementNS(ns, 'text');
       label.setAttribute('x', point.x); label.setAttribute('y', point.y - 5);
       label.setAttribute('class', 'radar-stage-label');
-      const stageLine = document.createElementNS(ns, 'tspan');
-      stageLine.setAttribute('x', point.x); stageLine.textContent = 'Stage ' + (index + 1);
-      const valueLine = document.createElementNS(ns, 'tspan');
-      valueLine.setAttribute('x', point.x); valueLine.setAttribute('dy', '15');
-      const stageName = value.trim() || evolutionPlaceholder(active.id, index);
-      valueLine.textContent = stageName.length > 20 ? stageName.slice(0, 19) + '\u2026' : stageName;
-      label.append(stageLine, valueLine);
+      const rankLine = document.createElementNS(ns, 'tspan');
+      rankLine.setAttribute('x', point.x); rankLine.textContent = 'Rank ' + (index + 1);
+      const categoryLine = document.createElementNS(ns, 'tspan');
+      categoryLine.setAttribute('x', point.x); categoryLine.setAttribute('dy', '15');
+      const categoryName = category.name.trim() || 'Untitled category';
+      categoryLine.textContent = categoryName.length > 22 ? categoryName.slice(0, 21) + '\u2026' : categoryName;
+      label.append(rankLine, categoryLine);
+      if (radarView.zoom < 1.3){
+        const countLine = document.createElementNS(ns, 'tspan');
+        countLine.setAttribute('x', point.x); countLine.setAttribute('dy', '14');
+        const count = category.competitors.filter(player => player.name.trim()).length;
+        countLine.setAttribute('class', 'radar-player-count');
+        countLine.textContent = count + ' player' + (count === 1 ? '' : 's');
+        label.append(countLine);
+      }
       svg.append(label);
 
+      if (radarView.zoom >= 1.3){
+        const players = category.competitors.filter(player => player.name.trim());
+        const visible = radarView.zoom < 1.8 ? players.slice(0, 5) : players;
+        const columns = Math.max(1, Math.ceil(Math.sqrt(visible.length * 1.4)));
+        const rows = Math.max(1, Math.ceil(visible.length / columns));
+        visible.forEach((player, playerIndex) => {
+          const column = playerIndex % columns;
+          const row = Math.floor(playerIndex / columns);
+          const angle = active.start + 14 + (columns === 1 ? 31 : column * (62 / (columns - 1)));
+          const radial = index * band + band * (rows === 1 ? .73 : .58 + row * (.32 / Math.max(1, rows - 1)));
+          const playerPoint = radarPoint(radial, angle);
+          const text = radarText(svg, ns, playerPoint.x, playerPoint.y, 'radar-player',
+            player.name.length > 18 ? player.name.slice(0, 17) + '\u2026' : player.name);
+          const title = document.createElementNS(ns, 'title');
+          title.textContent = player.name; text.append(title);
+        });
+        if (visible.length < players.length){
+          const more = radarPoint(index * band + band * .91, (active.start + active.end) / 2);
+          radarText(svg, ns, more.x, more.y, 'radar-player radar-more', '+' + (players.length - visible.length) + ' more');
+        }
+      }
     });
   }
 
-  [['line', { x1: 380, y1: 135, x2: 380, y2: 625 }],
-   ['line', { x1: 135, y1: 380, x2: 625, y2: 380 }]].forEach(item => {
+  [['line', { x1: 380, y1: 95, x2: 380, y2: 665 }],
+   ['line', { x1: 95, y1: 380, x2: 665, y2: 380 }]].forEach(item => {
     const line = document.createElementNS(ns, item[0]);
     Object.keys(item[1]).forEach(key => line.setAttribute(key, item[1][key]));
     line.setAttribute('class', 'radar-axis-line'); svg.append(line);
   });
   const outline = document.createElementNS(ns, 'circle');
-  outline.setAttribute('cx', '380'); outline.setAttribute('cy', '380'); outline.setAttribute('r', '245');
+  outline.setAttribute('cx', '380'); outline.setAttribute('cy', '380'); outline.setAttribute('r', '285');
   outline.setAttribute('class', 'radar-outline'); svg.append(outline);
   const hub = document.createElementNS(ns, 'circle');
   hub.setAttribute('cx', '380'); hub.setAttribute('cy', '380'); hub.setAttribute('r', '15');
   hub.setAttribute('class', 'radar-hub'); svg.append(hub);
+
   RADAR_AXES.forEach(axis => {
     const card = document.createElementNS(ns, 'rect');
     card.setAttribute('x', axis.bx); card.setAttribute('y', axis.by);
@@ -7449,37 +7534,51 @@ function renderBrandRadar(){
     dot.setAttribute('cx', axis.bx + 18); dot.setAttribute('cy', axis.by + 22); dot.setAttribute('r', '4');
     dot.setAttribute('class', 'radar-axis-dot' + (evo.axis === axis.id ? ' active' : ''));
     svg.append(dot);
-    const label = document.createElementNS(ns, 'text');
-    label.setAttribute('x', axis.bx + 103); label.setAttribute('y', axis.by + 27);
-    label.setAttribute('class', 'radar-axis-name' + (evo.axis === axis.id ? ' active' : ''));
-    label.textContent = axis.label; svg.append(label);
+    radarText(svg, ns, axis.bx + 103, axis.by + 27,
+      'radar-axis-name' + (evo.axis === axis.id ? ' active' : ''), axis.label);
   });
+
   if (!active){
-    const empty = document.createElementNS(ns, 'text');
-    empty.setAttribute('x', '380'); empty.setAttribute('y', '385');
-    empty.setAttribute('class', 'radar-empty'); empty.textContent = 'Choose an axis in Product Evolution';
-    svg.append(empty);
+    radarText(svg, ns, 380, 385, 'radar-empty', 'Choose an axis in Product Evolution');
   }
 
   status.innerHTML = '';
   const message = document.createElement('span');
   if (active){
-    const current = evo.positions[active.id];
-    const value = evo.paths[active.id].stages[current].trim() || 'Stage ' + (current + 1);
+    const selected = positioning.categories.find(category => category.id === positioning.selectedCategory);
     const strong = document.createElement('strong');
-    strong.textContent = 'Current position: ' + value;
-    message.append(strong, document.createTextNode(' — ' + active.label + ', Stage ' + (current + 1) + '.'));
+    strong.textContent = selected ? 'Selected category: ' + (selected.name.trim() || 'Untitled category') : active.label;
+    message.append(strong, document.createTextNode(' — ' + positioning.categories.length +
+      ' category rank' + (positioning.categories.length === 1 ? '' : 's') + '. Zoom in to reveal player names.'));
   } else {
-    message.textContent = 'Choose an evolution axis first; Brand Radar will update automatically.';
+    message.textContent = 'Choose an evolution direction in Product Evolution; category ranks will appear automatically.';
   }
   status.append(message);
-  const change = document.createElement('button');
-  change.type = 'button'; change.textContent = active ? 'Change in Product Evolution' : 'Choose axis';
-  change.onclick = () => switchTab(PRODUCT_EVOLUTION_TAB);
-  status.append(change);
+
+  svg.onwheel = ev => { ev.preventDefault(); setRadarZoom(radarView.zoom + (ev.deltaY < 0 ? .2 : -.2)); };
+  svg.onpointerdown = ev => {
+    if (radarView.zoom === 1 || ev.target.classList.contains('radar-stage')) return;
+    radarView.drag = { x: ev.clientX, y: ev.clientY, cx: radarView.cx, cy: radarView.cy };
+    svg.classList.add('dragging'); svg.setPointerCapture(ev.pointerId);
+  };
+  svg.onpointermove = ev => {
+    if (!radarView.drag) return;
+    const worldPerPixel = (760 / radarView.zoom) / Math.max(1, svg.clientWidth);
+    radarView.cx = radarView.drag.cx - (ev.clientX - radarView.drag.x) * worldPerPixel;
+    radarView.cy = radarView.drag.cy - (ev.clientY - radarView.drag.y) * worldPerPixel;
+    applyRadarView(svg);
+  };
+  svg.onpointerup = svg.onpointercancel = ev => {
+    radarView.drag = null; svg.classList.remove('dragging');
+    if (svg.hasPointerCapture(ev.pointerId)) svg.releasePointerCapture(ev.pointerId);
+  };
 }
 
 $('btnOpenProductEvolution').onclick = () => switchTab(PRODUCT_EVOLUTION_TAB);
+$('btnOpenCategoryPositioning').onclick = () => switchTab(POSITIONING_TAB);
+$('btnRadarZoomIn').onclick = () => setRadarZoom(radarView.zoom + .2);
+$('btnRadarZoomOut').onclick = () => setRadarZoom(radarView.zoom - .2);
+$('btnRadarReset').onclick = () => setRadarZoom(1);
 
 /* ===================================================================
    STRATEGY 1 — clickable brand-strategy decision canvas
