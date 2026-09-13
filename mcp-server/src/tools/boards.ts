@@ -115,7 +115,18 @@ export function registerBoardTools(server: McpServer) {
           };
         }
       }
-      return ok({ id: row.id, title: row.title, client: body.client, tabs: summary });
+      return ok({
+        id: row.id,
+        title: row.title,
+        client: body.client,
+        client_details: {
+          goal: body.clientGoal || "Customer Acquisition",
+          market_type: body.clientMarketType === "red" ? "Red Ocean" :
+            body.clientMarketType === "blue" ? "Blue Ocean" : "Not selected",
+          industry_type: body.clientType || ""
+        },
+        tabs: summary
+      });
     }
   );
 
@@ -126,12 +137,23 @@ export function registerBoardTools(server: McpServer) {
       description:
         "Create a new client board with all workspace tabs empty. Returns the new board_id.",
       inputSchema: {
-        client: z.string().min(1).describe("Client name, e.g. 'Triple Whale'")
+        client: z.string().min(1).describe("Client name, e.g. 'Triple Whale'"),
+        goal: z.string().optional().describe("Primary goal; defaults to Customer Acquisition"),
+        market_type: z.enum(["red", "blue"]).optional().describe("Red Ocean or Blue Ocean"),
+        industry_type: z.enum(["saas", "ecommerce", "local"]).optional()
       },
       annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false }
     },
-    async ({ client }) => {
-      const body = { version: 1, client, logo: "", tabs: {} };
+    async ({ client, goal, market_type, industry_type }) => {
+      const body = {
+        version: 1,
+        client,
+        clientGoal: goal?.trim() || "Customer Acquisition",
+        clientMarketType: market_type || "",
+        clientType: industry_type || "",
+        logo: "",
+        tabs: {}
+      };
       const { data, error } = await db()
         .from("reports")
         .insert({

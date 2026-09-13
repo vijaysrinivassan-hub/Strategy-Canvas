@@ -65,6 +65,9 @@ saved with the board and can be changed later with Edit.
   a vertical buyer-journey timeline: Top of funnel contains JTBD articles; Middle
   of funnel contains service, listicle, feature and use-case pages; Bottom of
   funnel contains competitor keywords and links to the Competitor keyword matrix.
+  A compact About card in the canvas's upper-right shows the client's Goal, Market
+  Type and Industry Type. Edit those values from Settings › Clients; changing the
+  Red/Blue market type there stays synchronized with the canvas and Brand Radar.
 - **Strategy › Product Evolution** asks for one of four axes—People, Process,
   Technology / Access, or Input / Raw material—then maps a Previous state into an
   unlimited editable sequence of evolution stages. Each axis keeps its own sequence.

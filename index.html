@@ -962,12 +962,20 @@
              background-color:#fbfbfa;
              background-image:radial-gradient(circle,#d3d4cf 1.1px,transparent 1.25px);
              background-size:20px 20px}
+  .sg-about{position:absolute; z-index:4; top:18px; right:18px; width:190px; padding:12px 13px;
+            border:1px solid #d8dbd5; background:rgba(255,255,255,.94);
+            box-shadow:0 3px 12px rgba(25,36,28,.055)}
+  .sg-about-title{display:block; margin-bottom:9px; color:#898b84; font-size:8px;
+                  font-weight:850; letter-spacing:.12em; text-transform:uppercase}
+  .sg-about dl{display:grid; grid-template-columns:68px minmax(0,1fr); gap:7px 9px; margin:0}
+  .sg-about dt{color:#92948e; font-size:8.5px}.sg-about dd{min-width:0; margin:0; color:#353833;
+                  font-size:9.5px; font-weight:700; line-height:1.35; overflow-wrap:anywhere}
   .sg-wires{position:absolute; inset:0; z-index:1; width:100%; height:100%;
             overflow:visible; pointer-events:none}
   .sg-wire{fill:none; stroke:#b9bab6; stroke-width:1.5; stroke-linecap:round;
            stroke-linejoin:round; vector-effect:non-scaling-stroke}
   .sg-wire.chosen{stroke:#65c88a; stroke-width:2}
-  .sg-flow{display:flex; flex-direction:column; align-items:center}
+  .sg-flow{display:flex; flex-direction:column; align-items:center; padding-top:62px}
   .sg-questions{position:relative; min-height:650px; pointer-events:none}
   .sg-question{position:absolute; left:0; width:100%; min-height:52px; display:grid;
                grid-template-columns:32px 1fr; gap:10px; align-items:start; color:#70716c;
@@ -1012,6 +1020,8 @@
     .sg-canvas{padding:38px 18px 60px}.sg-questions{min-height:0; display:flex;
       flex-direction:column; gap:10px}
     .sg-question{position:relative; left:auto!important; top:auto!important; width:100%}
+    .sg-about{position:relative; top:auto; right:auto; width:100%; margin-bottom:28px}
+    .sg-flow{padding-top:0}
     .sg-oceans{grid-template-columns:repeat(2,minmax(0,1fr)); gap:38px; width:100%}
     .sg-node{width:100%; min-width:0}
     .sg-routes{grid-template-columns:1fr; gap:42px}.sg-routes-wrap{margin-top:54px}
@@ -1907,6 +1917,14 @@
           </div>
         </aside>
         <div class="sg-canvas">
+          <aside class="sg-about" aria-label="Client strategy details">
+            <span class="sg-about-title">About</span>
+            <dl>
+              <dt>Goal</dt><dd id="sgAboutGoal">Customer Acquisition</dd>
+              <dt>Market type</dt><dd id="sgAboutMarket">Not selected</dd>
+              <dt>Industry type</dt><dd id="sgAboutIndustry">Not selected</dd>
+            </dl>
+          </aside>
           <svg class="sg-wires" id="sgWires" aria-hidden="true"></svg>
           <div class="sg-flow">
             <button class="sg-node sg-root" id="sgRoot" type="button">
@@ -2210,7 +2228,7 @@ const SUPABASE_URL = 'https://cskamgfvebryahkljlll.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_MdkD-TxMCIwlu69seSHA3Q_A39GADsK';
 const CLIENT_ID    = '1059013355751-6g50dsgm7df37htl2fdqrtlkh5hmrc0c.apps.googleusercontent.com';
 const ALLOWED      = ['vijaysrinivassan@gmail.com'];
-const BUILD        = 'v7.32';
+const BUILD        = 'v7.33';
 
 const STRATEGY_ONE_TAB = 'Strategy 1 — Brand Strategy';
 const PRODUCT_EVOLUTION_TAB = 'Strategy 1 — Product Evolution';
@@ -2310,6 +2328,8 @@ const state = {
   boardId: null,               /* uuid of the Supabase row, null = unsaved */
   client: 'XYZ',
   clientType: '',
+  clientGoal: 'Customer Acquisition',
+  clientMarketType: '',
   logo: '',
   tab: TABS[0],
   tabs: {},                    /* tabName -> { nodes:[], edges:[] } */
@@ -3910,7 +3930,9 @@ function serialize(){
   /* the frame scratch tab is a working copy, not a tab of this board */
   const tabs = {};
   Object.keys(state.tabs).forEach(k => { if (k !== FRAME_TAB) tabs[k] = state.tabs[k]; });
-  return JSON.stringify({ version: 3, client: state.client, clientType: state.clientType || '', logo: state.logo || '',
+  return JSON.stringify({ version: 3, client: state.client, clientType: state.clientType || '',
+                          clientGoal: state.clientGoal || 'Customer Acquisition',
+                          clientMarketType: state.clientMarketType || '', logo: state.logo || '',
                           extra: state.extra, brandOrder: state.brandOrder,
                           frameEdits: state.frameEdits, tabs: tabs });
 }
@@ -3951,6 +3973,11 @@ function hydrate(text){
   }
   state.client = (d && d.client) || 'XYZ';
   state.clientType = (d && CLIENT_TYPES.some(x => x.id === d.clientType)) ? d.clientType : '';
+  state.clientGoal = (d && typeof d.clientGoal === 'string' && d.clientGoal.trim())
+    ? d.clientGoal.trim() : 'Customer Acquisition';
+  const guideOcean = (((state.tabs[STRATEGY_ONE_TAB] || {}).guide || {}).ocean || '');
+  state.clientMarketType = (d && (d.clientMarketType === 'red' || d.clientMarketType === 'blue'))
+    ? d.clientMarketType : (guideOcean === 'red' || guideOcean === 'blue' ? guideOcean : '');
   state.logo = (d && d.logo) || '';
   void 0;   /* the client name is edited on the Clients screen */
   renderBrand();
@@ -4010,12 +4037,14 @@ async function saveBoard(quiet){
   if (!quiet) toast('Board saved.');
 }
 
-async function newBoard(clientName, clientType){
+async function newBoard(clientName, clientType, clientGoal, clientMarketType){
   state.boardId = null;
   state.ownerId = state.user ? state.user.id : null;
   state.role = 'admin';
   state.client = (clientName || '').trim() || 'Untitled';
   state.clientType = CLIENT_TYPES.some(x => x.id === clientType) ? clientType : '';
+  state.clientGoal = (clientGoal || '').trim() || 'Customer Acquisition';
+  state.clientMarketType = clientMarketType === 'red' || clientMarketType === 'blue' ? clientMarketType : '';
   state.logo = '';
   state.tabs = blankTabs();
   state.extra = [];
@@ -4649,7 +4678,7 @@ function openClientSettings(){
   const h = document.createElement('h3');
   h.textContent = 'Client';
   const p = document.createElement('p');
-  p.textContent = 'The name shows in the sidebar and titles this board everywhere it is listed.';
+  p.textContent = 'These details identify the client and frame the Brand Strategy canvas.';
 
   const nameLabel = document.createElement('label');
   nameLabel.className = 'fl';
@@ -4662,17 +4691,38 @@ function openClientSettings(){
   const typeLabel = document.createElement('label');
   typeLabel.className = 'fl';
   typeLabel.style.marginTop = '16px';
-  typeLabel.textContent = 'Client type';
+  typeLabel.textContent = 'Industry type';
   const typeIn = document.createElement('select');
   typeIn.className = 'modal-in';
   const typeNone = document.createElement('option');
-  typeNone.value = ''; typeNone.textContent = 'Choose client type';
+  typeNone.value = ''; typeNone.textContent = 'Choose industry type';
   typeIn.append(typeNone);
   CLIENT_TYPES.forEach(function(t){
     const o = document.createElement('option');
     o.value = t.id; o.textContent = t.label; typeIn.append(o);
   });
   typeIn.value = state.clientType || '';
+
+  const goalLabel = document.createElement('label');
+  goalLabel.className = 'fl';
+  goalLabel.style.marginTop = '16px';
+  goalLabel.textContent = 'Goal';
+  const goalIn = document.createElement('input');
+  goalIn.className = 'modal-in';
+  goalIn.value = state.clientGoal || 'Customer Acquisition';
+  goalIn.placeholder = 'Customer Acquisition';
+
+  const marketLabel = document.createElement('label');
+  marketLabel.className = 'fl';
+  marketLabel.style.marginTop = '16px';
+  marketLabel.textContent = 'Market type';
+  const marketIn = document.createElement('select');
+  marketIn.className = 'modal-in';
+  [['', 'Choose market type'], ['red', 'Red Ocean'], ['blue', 'Blue Ocean']].forEach(item => {
+    const option = document.createElement('option');
+    option.value = item[0]; option.textContent = item[1]; marketIn.append(option);
+  });
+  marketIn.value = state.clientMarketType || '';
 
   const logoLabel = document.createElement('label');
   logoLabel.className = 'fl';
@@ -4751,6 +4801,11 @@ function openClientSettings(){
     const nm = nameIn.value.trim();
     state.client = nm || 'Untitled';
     state.clientType = typeIn.value;
+    state.clientGoal = goalIn.value.trim() || 'Customer Acquisition';
+    state.clientMarketType = marketIn.value;
+    const guide = strategyOneState();
+    guide.ocean = state.clientMarketType;
+    if (guide.ocean) guide.opened = true;
     state.logo = pendingLogo;
     void 0;   /* the client name is edited on the Clients screen */
     renderBrand();
@@ -4762,7 +4817,8 @@ function openClientSettings(){
   };
   foot.append(cancel, save);
 
-  modal.append(h, p, nameLabel, nameIn, typeLabel, typeIn, logoLabel, row, fileIn, foot);
+  modal.append(h, p, nameLabel, nameIn, typeLabel, typeIn, goalLabel, goalIn,
+    marketLabel, marketIn, logoLabel, row, fileIn, foot);
   overlay.append(modal);
   host.append(overlay);
   paint();
@@ -8154,28 +8210,35 @@ function openNewClientModal(){
   modal.className = 'modal client-create'; modal.onclick = ev => ev.stopPropagation();
   const h = document.createElement('h3'); h.textContent = 'Create a client workspace';
   const p = document.createElement('p');
-  p.textContent = 'Choose the business model now so the workspace has the right client context from the start.';
+  p.textContent = 'Set the client context that will appear on the Brand Strategy canvas.';
   const nameLabel = document.createElement('label'); nameLabel.className = 'fl'; nameLabel.textContent = 'Client name';
   const name = document.createElement('input'); name.className = 'modal-in'; name.placeholder = 'Client or company name';
-  const typeLabel = document.createElement('label'); typeLabel.className = 'fl'; typeLabel.style.marginTop = '16px'; typeLabel.textContent = 'Client type';
+  const typeLabel = document.createElement('label'); typeLabel.className = 'fl'; typeLabel.style.marginTop = '16px'; typeLabel.textContent = 'Industry type';
   const type = document.createElement('select'); type.className = 'modal-in';
   const choose = document.createElement('option'); choose.value = ''; choose.textContent = 'Choose Local, E-commerce, or SaaS'; type.append(choose);
   CLIENT_TYPES.forEach(function(t){
     const o = document.createElement('option'); o.value = t.id; o.textContent = t.label; type.append(o);
+  });
+  const goalLabel = document.createElement('label'); goalLabel.className = 'fl'; goalLabel.style.marginTop = '16px'; goalLabel.textContent = 'Goal';
+  const goal = document.createElement('input'); goal.className = 'modal-in'; goal.value = 'Customer Acquisition'; goal.placeholder = 'Customer Acquisition';
+  const marketLabel = document.createElement('label'); marketLabel.className = 'fl'; marketLabel.style.marginTop = '16px'; marketLabel.textContent = 'Market type';
+  const market = document.createElement('select'); market.className = 'modal-in';
+  [['', 'Choose market type'], ['red', 'Red Ocean'], ['blue', 'Blue Ocean']].forEach(function(item){
+    const o = document.createElement('option'); o.value = item[0]; o.textContent = item[1]; market.append(o);
   });
   const foot = document.createElement('div'); foot.className = 'mrow';
   const cancel = document.createElement('button'); cancel.textContent = 'Cancel'; cancel.onclick = closeModal;
   const create = document.createElement('button'); create.className = 'primary'; create.textContent = 'Create client';
   create.onclick = async function(){
     if (!name.value.trim()){ toast('Enter a client name.', true); name.focus(); return; }
-    if (!type.value){ toast('Choose a client type.', true); type.focus(); return; }
+    if (!type.value){ toast('Choose an industry type.', true); type.focus(); return; }
     create.disabled = true; create.textContent = 'Creating…';
-    await newBoard(name.value, type.value);
+    await newBoard(name.value, type.value, goal.value, market.value);
     closeModal();
   };
   name.onkeydown = function(ev){ if (ev.key === 'Enter') type.focus(); };
   foot.append(cancel, create);
-  modal.append(h, p, nameLabel, name, typeLabel, type, foot);
+  modal.append(h, p, nameLabel, name, typeLabel, type, goalLabel, goal, marketLabel, market, foot);
   overlay.append(modal); host.append(overlay); name.focus();
 }
 
@@ -9468,11 +9531,15 @@ function strategyOneState(){
   const t = state.tabs[STRATEGY_ONE_TAB] ||
             (state.tabs[STRATEGY_ONE_TAB] = { nodes: [], edges: [] });
   if (!t.guide || typeof t.guide !== 'object'){
-    t.guide = { opened: false, ocean: '' };
+    t.guide = { opened: !!state.clientMarketType, ocean: state.clientMarketType || '' };
   }
   delete t.guide.goal;
   delete t.guide.posture;
   if (typeof t.guide.opened !== 'boolean') t.guide.opened = !!t.guide.ocean;
+  if (state.clientMarketType === 'red' || state.clientMarketType === 'blue'){
+    t.guide.ocean = state.clientMarketType;
+    t.guide.opened = true;
+  }
   return t.guide;
 }
 
@@ -9491,6 +9558,7 @@ function strategyNode(host, value, title, detail, current){
   b.onclick = () => {
     if (readOnly()) return;
     strategyOneState().ocean = value;
+    state.clientMarketType = value;
     markDirty();
     renderStrategyGuide();
   };
@@ -9558,6 +9626,10 @@ function drawStrategyWires(){
 
 function renderStrategyGuide(){
   const g = strategyOneState();
+  $('sgAboutGoal').textContent = state.clientGoal || 'Customer Acquisition';
+  $('sgAboutMarket').textContent = g.ocean === 'red' ? 'Red Ocean' :
+    g.ocean === 'blue' ? 'Blue Ocean' : 'Not selected';
+  $('sgAboutIndustry').textContent = state.clientType ? clientTypeLabel(state.clientType) : 'Not selected';
   const objectiveQuestion = $('sgQuestionObjective');
   const marketQuestion = $('sgQuestionMarket');
   const audienceQuestion = $('sgQuestionAudience');
@@ -9746,6 +9818,7 @@ $('sgReset').onclick = () => {
   const g = strategyOneState();
   g.opened = false;
   g.ocean = '';
+  state.clientMarketType = '';
   markDirty();
   renderStrategyGuide();
 };
