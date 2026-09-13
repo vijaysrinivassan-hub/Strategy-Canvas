@@ -100,8 +100,9 @@ saved with the board and can be changed later with Edit.
   equal quarters. Brand Radar remains read-only
   for market position; the selected category can only be changed in Category Positioning.
   A Market type indicator in the radar's upper-right reflects the Red Ocean or Blue
-  Ocean choice from Brand Strategy. Red Ocean highlights only the selected category;
-  Blue Ocean also highlights every earlier category band toward the centre.
+  Ocean choice from Brand Strategy. Red Ocean highlights only the selected category.
+  Blue Ocean leaves the selected category unhighlighted and highlights only the one
+  category immediately beneath it toward the centre.
 - **Canvas** lists Product Architecture, Market Research Frame, Messaging Framework,
   Positioning Document and Growth Strategy directly, without a Brand Strategy parent
   row. Each is its own canvas; the count beside one is its card count. Those five always exist —
