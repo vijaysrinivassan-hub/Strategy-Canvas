@@ -69,7 +69,7 @@ function viewOf(body: any, view: string) {
   const slot = tabSlot(body, CONTENT_TAB);
   if (!slot.views || typeof slot.views !== "object") {
     throw new ToolError(
-      `That board's Content Strategy tab has not been opened yet, so its views do not ` +
+      `That board's Keywords section has not been opened yet, so its views do not ` +
         `exist. Open the tab once in the app, then retry.`
     );
   }
@@ -86,7 +86,7 @@ export function registerContentTools(server: McpServer) {
     {
       title: "Read a content view",
       description:
-        "Read one of the four Content Strategy views. 'competitor' is a matrix of rows by " +
+        "Read one of the four Keywords views. 'competitor' is a matrix of rows by " +
         "article type, where each cell records whether you are writing that article and " +
         "whether it targets AEO or SEO. 'category', 'icp' and 'value' are plain tables. " +
         "Column guidance tells an AI what belongs in each column and lists its defaults.",
@@ -460,7 +460,7 @@ export function registerContentTools(server: McpServer) {
     {
       title: "Set channel scope",
       description:
-        "Turn a channel on or off in the Channel Strategy tab, which is what tells a client " +
+        "Turn a channel on or off in Brand Strategy's Channel Strategy section, which tells a client " +
         "what is in scope. Creates the channel if it is not already listed.",
       inputSchema: {
         board_id: z.string(),
@@ -471,14 +471,23 @@ export function registerContentTools(server: McpServer) {
     },
     async ({ board_id, channel, in_scope }) => {
       const { body } = await loadBoard(board_id);
-      const slot = tabSlot(body, "Channel Strategy");
-      if (!Array.isArray(slot.items)) slot.items = [];
-      let item = slot.items.find((i: any) => String(i.name).toLowerCase() === channel.toLowerCase());
+      const brand = tabSlot(body, "Strategy 1 — Brand Strategy");
+      const legacy = body.tabs["Channel Strategy"];
+      if (!brand.channels || typeof brand.channels !== "object") {
+        brand.channels = legacy && Array.isArray(legacy.items)
+          ? { items: legacy.items }
+          : { items: [] };
+      }
+      const channels = brand.channels;
+      if (!Array.isArray(channels.items)) channels.items = [];
+      let item = channels.items.find((i: any) => String(i.name).toLowerCase() === channel.toLowerCase());
       if (!item) {
-        item = { id: uid(), name: channel, on: in_scope };
-        slot.items.push(item);
+        item = { id: uid(), name: channel, on: in_scope,
+          kind: /on[\s-]*page\s+seo/i.test(channel) ? "onpage" : "" };
+        channels.items.push(item);
       } else {
         item.on = in_scope;
+        if (/on[\s-]*page\s+seo/i.test(channel)) item.kind = "onpage";
       }
       await saveBoard(board_id, body);
       return ok({ channel: item.name, in_scope: item.on });

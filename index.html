@@ -901,6 +901,7 @@
   .chan-canvas .chan-card:hover{border-color:#8e8f89; box-shadow:0 2px 6px rgba(0,0,0,.07); transform:none}
   .chan-canvas .chan-card.on,.chan-canvas .chan-card.on:hover{border-color:#57c982; background:#effbf3;
                                                               box-shadow:0 0 0 1px rgba(87,201,130,.14)}
+  .chan-canvas .chan-card.focused{outline:2px solid rgba(64,157,91,.22); outline-offset:2px}
   .chan-tick{
     width:22px; height:22px; border-radius:6px; flex:none; display:grid; place-items:center;
     border:1.5px solid var(--border); background:var(--panel); color:transparent;
@@ -920,8 +921,36 @@
   .chan-x{padding:2px 7px; font-size:13px; line-height:1; color:var(--muted);
           border-color:transparent; background:transparent; flex:none}
   .chan-x:hover{color:var(--danger); background:var(--danger-bg); border-color:transparent}
+  .brand-channel-host{width:min(1432px,100%); margin:28px auto 0; padding-left:232px}
+  .brand-channel-host .chan{min-height:0; overflow:visible; padding:0; background:transparent}
+  .brand-channel-host .chan-head{padding-top:24px; border-top:1px solid #d9dad5}
+  .buyer-journey{margin-top:18px; padding:22px; border:1px solid #deded9;
+                 background-color:#fbfbfa;
+                 background-image:radial-gradient(circle at 1px 1px,#d4d5cf 1px,transparent 1.1px);
+                 background-size:20px 20px}
+  .buyer-head{display:flex; align-items:flex-start; justify-content:space-between; gap:18px; margin-bottom:18px}
+  .buyer-head h4{margin:0 0 4px; color:#292b27; font-size:15px}.buyer-head p{margin:0; color:#74766f; font-size:10.5px}
+  .buyer-head span{padding:4px 7px; border:1px solid #bde2c8; background:#effaf2; color:#34764a;
+                   font-size:8px; font-weight:800; letter-spacing:.08em; text-transform:uppercase}
+  .buyer-timeline{position:relative; width:min(760px,100%); margin:0 auto}
+  .buyer-timeline::before{content:''; position:absolute; left:15px; top:18px; bottom:18px; width:1.5px; background:#b8bcb6}
+  .buyer-stage{position:relative; display:grid; grid-template-columns:32px minmax(0,1fr); gap:14px; margin:0 0 12px}
+  .buyer-stage:last-child{margin-bottom:0}.buyer-dot{position:relative; z-index:2; width:31px; height:31px;
+                    display:grid; place-items:center; border:1px solid #bfc3bd; border-radius:50%;
+                    background:#fff; color:#777a74; font-size:8px; font-weight:850}
+  .buyer-stage.active .buyer-dot{border-color:#55ba77; background:#eaf8ef; color:#267142}
+  .buyer-card{padding:12px 14px; border:1px solid #d6d8d3; background:#fff; cursor:pointer}
+  .buyer-card:hover{border-color:#9da39d}.buyer-stage.active .buyer-card{border-color:#65c184; background:#f2faf4}
+  .buyer-card small{display:block; margin-bottom:3px; color:#8a8c86; font-size:7.5px; font-weight:850;
+                    letter-spacing:.1em; text-transform:uppercase}
+  .buyer-card b{display:block; color:#333631; font-size:11.5px}.buyer-detail{margin-top:10px; padding-top:10px;
+                    border-top:1px solid #dbe4dd; color:#62655f; font-size:10px; line-height:1.5}
+  .buyer-chips{display:flex; flex-wrap:wrap; gap:6px}.buyer-chip,.buyer-link{padding:5px 8px; border:1px solid #d3d8d2;
+                    background:#fff; color:#4f554f; font-size:9.5px}
+  .buyer-link{border-color:#83c899; color:#236d3c; cursor:pointer}.buyer-link:hover{background:#e9f7ee}
   @media(max-width:780px){
     .chan{padding:14px 14px 30px}.chan-flow{padding:36px 28px 52px}.chan-head{align-items:center}
+    .brand-channel-host{padding-left:0}
   }
 
   /* ================= clickable brand-strategy canvas ================= */
@@ -1819,6 +1848,13 @@
           <div class="chan-grid" id="chanGrid"></div>
         </div>
       </div>
+      <section class="buyer-journey" id="buyerJourney" hidden>
+        <div class="buyer-head">
+          <div><h4>On-page SEO buyer journey</h4><p>Choose a funnel stage to see what this channel creates for that moment.</p></div>
+          <span>Targeting path</span>
+        </div>
+        <div class="buyer-timeline" id="buyerTimeline"></div>
+      </section>
     </div>
 
     <!-- A clickable decision canvas for the first customer-acquisition choice. -->
@@ -1848,6 +1884,7 @@
           <button class="sg-reset" id="sgReset" type="button" hidden>Reset canvas</button>
         </div>
       </div>
+      <div class="brand-channel-host" id="brandChannelHost"></div>
     </div>
 
     <!-- Four-axis product evolution mapper with an editable progression. -->
@@ -1963,7 +2000,7 @@
       </div>
     </div>
 
-    <!-- ICP and category positioning decisions, connected to Content Strategy. -->
+    <!-- ICP and category positioning decisions, connected to Keywords. -->
     <div class="positioning" id="positioningPane" hidden>
       <section class="pos-section">
         <div class="pos-head">
@@ -1988,7 +2025,7 @@
         </div>
         <div class="category-ladder" id="positioningCategories"></div>
         <div class="pos-sync-note" id="positioningSyncNote">
-          Select a category to add its competitors to Content Strategy.
+          Select a category to add its competitors to Keywords.
         </div>
       </section>
 
@@ -2090,7 +2127,7 @@
       </div>
     </div>
 
-    <!-- Content Strategy: competitors x article types, filled from the keyword repo -->
+    <!-- Keywords: competitors x article types, filled from the keyword repo -->
     <div class="mx" id="mxPane" hidden>
       <div class="mx-head">
         <button class="sp" id="btnAddCompetitor">+ Competitor</button>
@@ -2131,7 +2168,7 @@ const SUPABASE_URL = 'https://cskamgfvebryahkljlll.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_MdkD-TxMCIwlu69seSHA3Q_A39GADsK';
 const CLIENT_ID    = '1059013355751-6g50dsgm7df37htl2fdqrtlkh5hmrc0c.apps.googleusercontent.com';
 const ALLOWED      = ['vijaysrinivassan@gmail.com'];
-const BUILD        = 'v7.29';
+const BUILD        = 'v7.30';
 
 const STRATEGY_ONE_TAB = 'Strategy 1 — Brand Strategy';
 const PRODUCT_EVOLUTION_TAB = 'Strategy 1 — Product Evolution';
@@ -2191,9 +2228,10 @@ const isBrandTab = name => brandTabs().indexOf(name) > -1;
 const NAV = [
   { kind: 'label',  text: 'Strategy' },
   { kind: 'strategy1-tabs' },
-  { kind: 'group',  id: 'content', label: 'Content Strategy', tab: 'Content Strategy' },
   { kind: 'label',  text: 'Canvas' },
   { kind: 'canvas-tabs' },
+  { kind: 'label',  text: 'Keywords' },
+  { kind: 'keywords-tabs' },
   { kind: 'label',  text: 'Research' },
   { kind: 'tab',    name: 'Keyword Repo' },
   { kind: 'tab',    name: 'Grounded Evidences' },
@@ -2218,6 +2256,7 @@ function closeNav(){
 
 const $ = id => document.getElementById(id);
 const uid = () => Math.random().toString(36).slice(2, 10) + Date.now().toString(36).slice(-4);
+$('brandChannelHost').append($('chanPane'));
 
 /* ===================================================================
    STATE
@@ -2493,6 +2532,10 @@ const TAB_ICONS = {
   'Growth Strategy': '<path d="M3 17l6-6 4 4 7-7"/><path d="M14 8h6v6"/>',
   'Channel Strategy': '<path d="M4 6h16M4 12h16M4 18h9"/><circle cx="19" cy="18" r="2"/>',
   'Content Strategy': '<path d="M4 5h16v14H4z"/><path d="M8 9h8M8 13h5"/>',
+  'Category': '<path d="M4 5h16v14H4zM4 10h16M10 5v14"/>',
+  'Competitor': '<circle cx="8" cy="9" r="3"/><circle cx="16" cy="9" r="3"/><path d="M3 19c.5-3 2.2-5 5-5s4.5 2 5 5M11 19c.5-3 2.2-5 5-5s4.5 2 5 5"/>',
+  'ICP': '<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/><path d="M12 1v3M12 20v3M1 12h3M20 12h3"/>',
+  'Value': '<path d="M12 3l8 7-8 11-8-11z"/><path d="M4 10h16"/>',
   'Keyword Repo': '<circle cx="8.5" cy="8.5" r="4.5"/><path d="M12 12l7 7"/><path d="M17 17l2-2"/>',
   'Grounded Evidences': '<path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>',
   'Strategy 1 — Brand Strategy': '<path d="M4 5h16v14H4z"/><path d="M8 9h8M8 13h5M8 17h3"/>',
@@ -2598,16 +2641,38 @@ function renderTabs(){
       return;
     }
 
-    /* Strategy 1 is intentionally flat: these are canvases, not children of
-       another Brand Strategy heading. Content Strategy follows as its own
-       expandable workspace in this same section. */
+    /* Strategy is intentionally flat. Channel Strategy lives inside Brand
+       Strategy rather than taking another sidebar row. */
     if (item.kind === 'strategy1-tabs'){
       box.append(tabButton(STRATEGY_ONE_TAB, 'Brand Strategy'));
       box.append(tabButton(PRODUCT_EVOLUTION_TAB, 'Product Evolution'));
       box.append(tabButton(PRODUCT_ARCHITECTURE_TAB, 'Product Architecture'));
       box.append(tabButton(POSITIONING_TAB, 'Positioning Canvas'));
       box.append(tabButton(BRAND_RADAR_TAB, 'Brand Radar'));
-      box.append(tabButton(CHANNELS_TAB, 'Channel Strategy'));
+      return;
+    }
+
+    /* Keywords is a first-class section; its four matrices are direct
+       destinations rather than children of a Content Strategy parent. */
+    if (item.kind === 'keywords-tabs'){
+      const root = contentRoot();
+      CONTENT_VIEWS.forEach(v => {
+        const view = root.views[v.id];
+        let planned = 0;
+        if (view && view.cells){
+          planned = Object.keys(view.cells).filter(k => {
+            const cell = view.cells[k]; return cell === true || (cell && cell.on);
+          }).length;
+        }
+        const b = tabButton(CONTENT_TAB, v.label);
+        b.replaceChild(tabIcon(v.label), b.firstChild);
+        b.classList.toggle('active', onBoard && state.tab === CONTENT_TAB && state.contentView === v.id);
+        b.onclick = () => switchContentView(v.id);
+        if (planned){
+          const count = document.createElement('span'); count.className = 'n'; count.textContent = planned; b.append(count);
+        }
+        box.append(b);
+      });
       return;
     }
 
@@ -2746,9 +2811,9 @@ function renderTabs(){
 
   /* off-board screens set their own title in applyTabMode */
   if (onBoard && !inFrame()){
-    /* the crumb already says Content Strategy; the title is the view itself */
+    /* The Keywords section uses the selected matrix as its page title. */
     $('tabTitle').textContent = state.tab === CONTENT_TAB ? viewDef(state.contentView).label
-      : state.tab === STRATEGY_ONE_TAB ? 'Brand Strategy'
+      : state.tab === STRATEGY_ONE_TAB || state.tab === CHANNELS_TAB ? 'Brand Strategy'
       : state.tab === PRODUCT_EVOLUTION_TAB ? 'Product Evolution'
       : state.tab === PRODUCT_ARCHITECTURE_TAB ? 'Product Architecture'
       : state.tab === POSITIONING_TAB ? 'Positioning Canvas'
@@ -4426,7 +4491,7 @@ function applyTabMode(){
   const isChan = state.tab === CHANNELS_TAB;
   const isKw   = state.tab === KEYWORDS_TAB;
   const isMx   = state.tab === CONTENT_TAB;
-  const isGuide = state.tab === STRATEGY_ONE_TAB;
+  const isGuide = state.tab === STRATEGY_ONE_TAB || isChan;
   const isEvo = state.tab === PRODUCT_EVOLUTION_TAB;
   const isArchitecture = state.tab === PRODUCT_ARCHITECTURE_TAB;
   const isPositioning = state.tab === POSITIONING_TAB;
@@ -4444,7 +4509,7 @@ function applyTabMode(){
   }
   $('viewport').hidden = !isCanvas;
   $('docsPane').hidden = !isDocs;
-  $('chanPane').hidden = !isChan;
+  $('chanPane').hidden = !isGuide;
   $('kwPane').hidden   = !isKw;
   $('mxPane').hidden   = !isMx;
   $('strategyGuidePane').hidden = !isGuide;
@@ -4457,10 +4522,9 @@ function applyTabMode(){
   $('framePick').hidden = !isCanvas || readOnly();
   renderFramePicker();
   if (isDocs && state.user) refreshDocs();
-  if (isChan) renderChannels();
   if (isKw && state.user) refreshKeywords();
   if (isMx) refreshMatrix();   /* grids need no database, so no user check */
-  if (isGuide) renderStrategyGuide();
+  if (isGuide){ renderStrategyGuide(); renderChannels(); }
   if (isEvo){
     renderEvolution();
     if (state.user){
@@ -5934,7 +5998,7 @@ function switchContentView(id){
   captureFrame();
   state.contentView = id;
   state.frameIndex = -1;
-  openNav('content');
+  closeNav();
   state.tab = CONTENT_TAB;
   state.screen = 'board';
   renderTabs();
@@ -7304,9 +7368,9 @@ function selectPositioningCategory(id){
   renderPositioning();
   const named = category ? category.competitors.filter(x => x.name.trim()).length : 0;
   toast(named
-    ? named + ' competitor' + (named === 1 ? '' : 's') + ' synced to Content Strategy' +
+    ? named + ' competitor' + (named === 1 ? '' : 's') + ' synced to Keywords' +
       (added ? ' (' + added + ' new).' : '.')
-    : 'Category selected. Add competitors to sync them to Content Strategy.');
+    : 'Category selected. Add competitors to sync them to Keywords.');
 }
 
 function positioningInput(value, placeholder, readOnly, onInput, className){
@@ -7471,7 +7535,7 @@ function renderPositioning(){
       const title = document.createElement('b');
       title.textContent = 'Competitors in this category';
       const helper = document.createElement('span');
-      helper.textContent = 'These sync to Content Strategy';
+      helper.textContent = 'These sync to Keywords';
       head.append(title, helper);
       if (!ro){
         const add = document.createElement('button');
@@ -7523,8 +7587,8 @@ function renderPositioning(){
   note.classList.toggle('on', !!chosen);
   note.textContent = chosen
     ? 'Selected category: ' + (chosen.name.trim() || 'Untitled category') +
-      '. Its named competitors are connected to Content Strategy.'
-    : 'Select a category to add its competitors to Content Strategy.';
+      '. Its named competitors are connected to Keywords.'
+    : 'Select a category to add its competitors to Keywords.';
 
   $('btnAddCompetitiveStage').hidden = ro;
   const context = $('competitiveContext');
@@ -8128,9 +8192,9 @@ function renderCrumb(){
   if (state.screen !== 'board') c = 'Account';
   else if (inFrame()) c = 'Frames';
   else if ([STRATEGY_ONE_TAB, PRODUCT_EVOLUTION_TAB, PRODUCT_ARCHITECTURE_TAB,
-            POSITIONING_TAB, BRAND_RADAR_TAB, CHANNELS_TAB, CONTENT_TAB].indexOf(state.tab) !== -1) c = 'Strategy';
+            POSITIONING_TAB, BRAND_RADAR_TAB, CHANNELS_TAB].indexOf(state.tab) !== -1) c = 'Strategy';
   else if (isBrandTab(state.tab)) c = 'Canvas';
-  else if (state.tab === CONTENT_TAB) c = 'Content Strategy';
+  else if (state.tab === CONTENT_TAB) c = 'Keywords';
   else if (state.tab === KEYWORDS_TAB || state.tab === DOCS_TAB) c = 'Research';
   el.textContent = c;
 }
@@ -8281,17 +8345,44 @@ function renderKeywordTables(overrideEmpty){
 const CHANNELS_TAB = 'Channel Strategy';
 const DEFAULT_CHANNELS = [
   { name: 'Technical SEO',     on: false },
-  { name: 'On-page SEO',       on: false },
+  { name: 'On-page SEO',       on: false, kind: 'onpage' },
   { name: 'Listicle outreach', on: false },
   { name: 'Reddit',            on: false }
 ];
 
 function channelState(){
-  const t = state.tabs[CHANNELS_TAB] || (state.tabs[CHANNELS_TAB] = { nodes: [], edges: [] });
-  if (!Array.isArray(t.items)){
-    t.items = DEFAULT_CHANNELS.map(c => ({ id: uid(), name: c.name, on: c.on }));
+  const brand = state.tabs[STRATEGY_ONE_TAB] ||
+    (state.tabs[STRATEGY_ONE_TAB] = { nodes: [], edges: [] });
+  if (!brand.channels || typeof brand.channels !== 'object'){
+    const legacy = state.tabs[CHANNELS_TAB];
+    brand.channels = legacy && Array.isArray(legacy.items)
+      ? { items: legacy.items.map(item => Object.assign({}, item)),
+          focused: legacy.focused || '', journeyStage: legacy.journeyStage || '' }
+      : { items: DEFAULT_CHANNELS.map(c => ({ id: uid(), name: c.name, on: c.on, kind: c.kind || '' })),
+          focused: '', journeyStage: '' };
+    if (!readOnly()) setTimeout(markDirty, 0);
   }
+  const t = brand.channels;
+  if (!Array.isArray(t.items)) t.items = [];
+  t.items.forEach(item => {
+    if (!item.id) item.id = uid();
+    if (!item.kind && /on[\s-]*page\s+seo/i.test(item.name || '')) item.kind = 'onpage';
+  });
   return t;
+}
+
+function isOnPageChannel(item){
+  return item && (item.kind === 'onpage' || /on[\s-]*page\s+seo/i.test(item.name || ''));
+}
+
+function chooseChannel(t, item){
+  if (!readOnly()){
+    item.on = !item.on;
+    if (isOnPageChannel(item)) t.focused = item.id;
+    markDirty();
+  } else if (isOnPageChannel(item)) t.focused = item.id;
+  renderChannels();
+  if (isOnPageChannel(item)) requestAnimationFrame(() => $('buyerJourney').scrollIntoView({ behavior: 'smooth', block: 'nearest' }));
 }
 
 function renderChannels(){
@@ -8307,18 +8398,16 @@ function renderChannels(){
 
   t.items.forEach(item => {
     const card = document.createElement('article');
-    card.className = 'chan-card' + (item.on ? ' on' : '');
-    card.tabIndex = readOnly() ? -1 : 0;
+    card.className = 'chan-card' + (item.on ? ' on' : '') + (t.focused === item.id ? ' focused' : '');
+    card.tabIndex = readOnly() && !isOnPageChannel(item) ? -1 : 0;
     card.setAttribute('role', 'button');
     card.setAttribute('aria-pressed', item.on ? 'true' : 'false');
     card.setAttribute('aria-label', item.name + ': ' + (item.on ? 'in scope' : 'available lever'));
-    card.onclick = () => { if (readOnly()) return; item.on = !item.on; markDirty(); renderChannels(); };
+    card.onclick = () => chooseChannel(t, item);
     card.onkeydown = ev => {
-      if (ev.target !== card || readOnly() || (ev.key !== 'Enter' && ev.key !== ' ')) return;
+      if (ev.target !== card || (ev.key !== 'Enter' && ev.key !== ' ')) return;
       ev.preventDefault();
-      item.on = !item.on;
-      markDirty();
-      renderChannels();
+      chooseChannel(t, item);
     };
 
     const tick = document.createElement('div');
@@ -8363,7 +8452,58 @@ function renderChannels(){
     e.textContent = 'No channels yet. Add the ones you run for this client.';
     host.append(e);
   }
+  renderBuyerJourney(t);
   requestAnimationFrame(drawChannelWires);
+}
+
+function renderBuyerJourney(t){
+  const journey = $('buyerJourney');
+  const focused = t.items.find(item => item.id === t.focused);
+  journey.hidden = !isOnPageChannel(focused);
+  if (journey.hidden) return;
+  const host = $('buyerTimeline'); host.innerHTML = '';
+  const stages = [
+    { id: 'top', short: 'TOF', title: 'Top of funnel', items: ['JTBD articles'] },
+    { id: 'middle', short: 'MOF', title: 'Middle of funnel',
+      items: ['Service pages', 'Listicle pages', 'Feature pages', 'Use case pages'] },
+    { id: 'bottom', short: 'BOF', title: 'Bottom of funnel', items: ['Competitor keywords'] }
+  ];
+  stages.forEach(stage => {
+    const row = document.createElement('div');
+    row.className = 'buyer-stage' + (t.journeyStage === stage.id ? ' active' : '');
+    const dot = document.createElement('span'); dot.className = 'buyer-dot'; dot.textContent = stage.short;
+    const card = document.createElement('div'); card.className = 'buyer-card'; card.tabIndex = 0;
+    card.setAttribute('role', 'button'); card.setAttribute('aria-expanded', t.journeyStage === stage.id ? 'true' : 'false');
+    const eyebrow = document.createElement('small'); eyebrow.textContent = 'Buyer journey';
+    const title = document.createElement('b'); title.textContent = stage.title;
+    card.append(eyebrow, title);
+    const choose = () => {
+      t.journeyStage = t.journeyStage === stage.id ? '' : stage.id;
+      if (!readOnly()) markDirty();
+      renderBuyerJourney(t);
+    };
+    card.onclick = choose;
+    card.onkeydown = event => {
+      if (event.key !== 'Enter' && event.key !== ' ') return;
+      event.preventDefault(); choose();
+    };
+    if (t.journeyStage === stage.id){
+      const detail = document.createElement('div'); detail.className = 'buyer-detail';
+      const chips = document.createElement('div'); chips.className = 'buyer-chips';
+      stage.items.forEach(item => {
+        if (stage.id === 'bottom'){
+          const link = document.createElement('button'); link.type = 'button'; link.className = 'buyer-link';
+          link.textContent = item; link.title = 'Open the Competitor keyword matrix';
+          link.onclick = event => { event.stopPropagation(); switchContentView('competitor'); };
+          chips.append(link);
+        } else {
+          const chip = document.createElement('span'); chip.className = 'buyer-chip'; chip.textContent = item; chips.append(chip);
+        }
+      });
+      detail.append(chips); card.append(detail);
+    }
+    row.append(dot, card); host.append(row);
+  });
 }
 
 function drawChannelWires(){

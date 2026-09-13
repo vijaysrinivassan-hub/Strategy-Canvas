@@ -43,11 +43,11 @@ automatically from the relative position of the two notes.
 The sidebar groups them:
 
 **Strategy** is a flat working section: Brand Strategy, Product Evolution,
-Product Architecture, Positioning Canvas and Channel Strategy appear directly beneath its heading.
-Content Strategy lives in the same section and expands into Category, Competitor,
-ICP and Value. There is no extra Brand Strategy parent between Strategy and its
-four canvases. Each canvas uses the same full-width icon-and-label row as Content
-Strategy; the four Content Strategy views remain clean, text-only child rows.
+Product Architecture, Positioning Canvas and Brand Radar appear directly beneath
+its heading. Channel Strategy is part of the Brand Strategy page, not a separate
+sidebar tab. **Keywords** is its own sidebar section, with Category, Competitor,
+ICP and Value as four direct destinations. Canvas and Research remain separate
+top-level sections.
 
 The separate free-form canvas collection appears under **Canvas**. In Settings,
 Clients is a compact workspace directory rather than a tile gallery. Creating a
@@ -61,6 +61,10 @@ saved with the board and can be changed later with Edit.
   branch to see its two acquisition routes. A numbered question rail sits outside the canvas
   so a client can read each level without explanation: marketing objective, market type,
   and who the strategy should pull into the funnel. Answered steps remain marked in green.
+  Channel Strategy sits beneath this decision canvas. Selecting On-page SEO opens
+  a vertical buyer-journey timeline: Top of funnel contains JTBD articles; Middle
+  of funnel contains service, listicle, feature and use-case pages; Bottom of
+  funnel contains competitor keywords and links to the Competitor keyword matrix.
 - **Strategy › Product Evolution** asks for one of four axes—People, Process,
   Technology / Access, or Input / Raw material—then maps a Previous state into an
   unlimited editable sequence of evolution stages. Each axis keeps its own sequence.
@@ -89,12 +93,11 @@ saved with the board and can be changed later with Edit.
   Input maturity, with one visibly selected ICP. Category Positioning maps the market
   from its oldest category to later stages, keeps competitors beneath each category,
   and lets one category be selected. The named competitors in that selected category
-  are added to **Content Strategy › Competitor** without duplicating existing rows or
+  are added to **Keywords › Competitor** without duplicating existing rows or
   deleting competitors already entered there. Competitive Positioning then maps the
   tool-stack or product-architecture evolution inside the selected category and marks
   where the product wins. Value Positioning connects four editable cards: functional
   value, core benefit, monetary benefit and strategic benefit.
-- **Strategy › Channel Strategy** shows the active and available acquisition levers.
 - **Strategy › Brand Radar** turns Product Evolution into a four-quadrant market map:
   Technology access, Input access, Process access and People access. Product Evolution
   chooses the active direction; the Category Positioning ladder becomes concentric
@@ -125,8 +128,7 @@ saved with the board and can be changed later with Edit.
   **+ New canvas** adds as many more as you like, double-click one to rename it,
   and the × beside it removes it. **Drag any of them by the grip that appears on
   hover to change the order.** Added canvases and the order are saved with the board.
-- **Channel Strategy** — a scope checklist.
-- **Content Strategy** opens into Category, Competitor, ICP and Value.
+- **Keywords** contains Category, Competitor, ICP and Value as direct sidebar pages.
 - **Keyword Repo** and **Grounded Evidences**.
 - **Frames** — the reference frames from the Obsidian vault, read-only.
 
@@ -219,7 +221,7 @@ The tab was called Document Gallery, then Repo. Boards saved under either name
 open unchanged: old columns become rows, keeping their names and the files filed
 under them.
 
-**Content Strategy** opens into four axes in the sidebar — Category, Competitor,
+**Keywords** opens into four direct pages in the sidebar — Category, Competitor,
 ICP and Value. Competitor is a matrix; Category, ICP and Value are plain tables
 of 20 rows. All four use the full workspace width, square table edges and the
 same restrained green interaction states; the presentation changes do not alter
@@ -290,11 +292,12 @@ MCP server (or any script) can write them directly. Run `supabase-keywords.sql`
 once to create it. The unique index on `(board_id, lower(keyword), country)` means
 a re-import can upsert instead of duplicating.
 
-**Channel Strategy**, under Strategy, is a simple Obsidian-style scope canvas. Technical SEO,
-On-page SEO, Listicle outreach and Reddit begin as white "available lever" nodes
-connected to the strategy anchor. Click a node to mark it green and in scope, so
-a client can see both the work included now and the other levers available.
-Double-click a name to rename it, or use **+ Add channel** to create more.
+**Channel Strategy**, inside Brand Strategy, is a simple Obsidian-style scope
+canvas. Technical SEO, On-page SEO, Listicle outreach and Reddit begin as white
+"available lever" nodes connected to the strategy anchor. Click a node to mark
+it green and in scope, so a client can see both the work included now and the
+other levers available. On-page SEO also opens its Top / Middle / Bottom funnel
+timeline. Double-click a name to rename it, or use **+ Add channel** to create more.
 
 Run `supabase-storage.sql` once to create the bucket and its policies. Until you
 do, the gallery says so plainly rather than failing on upload.

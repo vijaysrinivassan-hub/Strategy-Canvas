@@ -97,7 +97,6 @@ export const TABS = [
   "Growth Strategy",
   "Strategy 1 — Brand Strategy",
   "Strategy 1 — Product Architecture",
-  "Channel Strategy",
   "Content Strategy",
   "Keyword Repo",
   "Grounded Evidences"
@@ -118,7 +117,6 @@ export const CANVAS_TABS = [
 export const PANEL_TABS = [
   "Strategy 1 — Brand Strategy",
   "Strategy 1 — Product Architecture",
-  "Channel Strategy",
   "Content Strategy",
   "Keyword Repo",
   "Grounded Evidences"
@@ -197,7 +195,7 @@ export function tabSlot(body: BoardBody, tab: string): any {
 export function assertCanvasTab(tab: string): void {
   if ((PANEL_TABS as readonly string[]).includes(tab)) {
     throw new ToolError(
-      `"${tab}" is a panel, not a canvas. Content Strategy uses content_* tools, ` +
+      `"${tab}" is a panel, not a canvas. The Keywords section uses content_* tools, ` +
         `Keyword Repo uses keyword_* tools, Grounded Evidences uses document_* tools.`
     );
   }

@@ -54,7 +54,10 @@ export function registerBoardTools(server: McpServer) {
         if (tab === "Strategy 1 — Brand Strategy") {
           summary[tab] = {
             opened: !!slot.guide?.opened,
-            ocean: slot.guide?.ocean || null
+            ocean: slot.guide?.ocean || null,
+            channels: Array.isArray(slot.channels?.items)
+              ? slot.channels.items.map((item: any) => ({ name: item.name, on: !!item.on }))
+              : []
           };
         } else if (tab === "Strategy 1 — Product Architecture") {
           const architecture = slot.architecture;
@@ -92,8 +95,6 @@ export function registerBoardTools(server: McpServer) {
               }
             ])
           );
-        } else if (tab === "Channel Strategy") {
-          summary[tab] = { channels: (slot.items || []).map((i: any) => ({ name: i.name, on: !!i.on })) };
         } else if (tab === "Grounded Evidences") {
           summary[tab] = { rows: (slot.sections || []).map((c: any) => c.name) };
         } else {
