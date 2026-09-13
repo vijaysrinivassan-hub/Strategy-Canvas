@@ -61,7 +61,8 @@ Services; those details are saved with the board and can be changed later with E
   to reveal its products, a product to make it the target product and reveal GTM Strategy, GTM Strategy to
   reveal the motions, and a motion to reveal its channels. Every peer channel stays in one
   horizontal row; the canvas grows and scrolls sideways when that row is wider than
-  the screen. Product, motion and channel connectors are straight on this canvas.
+  the screen. Product, motion and channel connectors are L-shaped on this canvas,
+  using only vertical and horizontal segments.
   Existing
   Technical SEO, On-page SEO, Listicle outreach and Reddit channels migrate to
   Inbound; Email, LinkedIn and ABM initialize under Outbound. Channel cards show
