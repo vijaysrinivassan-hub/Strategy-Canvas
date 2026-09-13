@@ -1884,7 +1884,7 @@ const SUPABASE_URL = 'https://cskamgfvebryahkljlll.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_MdkD-TxMCIwlu69seSHA3Q_A39GADsK';
 const CLIENT_ID    = '1059013355751-6g50dsgm7df37htl2fdqrtlkh5hmrc0c.apps.googleusercontent.com';
 const ALLOWED      = ['vijaysrinivassan@gmail.com'];
-const BUILD        = 'v7.20';
+const BUILD        = 'v7.21';
 
 const STRATEGY_ONE_TAB = 'Strategy 1 — Brand Strategy';
 const PRODUCT_EVOLUTION_TAB = 'Strategy 1 — Product Evolution';
@@ -7496,7 +7496,7 @@ function renderBrandRadar(){
     });
   }
   layout.forEach(zone => {
-    const guideAngle = (zone.start + zone.end) / 2;
+    const guideAngle = zone.active ? zone.axis.angle : (zone.start + zone.end) / 2;
     const end = radarPoint(outerRadius, guideAngle);
     radarLine(svg, ns, 380, 380, end.x, end.y,
       zone.active ? 'radar-bearing' : 'radar-axis-line');
@@ -7603,7 +7603,7 @@ function renderBrandRadar(){
   hubDot.setAttribute('class', 'radar-hub-dot'); svg.append(hubDot);
 
   layout.forEach(zone => {
-    const labelAngle = (zone.start + zone.end) / 2;
+    const labelAngle = zone.active ? zone.axis.angle : (zone.start + zone.end) / 2;
     const point = radarPoint(outerRadius + 36, labelAngle);
     const activeAxis = zone.active;
     const dot = document.createElementNS(ns, 'circle');

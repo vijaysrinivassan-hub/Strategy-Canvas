@@ -91,8 +91,9 @@ saved with the board and can be changed later with Edit.
   small dots when the sector must be widened to reveal them. Category names sit just
   outside the active boundary. Dragging
   either green sector boundary expands that direction while compressing the other
-  three. Only the active sector has wedge-boundary lines; each axis guide and label
-  stays centred in its available sector as the geometry changes. In the equal reset
+  three. Only the active sector has wedge-boundary lines. The chosen axis guide and
+  label remain fixed to their compass direction, while each unselected guide and
+  label stays centred in its available sector as the geometry changes. In the equal reset
   state those guides form a horizontal/vertical cross. Clicking the centre restores
   equal quarters. Brand Radar remains read-only
   for market position; the selected category can only be changed in Category Positioning.
