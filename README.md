@@ -42,9 +42,10 @@ automatically from the relative position of the two notes.
 
 The sidebar groups them:
 
-**Strategy** is a flat working section: Brand Strategy, Product Evolution,
+**Strategy** is a flat working section: GTM Strategy, Product Evolution,
 Product Architecture, Positioning Canvas and Brand Radar appear directly beneath
-its heading. Channel Strategy is part of the Brand Strategy page, not a separate
+its heading. Channel selection and the Buyer Journey are part of the GTM Strategy
+canvas, not separate
 sidebar tab. **Keywords** is its own sidebar section, with Category, Competitor,
 ICP and Value as four direct destinations. Canvas and Research remain separate
 top-level sections.
@@ -54,17 +55,15 @@ Clients is a compact workspace directory rather than a tile gallery. Creating a
 client asks for its name and whether it is Local, E-commerce, SaaS or Services; the type is
 saved with the board and can be changed later with Edit.
 
-- **Strategy › Brand Strategy** is a progressive, Obsidian-style decision canvas for
-  customer acquisition. Clicking the opening card reveals both ocean choices; selecting one
-  highlights that branch, leaves the alternative white, and reveals only its next steps.
-  Start from Customer acquisition, reveal Red Ocean and Blue Ocean, then open either
-  branch to see its two acquisition routes. A numbered question rail sits outside the canvas
-  so a client can read each level without explanation: marketing objective, market type,
-  and who the strategy should pull into the funnel. Answered steps remain marked in green.
-  Channel Strategy sits beneath this decision canvas. Selecting On-page SEO opens
-  a vertical buyer-journey timeline: Top of funnel contains JTBD articles; Middle
-  of funnel contains service, listicle, feature and use-case pages; Bottom of
-  funnel contains competitor keywords and links to the Competitor keyword matrix.
+- **Strategy › GTM Strategy** is one connected Obsidian-style canvas. It runs from
+  the company name into GTM Strategy, splits into Inbound and Outbound motions, and
+  places every active or available channel beneath the appropriate motion. Existing
+  Technical SEO, On-page SEO, Listicle outreach and Reddit channels migrate to
+  Inbound; Email, LinkedIn and ABM initialize under Outbound. Selecting On-page SEO
+  reveals the **Buyer Journey** in the same canvas: Top of funnel contains JTBD,
+  pain-point, desired-outcome, functional-job and emotional-job articles; Middle of
+  funnel contains service, listicle, feature and use-case pages; Bottom of funnel
+  contains competitor keywords and links to the Competitor keyword matrix.
   A compact About card in the canvas's upper-right shows the client's Goal, Market
   Type and Industry Type. Edit those values from Settings › Clients; changing the
   Red/Blue market type there stays synchronized with the canvas and Brand Radar.
@@ -133,11 +132,11 @@ saved with the board and can be changed later with Edit.
   equal quarters. Brand Radar remains read-only
   for market position; the selected category can only be changed in Category Positioning.
   A Market type indicator in the radar's upper-right reflects the Red Ocean or Blue
-  Ocean choice from Brand Strategy. Red Ocean highlights only the selected category.
+  Ocean choice from GTM Strategy's client details. Red Ocean highlights only the selected category.
   Blue Ocean leaves the selected category unhighlighted and highlights only the one
   category immediately beneath it toward the centre.
 - **Canvas** lists a separate free-form Product Architecture canvas, Market Research Frame, Messaging Framework,
-  Positioning Document and Growth Strategy directly, without a Brand Strategy parent
+  Positioning Document and Growth Strategy directly, without an extra parent
   row. Each is its own canvas; the count beside one is its card count. Those five always exist —
   **+ New canvas** adds as many more as you like, double-click one to rename it,
   and the × beside it removes it. **Drag any of them by the grip that appears on
@@ -306,12 +305,10 @@ MCP server (or any script) can write them directly. Run `supabase-keywords.sql`
 once to create it. The unique index on `(board_id, lower(keyword), country)` means
 a re-import can upsert instead of duplicating.
 
-**Channel Strategy**, inside Brand Strategy, is a simple Obsidian-style scope
-canvas. Technical SEO, On-page SEO, Listicle outreach and Reddit begin as white
-"available lever" nodes connected to the strategy anchor. Click a node to mark
-it green and in scope, so a client can see both the work included now and the
-other levers available. On-page SEO also opens its Top / Middle / Bottom funnel
-timeline. Double-click a name to rename it, or use **+ Add channel** to create more.
+**GTM Strategy** combines company context, inbound and outbound channels, and the
+Buyer Journey in one scope canvas. Click a channel to mark it green and in scope.
+Double-click a channel to rename it, or use the + control on either motion to add
+another channel directly to Inbound or Outbound.
 
 Run `supabase-storage.sql` once to create the bucket and its policies. Until you
 do, the gallery says so plainly rather than failing on upload.

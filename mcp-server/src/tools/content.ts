@@ -460,16 +460,17 @@ export function registerContentTools(server: McpServer) {
     {
       title: "Set channel scope",
       description:
-        "Turn a channel on or off in Brand Strategy's Channel Strategy section, which tells a client " +
+        "Turn an inbound or outbound channel on or off in the GTM Strategy canvas, which tells a client " +
         "what is in scope. Creates the channel if it is not already listed.",
       inputSchema: {
         board_id: z.string(),
         channel: z.string().describe("e.g. Technical SEO"),
-        in_scope: z.boolean()
+        in_scope: z.boolean(),
+        motion: z.enum(["inbound", "outbound"]).optional().describe("Where the channel sits in GTM Strategy")
       },
       annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true }
     },
-    async ({ board_id, channel, in_scope }) => {
+    async ({ board_id, channel, in_scope, motion }) => {
       const { body } = await loadBoard(board_id);
       const brand = tabSlot(body, "Strategy 1 — Brand Strategy");
       const legacy = body.tabs["Channel Strategy"];
@@ -483,14 +484,16 @@ export function registerContentTools(server: McpServer) {
       let item = channels.items.find((i: any) => String(i.name).toLowerCase() === channel.toLowerCase());
       if (!item) {
         item = { id: uid(), name: channel, on: in_scope,
-          kind: /on[\s-]*page\s+seo/i.test(channel) ? "onpage" : "" };
+          kind: /on[\s-]*page\s+seo/i.test(channel) ? "onpage" : "",
+          motion: motion || "inbound" };
         channels.items.push(item);
       } else {
         item.on = in_scope;
+        if (motion) item.motion = motion;
         if (/on[\s-]*page\s+seo/i.test(channel)) item.kind = "onpage";
       }
       await saveBoard(board_id, body);
-      return ok({ channel: item.name, in_scope: item.on });
+      return ok({ channel: item.name, in_scope: item.on, motion: item.motion || "inbound" });
     }
   );
 }

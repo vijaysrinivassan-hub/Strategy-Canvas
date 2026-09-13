@@ -921,9 +921,31 @@
   .chan-x{padding:2px 7px; font-size:13px; line-height:1; color:var(--muted);
           border-color:transparent; background:transparent; flex:none}
   .chan-x:hover{color:var(--danger); background:var(--danger-bg); border-color:transparent}
-  .brand-channel-host{width:min(1432px,100%); margin:28px auto 0; padding-left:232px}
+  .brand-channel-host{width:min(1200px,100%); margin:0 auto; padding-left:0}
   .brand-channel-host .chan{min-height:0; overflow:visible; padding:0; background:transparent}
-  .brand-channel-host .chan-head{padding-top:24px; border-top:1px solid #d9dad5}
+  .brand-channel-host .chan-head{padding-top:0; border-top:0}
+  .gtm-canvas{position:relative; overflow-x:auto}
+  .gtm-canvas .chan-flow{min-width:980px; min-height:780px; padding:32px 42px 70px}
+  .gtm-canvas .sg-about{top:24px; right:24px}
+  .gtm-node{position:relative; z-index:2; width:220px; min-height:58px; margin:0 auto;
+            display:flex; flex-direction:column; align-items:center; justify-content:center;
+            padding:11px 14px; border:1px solid #c9cac6; background:#fff;
+            box-shadow:0 1px 2px rgba(0,0,0,.04); text-align:center}
+  .gtm-node small{margin-bottom:4px; color:#8b8d87; font-size:8px; font-weight:800;
+                  letter-spacing:.1em; text-transform:uppercase}
+  .gtm-node strong{color:#292b27; font-size:12px}.gtm-company{margin-bottom:42px}
+  .gtm-strategy-node{margin-bottom:62px; border-color:#65c88a; background:#effbf3}
+  .gtm-motions{position:relative; z-index:2; display:grid; grid-template-columns:1fr 1fr;
+               gap:70px; width:900px; margin:0 auto}
+  .gtm-motion{min-width:0}.gtm-motion-head{width:210px; min-height:50px; margin:0 auto 42px;
+              display:flex; align-items:center; justify-content:center; gap:10px;
+              padding:10px 12px; border:1px solid #c9cac6; background:#fff}
+  .gtm-motion-head strong{font-size:11.5px}.gtm-motion-head button{width:22px; height:22px;
+              padding:0; border-color:#d4d7d1; background:#fafaf8; font-size:13px}
+  .gtm-channel-grid{display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px}
+  .gtm-channel-grid .chan-card{width:auto; min-width:0; min-height:68px}
+  .gtm-flow .buyer-journey{position:relative; z-index:2; width:820px; margin:82px auto 0;
+                          background-color:rgba(255,255,255,.92); background-image:none}
   .buyer-journey{margin-top:18px; padding:22px; border:1px solid #deded9;
                  background-color:#fbfbfa;
                  background-image:radial-gradient(circle at 1px 1px,#d4d5cf 1px,transparent 1.1px);
@@ -951,6 +973,8 @@
   @media(max-width:780px){
     .chan{padding:14px 14px 30px}.chan-flow{padding:36px 28px 52px}.chan-head{align-items:center}
     .brand-channel-host{padding-left:0}
+    .gtm-canvas .sg-about{position:relative; top:auto; right:auto; width:calc(100% - 56px);
+                          margin:18px 28px 0}
   }
 
   /* ================= clickable brand-strategy canvas ================= */
@@ -1784,7 +1808,7 @@
 
   <div class="main">
     <div class="toolbar">
-      <span class="crumb" id="crumb">Brand Strategy</span>
+      <span class="crumb" id="crumb">Strategy</span>
       <span class="crumb-sep">&rsaquo;</span>
       <h2 id="tabTitle">Product Architecture</h2>
       <span class="ro-note" id="roNote" hidden>View only &mdash; this board belongs to someone else</span>
@@ -1874,72 +1898,55 @@
       <button class="repo-newrow" id="btnAddColumn">+ Add row</button>
     </div>
 
-    <!-- A simple client-facing canvas of active and available channel levers. -->
-    <div class="chan" id="chanPane" hidden>
+    <!-- One GTM canvas: company, motion, channel levers and buyer journey. -->
+    <div class="chan gtm-canvas-pane" id="chanPane" hidden>
       <div class="chan-head">
         <div>
-          <h3>Channel Strategy</h3>
-          <p>Select what is in scope. Unselected channels remain visible as levers you can activate later.</p>
+          <h3>GTM Strategy</h3>
+          <p>See the company, sales motion, active channels and buyer journey in one connected view.</p>
         </div>
-        <button id="btnAddChannel">+ Add channel</button>
       </div>
-      <div class="chan-canvas">
+      <div class="chan-canvas gtm-canvas">
+        <aside class="sg-about" aria-label="Client strategy details">
+          <span class="sg-about-title">About</span>
+          <dl>
+            <dt>Goal</dt><dd id="sgAboutGoal">Customer Acquisition</dd>
+            <dt>Market type</dt><dd id="sgAboutMarket">Not selected</dd>
+            <dt>Industry type</dt><dd id="sgAboutIndustry">Not selected</dd>
+            <dt>Sales motion</dt><dd id="sgAboutSalesMotion">Not selected</dd>
+            <dt>ICP 1</dt><dd id="sgAboutIcp1">New Entrants</dd>
+            <dt>ICP 2</dt><dd id="sgAboutIcp2">Select a market type</dd>
+          </dl>
+        </aside>
         <div class="chan-flow" id="chanFlow">
           <svg class="chan-wires" id="chanWires" aria-hidden="true"></svg>
-          <div class="chan-root">
-            <strong>Channel Strategy</strong>
-            <span id="chanSummary">Choose the levers in scope</span>
+          <div class="gtm-node gtm-company">
+            <small>Company</small><strong id="gtmCompanyName">Company name</strong>
           </div>
-          <div class="chan-grid" id="chanGrid"></div>
+          <div class="gtm-node gtm-strategy-node"><strong>GTM Strategy</strong></div>
+          <div class="gtm-motions">
+            <section class="gtm-motion" data-motion="inbound">
+              <div class="gtm-motion-head"><strong>Inbound</strong><button id="btnAddInbound" type="button">+</button></div>
+              <div class="gtm-channel-grid" id="chanInboundGrid"></div>
+            </section>
+            <section class="gtm-motion" data-motion="outbound">
+              <div class="gtm-motion-head"><strong>Outbound</strong><button id="btnAddOutbound" type="button">+</button></div>
+              <div class="gtm-channel-grid" id="chanOutboundGrid"></div>
+            </section>
+          </div>
+          <section class="buyer-journey" id="buyerJourney" hidden>
+            <div class="buyer-head">
+              <div><h4>Buyer Journey</h4><p>Choose a funnel stage to see what this channel creates for that moment.</p></div>
+              <span>Targeting path</span>
+            </div>
+            <div class="buyer-timeline" id="buyerTimeline"></div>
+          </section>
         </div>
       </div>
-      <section class="buyer-journey" id="buyerJourney" hidden>
-        <div class="buyer-head">
-          <div><h4>On-page SEO buyer journey</h4><p>Choose a funnel stage to see what this channel creates for that moment.</p></div>
-          <span>Targeting path</span>
-        </div>
-        <div class="buyer-timeline" id="buyerTimeline"></div>
-      </section>
     </div>
 
-    <!-- A clickable decision canvas for the first customer-acquisition choice. -->
+    <!-- GTM Strategy hosts the unified canvas above. -->
     <div class="strategy-guide" id="strategyGuidePane" hidden>
-      <div class="sg-layout">
-        <aside class="sg-questions" aria-label="Brand strategy questions">
-          <div class="sg-question active" id="sgQuestionObjective" data-step="01">
-            <div><small>Marketing objective</small><span>What is the marketing objective?</span></div>
-          </div>
-          <div class="sg-question" id="sgQuestionMarket" data-step="02" hidden>
-            <div><small>Market type</small><span>What is the market type?</span></div>
-          </div>
-          <div class="sg-question" id="sgQuestionAudience" data-step="03" hidden>
-            <div><small>Acquisition audience</small><span>Who should we pull into the funnel?</span></div>
-          </div>
-        </aside>
-        <div class="sg-canvas">
-          <aside class="sg-about" aria-label="Client strategy details">
-            <span class="sg-about-title">About</span>
-            <dl>
-              <dt>Goal</dt><dd id="sgAboutGoal">Customer Acquisition</dd>
-              <dt>Market type</dt><dd id="sgAboutMarket">Not selected</dd>
-              <dt>Industry type</dt><dd id="sgAboutIndustry">Not selected</dd>
-              <dt>Sales motion</dt><dd id="sgAboutSalesMotion">Not selected</dd>
-              <dt>ICP 1</dt><dd id="sgAboutIcp1">New Entrants</dd>
-              <dt>ICP 2</dt><dd id="sgAboutIcp2">Select a market type</dd>
-            </dl>
-          </aside>
-          <svg class="sg-wires" id="sgWires" aria-hidden="true"></svg>
-          <div class="sg-flow">
-            <button class="sg-node sg-root" id="sgRoot" type="button">
-              <b>Customer acquisition</b>
-              <span>Click to map the source of growth</span>
-            </button>
-            <div class="sg-oceans" id="sgOceans" hidden></div>
-            <div class="sg-routes-wrap" id="sgRoutes" hidden></div>
-          </div>
-          <button class="sg-reset" id="sgReset" type="button" hidden>Reset canvas</button>
-        </div>
-      </div>
       <div class="brand-channel-host" id="brandChannelHost"></div>
     </div>
 
@@ -2231,7 +2238,7 @@ const SUPABASE_URL = 'https://cskamgfvebryahkljlll.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_MdkD-TxMCIwlu69seSHA3Q_A39GADsK';
 const CLIENT_ID    = '1059013355751-6g50dsgm7df37htl2fdqrtlkh5hmrc0c.apps.googleusercontent.com';
 const ALLOWED      = ['vijaysrinivassan@gmail.com'];
-const BUILD        = 'v7.36';
+const BUILD        = 'v7.37';
 
 const STRATEGY_ONE_TAB = 'Strategy 1 — Brand Strategy';
 const PRODUCT_EVOLUTION_TAB = 'Strategy 1 — Product Evolution';
@@ -2717,7 +2724,7 @@ function renderTabs(){
     /* Strategy is intentionally flat. Channel Strategy lives inside Brand
        Strategy rather than taking another sidebar row. */
     if (item.kind === 'strategy1-tabs'){
-      box.append(tabButton(STRATEGY_ONE_TAB, 'Brand Strategy'));
+      box.append(tabButton(STRATEGY_ONE_TAB, 'GTM Strategy'));
       box.append(tabButton(PRODUCT_EVOLUTION_TAB, 'Product Evolution'));
       box.append(tabButton(PRODUCT_ARCHITECTURE_TAB, 'Product Architecture'));
       box.append(tabButton(POSITIONING_TAB, 'Positioning Canvas'));
@@ -2887,7 +2894,7 @@ function renderTabs(){
   if (onBoard && !inFrame()){
     /* The Keywords section uses the selected matrix as its page title. */
     $('tabTitle').textContent = state.tab === CONTENT_TAB ? viewDef(state.contentView).label
-      : state.tab === STRATEGY_ONE_TAB || state.tab === CHANNELS_TAB ? 'Brand Strategy'
+      : state.tab === STRATEGY_ONE_TAB || state.tab === CHANNELS_TAB ? 'GTM Strategy'
       : state.tab === PRODUCT_EVOLUTION_TAB ? 'Product Evolution'
       : state.tab === PRODUCT_ARCHITECTURE_TAB ? 'Product Architecture'
       : state.tab === POSITIONING_TAB ? 'Positioning Canvas'
@@ -4694,7 +4701,7 @@ function openClientSettings(){
   const h = document.createElement('h3');
   h.textContent = 'Client';
   const p = document.createElement('p');
-  p.textContent = 'These details identify the client and frame the Brand Strategy canvas.';
+  p.textContent = 'These details identify the client and frame the GTM Strategy canvas.';
 
   const nameLabel = document.createElement('label');
   nameLabel.className = 'fl';
@@ -8262,7 +8269,7 @@ function openNewClientModal(){
   modal.className = 'modal client-create'; modal.onclick = ev => ev.stopPropagation();
   const h = document.createElement('h3'); h.textContent = 'Create a client workspace';
   const p = document.createElement('p');
-  p.textContent = 'Set the client context that will appear on the Brand Strategy canvas.';
+  p.textContent = 'Set the client context that will appear on the GTM Strategy canvas.';
   const nameLabel = document.createElement('label'); nameLabel.className = 'fl'; nameLabel.textContent = 'Client name';
   const name = document.createElement('input'); name.className = 'modal-in'; name.placeholder = 'Client or company name';
   const typeLabel = document.createElement('label'); typeLabel.className = 'fl'; typeLabel.style.marginTop = '16px'; typeLabel.textContent = 'Industry type';
@@ -8630,10 +8637,13 @@ function renderKeywordTables(overrideEmpty){
    =================================================================== */
 const CHANNELS_TAB = 'Channel Strategy';
 const DEFAULT_CHANNELS = [
-  { name: 'Technical SEO',     on: false },
-  { name: 'On-page SEO',       on: false, kind: 'onpage' },
-  { name: 'Listicle outreach', on: false },
-  { name: 'Reddit',            on: false }
+  { name: 'Technical SEO',     on: false, motion: 'inbound' },
+  { name: 'On-page SEO',       on: false, motion: 'inbound', kind: 'onpage' },
+  { name: 'Listicle outreach', on: false, motion: 'inbound' },
+  { name: 'Reddit',            on: false, motion: 'inbound' },
+  { name: 'Email',             on: false, motion: 'outbound' },
+  { name: 'LinkedIn',          on: false, motion: 'outbound' },
+  { name: 'ABM',               on: false, motion: 'outbound' }
 ];
 
 function channelState(){
@@ -8644,7 +8654,8 @@ function channelState(){
     brand.channels = legacy && Array.isArray(legacy.items)
       ? { items: legacy.items.map(item => Object.assign({}, item)),
           focused: legacy.focused || '', journeyStage: legacy.journeyStage || '' }
-      : { items: DEFAULT_CHANNELS.map(c => ({ id: uid(), name: c.name, on: c.on, kind: c.kind || '' })),
+      : { items: DEFAULT_CHANNELS.map(c => ({ id: uid(), name: c.name, on: c.on,
+          kind: c.kind || '', motion: c.motion })),
           focused: '', journeyStage: '' };
     if (!readOnly()) setTimeout(markDirty, 0);
   }
@@ -8653,7 +8664,16 @@ function channelState(){
   t.items.forEach(item => {
     if (!item.id) item.id = uid();
     if (!item.kind && /on[\s-]*page\s+seo/i.test(item.name || '')) item.kind = 'onpage';
+    if (item.motion !== 'outbound') item.motion = 'inbound';
   });
+  if (!t.gtmMigrated){
+    DEFAULT_CHANNELS.filter(item => item.motion === 'outbound').forEach(defaultItem => {
+      if (t.items.some(item => String(item.name).trim().toLowerCase() === defaultItem.name.toLowerCase())) return;
+      t.items.push({ id: uid(), name: defaultItem.name, on: false, kind: '', motion: 'outbound' });
+    });
+    t.gtmMigrated = true;
+    if (!readOnly()) setTimeout(markDirty, 0);
+  }
   return t;
 }
 
@@ -8673,14 +8693,11 @@ function chooseChannel(t, item){
 
 function renderChannels(){
   const t = channelState();
-  const host = $('chanGrid');
-  host.innerHTML = '';
-
-  const active = t.items.filter(item => item.on).length;
-  const available = t.items.length - active;
-  $('chanSummary').textContent = active
-    ? active + ' in scope \u00b7 ' + available + ' available'
-    : 'Choose the levers in scope';
+  const hosts = { inbound: $('chanInboundGrid'), outbound: $('chanOutboundGrid') };
+  hosts.inbound.innerHTML = ''; hosts.outbound.innerHTML = '';
+  $('gtmCompanyName').textContent = state.client || 'Company name';
+  $('btnAddInbound').hidden = readOnly();
+  $('btnAddOutbound').hidden = readOnly();
 
   t.items.forEach(item => {
     const card = document.createElement('article');
@@ -8689,6 +8706,7 @@ function renderChannels(){
     card.setAttribute('role', 'button');
     card.setAttribute('aria-pressed', item.on ? 'true' : 'false');
     card.setAttribute('aria-label', item.name + ': ' + (item.on ? 'in scope' : 'available lever'));
+    card.dataset.motion = item.motion;
     card.onclick = () => chooseChannel(t, item);
     card.onkeydown = ev => {
       if (ev.target !== card || (ev.key !== 'Enter' && ev.key !== ' ')) return;
@@ -8729,15 +8747,14 @@ function renderChannels(){
     };
 
     card.append(tick, wrap, x);
-    host.append(card);
+    hosts[item.motion].append(card);
   });
 
-  if (!t.items.length){
-    const e = document.createElement('div');
-    e.className = 'doc-empty';
-    e.textContent = 'No channels yet. Add the ones you run for this client.';
-    host.append(e);
-  }
+  Object.keys(hosts).forEach(motion => {
+    if (t.items.some(item => item.motion === motion)) return;
+    const empty = document.createElement('div');
+    empty.className = 'doc-empty'; empty.textContent = 'No channels yet.'; hosts[motion].append(empty);
+  });
   renderBuyerJourney(t);
   requestAnimationFrame(drawChannelWires);
 }
@@ -8749,7 +8766,8 @@ function renderBuyerJourney(t){
   if (journey.hidden) return;
   const host = $('buyerTimeline'); host.innerHTML = '';
   const stages = [
-    { id: 'top', short: 'TOF', title: 'Top of funnel', items: ['JTBD articles'] },
+    { id: 'top', short: 'TOF', title: 'Top of funnel',
+      items: ['JTBD articles', 'Pain points', 'Desired outcomes', 'Functional jobs', 'Emotional jobs'] },
     { id: 'middle', short: 'MOF', title: 'Middle of funnel',
       items: ['Service pages', 'Listicle pages', 'Feature pages', 'Use case pages'] },
     { id: 'bottom', short: 'BOF', title: 'Bottom of funnel', items: ['Competitor keywords'] }
@@ -8795,12 +8813,11 @@ function renderBuyerJourney(t){
 function drawChannelWires(){
   const svg = $('chanWires');
   const flow = $('chanFlow');
-  const root = flow && flow.querySelector('.chan-root');
-  if (!svg || !flow || !root || $('chanPane').hidden) return;
+  const company = flow && flow.querySelector('.gtm-company');
+  const strategy = flow && flow.querySelector('.gtm-strategy-node');
+  if (!svg || !flow || !company || !strategy || $('chanPane').hidden) return;
 
   const box = flow.getBoundingClientRect();
-  const rootBox = root.getBoundingClientRect();
-  const from = { x: rootBox.left - box.left + rootBox.width / 2, y: rootBox.bottom - box.top };
   const width = flow.scrollWidth;
   const height = flow.scrollHeight;
   svg.setAttribute('viewBox', '0 0 ' + width + ' ' + height);
@@ -8809,28 +8826,44 @@ function drawChannelWires(){
     '<marker id="chanArrow" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0L8 4L0 8Z" fill="#b9bab6"/></marker>' +
     '<marker id="chanArrowOn" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0L8 4L0 8Z" fill="#65c88a"/></marker>' +
     '</defs>';
-  Array.from($('chanGrid').querySelectorAll('.chan-card')).forEach(card => {
-    const r = card.getBoundingClientRect();
-    const to = { x: r.left - box.left + r.width / 2, y: r.top - box.top };
-    const chosen = card.classList.contains('on');
-    const bend = Math.max(30, (to.y - from.y) * .68);
-    out += '<path class="chan-wire' + (chosen ? ' on' : '') + '" marker-end="url(#' +
+  const point = (element, side) => {
+    const rect = element.getBoundingClientRect();
+    return { x: rect.left - box.left + rect.width / 2,
+      y: (side === 'top' ? rect.top : rect.bottom) - box.top };
+  };
+  const path = (from, to, chosen) => {
+    const bend = Math.max(24, (to.y - from.y) * .58);
+    return '<path class="chan-wire' + (chosen ? ' on' : '') + '" marker-end="url(#' +
       (chosen ? 'chanArrowOn' : 'chanArrow') + ')" d="M ' + from.x + ' ' + from.y +
       ' C ' + from.x + ' ' + (from.y + bend) + ', ' + to.x + ' ' + (to.y - bend) +
       ', ' + to.x + ' ' + to.y + '"/>';
+  };
+  out += path(point(company, 'bottom'), point(strategy, 'top'), true);
+  Array.from(flow.querySelectorAll('.gtm-motion')).forEach(motion => {
+    const head = motion.querySelector('.gtm-motion-head');
+    const cards = Array.from(motion.querySelectorAll('.chan-card'));
+    const motionOn = cards.some(card => card.classList.contains('on'));
+    out += path(point(strategy, 'bottom'), point(head, 'top'), motionOn);
+    cards.forEach(card => {
+      out += path(point(head, 'bottom'), point(card, 'top'), card.classList.contains('on'));
+    });
   });
+  const journey = $('buyerJourney');
+  const onPage = flow.querySelector('.chan-card.focused');
+  if (onPage && !journey.hidden) out += path(point(onPage, 'bottom'), point(journey, 'top'), true);
   svg.innerHTML = out;
 }
 
-function addChannel(){
+function addChannel(motion){
   if (readOnly()) return;
   const t = channelState();
-  const item = { id: uid(), name: 'New channel', on: false };
+  const item = { id: uid(), name: 'New channel', on: false,
+    motion: motion === 'outbound' ? 'outbound' : 'inbound' };
   t.items.push(item);
   markDirty();
   renderChannels();
   /* drop straight into rename on the card we just made */
-  const cards = $('chanGrid').querySelectorAll('.chan-name');
+  const cards = $(item.motion === 'outbound' ? 'chanOutboundGrid' : 'chanInboundGrid').querySelectorAll('.chan-name');
   const last = cards[cards.length - 1];
   if (last) last.dispatchEvent(new MouseEvent('dblclick', { bubbles: true }));
 }
@@ -9698,60 +9731,8 @@ function renderStrategyGuide(){
     state.clientSalesMotion === 'slg' ? 'SLG' : 'Not selected';
   $('sgAboutIcp1').textContent = state.clientIcp1 || 'New Entrants';
   $('sgAboutIcp2').textContent = clientIcp2Label(g.ocean);
-  const objectiveQuestion = $('sgQuestionObjective');
-  const marketQuestion = $('sgQuestionMarket');
-  const audienceQuestion = $('sgQuestionAudience');
-  objectiveQuestion.classList.toggle('active', !g.opened);
-  objectiveQuestion.classList.toggle('answered', g.opened);
-  marketQuestion.hidden = !g.opened;
-  marketQuestion.classList.toggle('active', g.opened && !g.ocean);
-  marketQuestion.classList.toggle('answered', !!g.ocean);
-  audienceQuestion.hidden = !g.ocean;
-  audienceQuestion.classList.toggle('active', !!g.ocean);
-  const root = $('sgRoot');
-  root.disabled = readOnly();
-  root.classList.remove('on');
-  root.setAttribute('aria-expanded', g.opened ? 'true' : 'false');
-  root.onclick = () => {
-    if (readOnly()) return;
-    g.opened = true;
-    markDirty();
-    renderStrategyGuide();
-  };
-
-  const oceans = $('sgOceans');
-  oceans.hidden = !g.opened;
-  oceans.innerHTML = '';
-  if (g.opened){
-    strategyNode(oceans, 'red', 'Red Ocean',
-      'Win inside an established product category.', g.ocean);
-    strategyNode(oceans, 'blue', 'Blue Ocean',
-      'Create a new category or a new way to do the job.', g.ocean);
-  }
-
-  const routes = $('sgRoutes');
-  const reset = $('sgReset');
-  routes.hidden = !g.ocean;
-  reset.hidden = !g.opened || readOnly();
-  if (!g.ocean){
-    routes.innerHTML = '';
-    requestAnimationFrame(drawStrategyWires);
-    return;
-  }
-
-  const red = g.ocean === 'red';
-  routes.innerHTML = '<div class="sg-routes">' +
-      (red
-        ? '<article class="sg-route"><small>Route 01</small><h4>Compete with Existing Competitors</h4>' +
-             '<p>Take customers from an existing competitor by giving them a clear reason to replace the product they use today.</p></article>' +
-          '<article class="sg-route"><small>Route 02</small><h4>Acquire New Entrants</h4>' +
-             '<p>Acquire organisations graduating from a lower maturity level—for example, a growing company adopting HR software for the first time.</p></article>'
-        : '<article class="sg-route"><small>Route 01</small><h4>Acquire New Entrants</h4>' +
-            '<p>Bring in customers who previously lacked the access, maturity or capability to participate in the category at all.</p></article>' +
-          '<article class="sg-route"><small>Route 02</small><h4>Pull Customers from Competitors in Older Categories</h4>' +
-            '<p>Compete with the older way the job was done and pull customers forward into the new category.</p></article>') +
-    '</div>';
-  requestAnimationFrame(drawStrategyWires);
+  $('gtmCompanyName').textContent = state.client || 'Company name';
+  requestAnimationFrame(drawChannelWires);
 }
 
 /* ===================================================================
@@ -9880,16 +9861,8 @@ $('btnKwRefresh').onclick = refreshKeywords;
 $('btnKwAdd').onclick = function(){ openKeywordModal(''); };
 $('btnKwPaste').onclick = openPasteModal;
 $('kwSearch').oninput = ev => { kwFilter = ev.target.value; renderKeywordTables(); };
-$('btnAddChannel').onclick = addChannel;
-$('sgReset').onclick = () => {
-  if (readOnly()) return;
-  const g = strategyOneState();
-  g.opened = false;
-  g.ocean = '';
-  state.clientMarketType = '';
-  markDirty();
-  renderStrategyGuide();
-};
+$('btnAddInbound').onclick = () => addChannel('inbound');
+$('btnAddOutbound').onclick = () => addChannel('outbound');
 $('btnTypeAdd').onclick = addTypeToLibrary;
 $('typeNew').onkeydown = ev => { ev.stopPropagation(); if (ev.key === 'Enter') addTypeToLibrary(); };
 /* stop the browser opening a file dropped anywhere else on the page */

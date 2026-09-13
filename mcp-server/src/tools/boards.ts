@@ -56,7 +56,9 @@ export function registerBoardTools(server: McpServer) {
             opened: !!slot.guide?.opened,
             ocean: slot.guide?.ocean || null,
             channels: Array.isArray(slot.channels?.items)
-              ? slot.channels.items.map((item: any) => ({ name: item.name, on: !!item.on }))
+              ? slot.channels.items.map((item: any) => ({
+                  name: item.name, on: !!item.on, motion: item.motion || "inbound"
+                }))
               : []
           };
         } else if (tab === "Strategy 1 — Positioning Document") {
