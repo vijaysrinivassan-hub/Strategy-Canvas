@@ -132,6 +132,7 @@ export interface BoardBody {
   clientType?: string;
   clientGoal?: string;
   clientMarketType?: string;
+  clientIcp1?: string;
   logo?: string;
   tabs: Record<string, any>;
 }
