@@ -1835,6 +1835,11 @@
   .kw-table td.kw-term{color:#20241f}
   .kw-move{border-color:#cad8cf; background:#fff; color:#5e6b61}
   .kw-move:hover{border-color:#8bc99d; background:#effbf3; color:#287343}
+  .gtm-inline-edit{
+    width:100%; min-width:110px; border:1px solid #57c982; background:#fff;
+    color:#111; font:inherit; font-size:inherit; font-weight:750;
+    padding:3px 5px; outline:none; box-shadow:0 0 0 2px rgba(87,201,130,.14);
+  }
   .rlink{background:#f2f2ef; border-color:#d8d8d3}
   .toast{border-radius:2px}
 
@@ -2346,7 +2351,7 @@ const SUPABASE_URL = 'https://cskamgfvebryahkljlll.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_MdkD-TxMCIwlu69seSHA3Q_A39GADsK';
 const CLIENT_ID    = '1059013355751-6g50dsgm7df37htl2fdqrtlkh5hmrc0c.apps.googleusercontent.com';
 const ALLOWED      = ['vijaysrinivassan@gmail.com'];
-const BUILD        = 'v7.51';
+const BUILD        = 'v7.52';
 
 const STRATEGY_ONE_TAB = 'Strategy 1 — Brand Strategy';
 const PRODUCT_EVOLUTION_TAB = 'Strategy 1 — Product Evolution';
@@ -8994,6 +8999,37 @@ function gtmProductTargetName(product){
   return name && name !== 'Product name' ? name : '';
 }
 
+function editGtmText(el, current, done){
+  if (readOnly()) return;
+  const input = document.createElement('input');
+  input.className = 'gtm-inline-edit';
+  input.value = current || '';
+  input.setAttribute('aria-label', 'Edit name');
+  input.onclick = ev => ev.stopPropagation();
+  input.ondblclick = ev => ev.stopPropagation();
+  input.onkeydown = ev => {
+    ev.stopPropagation();
+    if (ev.key === 'Enter'){
+      ev.preventDefault();
+      input.blur();
+    } else if (ev.key === 'Escape'){
+      ev.preventDefault();
+      cancelled = true;
+      renderChannels();
+    }
+  };
+  let finished = false;
+  let cancelled = false;
+  input.onblur = () => {
+    if (finished || cancelled) return;
+    finished = true;
+    done(input.value.trim());
+  };
+  el.replaceWith(input);
+  input.focus();
+  input.select();
+}
+
 function isOnPageChannel(item){
   return item && (item.kind === 'onpage' || /on[\s-]*page\s+seo/i.test(item.name || ''));
 }
@@ -9060,8 +9096,8 @@ function renderChannels(){
   const productRow = $('gtmProductRow');
   productRow.innerHTML = '';
   $('gtmCompanyName').textContent = state.client || 'Company name';
-  $('gtmInboundLabel').textContent = t.motionLabels.inbound || 'Inbound';
-  $('gtmOutboundLabel').textContent = t.motionLabels.outbound || 'Outbound';
+  $('gtmInboundLabel').textContent = 'Inbound';
+  $('gtmOutboundLabel').textContent = 'Outbound';
   const selectedProduct = activeGtmProduct(t);
   const targetProductName = gtmProductTargetName(selectedProduct);
   if (selectedProduct && state.clientProduct !== targetProductName) state.clientProduct = targetProductName;
@@ -9087,7 +9123,7 @@ function renderChannels(){
     name.title = 'Double-click to rename';
     name.ondblclick = ev => {
       ev.stopPropagation();
-      inlineRename(name, product.name, value => {
+      editGtmText(name, product.name, value => {
         product.name = value || 'Product name';
         t.activeProductId = product.id;
         state.clientProduct = gtmProductTargetName(product);
@@ -9156,7 +9192,7 @@ function renderChannels(){
     nm.title = 'Double-click to rename';
     nm.ondblclick = ev => {
       ev.stopPropagation();
-      inlineRename(nm, item.name, v => { item.name = v || 'Untitled'; markDirty(); renderChannels(); });
+      editGtmText(nm, item.name, v => { item.name = v || 'Untitled'; markDirty(); renderChannels(); });
     };
     wrap.append(nm);
 
@@ -10335,16 +10371,6 @@ function gtmKeyboardActivate(event, action){
   if (event.key !== 'Enter' && event.key !== ' ') return;
   event.preventDefault(); action();
 }
-function renameGtmMotionLabel(motion, el){
-  if (readOnly()) return;
-  const t = channelState();
-  const fallback = motion === 'outbound' ? 'Outbound' : 'Inbound';
-  inlineRename(el, t.motionLabels[motion] || fallback, value => {
-    t.motionLabels[motion] = value || fallback;
-    markDirty();
-    renderChannels();
-  });
-}
 $('gtmCompanyNode').onclick = () => revealGtmLevel(1);
 $('gtmCompanyNode').onkeydown = event => gtmKeyboardActivate(event, () => revealGtmLevel(1));
 $('gtmStrategyNode').onclick = () => revealGtmLevel(3);
@@ -10353,8 +10379,6 @@ $('gtmInboundHead').onclick = () => revealGtmMotion('inbound');
 $('gtmInboundHead').onkeydown = event => gtmKeyboardActivate(event, () => revealGtmMotion('inbound'));
 $('gtmOutboundHead').onclick = () => revealGtmMotion('outbound');
 $('gtmOutboundHead').onkeydown = event => gtmKeyboardActivate(event, () => revealGtmMotion('outbound'));
-$('gtmInboundLabel').ondblclick = event => { event.stopPropagation(); renameGtmMotionLabel('inbound', event.currentTarget); };
-$('gtmOutboundLabel').ondblclick = event => { event.stopPropagation(); renameGtmMotionLabel('outbound', event.currentTarget); };
 $('btnAddGtmProduct').onclick = event => { event.stopPropagation(); addGtmProduct(); };
 $('btnAddInbound').onclick = event => { event.stopPropagation(); addChannel('inbound'); };
 $('btnAddOutbound').onclick = event => { event.stopPropagation(); addChannel('outbound'); };

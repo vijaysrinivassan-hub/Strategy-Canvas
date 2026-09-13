@@ -72,12 +72,12 @@ Services; those details are saved with the board and can be changed later with E
   using only vertical and horizontal segments.
   Existing
   AEO, SEO, Listicle Outreach and Reddit migrate to
-  Inbound in that order; Email, LinkedIn and ABM initialize under Outbound. The
-  Inbound and Outbound motion labels can be renamed by double-clicking the label.
-  Channel cards show
+  Inbound in that order; Email, LinkedIn and ABM initialize under Outbound. Channel cards show
   only the channel name and selection state, while bare plus controls add products
   or channels from the relevant parent. Product cards can be renamed or removed,
-  and the bottom-right reset control collapses the GTM journey back to the company
+  and channel cards can be renamed with their own GTM-safe inline editor; the
+  Inbound and Outbound motion labels stay fixed.
+  The bottom-right reset control collapses the GTM journey back to the company
   node without deleting the canvas data. When a selected product is the only active
   child path, GTM Strategy sits directly below that product. Selecting AEO
   reveals a compact **Buyer Journey** directly beneath that AEO branch only:
