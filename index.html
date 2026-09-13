@@ -1741,6 +1741,58 @@
   .mx-table thead th,.kw-table thead th{background:#f1f1ee}
   .mx-table tbody tr:hover td,.mx-table tbody tr:hover th,.kw-table tbody tr:hover{background:#f5f5f2}
   .mx-cell.planned,.gr-cell.planned{background:#ecece8}
+  /* ---- Keywords: make the four planning tables feel native to the canvas UI ---- */
+  .main > .mx{background:#f7f7f5}
+  .mx-head{border-bottom:1px solid #d9dbd5; background:#f7f7f5}
+  .mx-head button{border-color:#d7ddd5; background:#fff}
+  .mx-wrap{
+    border:1px solid #d9dbd5; background-color:#fbfbfa;
+    background-image:radial-gradient(circle at 1px 1px,#d4d5cf 1px,transparent 1.15px);
+    background-size:20px 20px;
+  }
+  .mx-table{background:rgba(255,255,255,.72)}
+  .mx-table th,.mx-table td{border-color:#dedfda; background:rgba(255,255,255,.88)}
+  .mx-table thead th,.mx-corner-num,.mx-corner{
+    background:#eef7f1 !important; border-bottom-color:#cfded3; color:#506256;
+  }
+  .mx-num,.gr-num{background:#f5faf6; color:#89918a}
+  .mx-rh{background:#fff}
+  .mx-table tbody tr:hover td,.mx-table tbody tr:hover th{background:#f6fbf8}
+  .mx-lab b,.mx-lab input.hd{color:#20241f}
+  .mx-lab input.hd::placeholder{color:#aeb5ad}
+  .mx-lab input.hd:focus,.gr-cell input[type=text]:focus{
+    background:#fff; box-shadow:inset 0 -2px 0 #57c982;
+  }
+  .gr-cell input[type=text]::placeholder{color:#bfc5bd}
+  .gr-cell.empty .gr-ctl{opacity:.52}
+  .mx-mode{border-color:#cad8cf; background:#fbfbfa}
+  .mx-mode button.on{background:#398b57; color:#fff}
+  .mx-mode button.on:hover:not(:disabled){background:#2f7b49; color:#fff}
+  .gr-kind{border-color:#d5ddd6; background:#fff; color:#687168}
+  .gr-kind.set{border-color:#b9d6c1; background:#f2faf4; color:#2f6f45}
+  .mx-plan{color:#9aa39a; background:rgba(255,255,255,.42)}
+  .mx-plan:hover{background:#f0f8f3}
+  .mx-cell.planned,.gr-cell.planned{background:#effbf3}
+  .mx-cell.planned .mx-plan,.gr-cell.planned input[type=text]{color:#2f7b49}
+  .mx-kw:hover,.kw-add-row:hover,.gr-kwadd:hover{background:#effbf3; color:#2f7b49}
+  .mx-kw.on{background:#e7f7ec}
+  .mx-kw.on span{color:#2f7b49}
+  .kw-total{background:rgba(247,250,248,.92); color:#6b746c}
+  .kw-total em{color:#253126}
+  .gr-del:hover,.mx-lab .x:hover{background:#fff0f0}
+
+  /* ---- Keyword repo: same material language as the four planning tables ---- */
+  .main > .kw{background:#f7f7f5}
+  .kw-head{margin:0 2px 9px}
+  .kw-table-wrap{
+    border-color:#d9dbd5; background:#fbfbfa; box-shadow:none;
+  }
+  .kw-table thead th{background:#eef7f1; border-bottom-color:#cfded3; color:#506256}
+  .kw-table td{border-bottom-color:#dedfda}
+  .kw-table tbody tr:hover{background:#f6fbf8}
+  .kw-table td.kw-term{color:#20241f}
+  .kw-move{border-color:#cad8cf; background:#fff; color:#5e6b61}
+  .kw-move:hover{border-color:#8bc99d; background:#effbf3; color:#287343}
   .rlink{background:#f2f2ef; border-color:#d8d8d3}
   .toast{border-radius:2px}
 
@@ -2252,7 +2304,7 @@ const SUPABASE_URL = 'https://cskamgfvebryahkljlll.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_MdkD-TxMCIwlu69seSHA3Q_A39GADsK';
 const CLIENT_ID    = '1059013355751-6g50dsgm7df37htl2fdqrtlkh5hmrc0c.apps.googleusercontent.com';
 const ALLOWED      = ['vijaysrinivassan@gmail.com'];
-const BUILD        = 'v7.46';
+const BUILD        = 'v7.47';
 
 const STRATEGY_ONE_TAB = 'Strategy 1 — Brand Strategy';
 const PRODUCT_EVOLUTION_TAB = 'Strategy 1 — Product Evolution';
