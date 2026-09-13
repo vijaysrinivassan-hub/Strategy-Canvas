@@ -84,10 +84,9 @@ saved with the board and can be changed later with Edit.
   chooses the compass direction; the Category Positioning ladder becomes full
   concentric category circles, with earlier categories toward the centre and later
   categories toward the edge. The client brand is plotted as a crosshair and
-  competitors as radar contacts on their respective category circles. Nearby player
-  names appear immediately, while zooming reveals names throughout the market. The
-  radar supports scroll zoom, closer-level panning and double-click reset. Selecting
-  a category circle also selects that category in Positioning Canvas.
+  competitors as labeled radar contacts on their respective category circles. Every
+  competitor is visible without zooming. Brand Radar is a read-only market view;
+  the selected category can only be changed in Category Positioning.
 - **Canvas** lists Product Architecture, Market Research Frame, Messaging Framework,
   Positioning Document and Growth Strategy directly, without a Brand Strategy parent
   row. Each is its own canvas; the count beside one is its card count. Those five always exist —
