@@ -124,6 +124,8 @@ export function registerBoardTools(server: McpServer) {
           market_type: body.clientMarketType === "red" ? "Red Ocean" :
             body.clientMarketType === "blue" ? "Blue Ocean" : "Not selected",
           industry_type: body.clientType || "",
+          sales_motion: body.clientSalesMotion === "plg" ? "PLG" :
+            body.clientSalesMotion === "slg" ? "SLG" : "Not selected",
           icp_1: body.clientIcp1 || "New Entrants",
           icp_2: body.clientMarketType === "blue" ? "Customers from the Older Category" :
             body.clientMarketType === "red" ? "Customers from our Category" : "Select a market type"
@@ -144,17 +146,19 @@ export function registerBoardTools(server: McpServer) {
         goal: z.string().optional().describe("Primary goal; defaults to Customer Acquisition"),
         market_type: z.enum(["red", "blue"]).optional().describe("Red Ocean or Blue Ocean"),
         industry_type: z.enum(["saas", "ecommerce", "local", "services"]).optional(),
+        sales_motion: z.enum(["plg", "slg"]).optional().describe("Product-led growth or sales-led growth"),
         icp_1: z.string().optional().describe("Primary ICP; defaults to New Entrants")
       },
       annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false }
     },
-    async ({ client, goal, market_type, industry_type, icp_1 }) => {
+    async ({ client, goal, market_type, industry_type, sales_motion, icp_1 }) => {
       const body = {
         version: 1,
         client,
         clientGoal: goal?.trim() || "Customer Acquisition",
         clientMarketType: market_type || "",
         clientType: industry_type || "",
+        clientSalesMotion: sales_motion || "",
         clientIcp1: icp_1?.trim() || "New Entrants",
         logo: "",
         tabs: {}

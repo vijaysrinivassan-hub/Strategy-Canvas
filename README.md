@@ -68,6 +68,8 @@ saved with the board and can be changed later with Edit.
   A compact About card in the canvas's upper-right shows the client's Goal, Market
   Type and Industry Type. Edit those values from Settings › Clients; changing the
   Red/Blue market type there stays synchronized with the canvas and Brand Radar.
+  Sales Motion is stored in the same client details as either **PLG** or **SLG**
+  and appears in the About card.
   The same card and client settings include ICP 1 and ICP 2. ICP 1 defaults to
   **New Entrants**. ICP 2 is derived from Market Type: **Customers from the Older
   Category** for Blue Ocean, or **Customers from our Category** for Red Ocean.

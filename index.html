@@ -975,7 +975,7 @@
   .sg-wire{fill:none; stroke:#b9bab6; stroke-width:1.5; stroke-linecap:round;
            stroke-linejoin:round; vector-effect:non-scaling-stroke}
   .sg-wire.chosen{stroke:#65c88a; stroke-width:2}
-  .sg-flow{display:flex; flex-direction:column; align-items:center; padding-top:62px}
+  .sg-flow{display:flex; flex-direction:column; align-items:center; padding-top:132px}
   .sg-questions{position:relative; min-height:650px; pointer-events:none}
   .sg-question{position:absolute; left:0; width:100%; min-height:52px; display:grid;
                grid-template-columns:32px 1fr; gap:10px; align-items:start; color:#70716c;
@@ -1923,6 +1923,7 @@
               <dt>Goal</dt><dd id="sgAboutGoal">Customer Acquisition</dd>
               <dt>Market type</dt><dd id="sgAboutMarket">Not selected</dd>
               <dt>Industry type</dt><dd id="sgAboutIndustry">Not selected</dd>
+              <dt>Sales motion</dt><dd id="sgAboutSalesMotion">Not selected</dd>
               <dt>ICP 1</dt><dd id="sgAboutIcp1">New Entrants</dd>
               <dt>ICP 2</dt><dd id="sgAboutIcp2">Select a market type</dd>
             </dl>
@@ -2230,7 +2231,7 @@ const SUPABASE_URL = 'https://cskamgfvebryahkljlll.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_MdkD-TxMCIwlu69seSHA3Q_A39GADsK';
 const CLIENT_ID    = '1059013355751-6g50dsgm7df37htl2fdqrtlkh5hmrc0c.apps.googleusercontent.com';
 const ALLOWED      = ['vijaysrinivassan@gmail.com'];
-const BUILD        = 'v7.35';
+const BUILD        = 'v7.36';
 
 const STRATEGY_ONE_TAB = 'Strategy 1 — Brand Strategy';
 const PRODUCT_EVOLUTION_TAB = 'Strategy 1 — Product Evolution';
@@ -2335,6 +2336,7 @@ const state = {
   clientType: '',
   clientGoal: 'Customer Acquisition',
   clientMarketType: '',
+  clientSalesMotion: '',
   clientIcp1: 'New Entrants',
   logo: '',
   tab: TABS[0],
@@ -3939,6 +3941,7 @@ function serialize(){
   return JSON.stringify({ version: 3, client: state.client, clientType: state.clientType || '',
                           clientGoal: state.clientGoal || 'Customer Acquisition',
                           clientMarketType: state.clientMarketType || '',
+                          clientSalesMotion: state.clientSalesMotion || '',
                           clientIcp1: state.clientIcp1 || 'New Entrants', logo: state.logo || '',
                           extra: state.extra, brandOrder: state.brandOrder,
                           frameEdits: state.frameEdits, tabs: tabs });
@@ -3985,6 +3988,8 @@ function hydrate(text){
   const guideOcean = (((state.tabs[STRATEGY_ONE_TAB] || {}).guide || {}).ocean || '');
   state.clientMarketType = (d && (d.clientMarketType === 'red' || d.clientMarketType === 'blue'))
     ? d.clientMarketType : (guideOcean === 'red' || guideOcean === 'blue' ? guideOcean : '');
+  state.clientSalesMotion = (d && (d.clientSalesMotion === 'plg' || d.clientSalesMotion === 'slg'))
+    ? d.clientSalesMotion : '';
   state.clientIcp1 = (d && typeof d.clientIcp1 === 'string' && d.clientIcp1.trim())
     ? d.clientIcp1.trim() : 'New Entrants';
   state.logo = (d && d.logo) || '';
@@ -4046,7 +4051,7 @@ async function saveBoard(quiet){
   if (!quiet) toast('Board saved.');
 }
 
-async function newBoard(clientName, clientType, clientGoal, clientMarketType, clientIcp1){
+async function newBoard(clientName, clientType, clientGoal, clientMarketType, clientSalesMotion, clientIcp1){
   state.boardId = null;
   state.ownerId = state.user ? state.user.id : null;
   state.role = 'admin';
@@ -4054,6 +4059,7 @@ async function newBoard(clientName, clientType, clientGoal, clientMarketType, cl
   state.clientType = CLIENT_TYPES.some(x => x.id === clientType) ? clientType : '';
   state.clientGoal = (clientGoal || '').trim() || 'Customer Acquisition';
   state.clientMarketType = clientMarketType === 'red' || clientMarketType === 'blue' ? clientMarketType : '';
+  state.clientSalesMotion = clientSalesMotion === 'plg' || clientSalesMotion === 'slg' ? clientSalesMotion : '';
   state.clientIcp1 = (clientIcp1 || '').trim() || 'New Entrants';
   state.logo = '';
   state.tabs = blankTabs();
@@ -4734,6 +4740,18 @@ function openClientSettings(){
   });
   marketIn.value = state.clientMarketType || '';
 
+  const salesMotionLabel = document.createElement('label');
+  salesMotionLabel.className = 'fl';
+  salesMotionLabel.style.marginTop = '16px';
+  salesMotionLabel.textContent = 'Sales motion';
+  const salesMotionIn = document.createElement('select');
+  salesMotionIn.className = 'modal-in';
+  [['', 'Choose sales motion'], ['plg', 'PLG'], ['slg', 'SLG']].forEach(item => {
+    const option = document.createElement('option');
+    option.value = item[0]; option.textContent = item[1]; salesMotionIn.append(option);
+  });
+  salesMotionIn.value = state.clientSalesMotion || '';
+
   const icp1Label = document.createElement('label');
   icp1Label.className = 'fl';
   icp1Label.style.marginTop = '16px';
@@ -4833,6 +4851,7 @@ function openClientSettings(){
     state.clientType = typeIn.value;
     state.clientGoal = goalIn.value.trim() || 'Customer Acquisition';
     state.clientMarketType = marketIn.value;
+    state.clientSalesMotion = salesMotionIn.value;
     state.clientIcp1 = icp1In.value.trim() || 'New Entrants';
     const guide = strategyOneState();
     guide.ocean = state.clientMarketType;
@@ -4849,7 +4868,8 @@ function openClientSettings(){
   foot.append(cancel, save);
 
   modal.append(h, p, nameLabel, nameIn, typeLabel, typeIn, goalLabel, goalIn,
-    marketLabel, marketIn, icp1Label, icp1In, icp2Label, icp2In,
+    marketLabel, marketIn, salesMotionLabel, salesMotionIn,
+    icp1Label, icp1In, icp2Label, icp2In,
     logoLabel, row, fileIn, foot);
   overlay.append(modal);
   host.append(overlay);
@@ -8258,6 +8278,11 @@ function openNewClientModal(){
   [['', 'Choose market type'], ['red', 'Red Ocean'], ['blue', 'Blue Ocean']].forEach(function(item){
     const o = document.createElement('option'); o.value = item[0]; o.textContent = item[1]; market.append(o);
   });
+  const salesMotionLabel = document.createElement('label'); salesMotionLabel.className = 'fl'; salesMotionLabel.style.marginTop = '16px'; salesMotionLabel.textContent = 'Sales motion';
+  const salesMotion = document.createElement('select'); salesMotion.className = 'modal-in';
+  [['', 'Choose sales motion'], ['plg', 'PLG'], ['slg', 'SLG']].forEach(function(item){
+    const o = document.createElement('option'); o.value = item[0]; o.textContent = item[1]; salesMotion.append(o);
+  });
   const icp1Label = document.createElement('label'); icp1Label.className = 'fl'; icp1Label.style.marginTop = '16px'; icp1Label.textContent = 'ICP 1';
   const icp1 = document.createElement('input'); icp1.className = 'modal-in'; icp1.value = 'New Entrants'; icp1.placeholder = 'New Entrants';
   const icp2Label = document.createElement('label'); icp2Label.className = 'fl'; icp2Label.style.marginTop = '16px'; icp2Label.textContent = 'ICP 2 · Based on market type';
@@ -8271,13 +8296,13 @@ function openNewClientModal(){
     if (!name.value.trim()){ toast('Enter a client name.', true); name.focus(); return; }
     if (!type.value){ toast('Choose an industry type.', true); type.focus(); return; }
     create.disabled = true; create.textContent = 'Creating…';
-    await newBoard(name.value, type.value, goal.value, market.value, icp1.value);
+    await newBoard(name.value, type.value, goal.value, market.value, salesMotion.value, icp1.value);
     closeModal();
   };
   name.onkeydown = function(ev){ if (ev.key === 'Enter') type.focus(); };
   foot.append(cancel, create);
   modal.append(h, p, nameLabel, name, typeLabel, type, goalLabel, goal, marketLabel, market,
-    icp1Label, icp1, icp2Label, icp2, foot);
+    salesMotionLabel, salesMotion, icp1Label, icp1, icp2Label, icp2, foot);
   overlay.append(modal); host.append(overlay); name.focus();
 }
 
@@ -9669,6 +9694,8 @@ function renderStrategyGuide(){
   $('sgAboutMarket').textContent = g.ocean === 'red' ? 'Red Ocean' :
     g.ocean === 'blue' ? 'Blue Ocean' : 'Not selected';
   $('sgAboutIndustry').textContent = state.clientType ? clientTypeLabel(state.clientType) : 'Not selected';
+  $('sgAboutSalesMotion').textContent = state.clientSalesMotion === 'plg' ? 'PLG' :
+    state.clientSalesMotion === 'slg' ? 'SLG' : 'Not selected';
   $('sgAboutIcp1').textContent = state.clientIcp1 || 'New Entrants';
   $('sgAboutIcp2').textContent = clientIcp2Label(g.ocean);
   const objectiveQuestion = $('sgQuestionObjective');
