@@ -84,9 +84,12 @@ saved with the board and can be changed later with Edit.
   chooses the active direction; the Category Positioning ladder becomes concentric
   bands inside that direction's sector, with earlier categories toward the centre and
   later categories toward the edge. The client brand is plotted as a crosshair and
-  every competitor as a company name inside the active sector. Names are displayed
-  in full whenever the available spacing permits and use an ellipsis only when they
-  would overlap; decorative player circles are not shown. Dragging
+  every competitor around the client marker inside the active sector. The client is
+  shown with a location-pin icon at the true midpoint of the two sector boundaries.
+  Competitors fill outward from that midpoint, alternating left and right. Names are
+  displayed when spacing permits, shortened only when necessary, and collapse to
+  small dots when the sector must be widened to reveal them. Category names sit just
+  outside the active boundary. Dragging
   either green sector boundary expands that direction while compressing the other
   three. Only the active sector has wedge-boundary lines; a horizontal/vertical
   cross points from the centre to the four fixed evolution axes. Clicking the centre

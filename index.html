@@ -1106,7 +1106,7 @@
   .radar-axis-name{fill:#737d75; font-size:11px; font-weight:750; letter-spacing:.7px; text-anchor:middle}
   .radar-axis-name.active{fill:#176f38; font-size:12px}
   .radar-axis-dot{fill:#aebbb1}.radar-axis-dot.active{fill:#2fb160}
-  .radar-category-label{fill:#385b43; font-size:10px; font-weight:750; text-anchor:start;
+  .radar-category-label{fill:#385b43; font-size:10px; font-weight:750; text-anchor:middle;
                         pointer-events:none; paint-order:stroke; stroke:#f8f9f6; stroke-width:4px;
                         stroke-linejoin:round}
   .radar-category-label.selected{fill:#126c34; font-size:11px}
@@ -1114,7 +1114,9 @@
                 pointer-events:none; paint-order:stroke; stroke:#f8f9f6; stroke-width:3px;
                 stroke-linejoin:round}
   .radar-player.truncated{fill:#647168; font-weight:650}
-  .radar-target-line{stroke:#0d7835; stroke-width:1.4; vector-effect:non-scaling-stroke}
+  .radar-overflow-dot{fill:#3e7f51; stroke:#f8f9f6; stroke-width:1.5; vector-effect:non-scaling-stroke}
+  .radar-brand-pin{fill:#1d9a49; stroke:#fff; stroke-width:1.6; vector-effect:non-scaling-stroke}
+  .radar-brand-pin-core{fill:#f8f9f6; pointer-events:none}
   .radar-target-label{fill:#0e622c; font-size:11px; font-weight:800; text-anchor:middle;
                       pointer-events:none; paint-order:stroke; stroke:#f8f9f6; stroke-width:4px}
   .radar-hub{fill:#f8f9f6; stroke:#329456; stroke-width:2; cursor:pointer; pointer-events:all}
@@ -1882,7 +1884,7 @@ const SUPABASE_URL = 'https://cskamgfvebryahkljlll.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_MdkD-TxMCIwlu69seSHA3Q_A39GADsK';
 const CLIENT_ID    = '1059013355751-6g50dsgm7df37htl2fdqrtlkh5hmrc0c.apps.googleusercontent.com';
 const ALLOWED      = ['vijaysrinivassan@gmail.com'];
-const BUILD        = 'v7.18';
+const BUILD        = 'v7.19';
 
 const STRATEGY_ONE_TAB = 'Strategy 1 — Brand Strategy';
 const PRODUCT_EVOLUTION_TAB = 'Strategy 1 — Product Evolution';
@@ -7430,9 +7432,12 @@ function radarAxisLayout(activeIndex, focus){
 }
 
 function radarContactAngle(playerIndex, count, start, end){
-  const padding = Math.min(12, (end - start) * .12);
-  if (count <= 1) return (start + end) / 2;
-  return start + padding + playerIndex * ((end - start - padding * 2) / (count - 1));
+  const centre = (start + end) / 2;
+  const sideIndex = Math.floor(playerIndex / 2) + 1;
+  const furthestSide = Math.max(1, Math.ceil(count / 2));
+  const availableHalf = Math.max(4, (end - start) / 2 - 8);
+  const step = Math.min(28, availableHalf / (furthestSide + .15));
+  return centre + (playerIndex % 2 === 0 ? -1 : 1) * sideIndex * step;
 }
 
 function radarPointerAngle(svg, ev){
@@ -7506,10 +7511,10 @@ function renderBrandRadar(){
     if (!activeZone) return;
     const selected = positioning.selectedCategory === category.id;
     const radius = innerRadius + (index + .5) * band;
-    const labelAngle = activeZone.start + Math.min(11, (activeZone.end - activeZone.start) * .14);
+    const labelAngle = activeZone.start - 4;
     const labelPoint = radarPoint(radius, labelAngle);
     const categoryName = category.name.trim() || 'Untitled category';
-    const categoryLabel = radarText(svg, ns, labelPoint.x + 7, labelPoint.y + 3,
+    const categoryLabel = radarText(svg, ns, labelPoint.x, labelPoint.y + 3,
       'radar-category-label' + (selected ? ' selected' : ''),
       categoryName.length > 28 ? categoryName.slice(0, 27) + '\u2026' : categoryName);
     const categoryTitle = document.createElementNS(ns, 'title');
@@ -7521,9 +7526,19 @@ function renderBrandRadar(){
       const angle = radarContactAngle(playerIndex, players.length,
         activeZone.start, activeZone.end);
       const point = radarPoint(radius, angle);
-      const arcSpace = radius * ((activeZone.end - activeZone.start) * Math.PI / 180) /
-        Math.max(1, players.length);
-      const maxChars = Math.max(7, Math.min(42, Math.floor(arcSpace / 5.2)));
+      const centreAngle = (activeZone.start + activeZone.end) / 2;
+      const angularSpace = Math.abs(angle - centreAngle) / (Math.floor(playerIndex / 2) + 1);
+      const arcSpace = radius * angularSpace * Math.PI / 180 * .9;
+      const maxChars = Math.min(42, Math.floor(arcSpace / 5.2));
+      if (maxChars < 6){
+        const dot = document.createElementNS(ns, 'circle');
+        dot.setAttribute('cx', point.x); dot.setAttribute('cy', point.y); dot.setAttribute('r', '3');
+        dot.setAttribute('class', 'radar-overflow-dot');
+        const dotTitle = document.createElementNS(ns, 'title');
+        dotTitle.textContent = player.name + ' \u00b7 widen the sector to reveal';
+        dot.append(dotTitle); svg.append(dot);
+        return;
+      }
       const truncated = player.name.length > maxChars;
       const shownName = truncated ? player.name.slice(0, Math.max(4, maxChars - 1)) + '\u2026' : player.name;
       const playerLabel = radarText(svg, ns, point.x, point.y + 3,
@@ -7536,17 +7551,28 @@ function renderBrandRadar(){
 
   const selectedIndex = categories.findIndex(category => category.id === positioning.selectedCategory);
   if (active && selectedIndex >= 0){
-    const target = radarPoint(innerRadius + (selectedIndex + .5) * band, active.angle);
-    radarLine(svg, ns, target.x - 15, target.y, target.x + 15, target.y, 'radar-target-line');
-    radarLine(svg, ns, target.x, target.y - 15, target.x, target.y + 15, 'radar-target-line');
+    const targetRadius = innerRadius + (selectedIndex + .5) * band;
+    const targetAngle = (activeZone.start + activeZone.end) / 2;
+    const target = radarPoint(targetRadius, targetAngle);
+    const pin = document.createElementNS(ns, 'g');
+    pin.setAttribute('transform', 'translate(' + target.x + ' ' + target.y + ')');
+    const pinShape = document.createElementNS(ns, 'path');
+    pinShape.setAttribute('d', 'M0 13 C-3 8 -10 2 -10 -5 A10 10 0 1 1 10 -5 C10 2 3 8 0 13 Z');
+    pinShape.setAttribute('class', 'radar-brand-pin');
+    const pinCore = document.createElementNS(ns, 'circle');
+    pinCore.setAttribute('cx', '0'); pinCore.setAttribute('cy', '-5'); pinCore.setAttribute('r', '3');
+    pinCore.setAttribute('class', 'radar-brand-pin-core');
+    pin.append(pinShape, pinCore); svg.append(pin);
     const brandName = (state.client || '').trim() || 'Your brand';
-    const brandSpace = (innerRadius + (selectedIndex + .5) * band) *
+    const brandSpace = targetRadius *
       ((activeZone.end - activeZone.start) * Math.PI / 180) * .65;
     const brandLimit = Math.max(10, Math.min(42, Math.floor(brandSpace / 5.7)));
     const shownBrand = brandName.length > brandLimit ?
       brandName.slice(0, Math.max(6, brandLimit - 1)) + '\u2026' : brandName;
-    const brandLabel = radarText(svg, ns, target.x,
-      target.y + (active.angle < 0 ? 26 : -21), 'radar-target-label', shownBrand);
+    const labelRadius = targetRadius + (targetRadius < outerRadius - 38 ? 27 : -31);
+    const brandLabelPoint = radarPoint(labelRadius, targetAngle);
+    const brandLabel = radarText(svg, ns, brandLabelPoint.x,
+      brandLabelPoint.y + 4, 'radar-target-label', shownBrand);
     const brandTitle = document.createElementNS(ns, 'title');
     brandTitle.textContent = brandName; brandLabel.append(brandTitle);
   }
