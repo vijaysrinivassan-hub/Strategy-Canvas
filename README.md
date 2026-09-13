@@ -57,16 +57,19 @@ Services; those details are saved with the board and can be changed later with E
 
 - **Strategy › GTM Strategy** is one connected Obsidian-style canvas. It runs from
   the company name through the target product into GTM Strategy, then splits into
-  Inbound and Outbound motions. Every peer channel beneath a motion stays in one
+  Inbound and Outbound motions. The path is progressively disclosed: click Company
+  to reveal its target product, the product to reveal GTM Strategy, GTM Strategy to
+  reveal the motions, and a motion to reveal its channels. Every peer channel stays in one
   horizontal row; the canvas grows and scrolls sideways when that row is wider than
   the screen. Existing
   Technical SEO, On-page SEO, Listicle outreach and Reddit channels migrate to
   Inbound; Email, LinkedIn and ABM initialize under Outbound. Selecting On-page SEO
-  reveals the **Buyer Journey** in the same canvas: Top of funnel contains JTBD,
+  reveals a compact **Buyer Journey** directly beneath that On-page SEO branch only:
+  Top of funnel contains JTBD,
   pain-point, desired-outcome, functional-job and emotional-job articles; Middle of
   funnel contains service, listicle, feature and use-case pages; Bottom of funnel
   contains competitor keywords and links to the Competitor keyword matrix.
-  A compact About card in the canvas's upper-right shows the target Product, Goal,
+  A compact About card at the far upper-right of the full scrollable canvas shows the target Product, Goal,
   Market Type and Industry Type. Edit those values from Settings › Clients; changing the
   Red/Blue market type there stays synchronized with the canvas and Brand Radar.
   Sales Motion is stored in the same client details as either **PLG** or **SLG**

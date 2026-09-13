@@ -930,7 +930,8 @@
   .gtm-node{position:relative; z-index:2; width:220px; min-height:58px; margin:0 auto;
             display:flex; flex-direction:column; align-items:center; justify-content:center;
             padding:11px 14px; border:1px solid #c9cac6; background:#fff;
-            box-shadow:0 1px 2px rgba(0,0,0,.04); text-align:center}
+            box-shadow:0 1px 2px rgba(0,0,0,.04); text-align:center; cursor:pointer}
+  .gtm-node:hover,.gtm-motion-head:hover{border-color:#8f938d}
   .gtm-node small{margin-bottom:4px; color:#8b8d87; font-size:8px; font-weight:800;
                   letter-spacing:.1em; text-transform:uppercase}
   .gtm-node strong{color:#292b27; font-size:12px}.gtm-company,.gtm-product{margin-bottom:34px}
@@ -939,29 +940,29 @@
                gap:70px; width:max-content; min-width:900px; margin:0 auto}
   .gtm-motion{flex:0 0 auto; width:max-content; min-width:420px}.gtm-motion-head{width:210px; min-height:50px; margin:0 auto 42px;
               display:flex; align-items:center; justify-content:center; gap:10px;
-              padding:10px 12px; border:1px solid #c9cac6; background:#fff}
+              padding:10px 12px; border:1px solid #c9cac6; background:#fff; cursor:pointer}
   .gtm-motion-head strong{font-size:11.5px}.gtm-motion-head button{width:22px; height:22px;
               padding:0; border-color:#d4d7d1; background:#fafaf8; font-size:13px}
   .gtm-channel-grid{display:flex; flex-wrap:nowrap; justify-content:center; gap:10px}
   .gtm-channel-grid .chan-card{flex:0 0 210px; width:210px; min-width:210px; min-height:68px}
-  .gtm-flow .buyer-journey{position:relative; z-index:2; width:820px; margin:82px auto 0;
-                          background-color:rgba(255,255,255,.92); background-image:none}
+  .gtm-motion .buyer-journey{position:relative; z-index:2; width:470px; margin:34px 0 0;
+                            padding:14px; background-color:rgba(255,255,255,.94); background-image:none}
   .buyer-journey{margin-top:18px; padding:22px; border:1px solid #deded9;
                  background-color:#fbfbfa;
                  background-image:radial-gradient(circle at 1px 1px,#d4d5cf 1px,transparent 1.1px);
                  background-size:20px 20px}
-  .buyer-head{display:flex; align-items:flex-start; justify-content:space-between; gap:18px; margin-bottom:18px}
+  .buyer-head{display:flex; align-items:flex-start; justify-content:space-between; gap:18px; margin-bottom:12px}
   .buyer-head h4{margin:0 0 4px; color:#292b27; font-size:15px}.buyer-head p{margin:0; color:#74766f; font-size:10.5px}
   .buyer-head span{padding:4px 7px; border:1px solid #bde2c8; background:#effaf2; color:#34764a;
                    font-size:8px; font-weight:800; letter-spacing:.08em; text-transform:uppercase}
-  .buyer-timeline{position:relative; width:min(760px,100%); margin:0 auto}
+  .buyer-timeline{position:relative; width:100%; margin:0}
   .buyer-timeline::before{content:''; position:absolute; left:15px; top:18px; bottom:18px; width:1.5px; background:#b8bcb6}
-  .buyer-stage{position:relative; display:grid; grid-template-columns:32px minmax(0,1fr); gap:14px; margin:0 0 12px}
+  .buyer-stage{position:relative; display:grid; grid-template-columns:32px minmax(0,1fr); gap:10px; margin:0 0 8px}
   .buyer-stage:last-child{margin-bottom:0}.buyer-dot{position:relative; z-index:2; width:31px; height:31px;
                     display:grid; place-items:center; border:1px solid #bfc3bd; border-radius:50%;
                     background:#fff; color:#777a74; font-size:8px; font-weight:850}
   .buyer-stage.active .buyer-dot{border-color:#55ba77; background:#eaf8ef; color:#267142}
-  .buyer-card{padding:12px 14px; border:1px solid #d6d8d3; background:#fff; cursor:pointer}
+  .buyer-card{padding:9px 11px; border:1px solid #d6d8d3; background:#fff; cursor:pointer}
   .buyer-card:hover{border-color:#9da39d}.buyer-stage.active .buyer-card{border-color:#65c184; background:#f2faf4}
   .buyer-card small{display:block; margin-bottom:3px; color:#8a8c86; font-size:7.5px; font-weight:850;
                     letter-spacing:.1em; text-transform:uppercase}
@@ -973,8 +974,7 @@
   @media(max-width:780px){
     .chan{padding:14px 14px 30px}.chan-flow{padding:36px 28px 52px}.chan-head{align-items:center}
     .brand-channel-host{padding-left:0}
-    .gtm-canvas .sg-about{position:relative; top:auto; right:auto; width:calc(100% - 56px);
-                          margin:18px 28px 0}
+    .gtm-canvas .sg-about{width:230px}
   }
 
   /* ================= clickable brand-strategy canvas ================= */
@@ -1907,44 +1907,41 @@
         </div>
       </div>
       <div class="chan-canvas gtm-canvas">
-        <aside class="sg-about" aria-label="Client strategy details">
-          <span class="sg-about-title">About</span>
-          <dl>
-            <dt>Goal</dt><dd id="sgAboutGoal">Customer Acquisition</dd>
-            <dt>Target product</dt><dd id="sgAboutProduct">Not selected</dd>
-            <dt>Market type</dt><dd id="sgAboutMarket">Not selected</dd>
-            <dt>Industry type</dt><dd id="sgAboutIndustry">Not selected</dd>
-            <dt>Sales motion</dt><dd id="sgAboutSalesMotion">Not selected</dd>
-            <dt>ICP 1</dt><dd id="sgAboutIcp1">New Entrants</dd>
-            <dt>ICP 2</dt><dd id="sgAboutIcp2">Select a market type</dd>
-          </dl>
-        </aside>
         <div class="chan-flow" id="chanFlow">
           <svg class="chan-wires" id="chanWires" aria-hidden="true"></svg>
-          <div class="gtm-node gtm-company">
+          <aside class="sg-about" aria-label="Client strategy details">
+            <span class="sg-about-title">About</span>
+            <dl>
+              <dt>Goal</dt><dd id="sgAboutGoal">Customer Acquisition</dd>
+              <dt>Target product</dt><dd id="sgAboutProduct">Not selected</dd>
+              <dt>Market type</dt><dd id="sgAboutMarket">Not selected</dd>
+              <dt>Industry type</dt><dd id="sgAboutIndustry">Not selected</dd>
+              <dt>Sales motion</dt><dd id="sgAboutSalesMotion">Not selected</dd>
+              <dt>ICP 1</dt><dd id="sgAboutIcp1">New Entrants</dd>
+              <dt>ICP 2</dt><dd id="sgAboutIcp2">Select a market type</dd>
+            </dl>
+          </aside>
+          <div class="gtm-node gtm-company" id="gtmCompanyNode" role="button" tabindex="0" aria-expanded="false">
             <small>Company</small><strong id="gtmCompanyName">Company name</strong>
           </div>
-          <div class="gtm-node gtm-product">
+          <div class="gtm-node gtm-product" id="gtmProductNode" role="button" tabindex="0" aria-expanded="false" hidden>
             <small>Target product</small><strong id="gtmProductName">Product name</strong>
           </div>
-          <div class="gtm-node gtm-strategy-node"><strong>GTM Strategy</strong></div>
-          <div class="gtm-motions">
+          <div class="gtm-node gtm-strategy-node" id="gtmStrategyNode" role="button" tabindex="0" aria-expanded="false" hidden><strong>GTM Strategy</strong></div>
+          <div class="gtm-motions" id="gtmMotions" hidden>
             <section class="gtm-motion" data-motion="inbound">
-              <div class="gtm-motion-head"><strong>Inbound</strong><button id="btnAddInbound" type="button">+</button></div>
+              <div class="gtm-motion-head" id="gtmInboundHead" role="button" tabindex="0" aria-expanded="false"><strong>Inbound</strong><button id="btnAddInbound" type="button">+</button></div>
               <div class="gtm-channel-grid" id="chanInboundGrid"></div>
+              <section class="buyer-journey" id="buyerJourney" hidden>
+                <div class="buyer-head"><div><h4>Buyer Journey</h4></div></div>
+                <div class="buyer-timeline" id="buyerTimeline"></div>
+              </section>
             </section>
             <section class="gtm-motion" data-motion="outbound">
-              <div class="gtm-motion-head"><strong>Outbound</strong><button id="btnAddOutbound" type="button">+</button></div>
+              <div class="gtm-motion-head" id="gtmOutboundHead" role="button" tabindex="0" aria-expanded="false"><strong>Outbound</strong><button id="btnAddOutbound" type="button">+</button></div>
               <div class="gtm-channel-grid" id="chanOutboundGrid"></div>
             </section>
           </div>
-          <section class="buyer-journey" id="buyerJourney" hidden>
-            <div class="buyer-head">
-              <div><h4>Buyer Journey</h4><p>Choose a funnel stage to see what this channel creates for that moment.</p></div>
-              <span>Targeting path</span>
-            </div>
-            <div class="buyer-timeline" id="buyerTimeline"></div>
-          </section>
         </div>
       </div>
     </div>
@@ -2242,7 +2239,7 @@ const SUPABASE_URL = 'https://cskamgfvebryahkljlll.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_MdkD-TxMCIwlu69seSHA3Q_A39GADsK';
 const CLIENT_ID    = '1059013355751-6g50dsgm7df37htl2fdqrtlkh5hmrc0c.apps.googleusercontent.com';
 const ALLOWED      = ['vijaysrinivassan@gmail.com'];
-const BUILD        = 'v7.38';
+const BUILD        = 'v7.39';
 
 const STRATEGY_ONE_TAB = 'Strategy 1 — Brand Strategy';
 const PRODUCT_EVOLUTION_TAB = 'Strategy 1 — Product Evolution';
@@ -4026,6 +4023,9 @@ async function openBoard(id){
   state.boardId = data.id;
   state.ownerId = data.owner_id;
   state.role = roleForBoard(data);
+  gtmRevealDepth = 0;
+  gtmOpenMotions = {};
+  activeJourneyChannel = '';
   renderAccount();
   hydrate(data.body || '');
   state.tab = TABS[0];
@@ -4070,6 +4070,9 @@ async function newBoard(clientName, clientProduct, clientType, clientGoal, clien
   state.ownerId = state.user ? state.user.id : null;
   state.role = 'admin';
   state.client = (clientName || '').trim() || 'Untitled';
+  gtmRevealDepth = 0;
+  gtmOpenMotions = {};
+  activeJourneyChannel = '';
   state.clientProduct = (clientProduct || '').trim();
   state.clientType = CLIENT_TYPES.some(x => x.id === clientType) ? clientType : '';
   state.clientGoal = (clientGoal || '').trim() || 'Customer Acquisition';
@@ -8670,6 +8673,9 @@ const DEFAULT_CHANNELS = [
   { name: 'LinkedIn',          on: false, motion: 'outbound' },
   { name: 'ABM',               on: false, motion: 'outbound' }
 ];
+let activeJourneyChannel = '';
+let gtmRevealDepth = 0;
+let gtmOpenMotions = {};
 
 function channelState(){
   const brand = state.tabs[STRATEGY_ONE_TAB] ||
@@ -8706,14 +8712,24 @@ function isOnPageChannel(item){
   return item && (item.kind === 'onpage' || /on[\s-]*page\s+seo/i.test(item.name || ''));
 }
 
+function revealGtmLevel(level){
+  if (gtmRevealDepth < level) gtmRevealDepth = level;
+  renderChannels();
+}
+
+function revealGtmMotion(motion){
+  gtmOpenMotions[motion] = true;
+  renderChannels();
+}
+
 function chooseChannel(t, item){
   if (!readOnly()){
     item.on = !item.on;
-    if (isOnPageChannel(item)) t.focused = item.id;
     markDirty();
-  } else if (isOnPageChannel(item)) t.focused = item.id;
+  }
+  if (isOnPageChannel(item)) activeJourneyChannel = activeJourneyChannel === item.id ? '' : item.id;
   renderChannels();
-  if (isOnPageChannel(item)) requestAnimationFrame(() => $('buyerJourney').scrollIntoView({ behavior: 'smooth', block: 'nearest' }));
+  if (isOnPageChannel(item) && activeJourneyChannel) requestAnimationFrame(() => $('buyerJourney').scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' }));
 }
 
 function renderChannels(){
@@ -8722,12 +8738,26 @@ function renderChannels(){
   hosts.inbound.innerHTML = ''; hosts.outbound.innerHTML = '';
   $('gtmCompanyName').textContent = state.client || 'Company name';
   $('gtmProductName').textContent = state.clientProduct || 'Product name';
-  $('btnAddInbound').hidden = readOnly();
-  $('btnAddOutbound').hidden = readOnly();
+  const depth = gtmRevealDepth;
+  $('gtmProductNode').hidden = depth < 1;
+  $('gtmStrategyNode').hidden = depth < 2;
+  $('gtmMotions').hidden = depth < 3;
+  $('gtmCompanyNode').setAttribute('aria-expanded', depth >= 1 ? 'true' : 'false');
+  $('gtmProductNode').setAttribute('aria-expanded', depth >= 2 ? 'true' : 'false');
+  $('gtmStrategyNode').setAttribute('aria-expanded', depth >= 3 ? 'true' : 'false');
+  ['inbound', 'outbound'].forEach(motion => {
+    const open = depth >= 3 && !!gtmOpenMotions[motion];
+    const grid = hosts[motion];
+    const head = $(motion === 'inbound' ? 'gtmInboundHead' : 'gtmOutboundHead');
+    grid.hidden = !open;
+    head.setAttribute('aria-expanded', open ? 'true' : 'false');
+  });
+  $('btnAddInbound').hidden = readOnly() || $('chanInboundGrid').hidden;
+  $('btnAddOutbound').hidden = readOnly() || $('chanOutboundGrid').hidden;
 
   t.items.forEach(item => {
     const card = document.createElement('article');
-    card.className = 'chan-card' + (item.on ? ' on' : '') + (t.focused === item.id ? ' focused' : '');
+    card.className = 'chan-card' + (item.on ? ' on' : '') + (activeJourneyChannel === item.id ? ' focused' : '');
     card.tabIndex = readOnly() && !isOnPageChannel(item) ? -1 : 0;
     card.setAttribute('role', 'button');
     card.setAttribute('aria-pressed', item.on ? 'true' : 'false');
@@ -8787,8 +8817,8 @@ function renderChannels(){
 
 function renderBuyerJourney(t){
   const journey = $('buyerJourney');
-  const focused = t.items.find(item => item.id === t.focused);
-  journey.hidden = !isOnPageChannel(focused);
+  const focused = t.items.find(item => item.id === activeJourneyChannel);
+  journey.hidden = $('chanInboundGrid').hidden || !isOnPageChannel(focused);
   if (journey.hidden) return;
   const host = $('buyerTimeline'); host.innerHTML = '';
   const stages = [
@@ -8834,6 +8864,17 @@ function renderBuyerJourney(t){
     }
     row.append(dot, card); host.append(row);
   });
+  requestAnimationFrame(function(){
+    const motion = journey.closest('.gtm-motion');
+    const card = motion && motion.querySelector('.chan-card.focused');
+    if (!motion || !card) return;
+    const motionBox = motion.getBoundingClientRect();
+    const cardBox = card.getBoundingClientRect();
+    const journeyWidth = journey.offsetWidth;
+    const ideal = cardBox.left - motionBox.left + cardBox.width / 2 - journeyWidth / 2;
+    journey.style.marginLeft = Math.max(0, Math.min(ideal, motionBox.width - journeyWidth)) + 'px';
+    drawChannelWires();
+  });
 }
 
 function drawChannelWires(){
@@ -8865,11 +8906,12 @@ function drawChannelWires(){
       ' C ' + from.x + ' ' + (from.y + bend) + ', ' + to.x + ' ' + (to.y - bend) +
       ', ' + to.x + ' ' + to.y + '"/>';
   };
-  out += path(point(company, 'bottom'), point(product, 'top'), true);
-  out += path(point(product, 'bottom'), point(strategy, 'top'), true);
-  Array.from(flow.querySelectorAll('.gtm-motion')).forEach(motion => {
+  if (!product.hidden) out += path(point(company, 'bottom'), point(product, 'top'), true);
+  if (!strategy.hidden) out += path(point(product, 'bottom'), point(strategy, 'top'), true);
+  if (!$('gtmMotions').hidden) Array.from(flow.querySelectorAll('.gtm-motion')).forEach(motion => {
     const head = motion.querySelector('.gtm-motion-head');
-    const cards = Array.from(motion.querySelectorAll('.chan-card'));
+    const grid = motion.querySelector('.gtm-channel-grid');
+    const cards = grid.hidden ? [] : Array.from(grid.querySelectorAll('.chan-card'));
     const motionOn = cards.some(card => card.classList.contains('on'));
     out += path(point(strategy, 'bottom'), point(head, 'top'), motionOn);
     cards.forEach(card => {
@@ -9891,8 +9933,24 @@ $('btnKwRefresh').onclick = refreshKeywords;
 $('btnKwAdd').onclick = function(){ openKeywordModal(''); };
 $('btnKwPaste').onclick = openPasteModal;
 $('kwSearch').oninput = ev => { kwFilter = ev.target.value; renderKeywordTables(); };
-$('btnAddInbound').onclick = () => addChannel('inbound');
-$('btnAddOutbound').onclick = () => addChannel('outbound');
+function gtmKeyboardActivate(event, action){
+  if (event.key !== 'Enter' && event.key !== ' ') return;
+  event.preventDefault(); action();
+}
+$('gtmCompanyNode').onclick = () => revealGtmLevel(1);
+$('gtmCompanyNode').onkeydown = event => gtmKeyboardActivate(event, () => revealGtmLevel(1));
+$('gtmProductNode').onclick = () => revealGtmLevel(2);
+$('gtmProductNode').onkeydown = event => gtmKeyboardActivate(event, () => revealGtmLevel(2));
+$('gtmStrategyNode').onclick = () => revealGtmLevel(3);
+$('gtmStrategyNode').onkeydown = event => gtmKeyboardActivate(event, () => revealGtmLevel(3));
+$('gtmInboundHead').onclick = () => revealGtmMotion('inbound');
+$('gtmInboundHead').onkeydown = event => gtmKeyboardActivate(event, () => revealGtmMotion('inbound'));
+$('gtmOutboundHead').onclick = () => revealGtmMotion('outbound');
+$('gtmOutboundHead').onkeydown = event => gtmKeyboardActivate(event, () => revealGtmMotion('outbound'));
+$('btnAddInbound').onclick = event => { event.stopPropagation(); addChannel('inbound'); };
+$('btnAddOutbound').onclick = event => { event.stopPropagation(); addChannel('outbound'); };
+$('btnAddInbound').onkeydown = event => event.stopPropagation();
+$('btnAddOutbound').onkeydown = event => event.stopPropagation();
 $('btnTypeAdd').onclick = addTypeToLibrary;
 $('typeNew').onkeydown = ev => { ev.stopPropagation(); if (ev.key === 'Enter') addTypeToLibrary(); };
 /* stop the browser opening a file dropped anywhere else on the page */
