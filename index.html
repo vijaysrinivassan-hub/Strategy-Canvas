@@ -2248,7 +2248,7 @@ const SUPABASE_URL = 'https://cskamgfvebryahkljlll.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_MdkD-TxMCIwlu69seSHA3Q_A39GADsK';
 const CLIENT_ID    = '1059013355751-6g50dsgm7df37htl2fdqrtlkh5hmrc0c.apps.googleusercontent.com';
 const ALLOWED      = ['vijaysrinivassan@gmail.com'];
-const BUILD        = 'v7.42';
+const BUILD        = 'v7.43';
 
 const STRATEGY_ONE_TAB = 'Strategy 1 — Brand Strategy';
 const PRODUCT_EVOLUTION_TAB = 'Strategy 1 — Product Evolution';
@@ -8928,7 +8928,35 @@ function renderChannels(){
     empty.className = 'doc-empty'; empty.textContent = 'No channels yet.'; hosts[motion].append(empty);
   });
   renderBuyerJourney(t);
-  requestAnimationFrame(drawChannelWires);
+  requestAnimationFrame(() => {
+    alignGtmSingleChildNodes();
+    drawChannelWires();
+  });
+}
+
+function alignGtmSingleChildNodes(){
+  const flow = $('chanFlow');
+  const strategy = $('gtmStrategyNode');
+  const selectedProduct = flow && flow.querySelector('.gtm-product.on');
+  if (!flow || !strategy) return;
+  strategy.style.transform = '';
+  if (selectedProduct && !strategy.hidden){
+    const productBox = selectedProduct.getBoundingClientRect();
+    const strategyBox = strategy.getBoundingClientRect();
+    const delta = productBox.left + productBox.width / 2 - (strategyBox.left + strategyBox.width / 2);
+    strategy.style.transform = 'translateX(' + delta + 'px)';
+  }
+
+  const journey = $('buyerJourney');
+  const motion = journey && journey.closest('.gtm-motion');
+  const focusedCard = motion && motion.querySelector('.chan-card.focused');
+  if (!journey) return;
+  journey.style.marginLeft = '';
+  if (journey.hidden || !motion || !focusedCard) return;
+  const motionBox = motion.getBoundingClientRect();
+  const cardBox = focusedCard.getBoundingClientRect();
+  const ideal = cardBox.left - motionBox.left + cardBox.width / 2 - journey.offsetWidth / 2;
+  journey.style.marginLeft = ideal + 'px';
 }
 
 function renderBuyerJourney(t){
@@ -8981,14 +9009,7 @@ function renderBuyerJourney(t){
     row.append(dot, card); host.append(row);
   });
   requestAnimationFrame(function(){
-    const motion = journey.closest('.gtm-motion');
-    const card = motion && motion.querySelector('.chan-card.focused');
-    if (!motion || !card) return;
-    const motionBox = motion.getBoundingClientRect();
-    const cardBox = card.getBoundingClientRect();
-    const journeyWidth = journey.offsetWidth;
-    const ideal = cardBox.left - motionBox.left + cardBox.width / 2 - journeyWidth / 2;
-    journey.style.marginLeft = Math.max(0, Math.min(ideal, motionBox.width - journeyWidth)) + 'px';
+    alignGtmSingleChildNodes();
     drawChannelWires();
   });
 }

@@ -69,7 +69,8 @@ Services; those details are saved with the board and can be changed later with E
   only the channel name and selection state, while bare plus controls add products
   or channels from the relevant parent. Product cards can be renamed or removed,
   and the bottom-right reset control collapses the GTM journey back to the company
-  node without deleting the canvas data. Selecting On-page SEO
+  node without deleting the canvas data. When a selected product is the only active
+  child path, GTM Strategy sits directly below that product. Selecting On-page SEO
   reveals a compact **Buyer Journey** directly beneath that On-page SEO branch only:
   Top of funnel contains JTBD,
   pain-point, desired-outcome, functional-job and emotional-job articles; Middle of
