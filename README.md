@@ -72,6 +72,8 @@ Services; those details are saved with the board and can be changed later with E
   node without deleting the canvas data. When a selected product is the only active
   child path, GTM Strategy sits directly below that product. Selecting On-page SEO
   reveals a compact **Buyer Journey** directly beneath that On-page SEO branch only:
+  the GTM canvas includes extra side gutter so the centered journey card remains
+  visible and scrollable even when it sits under a far-left channel.
   Top of funnel contains JTBD,
   pain-point, desired-outcome, functional-job and emotional-job articles; Middle of
   funnel contains service, listicle, feature and use-case pages; Bottom of funnel
