@@ -67,7 +67,9 @@ Services; those details are saved with the board and can be changed later with E
   Technical SEO, On-page SEO, Listicle outreach and Reddit channels migrate to
   Inbound; Email, LinkedIn and ABM initialize under Outbound. Channel cards show
   only the channel name and selection state, while bare plus controls add products
-  or channels from the relevant parent. Selecting On-page SEO
+  or channels from the relevant parent. Product cards can be renamed or removed,
+  and the bottom-right reset control collapses the GTM journey back to the company
+  node without deleting the canvas data. Selecting On-page SEO
   reveals a compact **Buyer Journey** directly beneath that On-page SEO branch only:
   Top of funnel contains JTBD,
   pain-point, desired-outcome, functional-job and emotional-job articles; Middle of

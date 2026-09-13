@@ -939,6 +939,9 @@
               width:max-content; min-width:220px; margin:0 auto 34px}
   .gtm-product{flex:0 0 220px; margin:0}
   .gtm-product.on{border-color:#65c88a; background:#effbf3; box-shadow:0 0 0 1px rgba(87,201,130,.14)}
+  .gtm-product-remove{position:absolute; top:6px; right:8px; padding:2px 6px; border:0;
+              background:transparent; color:#8a8d86; font-size:13px; line-height:1; box-shadow:none}
+  .gtm-product-remove:hover{background:transparent; border:0; color:var(--danger)}
   .gtm-strategy-node{margin-bottom:62px; border-color:#65c88a; background:#effbf3}
   .gtm-motions{position:relative; z-index:2; display:flex; align-items:flex-start;
                gap:70px; width:max-content; min-width:900px; margin:0 auto}
@@ -950,6 +953,9 @@
   .gtm-channel-grid .chan-card{flex:0 0 210px; width:210px; min-width:210px; min-height:68px}
   .gtm-motion .buyer-journey{position:relative; z-index:2; width:470px; margin:34px 0 0;
                             padding:14px; background-color:rgba(255,255,255,.94); background-image:none}
+  .gtm-reset{position:absolute; right:18px; bottom:14px; z-index:3; padding:5px 9px; border:0;
+             background:rgba(255,255,255,.82); color:#777771; font-size:10.5px; box-shadow:none}
+  .gtm-reset:hover:not(:disabled){background:#fff; color:#111}
   .buyer-journey{margin-top:18px; padding:22px; border:1px solid #deded9;
                  background-color:#fbfbfa;
                  background-image:radial-gradient(circle at 1px 1px,#d4d5cf 1px,transparent 1.1px);
@@ -1944,6 +1950,7 @@
               <div class="gtm-channel-grid" id="chanOutboundGrid"></div>
             </section>
           </div>
+          <button class="gtm-reset" id="btnGtmReset" type="button">Reset canvas</button>
         </div>
       </div>
     </div>
@@ -2241,7 +2248,7 @@ const SUPABASE_URL = 'https://cskamgfvebryahkljlll.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_MdkD-TxMCIwlu69seSHA3Q_A39GADsK';
 const CLIENT_ID    = '1059013355751-6g50dsgm7df37htl2fdqrtlkh5hmrc0c.apps.googleusercontent.com';
 const ALLOWED      = ['vijaysrinivassan@gmail.com'];
-const BUILD        = 'v7.41';
+const BUILD        = 'v7.42';
 
 const STRATEGY_ONE_TAB = 'Strategy 1 — Brand Strategy';
 const PRODUCT_EVOLUTION_TAB = 'Strategy 1 — Product Evolution';
@@ -8762,6 +8769,27 @@ function addGtmProduct(){
   if (last) last.dispatchEvent(new MouseEvent('dblclick', { bubbles: true }));
 }
 
+function removeGtmProduct(productId){
+  if (readOnly()) return;
+  const t = channelState();
+  const product = t.products.find(item => item.id === productId);
+  if (!product) return;
+  if (!confirm('Remove "' + product.name + '" from this GTM canvas?')) return;
+  t.products = t.products.filter(item => item.id !== productId);
+  if (!t.products.length) t.products.push({ id: uid(), name: 'Product name' });
+  if (t.activeProductId === productId) t.activeProductId = t.products[0].id;
+  state.clientProduct = gtmProductTargetName(activeGtmProduct(t));
+  markDirty();
+  renderChannels();
+}
+
+function resetGtmCanvas(){
+  gtmRevealDepth = 0;
+  gtmOpenMotions = {};
+  activeJourneyChannel = '';
+  renderChannels();
+}
+
 function chooseChannel(t, item){
   if (!readOnly()){
     item.on = !item.on;
@@ -8821,6 +8849,19 @@ function renderChannels(){
     card.onclick = choose;
     card.onkeydown = event => gtmKeyboardActivate(event, choose);
     card.append(label, name);
+    if (!readOnly()){
+      const remove = document.createElement('button');
+      remove.type = 'button';
+      remove.className = 'gtm-product-remove';
+      remove.innerHTML = '&times;';
+      remove.title = 'Remove product';
+      remove.onclick = event => {
+        event.stopPropagation();
+        removeGtmProduct(product.id);
+      };
+      remove.onkeydown = event => event.stopPropagation();
+      card.append(remove);
+    }
     productRow.append(card);
   });
   ['inbound', 'outbound'].forEach(motion => {
@@ -10025,6 +10066,7 @@ $('gtmOutboundHead').onkeydown = event => gtmKeyboardActivate(event, () => revea
 $('btnAddGtmProduct').onclick = event => { event.stopPropagation(); addGtmProduct(); };
 $('btnAddInbound').onclick = event => { event.stopPropagation(); addChannel('inbound'); };
 $('btnAddOutbound').onclick = event => { event.stopPropagation(); addChannel('outbound'); };
+$('btnGtmReset').onclick = resetGtmCanvas;
 $('btnAddGtmProduct').onkeydown = event => event.stopPropagation();
 $('btnAddInbound').onkeydown = event => event.stopPropagation();
 $('btnAddOutbound').onkeydown = event => event.stopPropagation();
