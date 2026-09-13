@@ -140,7 +140,7 @@ export function registerBoardTools(server: McpServer) {
         client: z.string().min(1).describe("Client name, e.g. 'Triple Whale'"),
         goal: z.string().optional().describe("Primary goal; defaults to Customer Acquisition"),
         market_type: z.enum(["red", "blue"]).optional().describe("Red Ocean or Blue Ocean"),
-        industry_type: z.enum(["saas", "ecommerce", "local"]).optional()
+        industry_type: z.enum(["saas", "ecommerce", "local", "services"]).optional()
       },
       annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false }
     },

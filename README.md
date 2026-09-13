@@ -51,7 +51,7 @@ top-level sections.
 
 The separate free-form canvas collection appears under **Canvas**. In Settings,
 Clients is a compact workspace directory rather than a tile gallery. Creating a
-client asks for its name and whether it is Local, E-commerce or SaaS; the type is
+client asks for its name and whether it is Local, E-commerce, SaaS or Services; the type is
 saved with the board and can be changed later with Edit.
 
 - **Strategy › Brand Strategy** is a progressive, Obsidian-style decision canvas for
