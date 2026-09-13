@@ -61,22 +61,17 @@ export function registerBoardTools(server: McpServer) {
           if (!architecture) {
             summary[tab] = { empty: true };
           } else {
-            const domains = Array.isArray(architecture.domains) ? architecture.domains : [];
+            const systems = Array.isArray(architecture.systems) ? architecture.systems : [];
+            const nodes = Array.isArray(architecture.nodes) ? architecture.nodes : [];
             summary[tab] = {
               product: architecture.name || null,
               sample: architecture.sample || "blank",
-              domains: domains.map((domain: any) => ({
-                name: domain.name || "",
-                capabilities: Array.isArray(domain.capabilities) ? domain.capabilities.length : 0
+              systems: systems.map((system: any) => ({
+                name: system.name || "",
+                nodes: nodes.filter((node: any) => node.systemId === system.id).length
               })),
-              capabilities: domains.reduce(
-                (total: number, domain: any) => total +
-                  (Array.isArray(domain.capabilities) ? domain.capabilities.length : 0),
-                0
-              ),
-              compoundBenefits: Array.isArray(architecture.compoundBenefits)
-                ? architecture.compoundBenefits.length
-                : 0
+              nodes: nodes.length,
+              connections: Array.isArray(architecture.edges) ? architecture.edges.length : 0
             };
           }
         } else if (tab === "Content Strategy") {

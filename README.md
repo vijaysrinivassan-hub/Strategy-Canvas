@@ -68,16 +68,16 @@ saved with the board and can be changed later with Edit.
   any number of sources per problem. Sources are explicitly marked as external links
   or Grounded Evidence documents: web evidence opens its URL, while document evidence
   opens the selected file through the board's existing signed-file viewer.
-- **Strategy › Product Architecture** is a guided, editable system map rather
-  than a free-form canvas. It breaks a product into capability domains and maps
-  each capability across a five-stage flow: Inputs, Understand, Decide, Act and
-  Learn. Every capability records its purpose, People, Process, Technology,
-  Inputs, Outputs, Benefits, integrations, company coverage and related content
-  opportunities. A lens control can isolate the four Product Evolution axes,
-  while compound-benefit rows explain the value created by capabilities working
-  together. Complete mock architectures for **AI Data Platform** and **AI SOC
-  Product** can be loaded from the template picker; matching client names start
-  with the appropriate sample automatically.
+- **Strategy › Product Architecture** is a stacked system-of-systems canvas.
+  Each adjustable horizontal row represents one workflow and can hold any number
+  of draggable nodes. A quiet label identifies every node as Input / source,
+  Process / action, Technology, People or Output. Drag from a node's green port
+  to any other node to draw a curved connection, including between different
+  system rows; double-click a connection to remove it. Systems and nodes can be
+  added, renamed, moved and deleted, while system rows can be reordered and
+  resized vertically. Complete connected examples for **AI Data Platform** and
+  **AI SOC Product** can be loaded from the template picker; matching client
+  names start with the appropriate sample automatically.
 - **Strategy › Positioning Canvas** has two connected decisions. ICP Positioning
   builds any number of client-ready ICP options from People, Process, Technology and
   Input maturity, with one visibly selected ICP. Category Positioning maps the market
