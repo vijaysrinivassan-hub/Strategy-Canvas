@@ -43,7 +43,7 @@ automatically from the relative position of the two notes.
 The sidebar groups them:
 
 **Strategy** is a flat working section: Brand Strategy, Product Evolution,
-Positioning Canvas and Channel Strategy appear directly beneath its heading.
+Product Architecture, Positioning Canvas and Channel Strategy appear directly beneath its heading.
 Content Strategy lives in the same section and expands into Category, Competitor,
 ICP and Value. There is no extra Brand Strategy parent between Strategy and its
 four canvases. Each canvas uses the same full-width icon-and-label row as Content
@@ -68,6 +68,16 @@ saved with the board and can be changed later with Edit.
   any number of sources per problem. Sources are explicitly marked as external links
   or Grounded Evidence documents: web evidence opens its URL, while document evidence
   opens the selected file through the board's existing signed-file viewer.
+- **Strategy › Product Architecture** is a guided, editable system map rather
+  than a free-form canvas. It breaks a product into capability domains and maps
+  each capability across a five-stage flow: Inputs, Understand, Decide, Act and
+  Learn. Every capability records its purpose, People, Process, Technology,
+  Inputs, Outputs, Benefits, integrations, company coverage and related content
+  opportunities. A lens control can isolate the four Product Evolution axes,
+  while compound-benefit rows explain the value created by capabilities working
+  together. Complete mock architectures for **AI Data Platform** and **AI SOC
+  Product** can be loaded from the template picker; matching client names start
+  with the appropriate sample automatically.
 - **Strategy › Positioning Canvas** has two connected decisions. ICP Positioning
   builds any number of client-ready ICP options from People, Process, Technology and
   Input maturity, with one visibly selected ICP. Category Positioning maps the market
@@ -103,7 +113,7 @@ saved with the board and can be changed later with Edit.
   Ocean choice from Brand Strategy. Red Ocean highlights only the selected category.
   Blue Ocean leaves the selected category unhighlighted and highlights only the one
   category immediately beneath it toward the centre.
-- **Canvas** lists Product Architecture, Market Research Frame, Messaging Framework,
+- **Canvas** lists a separate free-form Product Architecture canvas, Market Research Frame, Messaging Framework,
   Positioning Document and Growth Strategy directly, without a Brand Strategy parent
   row. Each is its own canvas; the count beside one is its card count. Those five always exist —
   **+ New canvas** adds as many more as you like, double-click one to rename it,

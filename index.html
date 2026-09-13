@@ -1077,6 +1077,103 @@
   .pe-add-evidence{margin-top:10px; padding:5px 8px; background:#fff; color:#5d5e58; font-size:10px}
   .pe-empty-source{padding:28px!important; text-align:center; color:#777872; font-size:11px}
 
+  /* ================= product architecture ================= */
+  .architecture{flex:1; min-height:0; overflow:auto; padding:30px;
+                background-color:#f8f9f6;
+                background-image:radial-gradient(circle at 1px 1px,#cfd4cd 1.05px,transparent 1.15px);
+                background-size:20px 20px}
+  .arch-shell{width:min(1240px,100%); margin:0 auto}
+  .arch-head{display:flex; align-items:flex-start; gap:22px; margin-bottom:18px}
+  .arch-head h3{margin:3px 0 6px; color:#20211e; font-size:19px}
+  .arch-head p{max-width:690px; margin:0; color:#6d6f69; font-size:11.5px; line-height:1.55}
+  .arch-actions{display:flex; align-items:center; gap:7px; margin-left:auto; flex:none}
+  .arch-actions select,.arch-actions button{height:34px; border:1px solid #d5d7d2; background:#fff;
+                                            color:#555851; font-size:10.5px}
+  .arch-actions select{min-width:170px; padding:0 28px 0 9px}
+  .arch-actions button{padding:0 10px}
+  .arch-actions .primary{border-color:#65c889; background:#effbf3; color:#22663b; font-weight:750}
+  .arch-system{display:grid; grid-template-columns:minmax(280px,1fr) auto; gap:16px; margin-bottom:14px;
+               padding:16px; border:1px solid #d9dbd6; background:rgba(255,255,255,.86)}
+  .arch-product input,.arch-product textarea,.arch-editor input,.arch-editor textarea,.arch-editor select,
+  .arch-benefit-row input{width:100%; border:1px solid transparent; border-bottom-color:#d7dad5;
+                          border-radius:0; background:transparent; color:#292b27; font:inherit}
+  .arch-product input{padding:4px 2px; font-size:17px; font-weight:760}
+  .arch-product textarea{display:block; min-height:42px; margin-top:4px; padding:5px 2px;
+                         resize:vertical; color:#6a6c66; font-size:10.5px; line-height:1.45}
+  .arch-lenses{display:flex; align-items:center; justify-content:flex-end; gap:5px; flex-wrap:wrap}
+  .arch-lenses span{margin-right:3px; color:#858780; font-size:8.5px; font-weight:800;
+                     letter-spacing:.8px; text-transform:uppercase}
+  .arch-lens{padding:5px 8px; border:1px solid #daddd7; background:#fff; color:#676a64; font-size:9.5px}
+  .arch-lens.on{border-color:#5fc684; background:#eaf9ef; color:#21693b; font-weight:760}
+  .arch-layout{display:grid; grid-template-columns:248px minmax(0,1fr); gap:14px; align-items:start}
+  .arch-domain-panel,.arch-detail{border:1px solid #d9dbd6; background:rgba(252,252,250,.9)}
+  .arch-panel-head{display:flex; align-items:center; gap:8px; padding:12px 13px; border-bottom:1px solid #e0e2dd}
+  .arch-panel-head b{font-size:11px}.arch-panel-head span{margin-left:auto; color:#858780; font-size:9px}
+  .arch-domain-list{display:flex; flex-direction:column}
+  .arch-domain{display:grid; grid-template-columns:22px 1fr auto; gap:7px; align-items:center;
+               width:100%; padding:11px 10px; border:0; border-bottom:1px solid #e7e8e4;
+               border-radius:0; background:transparent; color:#484b45; text-align:left}
+  .arch-domain:hover{background:#f3f8f4}.arch-domain.on{background:#eaf8ef; color:#1f6739}
+  .arch-domain-index{display:grid; place-items:center; width:20px; height:20px; border:1px solid #cfd5cf;
+                     border-radius:50%; color:#858982; font-size:8px}
+  .arch-domain.on .arch-domain-index{border-color:#59c37f; color:#247141}
+  .arch-domain-copy b{display:block; font-size:10.5px}.arch-domain-copy small{display:block; margin-top:2px;
+                    color:#858780; font-size:8.5px; line-height:1.3}
+  .arch-domain-count{color:#878a84; font-size:8.5px}
+  .arch-detail{min-height:560px}
+  .arch-detail-head{display:grid; grid-template-columns:1fr auto; gap:10px; padding:14px 16px;
+                    border-bottom:1px solid #e0e2dd}
+  .arch-detail-head input{width:100%; padding:2px 0; border:0; border-bottom:1px solid transparent;
+                          background:transparent; color:#292b27; font-size:15px; font-weight:760}
+  .arch-detail-head textarea{width:100%; min-height:34px; margin-top:3px; padding:3px 0; border:0;
+                             background:transparent; resize:vertical; color:#74766f; font-size:10px}
+  .arch-detail-head button,.arch-add{align-self:start; padding:6px 9px; border:1px solid #d7d9d4;
+                                    background:#fff; color:#696b66; font-size:9.5px}
+  .arch-workflow{padding:16px; overflow-x:auto}
+  .arch-stage-grid{display:grid; grid-template-columns:repeat(5,minmax(126px,1fr)); gap:8px; min-width:700px}
+  .arch-stage{min-height:128px; padding:8px; border-top:2px solid #cdd3cd; background:#f7f8f5}
+  .arch-stage[data-stage="understand"]{border-color:#a9c6b0}.arch-stage[data-stage="decide"]{border-color:#75ba89}
+  .arch-stage[data-stage="act"]{border-color:#55ad71}.arch-stage[data-stage="learn"]{border-color:#358d54}
+  .arch-stage-title{display:flex; align-items:center; gap:5px; margin-bottom:7px; color:#777a73;
+                    font-size:8.5px; font-weight:800; letter-spacing:.7px; text-transform:uppercase}
+  .arch-stage-title span{display:grid; place-items:center; width:17px; height:17px; border:1px solid #ccd0ca;
+                         border-radius:50%; font-size:7.5px}
+  .arch-cap{display:block; width:100%; margin:0 0 6px; padding:8px; border:1px solid #daddd7;
+            border-radius:0; background:#fff; color:#474a44; text-align:left}
+  .arch-cap:hover{border-color:#9dcfac}.arch-cap.on{border-color:#47b86e; background:#ecf9f0}
+  .arch-cap b{display:block; font-size:9.5px; line-height:1.3}.arch-cap small{display:block; margin-top:4px;
+             color:#858780; font-size:8px; line-height:1.3}
+  .arch-empty{padding:44px 20px; color:#82847e; font-size:11px; text-align:center}
+  .arch-editor{margin:0 16px 16px; border:1px solid #cfe3d5; background:rgba(240,250,243,.76)}
+  .arch-editor-top{display:grid; grid-template-columns:minmax(220px,1fr) 150px auto; gap:8px;
+                   align-items:center; padding:11px 12px; border-bottom:1px solid #d6e7db}
+  .arch-editor-top input{padding:5px 3px; font-size:12px; font-weight:740}
+  .arch-editor-top select{height:30px; padding:0 7px; font-size:9.5px}
+  .arch-remove{padding:5px 7px; border:0; background:transparent; color:#a05d58; font-size:9px}
+  .arch-field-grid{display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:0}
+  .arch-field{padding:10px 12px; border-right:1px solid #dce9df; border-bottom:1px solid #dce9df}
+  .arch-field:nth-child(even){border-right:0}.arch-field.full{grid-column:1/-1; border-right:0}
+  .arch-field label{display:block; margin-bottom:4px; color:#63806b; font-size:8px; font-weight:800;
+                    letter-spacing:.65px; text-transform:uppercase}
+  .arch-field textarea{min-height:44px; padding:4px 2px; resize:vertical; color:#51554e;
+                       font-size:9.5px; line-height:1.4}
+  .arch-field.focus{background:#e1f5e8}
+  .arch-benefits{margin:0 16px 16px; padding:12px; border:1px solid #e0e1dd; background:#fff}
+  .arch-benefits-head{display:flex; align-items:center; margin-bottom:9px}
+  .arch-benefits-head b{font-size:10.5px}.arch-benefits-head span{margin-left:8px; color:#858780; font-size:8.5px}
+  .arch-benefits-head button{margin-left:auto}
+  .arch-benefit-row{display:grid; grid-template-columns:1fr 24px 1.2fr auto; gap:7px; align-items:center;
+                    margin-top:6px}
+  .arch-benefit-row input{padding:6px; border:1px solid #dedfdb; font-size:9px}
+  .arch-benefit-row span{text-align:center; color:#69a97d}
+  .arch-benefit-row button{border:0; background:transparent; color:#a05d58}
+  @media(max-width:900px){
+    .architecture{padding:14px}.arch-head{display:block}.arch-actions{margin:10px 0 0; flex-wrap:wrap}
+    .arch-system{grid-template-columns:1fr}.arch-lenses{justify-content:flex-start}
+    .arch-layout{grid-template-columns:1fr}.arch-domain-list{display:grid; grid-template-columns:repeat(2,1fr)}
+    .arch-field-grid{grid-template-columns:1fr}.arch-field,.arch-field:nth-child(even){border-right:0}
+  }
+
   /* ================= brand radar ================= */
   .radar{flex:1; min-height:0; overflow:auto; padding:30px;
          background-color:#f8f9f6;
@@ -1705,6 +1802,51 @@
       </div>
     </div>
 
+    <!-- Guided system-of-systems architecture for capabilities, outcomes and content. -->
+    <div class="architecture" id="architecturePane" hidden>
+      <div class="arch-shell">
+        <div class="arch-head">
+          <div>
+            <span class="pos-axis-label">System of systems</span>
+            <h3>Product Architecture</h3>
+            <p>Map the product from inputs to outcomes. Keep the overview at domain level, then open one domain to inspect its capabilities, mechanisms, benefits and page opportunities.</p>
+          </div>
+          <div class="arch-actions">
+            <select id="archSample" aria-label="Architecture sample">
+              <option value="data">AI Data Platform</option>
+              <option value="soc">AI SOC Product</option>
+              <option value="blank">Blank template</option>
+            </select>
+            <button id="btnArchLoadSample" type="button">Load sample</button>
+            <button class="primary" id="btnArchAddDomain" type="button">+ Domain</button>
+          </div>
+        </div>
+
+        <section class="arch-system">
+          <div class="arch-product">
+            <input id="archProductName" type="text" placeholder="Product or system name">
+            <textarea id="archProductSummary" placeholder="What does this entire system enable?"></textarea>
+          </div>
+          <div class="arch-lenses" id="archLenses">
+            <span>View through</span>
+            <button class="arch-lens" data-lens="all" type="button">All</button>
+            <button class="arch-lens" data-lens="people" type="button">People</button>
+            <button class="arch-lens" data-lens="process" type="button">Process</button>
+            <button class="arch-lens" data-lens="technology" type="button">Technology</button>
+            <button class="arch-lens" data-lens="input" type="button">Input</button>
+          </div>
+        </section>
+
+        <div class="arch-layout">
+          <aside class="arch-domain-panel">
+            <div class="arch-panel-head"><b>Capability domains</b><span id="archDomainCount"></span></div>
+            <div class="arch-domain-list" id="archDomainList"></div>
+          </aside>
+          <main class="arch-detail" id="archDetail"></main>
+        </div>
+      </div>
+    </div>
+
     <!-- Zoomable category radar driven by Product Evolution and Category Positioning. -->
     <div class="radar" id="brandRadarPane" hidden>
       <div class="radar-canvas">
@@ -1898,10 +2040,11 @@ const SUPABASE_URL = 'https://cskamgfvebryahkljlll.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_MdkD-TxMCIwlu69seSHA3Q_A39GADsK';
 const CLIENT_ID    = '1059013355751-6g50dsgm7df37htl2fdqrtlkh5hmrc0c.apps.googleusercontent.com';
 const ALLOWED      = ['vijaysrinivassan@gmail.com'];
-const BUILD        = 'v7.24';
+const BUILD        = 'v7.25';
 
 const STRATEGY_ONE_TAB = 'Strategy 1 — Brand Strategy';
 const PRODUCT_EVOLUTION_TAB = 'Strategy 1 — Product Evolution';
+const PRODUCT_ARCHITECTURE_TAB = 'Strategy 1 — Product Architecture';
 const POSITIONING_TAB = 'Strategy 1 — Positioning Canvas';
 const BRAND_RADAR_TAB = 'Strategy 1 — Brand Radar';
 
@@ -1913,6 +2056,7 @@ const TABS = [
   'Growth Strategy',
   STRATEGY_ONE_TAB,
   PRODUCT_EVOLUTION_TAB,
+  PRODUCT_ARCHITECTURE_TAB,
   POSITIONING_TAB,
   BRAND_RADAR_TAB,
   'Channel Strategy',
@@ -2262,6 +2406,7 @@ const TAB_ICONS = {
   'Grounded Evidences': '<path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>',
   'Strategy 1 — Brand Strategy': '<path d="M4 5h16v14H4z"/><path d="M8 9h8M8 13h5M8 17h3"/>',
   'Strategy 1 — Product Evolution': '<path d="M4 12h16M12 4v16"/><circle cx="12" cy="12" r="3"/>',
+  'Strategy 1 — Product Architecture': '<path d="M3 7h7v5H3zM14 3h7v5h-7zM14 16h7v5h-7z"/><path d="M10 9.5h2a2 2 0 0 0 2-2V6M10 9.5h2a2 2 0 0 1 2 2v7"/>',
   'Strategy 1 — Positioning Canvas': '<circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="8"/><path d="M12 1v3M12 20v3M1 12h3M20 12h3"/>',
   'Strategy 1 — Brand Radar': '<circle cx="12" cy="12" r="8"/><path d="M12 1v22M1 12h22"/><circle cx="12" cy="12" r="3"/>',
   'Brand Strategy': '<path d="M12 3l2.6 5.6 6.1.8-4.5 4.2 1.2 6L12 16.8 6.6 19.6l1.2-6L3.3 9.4l6.1-.8z"/>',
@@ -2297,7 +2442,8 @@ function renderTabs(){
     label.textContent = displayLabel || name;
     b.append(label);
     const isPanel = [DOCS_TAB, CHANNELS_TAB, KEYWORDS_TAB, CONTENT_TAB,
-                     STRATEGY_ONE_TAB, PRODUCT_EVOLUTION_TAB, POSITIONING_TAB, BRAND_RADAR_TAB].indexOf(name) > -1;
+                     STRATEGY_ONE_TAB, PRODUCT_EVOLUTION_TAB, PRODUCT_ARCHITECTURE_TAB,
+                     POSITIONING_TAB, BRAND_RADAR_TAB].indexOf(name) > -1;
     if (!isPanel){
       const c = document.createElement('span');
       c.className = 'n';
@@ -2367,6 +2513,7 @@ function renderTabs(){
     if (item.kind === 'strategy1-tabs'){
       box.append(tabButton(STRATEGY_ONE_TAB, 'Brand Strategy'));
       box.append(tabButton(PRODUCT_EVOLUTION_TAB, 'Product Evolution'));
+      box.append(tabButton(PRODUCT_ARCHITECTURE_TAB, 'Product Architecture'));
       box.append(tabButton(POSITIONING_TAB, 'Positioning Canvas'));
       box.append(tabButton(BRAND_RADAR_TAB, 'Brand Radar'));
       box.append(tabButton(CHANNELS_TAB, 'Channel Strategy'));
@@ -2512,6 +2659,7 @@ function renderTabs(){
     $('tabTitle').textContent = state.tab === CONTENT_TAB ? viewDef(state.contentView).label
       : state.tab === STRATEGY_ONE_TAB ? 'Brand Strategy'
       : state.tab === PRODUCT_EVOLUTION_TAB ? 'Product Evolution'
+      : state.tab === PRODUCT_ARCHITECTURE_TAB ? 'Product Architecture'
       : state.tab === POSITIONING_TAB ? 'Positioning Canvas'
       : state.tab === BRAND_RADAR_TAB ? 'Brand Radar' : state.tab;
   }
@@ -2930,7 +3078,8 @@ function switchTab(name){
   state.tab = name;
   state.frameIndex = -1;
   state.screen = 'board';
-  if ([STRATEGY_ONE_TAB, PRODUCT_EVOLUTION_TAB, POSITIONING_TAB, BRAND_RADAR_TAB, CHANNELS_TAB].indexOf(name) !== -1) openNav('strategy1');
+  if ([STRATEGY_ONE_TAB, PRODUCT_EVOLUTION_TAB, PRODUCT_ARCHITECTURE_TAB,
+       POSITIONING_TAB, BRAND_RADAR_TAB, CHANNELS_TAB].indexOf(name) !== -1) openNav('strategy1');
   else if (isBrandTab(name)) closeNav();
   else if (name === CONTENT_TAB) openNav('content');
   clearSel();
@@ -4160,7 +4309,8 @@ function applyTabMode(){
   if (onSettings){
     $('viewport').hidden = true; $('docsPane').hidden = true;
     $('chanPane').hidden = true; $('kwPane').hidden = true; $('mxPane').hidden = true;
-    $('strategyGuidePane').hidden = true; $('evoPane').hidden = true; $('positioningPane').hidden = true;
+    $('strategyGuidePane').hidden = true; $('evoPane').hidden = true; $('architecturePane').hidden = true;
+    $('positioningPane').hidden = true;
     $('brandRadarPane').hidden = true;
     $('framePane').hidden = true; $('roFrame').hidden = true;
     $('btnFrameExport').hidden = true;
@@ -4186,9 +4336,11 @@ function applyTabMode(){
   const isMx   = state.tab === CONTENT_TAB;
   const isGuide = state.tab === STRATEGY_ONE_TAB;
   const isEvo = state.tab === PRODUCT_EVOLUTION_TAB;
+  const isArchitecture = state.tab === PRODUCT_ARCHITECTURE_TAB;
   const isPositioning = state.tab === POSITIONING_TAB;
   const isRadar = state.tab === BRAND_RADAR_TAB;
-  const isCanvas = !isDocs && !isChan && !isKw && !isMx && !isGuide && !isEvo && !isPositioning && !isRadar && !isNote;
+  const isCanvas = !isDocs && !isChan && !isKw && !isMx && !isGuide && !isEvo &&
+    !isArchitecture && !isPositioning && !isRadar && !isNote;
 
   if (frame){
     $('tabTitle').textContent = frame.name;
@@ -4205,6 +4357,7 @@ function applyTabMode(){
   $('mxPane').hidden   = !isMx;
   $('strategyGuidePane').hidden = !isGuide;
   $('evoPane').hidden = !isEvo;
+  $('architecturePane').hidden = !isArchitecture;
   $('positioningPane').hidden = !isPositioning;
   $('brandRadarPane').hidden = !isRadar;
   $('btnFit').hidden = !isCanvas;
@@ -4225,6 +4378,7 @@ function applyTabMode(){
     }
   }
   if (isPositioning) renderPositioning();
+  if (isArchitecture) renderProductArchitecture();
   if (isRadar) renderBrandRadar();
   renderCrumb();
   applyRole();
@@ -5725,6 +5879,666 @@ function addArticleType(){
 }
 
 /* ===================================================================
+   PRODUCT ARCHITECTURE — system, domains, capabilities and outcomes
+   =================================================================== */
+const ARCH_STAGES = [
+  { id: 'input', label: 'Input' },
+  { id: 'understand', label: 'Understand' },
+  { id: 'decide', label: 'Decide' },
+  { id: 'act', label: 'Act' },
+  { id: 'learn', label: 'Learn' }
+];
+const ARCH_FIELDS = [
+  ['purpose', 'Purpose', 'Why does this capability exist?'],
+  ['people', 'People', 'Who uses, supervises or benefits from it?'],
+  ['process', 'Process', 'What workflow does it perform?'],
+  ['technology', 'Technology', 'What mechanism makes it possible?'],
+  ['input', 'Input', 'What data or material does it require?'],
+  ['output', 'Output', 'What does it produce?'],
+  ['benefits', 'Benefits', 'What functional, monetary or strategic value does it create?'],
+  ['integrations', 'Integrations', 'Which systems exchange data with it?'],
+  ['companies', 'Company coverage', 'Which companies or products provide this capability?'],
+  ['pageTypes', 'Content opportunities', 'Capability, service, integration, comparison or solution pages']
+];
+
+function archCapability(name, stage, purpose, details){
+  return Object.assign({ id: uid(), name, stage, purpose, people: '', process: '', technology: '',
+    input: '', output: '', benefits: '', integrations: '', companies: '', pageTypes: '' }, details || {});
+}
+function archDomain(name, summary, capabilities){
+  return { id: uid(), name, summary, capabilities: capabilities || [] };
+}
+function archBenefit(sources, benefit){
+  return { id: uid(), sources, benefit };
+}
+function blankArchitecture(){
+  return {
+    version: 1, sample: 'blank', name: 'Integrated Product System',
+    summary: 'Map how inputs move through the product and become decisions, actions and measurable outcomes.',
+    selectedDomain: '', selectedCapability: '', lens: 'all', domains: [], compoundBenefits: []
+  };
+}
+
+function dataPlatformArchitecture(){
+  const domains = [
+    archDomain('Data access', 'Bring governed operational data into one analytical environment.', [
+      archCapability('Connect business data sources', 'input', 'Make distributed business data available for analysis.', {
+        people: 'Data engineers, analytics engineers and system administrators',
+        process: 'Authorize, extract, sync and monitor source data',
+        technology: 'Managed connectors, APIs, change-data capture and ingestion jobs',
+        input: 'Warehouse tables, SaaS applications, files and event streams',
+        output: 'Continuously synchronized source datasets',
+        benefits: 'Faster time to data and less custom pipeline maintenance',
+        integrations: 'Shopify, Meta, Google, Klaviyo, Snowflake and BigQuery',
+        companies: 'AI Data Platform; modern analytics platforms',
+        pageTypes: 'Integration pages; connector pages; data-source comparison pages'
+      }),
+      archCapability('Govern source access', 'input', 'Ensure every person and agent uses only permitted data.', {
+        people: 'Security administrators, data owners and compliance teams',
+        process: 'Authenticate, authorize, classify and audit access',
+        technology: 'Role-based access, SSO, policy engine and audit logs',
+        input: 'User identity, source permissions and data classifications',
+        output: 'Governed data access with traceable activity',
+        benefits: 'Reduced data risk and faster enterprise approval',
+        integrations: 'Okta, Microsoft Entra ID and warehouse permissions',
+        companies: 'AI Data Platform; enterprise BI vendors',
+        pageTypes: 'Security pages; governance pages; SOC 2 pages'
+      })
+    ]),
+    archDomain('Data foundation', 'Turn raw source data into consistent business entities and metrics.', [
+      archCapability('Model business data', 'understand', 'Create reusable definitions for entities, dimensions and metrics.', {
+        people: 'Analytics engineers, data analysts and business owners',
+        process: 'Transform, test, document and publish governed models',
+        technology: 'SQL transformation layer, semantic model and metric store',
+        input: 'Synchronized source datasets and business definitions',
+        output: 'Trusted models and reusable business metrics',
+        benefits: 'Consistent answers across teams and channels',
+        integrations: 'dbt, warehouse compute and catalog tools',
+        companies: 'AI Data Platform; semantic-layer vendors',
+        pageTypes: 'Feature pages; semantic-layer guides; platform comparisons'
+      }),
+      archCapability('Resolve entities and context', 'understand', 'Connect records that describe the same customer, product or event.', {
+        people: 'Data teams, growth teams and customer analysts',
+        process: 'Match, deduplicate, enrich and relate records',
+        technology: 'Identity resolution, entity graph and enrichment rules',
+        input: 'Customer identifiers, transactions and behavioral events',
+        output: 'Unified entities with relationship context',
+        benefits: 'More accurate segmentation, attribution and analysis',
+        integrations: 'CRM, CDP, commerce and advertising systems',
+        companies: 'AI Data Platform; CDP and entity-resolution tools',
+        pageTypes: 'Solution pages; identity-resolution comparisons; use-case pages'
+      })
+    ]),
+    archDomain('AI intelligence', 'Turn governed data into explanations, predictions and recommended decisions.', [
+      archCapability('Ask questions in natural language', 'decide', 'Let non-technical users obtain governed answers without writing queries.', {
+        people: 'Executives, marketers, operators and analysts',
+        process: 'Interpret question, plan query, validate result and explain answer',
+        technology: 'LLM orchestration, semantic retrieval and guarded SQL generation',
+        input: 'User question, semantic model and governed datasets',
+        output: 'Answer, visualization, explanation and source trail',
+        benefits: 'Self-service insight and shorter decision cycles',
+        integrations: 'Slack, web application and BI surfaces',
+        companies: 'AI Data Platform; AI analytics assistants',
+        pageTypes: 'AI analytics pages; natural-language BI comparisons; demo pages'
+      }),
+      archCapability('Run specialist analytic agents', 'decide', 'Delegate recurring analytical jobs to domain-specific agents.', {
+        people: 'Growth, finance, merchandising and operations teams',
+        process: 'Plan task, call tools, test evidence and produce recommendation',
+        technology: 'Agent runtime, tool registry, memory and evaluation layer',
+        input: 'Business objective, governed data and operating constraints',
+        output: 'Analysis, recommendation and proposed action',
+        benefits: 'Scalable expert analysis and continuous monitoring',
+        integrations: 'Warehouse, ticketing, messaging and activation APIs',
+        companies: 'AI Data Platform; vertical AI agent products',
+        pageTypes: 'Agent pages; use-case pages; build-vs-buy comparisons'
+      })
+    ]),
+    archDomain('Delivery and activation', 'Put decisions into the places where teams and products act.', [
+      archCapability('Deliver decisions across channels', 'act', 'Move the right insight to the person or workflow that can act on it.', {
+        people: 'Operators, managers and customer-facing teams',
+        process: 'Route, notify, approve and track recommended actions',
+        technology: 'Alerts, subscriptions, workflow rules and outbound APIs',
+        input: 'Insight, audience, urgency and delivery policy',
+        output: 'Slack message, email, task, alert or API event',
+        benefits: 'Higher action rate and less dashboard checking',
+        integrations: 'Slack, Gmail, Teams, Jira and webhooks',
+        companies: 'AI Data Platform; operational analytics tools',
+        pageTypes: 'Integration pages; alerting pages; workflow solution pages'
+      }),
+      archCapability('Embed analytics in products', 'act', 'Give customers contextual analytics inside an existing application.', {
+        people: 'Product teams, developers and end customers',
+        process: 'Configure, embed, personalize and monitor analytical experiences',
+        technology: 'SDK, API, embedded components and tenant isolation',
+        input: 'Application context, user identity and governed metrics',
+        output: 'In-product dashboards, answers and recommendations',
+        benefits: 'Faster product delivery and differentiated customer experience',
+        integrations: 'Application frontends, identity providers and APIs',
+        companies: 'AI Data Platform; embedded analytics vendors',
+        pageTypes: 'Embedded analytics pages; developer pages; vendor comparisons'
+      })
+    ]),
+    archDomain('Governance and learning', 'Observe quality, explain decisions and improve the system over time.', [
+      archCapability('Trace quality and lineage', 'learn', 'Show where data and answers came from and whether they can be trusted.', {
+        people: 'Data owners, auditors, analysts and support teams',
+        process: 'Test quality, trace dependencies, investigate failures and certify assets',
+        technology: 'Observability, lineage graph, evaluation tests and audit history',
+        input: 'Pipeline events, model dependencies, queries and user feedback',
+        output: 'Quality status, lineage trail and incident evidence',
+        benefits: 'Trustworthy analytics and faster root-cause analysis',
+        integrations: 'Catalogs, warehouses and incident-management tools',
+        companies: 'AI Data Platform; data observability vendors',
+        pageTypes: 'Observability pages; trust-center pages; architecture guides'
+      }),
+      archCapability('Improve from feedback', 'learn', 'Use verified outcomes to improve models, prompts and agent behavior.', {
+        people: 'AI product teams, analysts and domain reviewers',
+        process: 'Capture feedback, evaluate output, tune behavior and release safely',
+        technology: 'Evaluation harness, feedback store and versioned prompt/model registry',
+        input: 'Ratings, corrections, business outcomes and evaluation cases',
+        output: 'Measured improvements and safer agent versions',
+        benefits: 'Higher answer quality and lower operational risk',
+        integrations: 'Model providers, experiment systems and issue trackers',
+        companies: 'AI Data Platform; AI operations platforms',
+        pageTypes: 'AI governance pages; evaluation guides; responsible AI pages'
+      })
+    ])
+  ];
+  return {
+    version: 1, sample: 'data', name: 'AI Data Platform',
+    summary: 'A governed intelligence layer that connects business data, creates trusted context, runs analytical agents and activates decisions across the operating stack.',
+    selectedDomain: domains[0].id, selectedCapability: domains[0].capabilities[0].id,
+    lens: 'all', domains,
+    compoundBenefits: [
+      archBenefit('Connect business data sources + Model business data', 'A continuously refreshed and trusted analytical foundation.'),
+      archBenefit('Ask questions in natural language + Deliver decisions across channels', 'Decision intelligence reaches operators without requiring them to open a dashboard.'),
+      archBenefit('Run specialist analytic agents + Improve from feedback', 'Recurring analysis becomes more accurate and autonomous over time.')
+    ]
+  };
+}
+
+function socProductArchitecture(){
+  const domains = [
+    archDomain('Telemetry collection', 'Collect security signals from the systems that define the attack surface.', [
+      archCapability('Collect security telemetry', 'input', 'Create continuous visibility across endpoints, identity, cloud, network and email.', {
+        people: 'Security engineers, platform administrators and detection teams',
+        process: 'Connect sources, collect events, buffer failures and monitor coverage',
+        technology: 'Agents, APIs, syslog, event streaming and cloud collectors',
+        input: 'Endpoint, identity, cloud, network, email and application events',
+        output: 'Time-aligned security telemetry',
+        benefits: 'Broader attack visibility and fewer monitoring blind spots',
+        integrations: 'EDR, IAM, cloud platforms, firewalls and email security',
+        companies: 'AI SOC Product; SIEM, XDR and MDR platforms',
+        pageTypes: 'Integration pages; telemetry pages; SIEM comparison pages'
+      }),
+      archCapability('Control retention and access', 'input', 'Keep security data available to authorized users for the required period.', {
+        people: 'SOC managers, security administrators and auditors',
+        process: 'Classify, retain, restrict, archive and audit security data',
+        technology: 'Tenant isolation, RBAC, immutable storage and retention policies',
+        input: 'Telemetry, identity, policy and regulatory requirements',
+        output: 'Governed evidence store with controlled access',
+        benefits: 'Lower compliance risk and reliable investigation evidence',
+        integrations: 'SSO, object storage, data lake and compliance systems',
+        companies: 'AI SOC Product; enterprise security platforms',
+        pageTypes: 'Security architecture pages; compliance pages; retention guides'
+      })
+    ]),
+    archDomain('Security context', 'Normalize raw events and relate them to entities, exposures and business importance.', [
+      archCapability('Normalize and enrich events', 'understand', 'Turn incompatible source events into a consistent security language.', {
+        people: 'Detection engineers and SOC analysts',
+        process: 'Parse, map, deduplicate, enrich and validate events',
+        technology: 'Common event schema, parsers, enrichment services and threat intelligence',
+        input: 'Raw telemetry, asset inventory, identity data and threat feeds',
+        output: 'Normalized events with asset, user and threat context',
+        benefits: 'Faster detection development and more useful alerts',
+        integrations: 'CMDB, IAM, threat intelligence and vulnerability platforms',
+        companies: 'AI SOC Product; SIEM and security data fabric vendors',
+        pageTypes: 'Normalization pages; threat-intelligence integrations; technical guides'
+      }),
+      archCapability('Build the security entity graph', 'understand', 'Reveal relationships between users, devices, assets, alerts and vulnerabilities.', {
+        people: 'SOC analysts, threat hunters and incident commanders',
+        process: 'Resolve entities, connect relationships and calculate exposure context',
+        technology: 'Entity resolution, knowledge graph and temporal correlation',
+        input: 'Normalized events, identities, assets, vulnerabilities and topology',
+        output: 'Connected security graph and entity timelines',
+        benefits: 'Quicker scoping and fewer fragmented investigations',
+        integrations: 'Asset inventory, IAM, EDR and vulnerability management',
+        companies: 'AI SOC Product; XDR and attack-path platforms',
+        pageTypes: 'Entity graph pages; attack-path pages; XDR comparisons'
+      })
+    ]),
+    archDomain('Detection and prioritization', 'Identify malicious behavior and decide what deserves immediate attention.', [
+      archCapability('Detect threats across sources', 'decide', 'Recognize malicious behavior that a single security control may miss.', {
+        people: 'Detection engineers, threat hunters and SOC analysts',
+        process: 'Evaluate rules, behavior, anomalies and threat-intelligence matches',
+        technology: 'Detection rules, UEBA, ML models and cross-source correlation',
+        input: 'Normalized telemetry, entity context and threat intelligence',
+        output: 'Detections with evidence and confidence',
+        benefits: 'Higher detection coverage and earlier threat discovery',
+        integrations: 'SIEM content, detection repositories and threat feeds',
+        companies: 'AI SOC Product; SIEM, XDR and NDR platforms',
+        pageTypes: 'Detection pages; use-case libraries; vendor comparison pages'
+      }),
+      archCapability('Prioritize correlated incidents', 'decide', 'Turn alert volume into a smaller queue of evidence-backed incidents.', {
+        people: 'Tier-one analysts, SOC leads and incident responders',
+        process: 'Deduplicate, correlate, score, suppress and queue incidents',
+        technology: 'Correlation graph, risk scoring and alert clustering',
+        input: 'Detections, asset criticality, identity risk and exposure context',
+        output: 'Prioritized incident with related alerts and rationale',
+        benefits: 'Lower triage load and better analyst focus',
+        integrations: 'SIEM, case management, EDR and ticketing',
+        companies: 'AI SOC Product; alert-management and XDR vendors',
+        pageTypes: 'Alert fatigue pages; triage automation pages; product comparisons'
+      })
+    ]),
+    archDomain('Investigation', 'Reconstruct what happened, determine impact and recommend the next action.', [
+      archCapability('Reconstruct the attack', 'decide', 'Create a defensible narrative of the incident across users, assets and time.', {
+        people: 'SOC analysts, incident responders and threat hunters',
+        process: 'Gather evidence, build timeline, test hypotheses and scope impact',
+        technology: 'Investigation graph, timeline engine, search and AI reasoning',
+        input: 'Prioritized incident, raw evidence and entity histories',
+        output: 'Attack narrative, root cause, scope and evidence trail',
+        benefits: 'Shorter investigation time and more consistent conclusions',
+        integrations: 'EDR, SIEM search, sandbox and forensics systems',
+        companies: 'AI SOC Product; MDR and investigation platforms',
+        pageTypes: 'Investigation pages; MDR comparisons; incident walkthroughs'
+      }),
+      archCapability('Coordinate analyst and AI agents', 'decide', 'Assign specialized investigation tasks while preserving human control.', {
+        people: 'SOC analysts, incident commanders and security leadership',
+        process: 'Plan investigation, delegate tasks, review evidence and approve conclusion',
+        technology: 'Multi-agent orchestration, tool permissions, memory and guardrails',
+        input: 'Incident objective, investigation context and available security tools',
+        output: 'Verified findings, recommended action and audit trail',
+        benefits: 'Scalable expertise without losing accountability',
+        integrations: 'Security tools, case systems and collaboration channels',
+        companies: 'AI SOC Product; autonomous SOC and copilot vendors',
+        pageTypes: 'AI SOC agent pages; autonomous SOC comparisons; trust pages'
+      })
+    ]),
+    archDomain('Response and orchestration', 'Contain threats and coordinate recovery across security and IT systems.', [
+      archCapability('Contain active threats', 'act', 'Stop malicious activity before it spreads or causes further damage.', {
+        people: 'Incident responders, SOC analysts and IT operators',
+        process: 'Recommend, approve, execute, verify and reverse containment',
+        technology: 'Response actions, policy guardrails and approval workflows',
+        input: 'Verified incident, affected entities and response policy',
+        output: 'Isolated device, revoked session, blocked indicator or disabled account',
+        benefits: 'Lower mean time to contain and reduced incident impact',
+        integrations: 'EDR, IAM, firewall, email and cloud controls',
+        companies: 'AI SOC Product; XDR, SOAR and MDR vendors',
+        pageTypes: 'Response pages; EDR integrations; SOAR comparisons'
+      }),
+      archCapability('Orchestrate remediation', 'act', 'Coordinate the people and systems needed to recover safely.', {
+        people: 'SOC, IT, legal, communications and business owners',
+        process: 'Open case, assign tasks, collect approvals, remediate and close',
+        technology: 'Playbooks, case management, workflow automation and messaging',
+        input: 'Incident plan, owners, dependencies and recovery criteria',
+        output: 'Completed remediation with documented decisions',
+        benefits: 'Consistent response and clearer cross-functional accountability',
+        integrations: 'Jira, ServiceNow, Slack, Teams and SOAR tools',
+        companies: 'AI SOC Product; SOAR and incident-management vendors',
+        pageTypes: 'Playbook pages; orchestration pages; integration pages'
+      })
+    ]),
+    archDomain('Governance and learning', 'Measure coverage, prove decisions and improve defenses after every incident.', [
+      archCapability('Measure SOC effectiveness', 'learn', 'Show whether controls, detections and response processes are improving.', {
+        people: 'CISOs, SOC managers, detection leaders and auditors',
+        process: 'Measure coverage, time, quality, workload and control performance',
+        technology: 'Security metrics, dashboards, coverage framework and audit reporting',
+        input: 'Incident outcomes, analyst activity, detections and response timestamps',
+        output: 'Coverage gaps, performance trends and executive reporting',
+        benefits: 'Better investment decisions and demonstrable security improvement',
+        integrations: 'BI, compliance, ticketing and control frameworks',
+        companies: 'AI SOC Product; SOC analytics and posture platforms',
+        pageTypes: 'SOC metrics pages; reporting pages; maturity guides'
+      }),
+      archCapability('Learn from incidents', 'learn', 'Convert validated incident outcomes into stronger future defenses.', {
+        people: 'Detection engineers, threat hunters and security architects',
+        process: 'Review outcome, capture gaps, tune detections and update playbooks',
+        technology: 'Feedback loop, detection versioning, evaluation and simulation',
+        input: 'Closed cases, false-positive decisions and response results',
+        output: 'Improved detections, policies, playbooks and training cases',
+        benefits: 'Compounding security coverage and fewer repeated failures',
+        integrations: 'Detection-as-code, purple-team and simulation platforms',
+        companies: 'AI SOC Product; detection engineering and validation vendors',
+        pageTypes: 'Continuous improvement pages; detection engineering guides; validation comparisons'
+      })
+    ])
+  ];
+  return {
+    version: 1, sample: 'soc', name: 'AI SOC Product',
+    summary: 'An AI-assisted security operating system that turns distributed telemetry into prioritized incidents, verified investigations, governed response and measurable learning.',
+    selectedDomain: domains[0].id, selectedCapability: domains[0].capabilities[0].id,
+    lens: 'all', domains,
+    compoundBenefits: [
+      archBenefit('Normalize and enrich events + Build the security entity graph', 'Analysts receive connected context instead of searching across isolated tools.'),
+      archBenefit('Prioritize correlated incidents + Coordinate analyst and AI agents', 'The SOC can investigate more incidents without scaling tier-one workload linearly.'),
+      archBenefit('Contain active threats + Learn from incidents', 'Every governed response strengthens future detection and response quality.')
+    ]
+  };
+}
+
+function architectureSeedForClient(){
+  const name = String(state.client || '').toLowerCase();
+  if (/\bsoc\b|security operations|cyber/.test(name)) return socProductArchitecture();
+  if (/data platform|analytics|business intelligence/.test(name)) return dataPlatformArchitecture();
+  return blankArchitecture();
+}
+
+function productArchitectureState(){
+  const tab = state.tabs[PRODUCT_ARCHITECTURE_TAB] ||
+    (state.tabs[PRODUCT_ARCHITECTURE_TAB] = { nodes: [], edges: [] });
+  if (!tab.architecture || typeof tab.architecture !== 'object'){
+    tab.architecture = architectureSeedForClient();
+    if (!readOnly()) setTimeout(markDirty, 0);
+  }
+  const architecture = tab.architecture;
+  if (!Array.isArray(architecture.domains)) architecture.domains = [];
+  if (!Array.isArray(architecture.compoundBenefits)) architecture.compoundBenefits = [];
+  if (!['all','people','process','technology','input'].includes(architecture.lens)) architecture.lens = 'all';
+  architecture.domains.forEach(domain => {
+    if (!domain.id) domain.id = uid();
+    if (!Array.isArray(domain.capabilities)) domain.capabilities = [];
+    domain.capabilities.forEach(capability => {
+      if (!capability.id) capability.id = uid();
+      if (!ARCH_STAGES.some(stage => stage.id === capability.stage)) capability.stage = 'understand';
+      ['name'].concat(ARCH_FIELDS.map(field => field[0])).forEach(key => {
+        if (typeof capability[key] !== 'string') capability[key] = '';
+      });
+    });
+  });
+  if (!architecture.domains.some(domain => domain.id === architecture.selectedDomain)){
+    architecture.selectedDomain = architecture.domains[0] ? architecture.domains[0].id : '';
+  }
+  const domain = architecture.domains.find(item => item.id === architecture.selectedDomain);
+  if (!domain || !domain.capabilities.some(capability => capability.id === architecture.selectedCapability)){
+    architecture.selectedCapability = domain && domain.capabilities[0] ? domain.capabilities[0].id : '';
+  }
+  return architecture;
+}
+
+function architectureField(value, placeholder, multiline, onInput){
+  const field = document.createElement(multiline ? 'textarea' : 'input');
+  if (!multiline) field.type = 'text';
+  field.value = value || '';
+  field.placeholder = placeholder || '';
+  field.readOnly = readOnly();
+  field.oninput = () => { onInput(field.value); markDirty(); };
+  return field;
+}
+
+function selectArchitectureDomain(id){
+  const architecture = productArchitectureState();
+  architecture.selectedDomain = id;
+  const domain = architecture.domains.find(item => item.id === id);
+  architecture.selectedCapability = domain && domain.capabilities[0] ? domain.capabilities[0].id : '';
+  markDirty(); renderProductArchitecture();
+}
+
+function renderProductArchitecture(){
+  const architecture = productArchitectureState();
+  const ro = readOnly();
+  $('archSample').value = architecture.sample || 'blank';
+  $('archSample').disabled = ro;
+  $('btnArchLoadSample').hidden = ro;
+  $('btnArchAddDomain').hidden = ro;
+
+  const productName = $('archProductName');
+  productName.value = architecture.name || '';
+  productName.readOnly = ro;
+  productName.oninput = () => { architecture.name = productName.value; markDirty(); };
+  const productSummary = $('archProductSummary');
+  productSummary.value = architecture.summary || '';
+  productSummary.readOnly = ro;
+  productSummary.oninput = () => { architecture.summary = productSummary.value; markDirty(); };
+
+  $('archLenses').querySelectorAll('.arch-lens').forEach(button => {
+    button.classList.toggle('on', button.dataset.lens === architecture.lens);
+    button.onclick = () => {
+      architecture.lens = button.dataset.lens;
+      markDirty(); renderProductArchitecture();
+    };
+  });
+
+  $('archDomainCount').textContent = architecture.domains.length +
+    ' domain' + (architecture.domains.length === 1 ? '' : 's');
+  const domainList = $('archDomainList');
+  domainList.innerHTML = '';
+  if (!architecture.domains.length){
+    const empty = document.createElement('div');
+    empty.className = 'arch-empty';
+    empty.textContent = 'No domains yet. Load a sample or add the first capability domain.';
+    domainList.append(empty);
+  }
+  architecture.domains.forEach((domain, index) => {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'arch-domain' + (architecture.selectedDomain === domain.id ? ' on' : '');
+    const number = document.createElement('span');
+    number.className = 'arch-domain-index';
+    number.textContent = String(index + 1).padStart(2, '0');
+    const copy = document.createElement('span');
+    copy.className = 'arch-domain-copy';
+    const name = document.createElement('b');
+    name.textContent = domain.name || 'Untitled domain';
+    const summary = document.createElement('small');
+    summary.textContent = domain.summary || 'Describe what this subsystem enables.';
+    copy.append(name, summary);
+    const count = document.createElement('span');
+    count.className = 'arch-domain-count';
+    count.textContent = domain.capabilities.length;
+    button.append(number, copy, count);
+    button.onclick = () => selectArchitectureDomain(domain.id);
+    domainList.append(button);
+  });
+
+  renderArchitectureDetail(architecture);
+}
+
+function renderArchitectureDetail(architecture){
+  const host = $('archDetail');
+  host.innerHTML = '';
+  const domain = architecture.domains.find(item => item.id === architecture.selectedDomain);
+  if (!domain){
+    const empty = document.createElement('div');
+    empty.className = 'arch-empty';
+    empty.textContent = 'Choose a domain to inspect its workflow and capabilities.';
+    host.append(empty);
+    return;
+  }
+
+  const head = document.createElement('div');
+  head.className = 'arch-detail-head';
+  const copy = document.createElement('div');
+  copy.append(
+    architectureField(domain.name, 'Capability domain', false, value => { domain.name = value; }),
+    architectureField(domain.summary, 'What does this subsystem enable?', true, value => { domain.summary = value; })
+  );
+  const actions = document.createElement('div');
+  actions.style.display = 'flex'; actions.style.gap = '6px';
+  if (!readOnly()){
+    const add = document.createElement('button');
+    add.type = 'button'; add.textContent = '+ Capability';
+    add.onclick = () => {
+      const capability = archCapability('New capability', 'understand', '', {});
+      domain.capabilities.push(capability);
+      architecture.selectedCapability = capability.id;
+      markDirty(); renderProductArchitecture();
+    };
+    const remove = document.createElement('button');
+    remove.type = 'button'; remove.textContent = 'Remove domain';
+    remove.onclick = () => {
+      if ((domain.name || '').trim() && !confirm('Remove this domain and all of its capabilities?')) return;
+      architecture.domains = architecture.domains.filter(item => item.id !== domain.id);
+      architecture.selectedDomain = architecture.domains[0] ? architecture.domains[0].id : '';
+      architecture.selectedCapability = '';
+      markDirty(); renderProductArchitecture();
+    };
+    actions.append(add, remove);
+  }
+  head.append(copy, actions);
+  host.append(head);
+
+  renderArchitectureWorkflow(host, architecture, domain);
+}
+
+function renderArchitectureWorkflow(host, architecture, domain){
+  const workflow = document.createElement('div');
+  workflow.className = 'arch-workflow';
+  const grid = document.createElement('div');
+  grid.className = 'arch-stage-grid';
+  ARCH_STAGES.forEach((stage, stageIndex) => {
+    const column = document.createElement('section');
+    column.className = 'arch-stage';
+    column.dataset.stage = stage.id;
+    const title = document.createElement('div');
+    title.className = 'arch-stage-title';
+    title.innerHTML = '<span>' + (stageIndex + 1) + '</span>' + stage.label;
+    column.append(title);
+    domain.capabilities.filter(capability => capability.stage === stage.id).forEach(capability => {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'arch-cap' + (architecture.selectedCapability === capability.id ? ' on' : '');
+      const name = document.createElement('b');
+      name.textContent = capability.name || 'Untitled capability';
+      const preview = document.createElement('small');
+      const key = architecture.lens === 'all' ? 'output' : architecture.lens;
+      preview.textContent = capability[key] || capability.purpose || 'Add capability context';
+      button.append(name, preview);
+      button.onclick = () => {
+        architecture.selectedCapability = capability.id;
+        markDirty(); renderProductArchitecture();
+      };
+      column.append(button);
+    });
+    grid.append(column);
+  });
+  workflow.append(grid);
+  host.append(workflow);
+
+  const capability = domain.capabilities.find(item => item.id === architecture.selectedCapability);
+  if (capability) renderArchitectureEditor(host, architecture, domain, capability);
+  renderCompoundBenefits(host, architecture);
+}
+
+function renderArchitectureEditor(host, architecture, domain, capability){
+  const editor = document.createElement('section');
+  editor.className = 'arch-editor';
+  const top = document.createElement('div');
+  top.className = 'arch-editor-top';
+  top.append(architectureField(capability.name, 'Capability name', false, value => { capability.name = value; }));
+  const stage = document.createElement('select');
+  ARCH_STAGES.forEach(item => {
+    const option = document.createElement('option');
+    option.value = item.id; option.textContent = item.label;
+    stage.append(option);
+  });
+  stage.value = capability.stage;
+  stage.disabled = readOnly();
+  stage.onchange = () => {
+    capability.stage = stage.value;
+    markDirty(); renderProductArchitecture();
+  };
+  top.append(stage);
+  if (!readOnly()){
+    const remove = document.createElement('button');
+    remove.type = 'button'; remove.className = 'arch-remove'; remove.textContent = 'Remove';
+    remove.onclick = () => {
+      if ((capability.name || '').trim() && !confirm('Remove this capability?')) return;
+      domain.capabilities = domain.capabilities.filter(item => item.id !== capability.id);
+      architecture.selectedCapability = domain.capabilities[0] ? domain.capabilities[0].id : '';
+      markDirty(); renderProductArchitecture();
+    };
+    top.append(remove);
+  } else {
+    top.append(document.createElement('span'));
+  }
+  editor.append(top);
+
+  const fields = document.createElement('div');
+  fields.className = 'arch-field-grid';
+  ARCH_FIELDS.forEach(definition => {
+    const key = definition[0];
+    const field = document.createElement('div');
+    field.className = 'arch-field' + (key === 'purpose' || key === 'pageTypes' ? ' full' : '') +
+      (architecture.lens === key ? ' focus' : '');
+    const label = document.createElement('label');
+    label.textContent = definition[1];
+    field.append(label, architectureField(capability[key], definition[2], true,
+      value => { capability[key] = value; }));
+    fields.append(field);
+  });
+  editor.append(fields);
+  host.append(editor);
+}
+
+function renderCompoundBenefits(host, architecture){
+  const section = document.createElement('section');
+  section.className = 'arch-benefits';
+  const head = document.createElement('div');
+  head.className = 'arch-benefits-head';
+  const title = document.createElement('b'); title.textContent = 'Compound benefits';
+  const helper = document.createElement('span');
+  helper.textContent = 'Value created only when capabilities work together';
+  head.append(title, helper);
+  if (!readOnly()){
+    const add = document.createElement('button');
+    add.type = 'button'; add.className = 'arch-add'; add.textContent = '+ Benefit';
+    add.onclick = () => {
+      architecture.compoundBenefits.push(archBenefit('', ''));
+      markDirty(); renderProductArchitecture();
+    };
+    head.append(add);
+  }
+  section.append(head);
+  if (!architecture.compoundBenefits.length){
+    const empty = document.createElement('div');
+    empty.className = 'arch-empty'; empty.style.padding = '12px';
+    empty.textContent = 'Connect two or more capabilities to capture the value they create together.';
+    section.append(empty);
+  }
+  architecture.compoundBenefits.forEach(benefit => {
+    const row = document.createElement('div');
+    row.className = 'arch-benefit-row';
+    row.append(architectureField(benefit.sources, 'Capability A + Capability B', false,
+      value => { benefit.sources = value; }));
+    const arrow = document.createElement('span'); arrow.textContent = '\u2192'; row.append(arrow);
+    row.append(architectureField(benefit.benefit, 'Combined benefit', false,
+      value => { benefit.benefit = value; }));
+    if (!readOnly()){
+      const remove = document.createElement('button');
+      remove.type = 'button'; remove.textContent = '\u00d7'; remove.title = 'Remove benefit';
+      remove.onclick = () => {
+        architecture.compoundBenefits = architecture.compoundBenefits.filter(item => item.id !== benefit.id);
+        markDirty(); renderProductArchitecture();
+      };
+      row.append(remove);
+    }
+    section.append(row);
+  });
+  host.append(section);
+}
+
+$('btnArchAddDomain').onclick = () => {
+  if (readOnly()) return;
+  const architecture = productArchitectureState();
+  const domain = archDomain('New capability domain', 'Describe what this subsystem enables.', []);
+  architecture.domains.push(domain);
+  architecture.selectedDomain = domain.id;
+  architecture.selectedCapability = '';
+  architecture.sample = 'blank';
+  markDirty(); renderProductArchitecture();
+};
+
+$('btnArchLoadSample').onclick = () => {
+  if (readOnly()) return;
+  const current = productArchitectureState();
+  const sample = $('archSample').value;
+  if (current.domains.length && !confirm('Replace the current product architecture with this template?')) return;
+  const next = sample === 'data' ? dataPlatformArchitecture() :
+    sample === 'soc' ? socProductArchitecture() : blankArchitecture();
+  state.tabs[PRODUCT_ARCHITECTURE_TAB].architecture = next;
+  markDirty(); renderProductArchitecture();
+};
+
+/* ===================================================================
    POSITIONING CANVAS — ICP choice and category maturity ladder
    =================================================================== */
 function newPositioningIcp(){
@@ -6234,7 +7048,8 @@ function isCanvasTab(){
   if (state.screen !== 'board') return false;
   if (inFrame()) return (state.frames[state.frameIndex] || {}).kind === 'canvas';
   return [DOCS_TAB, CHANNELS_TAB, KEYWORDS_TAB, CONTENT_TAB,
-          STRATEGY_ONE_TAB, PRODUCT_EVOLUTION_TAB, POSITIONING_TAB, BRAND_RADAR_TAB].indexOf(state.tab) === -1;
+          STRATEGY_ONE_TAB, PRODUCT_EVOLUTION_TAB, PRODUCT_ARCHITECTURE_TAB,
+          POSITIONING_TAB, BRAND_RADAR_TAB].indexOf(state.tab) === -1;
 }
 const openFrameDef = () => (inFrame() ? state.frames[state.frameIndex] : null);
 
@@ -6661,7 +7476,8 @@ function renderCrumb(){
   let c = 'Strategy';
   if (state.screen !== 'board') c = 'Account';
   else if (inFrame()) c = 'Frames';
-  else if ([STRATEGY_ONE_TAB, PRODUCT_EVOLUTION_TAB, POSITIONING_TAB, BRAND_RADAR_TAB, CHANNELS_TAB, CONTENT_TAB].indexOf(state.tab) !== -1) c = 'Strategy';
+  else if ([STRATEGY_ONE_TAB, PRODUCT_EVOLUTION_TAB, PRODUCT_ARCHITECTURE_TAB,
+            POSITIONING_TAB, BRAND_RADAR_TAB, CHANNELS_TAB, CONTENT_TAB].indexOf(state.tab) !== -1) c = 'Strategy';
   else if (isBrandTab(state.tab)) c = 'Canvas';
   else if (state.tab === CONTENT_TAB) c = 'Content Strategy';
   else if (state.tab === KEYWORDS_TAB || state.tab === DOCS_TAB) c = 'Research';

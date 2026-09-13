@@ -9,7 +9,7 @@ export function registerBoardTools(server: McpServer) {
       title: "List boards",
       description:
         "List every Strategy Board, newest first. Each board belongs to one client and " +
-        "holds all ten tabs. Start here to find the board_id other tools need.",
+        "holds all workspace tabs. Start here to find the board_id other tools need.",
       inputSchema: {},
       annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true }
     },
@@ -56,6 +56,29 @@ export function registerBoardTools(server: McpServer) {
             opened: !!slot.guide?.opened,
             ocean: slot.guide?.ocean || null
           };
+        } else if (tab === "Strategy 1 — Product Architecture") {
+          const architecture = slot.architecture;
+          if (!architecture) {
+            summary[tab] = { empty: true };
+          } else {
+            const domains = Array.isArray(architecture.domains) ? architecture.domains : [];
+            summary[tab] = {
+              product: architecture.name || null,
+              sample: architecture.sample || "blank",
+              domains: domains.map((domain: any) => ({
+                name: domain.name || "",
+                capabilities: Array.isArray(domain.capabilities) ? domain.capabilities.length : 0
+              })),
+              capabilities: domains.reduce(
+                (total: number, domain: any) => total +
+                  (Array.isArray(domain.capabilities) ? domain.capabilities.length : 0),
+                0
+              ),
+              compoundBenefits: Array.isArray(architecture.compoundBenefits)
+                ? architecture.compoundBenefits.length
+                : 0
+            };
+          }
         } else if (tab === "Content Strategy") {
           const views = slot.views || {};
           summary[tab] = Object.fromEntries(
@@ -89,7 +112,7 @@ export function registerBoardTools(server: McpServer) {
     {
       title: "Create a board",
       description:
-        "Create a new client board with all ten tabs empty. Returns the new board_id.",
+        "Create a new client board with all workspace tabs empty. Returns the new board_id.",
       inputSchema: {
         client: z.string().min(1).describe("Client name, e.g. 'Triple Whale'")
       },
