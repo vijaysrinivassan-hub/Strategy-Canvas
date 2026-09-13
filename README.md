@@ -84,7 +84,9 @@ saved with the board and can be changed later with Edit.
   chooses the active direction; the Category Positioning ladder becomes concentric
   bands inside that direction's sector, with earlier categories toward the centre and
   later categories toward the edge. The client brand is plotted as a crosshair and
-  every competitor as a labeled radar contact inside the active sector. Dragging
+  every competitor as a company name inside the active sector. Names are displayed
+  in full whenever the available spacing permits and use an ellipsis only when they
+  would overlap; decorative player circles are not shown. Dragging
   either green sector boundary expands that direction while compressing the other
   three. Clicking the centre restores equal quarters. Brand Radar remains read-only
   for market position; the selected category can only be changed in Category Positioning.
