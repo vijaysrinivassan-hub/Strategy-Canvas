@@ -51,7 +51,11 @@ ICP and Value as four direct destinations. Canvas and Research remain separate
 top-level sections.
 Those Keywords tables and the Keyword Repo now use a table-first green
 planning-sheet style: stronger visible headers, cleaner row contrast and clearer
-in-cell controls, without changing the underlying content or behavior.
+in-cell controls, without changing the underlying content or behavior. The blank
+serial-number corner is split diagonally: the top plus adds a column and the
+bottom plus adds a row, so the old top-right add buttons are no longer needed.
+Keywords added from a cell are remembered by that cell and appear there after
+they are saved.
 
 The separate free-form canvas collection appears under **Canvas**. In Settings,
 Clients is a compact workspace directory rather than a tile gallery. Creating a
