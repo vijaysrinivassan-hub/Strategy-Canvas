@@ -1195,6 +1195,18 @@
   .arch-flow-wire-hit{fill:none; stroke:transparent; stroke-width:13; pointer-events:stroke; cursor:pointer}
   .arch-flow-preview{fill:none; stroke:#49a86a; stroke-width:1.7; stroke-dasharray:5 4;
                      vector-effect:non-scaling-stroke}
+  .arch-edge-labels{position:absolute; z-index:3; inset:0; pointer-events:none}
+  .arch-edge-label{position:absolute; transform:translate(-50%,-50%); display:flex; align-items:center;
+                   justify-content:center; min-height:20px; padding:2px 7px; background:#fbfcf9;
+                   color:#666a63; font-size:8.5px; font-weight:700; white-space:nowrap; pointer-events:auto}
+  .arch-edge-label.has-text{border:1px solid #d6dbd5; box-shadow:0 0 0 3px #fbfcf9}
+  .arch-edge-label button{padding:0; border:0; box-shadow:none; background:transparent; color:inherit; font:inherit}
+  .arch-edge-label .edge-plus{display:grid; place-items:center; width:18px; height:18px; padding:0;
+                              border:1px solid #9bc6a7; border-radius:50%; background:#fff;
+                              color:#32834d; font-size:13px; line-height:1}
+  .arch-edge-label input{width:max(90px,12ch); min-width:90px; max-width:240px; padding:3px 5px;
+                         border:1px solid #67bd81; border-radius:2px; outline:none; background:#fff;
+                         color:#343733; font:inherit; font-size:9px}
   .arch-flow-systems{position:relative; display:flex; flex-direction:column; gap:18px}
   .arch-flow-system{position:relative; min-height:230px; overflow:hidden; border:1px solid #cfd2cc;
                     background-color:rgba(251,252,249,.84);
@@ -1215,7 +1227,7 @@
                   border:1px solid #cfd2cc; background:#fff; box-shadow:0 1px 2px rgba(28,35,29,.05);
                   cursor:grab; user-select:none}
   .arch-flow-node:active{cursor:grabbing}.arch-flow-node:hover{border-color:#91ae98}
-  .arch-flow-node[data-type="output"]{border-color:#68c689; background:#effaf2}
+  .arch-flow-node[data-type="technology"]{border-color:#71bf88; background:#f2faf4}
   .arch-flow-node[data-type="people"]{border-color:#d2bea0}
   .arch-flow-node input{display:block; width:100%; margin:1px 0 7px; padding:2px 0 4px; border:0;
                         border-bottom:1px solid #e0e1dd; border-radius:0; outline:none; background:transparent;
@@ -1873,7 +1885,7 @@
           <div>
             <span class="pos-axis-label">Connected system map</span>
             <h3>Product Architecture</h3>
-            <p>Each row is one workflow. Place its inputs, actions, technology, people and outputs, then draw connections within the workflow or across systems.</p>
+            <p>Each row is one workflow—and therefore the process itself. Place only the Technology and People that create value, then name every handoff or output on its connector.</p>
           </div>
           <div class="arch-actions">
             <select id="archSample" aria-label="Architecture sample">
@@ -1896,11 +1908,12 @@
         </section>
         <div class="arch-v2-guide">
           <b>Draw a connection</b>
-          <span>Drag the green dot on the right of any node onto another node—even in a different system.</span>
-          <span>Drag the bottom edge of a row to resize it · Double-click a line to remove it</span>
+          <span>Drag the green dot from one Technology or People note to another. Click + on the connector to name its output.</span>
+          <span>Enter saves a label · Drag a row edge to resize · Double-click a line to remove</span>
         </div>
         <div class="arch-flow-board" id="archBoard">
           <svg class="arch-flow-wires" id="archWires" aria-hidden="true"></svg>
+          <div class="arch-edge-labels" id="archEdgeLabels"></div>
           <div class="arch-flow-systems" id="archSystems"></div>
         </div>
       </div>
@@ -2099,7 +2112,7 @@ const SUPABASE_URL = 'https://cskamgfvebryahkljlll.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_MdkD-TxMCIwlu69seSHA3Q_A39GADsK';
 const CLIENT_ID    = '1059013355751-6g50dsgm7df37htl2fdqrtlkh5hmrc0c.apps.googleusercontent.com';
 const ALLOWED      = ['vijaysrinivassan@gmail.com'];
-const BUILD        = 'v7.27';
+const BUILD        = 'v7.28';
 
 const STRATEGY_ONE_TAB = 'Strategy 1 — Brand Strategy';
 const PRODUCT_EVOLUTION_TAB = 'Strategy 1 — Product Evolution';
@@ -6297,7 +6310,7 @@ async function seedProductArchitecturesForBoards(){
     if (!architecture) continue;
     if (!body.tabs || typeof body.tabs !== 'object') body.tabs = {};
     const slot = body.tabs[PRODUCT_ARCHITECTURE_TAB];
-    if (slot && slot.architecture && slot.architecture.version === 2) continue;
+    if (slot && slot.architecture && slot.architecture.version === 3) continue;
     body.tabs[PRODUCT_ARCHITECTURE_TAB] = Object.assign(
       { nodes: [], edges: [] },
       slot && typeof slot === 'object' ? slot : {},
@@ -6630,15 +6643,12 @@ $('btnArchLoadSample').onclick = () => {
   markDirty(); renderProductArchitecture();
 };
 
-/* Product Architecture v2 — free-form workflow systems. The v1 domain editor
+/* Product Architecture v3 — free-form workflow systems. The earlier domain editor
    above remains readable for migration, but every rendered architecture is
    normalized into this simpler system / node / connection model. */
 const ARCH_NODE_TYPES = [
-  ['input', 'Input / source'],
-  ['process', 'Process / action'],
   ['technology', 'Technology'],
-  ['people', 'People'],
-  ['output', 'Output']
+  ['people', 'People']
 ];
 let architectureConnection = null;
 
@@ -6646,13 +6656,13 @@ function archFlowSystem(name, height){
   return { id: uid(), name: name || 'New system', height: Math.max(230, Number(height) || 300) };
 }
 function archFlowNode(systemId, label, type, x, y){
-  return { id: uid(), systemId, label: label || 'New node', type: type || 'process',
+  return { id: uid(), systemId, label: label || 'New node', type: type || 'technology',
     x: Number(x) || 40, y: Number(y) || 76, width: 154 };
 }
-function archFlowEdge(from, to){ return { id: uid(), from, to }; }
+function archFlowEdge(from, to, label){ return { id: uid(), from, to, label: label || '' }; }
 
 function buildFlowArchitecture(sample, name, summary, specifications, crossLinks){
-  const architecture = { version: 2, sample, name, summary, systems: [], nodes: [], edges: [] };
+  const architecture = { version: 3, sample, name, summary, systems: [], nodes: [], edges: [] };
   const nodeByKey = {};
   specifications.forEach(specification => {
     const system = archFlowSystem(specification.name, specification.height);
@@ -6663,19 +6673,19 @@ function buildFlowArchitecture(sample, name, summary, specifications, crossLinks
     });
     (specification.edges || []).forEach(link => {
       if (nodeByKey[link[0]] && nodeByKey[link[1]])
-        architecture.edges.push(archFlowEdge(nodeByKey[link[0]].id, nodeByKey[link[1]].id));
+        architecture.edges.push(archFlowEdge(nodeByKey[link[0]].id, nodeByKey[link[1]].id, link[2]));
     });
   });
   (crossLinks || []).forEach(link => {
     if (nodeByKey[link[0]] && nodeByKey[link[1]])
-      architecture.edges.push(archFlowEdge(nodeByKey[link[0]].id, nodeByKey[link[1]].id));
+      architecture.edges.push(archFlowEdge(nodeByKey[link[0]].id, nodeByKey[link[1]].id, link[2]));
   });
   return architecture;
 }
 
 blankArchitecture = function(){
-  return { version: 2, sample: 'blank', name: 'Product Architecture',
-    summary: 'Map each product workflow as a system, then connect the systems that exchange inputs and outputs.',
+  return { version: 3, sample: 'blank', name: 'Product Architecture',
+    summary: 'Each workflow row is the process. Map only the Technology and People that create value, then name the output on each connection.',
     systems: [archFlowSystem('System 1', 300)], nodes: [], edges: [] };
 };
 
@@ -6683,54 +6693,62 @@ dataPlatformArchitecture = function(){
   return buildFlowArchitecture('data', 'AI Data Platform',
     'Connected workflows that collect business data, turn it into intelligence and activate decisions.', [
       { name: 'System 1 · Data collection and preparation', height: 310, nodes: [
-        ['shopify','Shopify','input',28,82], ['meta','Meta Ads','input',28,174],
-        ['google','Google Ads','input',214,82], ['klaviyo','Klaviyo','input',214,174],
-        ['connect','Managed connectors','technology',414,82], ['normalize','Normalize and model data','process',606,126],
-        ['unified','Unified business data','output',824,126]
-      ], edges: [['shopify','connect'],['meta','connect'],['google','connect'],['klaviyo','connect'],['connect','normalize'],['normalize','unified']] },
+        ['shopify','Shopify API','technology',28,82], ['meta','Meta Ads API','technology',28,174],
+        ['google','Google Ads API','technology',214,82], ['klaviyo','Klaviyo API','technology',214,174],
+        ['connect','Managed connectors','technology',430,126], ['model','Semantic modelling layer','technology',684,126]
+      ], edges: [['shopify','connect','Orders and customers'],['meta','connect','Ad performance'],
+        ['google','connect','Campaign performance'],['klaviyo','connect','Lifecycle engagement'],
+        ['connect','model','Normalized source data']] },
       { name: 'System 2 · Intelligence and decisioning', height: 310, nodes: [
-        ['modelIn','Governed data context','input',28,126], ['semantic','Semantic layer','technology',236,126],
-        ['agent','AI analytics agent','technology',444,82], ['review','Analyst review','people',444,174],
-        ['recommend','Verified recommendation','output',676,126]
-      ], edges: [['modelIn','semantic'],['semantic','agent'],['semantic','review'],['agent','recommend'],['review','recommend']] },
+        ['agent','AI analytics agent','technology',190,82], ['review','Analyst reviewer','people',450,174],
+        ['decisionApi','Decision delivery API','technology',710,126]
+      ], edges: [['agent','review','Draft analysis'],['review','decisionApi','Verified recommendation']] },
       { name: 'System 3 · Delivery and activation', height: 290, nodes: [
-        ['decisionIn','Verified decision','input',28,118], ['route','Route by urgency and owner','process',240,118],
-        ['slack','Slack alert','output',486,76], ['task','Operational task','output',680,118],
-        ['api','Product API event','output',874,160]
-      ], edges: [['decisionIn','route'],['route','slack'],['route','task'],['route','api']] }
-    ], [['unified','modelIn'],['recommend','decisionIn']]);
+        ['router','Workflow router','technology',180,118], ['slack','Slack','technology',490,70],
+        ['task','Task system','technology',690,118], ['sdk','Embedded product SDK','technology',880,166]
+      ], edges: [['router','slack','Priority alert'],['router','task','Assigned action'],['router','sdk','Contextual recommendation']] }
+    ], [['model','agent','Governed business context'],['decisionApi','router','Approved decision']]);
 };
 
 socProductArchitecture = function(){
   return buildFlowArchitecture('soc', 'AI SOC Product',
     'Connected security workflows that collect telemetry, investigate threats and execute governed response.', [
       { name: 'System 1 · Security telemetry', height: 310, nodes: [
-        ['edr','EDR telemetry','input',28,82], ['identity','Identity events','input',28,174],
-        ['cloud','Cloud signals','input',214,82], ['email','Email security','input',214,174],
-        ['collector','Security data collectors','technology',414,126],
-        ['normalizeSoc','Normalize and enrich','process',616,126], ['securityData','Security entity graph','output',824,126]
-      ], edges: [['edr','collector'],['identity','collector'],['cloud','collector'],['email','collector'],['collector','normalizeSoc'],['normalizeSoc','securityData']] },
+        ['edr','EDR platform','technology',28,82], ['identity','Identity provider','technology',28,174],
+        ['cloud','Cloud security platform','technology',214,82], ['email','Email security gateway','technology',214,174],
+        ['collector','Security data collectors','technology',430,126], ['graph','Security entity graph','technology',694,126]
+      ], edges: [['edr','collector','Endpoint telemetry'],['identity','collector','Identity events'],
+        ['cloud','collector','Cloud signals'],['email','collector','Email events'],
+        ['collector','graph','Normalized and enriched events']] },
       { name: 'System 2 · Detection and investigation', height: 320, nodes: [
-        ['telemetryIn','Enriched security context','input',28,132], ['correlate','Detection and correlation','technology',236,132],
-        ['aiInvestigate','AI investigation agent','technology',444,82], ['socAnalyst','SOC analyst validation','people',444,184],
-        ['incident','Prioritized incident','output',686,132]
-      ], edges: [['telemetryIn','correlate'],['correlate','aiInvestigate'],['correlate','socAnalyst'],['aiInvestigate','incident'],['socAnalyst','incident']] },
+        ['correlate','Detection and correlation engine','technology',170,132],
+        ['aiInvestigate','AI investigation agent','technology',430,82], ['socAnalyst','SOC analyst','people',430,184],
+        ['casePlatform','Incident case platform','technology',710,132]
+      ], edges: [['correlate','aiInvestigate','Correlated alert'],['correlate','socAnalyst','Evidence and risk'],
+        ['aiInvestigate','casePlatform','Investigation narrative'],['socAnalyst','casePlatform','Validated incident']] },
       { name: 'System 3 · Governed response', height: 300, nodes: [
-        ['incidentIn','Verified incident','input',28,122], ['playbook','Select response playbook','process',230,122],
-        ['approval','Human approval','people',440,122], ['contain','Contain through EDR','output',660,78],
-        ['case','Update case and evidence','output',660,172], ['learnSoc','Improve detections','process',866,122]
-      ], edges: [['incidentIn','playbook'],['playbook','approval'],['approval','contain'],['approval','case'],['contain','learnSoc'],['case','learnSoc']] }
-    ], [['securityData','telemetryIn'],['incident','incidentIn']]);
+        ['soar','SOAR playbook engine','technology',170,122], ['approval','Incident commander','people',430,122],
+        ['contain','EDR response API','technology',680,78], ['ticket','Case management','technology',680,172],
+        ['detectionRepo','Detection repository','technology',890,122]
+      ], edges: [['soar','approval','Recommended response'],['approval','contain','Approved containment'],
+        ['approval','ticket','Incident decision'],['contain','detectionRepo','Response result'],
+        ['ticket','detectionRepo','Closed-case learning']] }
+    ], [['graph','correlate','Enriched security context'],['casePlatform','soar','Verified incident']]);
 };
 
 productArchitectureState = function(){
   const tab = state.tabs[PRODUCT_ARCHITECTURE_TAB] ||
     (state.tabs[PRODUCT_ARCHITECTURE_TAB] = { nodes: [], edges: [] });
   let architecture = tab.architecture;
-  if (!architecture || architecture.version !== 2){
+  if (!architecture || architecture.version !== 3){
     const previousSample = architecture && architecture.sample;
-    architecture = previousSample === 'soc' ? socProductArchitecture() :
-      previousSample === 'data' ? dataPlatformArchitecture() : architectureSeedForClient();
+    if (previousSample === 'soc') architecture = socProductArchitecture();
+    else if (previousSample === 'data') architecture = dataPlatformArchitecture();
+    else if (architecture && architecture.version === 2){
+      architecture.version = 3;
+      (architecture.nodes || []).forEach(node => { node.type = node.type === 'people' ? 'people' : 'technology'; });
+      (architecture.edges || []).forEach(edge => { if (typeof edge.label !== 'string') edge.label = ''; });
+    } else architecture = architectureSeedForClient();
     tab.architecture = architecture;
     if (!readOnly()) setTimeout(markDirty, 0);
   }
@@ -6745,7 +6763,7 @@ productArchitectureState = function(){
   architecture.nodes = architecture.nodes.filter(node => architecture.systems.some(system => system.id === node.systemId));
   architecture.nodes.forEach(node => {
     if (!node.id) node.id = uid();
-    if (!ARCH_NODE_TYPES.some(type => type[0] === node.type)) node.type = 'process';
+    if (!ARCH_NODE_TYPES.some(type => type[0] === node.type)) node.type = 'technology';
     if (typeof node.label !== 'string') node.label = 'Untitled node';
     node.x = Math.max(10, Number(node.x) || 10); node.y = Math.max(54, Number(node.y) || 54);
     node.width = 154;
@@ -6753,6 +6771,7 @@ productArchitectureState = function(){
   architecture.edges = architecture.edges.filter(edge =>
     architecture.nodes.some(node => node.id === edge.from) &&
     architecture.nodes.some(node => node.id === edge.to) && edge.from !== edge.to);
+  architecture.edges.forEach(edge => { if (typeof edge.label !== 'string') edge.label = ''; });
   return architecture;
 };
 
@@ -6776,15 +6795,73 @@ function architectureCurve(from, to){
     (to.x - bend) + ' ' + to.y + ', ' + to.x + ' ' + to.y;
 }
 
+function architectureCurveMidpoint(from, to){
+  const bend = Math.max(58, Math.abs(to.x - from.x) * .42);
+  const p1 = { x: from.x + bend, y: from.y };
+  const p2 = { x: to.x - bend, y: to.y };
+  return {
+    x: (from.x + 3 * p1.x + 3 * p2.x + to.x) / 8,
+    y: (from.y + 3 * p1.y + 3 * p2.y + to.y) / 8
+  };
+}
+
+function editArchitectureEdgeLabel(edge, host, architecture){
+  if (readOnly()) return;
+  const original = edge.label || '';
+  host.classList.add('has-text'); host.innerHTML = '';
+  const input = document.createElement('input');
+  input.value = original; input.placeholder = 'Name this output';
+  input.size = Math.max(12, Math.min(32, input.value.length + 2));
+  host.append(input); input.focus(); input.select();
+  let finished = false;
+  const finish = cancel => {
+    if (finished) return; finished = true;
+    edge.label = cancel ? original : input.value.trim();
+    if (!cancel) markDirty();
+    drawArchitectureWires(architecture);
+  };
+  input.oninput = () => { input.size = Math.max(12, Math.min(32, input.value.length + 2)); };
+  input.onkeydown = event => {
+    if (event.key === 'Enter'){ event.preventDefault(); finish(false); }
+    if (event.key === 'Escape'){ event.preventDefault(); finish(true); }
+  };
+  input.onblur = () => finish(false);
+}
+
+function renderArchitectureEdgeLabel(edge, point, architecture, labelLayer){
+  if (!edge.label && readOnly()) return;
+  const host = document.createElement('div');
+  host.className = 'arch-edge-label' + (edge.label ? ' has-text' : '');
+  host.style.left = point.x + 'px'; host.style.top = point.y + 'px';
+  if (edge.label){
+    const button = document.createElement(readOnly() ? 'span' : 'button');
+    button.textContent = edge.label;
+    if (!readOnly()){
+      button.type = 'button'; button.title = 'Edit connector output';
+      button.onclick = event => { event.stopPropagation(); editArchitectureEdgeLabel(edge, host, architecture); };
+    }
+    host.append(button);
+  } else {
+    const plus = document.createElement('button');
+    plus.type = 'button'; plus.className = 'edge-plus'; plus.textContent = '+';
+    plus.title = 'Name the output on this connector';
+    plus.onclick = event => { event.stopPropagation(); editArchitectureEdgeLabel(edge, host, architecture); };
+    host.append(plus);
+  }
+  labelLayer.append(host);
+}
+
 function drawArchitectureWires(architecture){
   const svg = $('archWires');
   const board = $('archBoard');
-  if (!svg || !board) return;
+  const labelLayer = $('archEdgeLabels');
+  if (!svg || !board || !labelLayer) return;
   const width = Math.max(board.clientWidth, board.scrollWidth);
   const height = Math.max(board.clientHeight, board.scrollHeight);
   svg.setAttribute('viewBox', '0 0 ' + width + ' ' + height);
   svg.setAttribute('width', width); svg.setAttribute('height', height);
   svg.innerHTML = '<defs><marker id="archArrow" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto"><path d="M0,0 L7,3.5 L0,7 Z" fill="#aeb4ad"/></marker></defs>';
+  labelLayer.innerHTML = '';
   architecture.edges.forEach(edge => {
     const from = architectureNodePoint(edge.from, 'from');
     const to = architectureNodePoint(edge.to, 'to');
@@ -6806,6 +6883,7 @@ function drawArchitectureWires(architecture){
       });
       svg.append(hit);
     }
+    renderArchitectureEdgeLabel(edge, architectureCurveMidpoint(from, to), architecture, labelLayer);
   });
   if (architectureConnection){
     const from = architectureNodePoint(architectureConnection.from, 'from');
@@ -6860,7 +6938,7 @@ function enableArchitectureNodeDrag(element, node, system, architecture){
 
 function addArchitectureNode(architecture, system){
   const count = architecture.nodes.filter(node => node.systemId === system.id).length;
-  const node = archFlowNode(system.id, 'New node', 'process', 34 + (count % 5) * 190, 76 + Math.floor(count / 5) * 94);
+  const node = archFlowNode(system.id, 'New node', 'technology', 34 + (count % 5) * 190, 76 + Math.floor(count / 5) * 94);
   if (node.y + 92 > system.height) system.height = node.y + 112;
   architecture.nodes.push(node); architecture.sample = 'blank'; markDirty(); renderProductArchitecture();
 }

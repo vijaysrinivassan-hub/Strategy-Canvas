@@ -71,7 +71,10 @@ export function registerBoardTools(server: McpServer) {
                 nodes: nodes.filter((node: any) => node.systemId === system.id).length
               })),
               nodes: nodes.length,
-              connections: Array.isArray(architecture.edges) ? architecture.edges.length : 0
+              connections: Array.isArray(architecture.edges) ? architecture.edges.length : 0,
+              outputs: Array.isArray(architecture.edges)
+                ? architecture.edges.map((edge: any) => edge.label).filter(Boolean)
+                : []
             };
           }
         } else if (tab === "Content Strategy") {

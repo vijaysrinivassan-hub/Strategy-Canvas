@@ -69,11 +69,14 @@ saved with the board and can be changed later with Edit.
   or Grounded Evidence documents: web evidence opens its URL, while document evidence
   opens the selected file through the board's existing signed-file viewer.
 - **Strategy › Product Architecture** is a stacked system-of-systems canvas.
-  Each adjustable horizontal row represents one workflow and can hold any number
-  of draggable nodes. A quiet label identifies every node as Input / source,
-  Process / action, Technology, People or Output. Drag from a node's green port
-  to any other node to draw a curved connection, including between different
-  system rows; double-click a connection to remove it. Systems and nodes can be
+  Each adjustable horizontal row is itself the process and can hold any number
+  of draggable notes. Notes represent only **Technology** or **People**—inputs,
+  handoffs and outputs are written directly on the connections. Drag from a
+  note's green port to any other note to draw a curved connection, including
+  between different system rows. An empty connection shows a small **+** at its
+  midpoint; click it, type the output and press Enter to place that text in a
+  clean break in the line. Click the text to edit it, or double-click the line
+  to remove the connection. Systems and notes can be
   added, renamed, moved and deleted, while system rows can be reordered and
   resized vertically. Complete connected examples for **AI Data Platform** and
   **AI SOC Product** can be loaded from the template picker; matching client
