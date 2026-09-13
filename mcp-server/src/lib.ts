@@ -129,6 +129,7 @@ export const CONTENT_VIEWS = ["category", "competitor", "icp", "value"] as const
 export interface BoardBody {
   version?: number;
   client?: string;
+  clientProduct?: string;
   clientType?: string;
   clientGoal?: string;
   clientMarketType?: string;

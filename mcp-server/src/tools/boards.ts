@@ -123,6 +123,7 @@ export function registerBoardTools(server: McpServer) {
         client: body.client,
         client_details: {
           goal: body.clientGoal || "Customer Acquisition",
+          target_product: body.clientProduct || "",
           market_type: body.clientMarketType === "red" ? "Red Ocean" :
             body.clientMarketType === "blue" ? "Blue Ocean" : "Not selected",
           industry_type: body.clientType || "",
@@ -145,6 +146,7 @@ export function registerBoardTools(server: McpServer) {
         "Create a new client board with all workspace tabs empty. Returns the new board_id.",
       inputSchema: {
         client: z.string().min(1).describe("Client name, e.g. 'Triple Whale'"),
+        target_product: z.string().optional().describe("The specific product this GTM board targets"),
         goal: z.string().optional().describe("Primary goal; defaults to Customer Acquisition"),
         market_type: z.enum(["red", "blue"]).optional().describe("Red Ocean or Blue Ocean"),
         industry_type: z.enum(["saas", "ecommerce", "local", "services"]).optional(),
@@ -153,10 +155,11 @@ export function registerBoardTools(server: McpServer) {
       },
       annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false }
     },
-    async ({ client, goal, market_type, industry_type, sales_motion, icp_1 }) => {
+    async ({ client, target_product, goal, market_type, industry_type, sales_motion, icp_1 }) => {
       const body = {
         version: 1,
         client,
+        clientProduct: target_product?.trim() || "",
         clientGoal: goal?.trim() || "Customer Acquisition",
         clientMarketType: market_type || "",
         clientType: industry_type || "",

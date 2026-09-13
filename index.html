@@ -925,7 +925,7 @@
   .brand-channel-host .chan{min-height:0; overflow:visible; padding:0; background:transparent}
   .brand-channel-host .chan-head{padding-top:0; border-top:0}
   .gtm-canvas{position:relative; overflow-x:auto}
-  .gtm-canvas .chan-flow{min-width:980px; min-height:780px; padding:32px 42px 70px}
+  .gtm-canvas .chan-flow{width:max-content; min-width:100%; min-height:780px; padding:32px 42px 70px}
   .gtm-canvas .sg-about{top:24px; right:24px}
   .gtm-node{position:relative; z-index:2; width:220px; min-height:58px; margin:0 auto;
             display:flex; flex-direction:column; align-items:center; justify-content:center;
@@ -933,17 +933,17 @@
             box-shadow:0 1px 2px rgba(0,0,0,.04); text-align:center}
   .gtm-node small{margin-bottom:4px; color:#8b8d87; font-size:8px; font-weight:800;
                   letter-spacing:.1em; text-transform:uppercase}
-  .gtm-node strong{color:#292b27; font-size:12px}.gtm-company{margin-bottom:42px}
+  .gtm-node strong{color:#292b27; font-size:12px}.gtm-company,.gtm-product{margin-bottom:34px}
   .gtm-strategy-node{margin-bottom:62px; border-color:#65c88a; background:#effbf3}
-  .gtm-motions{position:relative; z-index:2; display:grid; grid-template-columns:1fr 1fr;
-               gap:70px; width:900px; margin:0 auto}
-  .gtm-motion{min-width:0}.gtm-motion-head{width:210px; min-height:50px; margin:0 auto 42px;
+  .gtm-motions{position:relative; z-index:2; display:flex; align-items:flex-start;
+               gap:70px; width:max-content; min-width:900px; margin:0 auto}
+  .gtm-motion{flex:0 0 auto; width:max-content; min-width:420px}.gtm-motion-head{width:210px; min-height:50px; margin:0 auto 42px;
               display:flex; align-items:center; justify-content:center; gap:10px;
               padding:10px 12px; border:1px solid #c9cac6; background:#fff}
   .gtm-motion-head strong{font-size:11.5px}.gtm-motion-head button{width:22px; height:22px;
               padding:0; border-color:#d4d7d1; background:#fafaf8; font-size:13px}
-  .gtm-channel-grid{display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px}
-  .gtm-channel-grid .chan-card{width:auto; min-width:0; min-height:68px}
+  .gtm-channel-grid{display:flex; flex-wrap:nowrap; justify-content:center; gap:10px}
+  .gtm-channel-grid .chan-card{flex:0 0 210px; width:210px; min-width:210px; min-height:68px}
   .gtm-flow .buyer-journey{position:relative; z-index:2; width:820px; margin:82px auto 0;
                           background-color:rgba(255,255,255,.92); background-image:none}
   .buyer-journey{margin-top:18px; padding:22px; border:1px solid #deded9;
@@ -1903,7 +1903,7 @@
       <div class="chan-head">
         <div>
           <h3>GTM Strategy</h3>
-          <p>See the company, sales motion, active channels and buyer journey in one connected view.</p>
+          <p>See the company, target product, sales motion, active channels and buyer journey in one connected view.</p>
         </div>
       </div>
       <div class="chan-canvas gtm-canvas">
@@ -1911,6 +1911,7 @@
           <span class="sg-about-title">About</span>
           <dl>
             <dt>Goal</dt><dd id="sgAboutGoal">Customer Acquisition</dd>
+            <dt>Target product</dt><dd id="sgAboutProduct">Not selected</dd>
             <dt>Market type</dt><dd id="sgAboutMarket">Not selected</dd>
             <dt>Industry type</dt><dd id="sgAboutIndustry">Not selected</dd>
             <dt>Sales motion</dt><dd id="sgAboutSalesMotion">Not selected</dd>
@@ -1922,6 +1923,9 @@
           <svg class="chan-wires" id="chanWires" aria-hidden="true"></svg>
           <div class="gtm-node gtm-company">
             <small>Company</small><strong id="gtmCompanyName">Company name</strong>
+          </div>
+          <div class="gtm-node gtm-product">
+            <small>Target product</small><strong id="gtmProductName">Product name</strong>
           </div>
           <div class="gtm-node gtm-strategy-node"><strong>GTM Strategy</strong></div>
           <div class="gtm-motions">
@@ -2238,7 +2242,7 @@ const SUPABASE_URL = 'https://cskamgfvebryahkljlll.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_MdkD-TxMCIwlu69seSHA3Q_A39GADsK';
 const CLIENT_ID    = '1059013355751-6g50dsgm7df37htl2fdqrtlkh5hmrc0c.apps.googleusercontent.com';
 const ALLOWED      = ['vijaysrinivassan@gmail.com'];
-const BUILD        = 'v7.37';
+const BUILD        = 'v7.38';
 
 const STRATEGY_ONE_TAB = 'Strategy 1 — Brand Strategy';
 const PRODUCT_EVOLUTION_TAB = 'Strategy 1 — Product Evolution';
@@ -2340,6 +2344,7 @@ const state = {
   user: null,
   boardId: null,               /* uuid of the Supabase row, null = unsaved */
   client: 'XYZ',
+  clientProduct: '',
   clientType: '',
   clientGoal: 'Customer Acquisition',
   clientMarketType: '',
@@ -3945,7 +3950,8 @@ function serialize(){
   /* the frame scratch tab is a working copy, not a tab of this board */
   const tabs = {};
   Object.keys(state.tabs).forEach(k => { if (k !== FRAME_TAB) tabs[k] = state.tabs[k]; });
-  return JSON.stringify({ version: 3, client: state.client, clientType: state.clientType || '',
+  return JSON.stringify({ version: 3, client: state.client, clientProduct: state.clientProduct || '',
+                          clientType: state.clientType || '',
                           clientGoal: state.clientGoal || 'Customer Acquisition',
                           clientMarketType: state.clientMarketType || '',
                           clientSalesMotion: state.clientSalesMotion || '',
@@ -3989,6 +3995,7 @@ function hydrate(text){
     }
   }
   state.client = (d && d.client) || 'XYZ';
+  state.clientProduct = (d && typeof d.clientProduct === 'string') ? d.clientProduct.trim() : '';
   state.clientType = (d && CLIENT_TYPES.some(x => x.id === d.clientType)) ? d.clientType : '';
   state.clientGoal = (d && typeof d.clientGoal === 'string' && d.clientGoal.trim())
     ? d.clientGoal.trim() : 'Customer Acquisition';
@@ -4058,11 +4065,12 @@ async function saveBoard(quiet){
   if (!quiet) toast('Board saved.');
 }
 
-async function newBoard(clientName, clientType, clientGoal, clientMarketType, clientSalesMotion, clientIcp1){
+async function newBoard(clientName, clientProduct, clientType, clientGoal, clientMarketType, clientSalesMotion, clientIcp1){
   state.boardId = null;
   state.ownerId = state.user ? state.user.id : null;
   state.role = 'admin';
   state.client = (clientName || '').trim() || 'Untitled';
+  state.clientProduct = (clientProduct || '').trim();
   state.clientType = CLIENT_TYPES.some(x => x.id === clientType) ? clientType : '';
   state.clientGoal = (clientGoal || '').trim() || 'Customer Acquisition';
   state.clientMarketType = clientMarketType === 'red' || clientMarketType === 'blue' ? clientMarketType : '';
@@ -4711,6 +4719,15 @@ function openClientSettings(){
   nameIn.value = state.client || '';
   nameIn.placeholder = 'Acme';
 
+  const productLabel = document.createElement('label');
+  productLabel.className = 'fl';
+  productLabel.style.marginTop = '16px';
+  productLabel.textContent = 'Target product';
+  const productIn = document.createElement('input');
+  productIn.className = 'modal-in';
+  productIn.value = state.clientProduct || '';
+  productIn.placeholder = 'Product name';
+
   const typeLabel = document.createElement('label');
   typeLabel.className = 'fl';
   typeLabel.style.marginTop = '16px';
@@ -4854,7 +4871,9 @@ function openClientSettings(){
   save.textContent = 'Save';
   save.onclick = async function(){
     const nm = nameIn.value.trim();
+    if (!productIn.value.trim()){ toast('Enter the target product.', true); productIn.focus(); return; }
     state.client = nm || 'Untitled';
+    state.clientProduct = productIn.value.trim();
     state.clientType = typeIn.value;
     state.clientGoal = goalIn.value.trim() || 'Customer Acquisition';
     state.clientMarketType = marketIn.value;
@@ -4874,7 +4893,7 @@ function openClientSettings(){
   };
   foot.append(cancel, save);
 
-  modal.append(h, p, nameLabel, nameIn, typeLabel, typeIn, goalLabel, goalIn,
+  modal.append(h, p, nameLabel, nameIn, productLabel, productIn, typeLabel, typeIn, goalLabel, goalIn,
     marketLabel, marketIn, salesMotionLabel, salesMotionIn,
     icp1Label, icp1In, icp2Label, icp2In,
     logoLabel, row, fileIn, foot);
@@ -8255,6 +8274,7 @@ function boardPresentation(board){
   if (!body || typeof body !== 'object') body = {};
   return {
     name: (body.client || String(board.title || '').replace(/\s+Strategy Board$/i, '') || 'Untitled').trim(),
+    product: typeof body.clientProduct === 'string' ? body.clientProduct.trim() : '',
     type: CLIENT_TYPES.some(x => x.id === body.clientType) ? body.clientType : '',
     logo: body.logo || ''
   };
@@ -8272,6 +8292,8 @@ function openNewClientModal(){
   p.textContent = 'Set the client context that will appear on the GTM Strategy canvas.';
   const nameLabel = document.createElement('label'); nameLabel.className = 'fl'; nameLabel.textContent = 'Client name';
   const name = document.createElement('input'); name.className = 'modal-in'; name.placeholder = 'Client or company name';
+  const productLabel = document.createElement('label'); productLabel.className = 'fl'; productLabel.style.marginTop = '16px'; productLabel.textContent = 'Target product';
+  const product = document.createElement('input'); product.className = 'modal-in'; product.placeholder = 'Product name';
   const typeLabel = document.createElement('label'); typeLabel.className = 'fl'; typeLabel.style.marginTop = '16px'; typeLabel.textContent = 'Industry type';
   const type = document.createElement('select'); type.className = 'modal-in';
   const choose = document.createElement('option'); choose.value = ''; choose.textContent = 'Choose Local, E-commerce, SaaS, or Services'; type.append(choose);
@@ -8301,14 +8323,16 @@ function openNewClientModal(){
   const create = document.createElement('button'); create.className = 'primary'; create.textContent = 'Create client';
   create.onclick = async function(){
     if (!name.value.trim()){ toast('Enter a client name.', true); name.focus(); return; }
+    if (!product.value.trim()){ toast('Enter the target product.', true); product.focus(); return; }
     if (!type.value){ toast('Choose an industry type.', true); type.focus(); return; }
     create.disabled = true; create.textContent = 'Creating…';
-    await newBoard(name.value, type.value, goal.value, market.value, salesMotion.value, icp1.value);
+    await newBoard(name.value, product.value, type.value, goal.value, market.value, salesMotion.value, icp1.value);
     closeModal();
   };
-  name.onkeydown = function(ev){ if (ev.key === 'Enter') type.focus(); };
+  name.onkeydown = function(ev){ if (ev.key === 'Enter') product.focus(); };
+  product.onkeydown = function(ev){ if (ev.key === 'Enter') type.focus(); };
   foot.append(cancel, create);
-  modal.append(h, p, nameLabel, name, typeLabel, type, goalLabel, goal, marketLabel, market,
+  modal.append(h, p, nameLabel, name, productLabel, product, typeLabel, type, goalLabel, goal, marketLabel, market,
     salesMotionLabel, salesMotion, icp1Label, icp1, icp2Label, icp2, foot);
   overlay.append(modal); host.append(overlay); name.focus();
 }
@@ -8351,7 +8375,8 @@ async function renderClients(){
     const identity = document.createElement('span'); identity.className = 'client-identity';
     const clientName = document.createElement('b'); clientName.textContent = data.name;
     const updated = document.createElement('small');
-    updated.textContent = b.updated_at ? 'Updated ' + new Date(b.updated_at).toLocaleDateString() : 'No recent activity';
+    const activity = b.updated_at ? 'Updated ' + new Date(b.updated_at).toLocaleDateString() : 'No recent activity';
+    updated.textContent = (data.product ? data.product + ' · ' : '') + activity;
     identity.append(clientName, updated);
     const type = document.createElement('span'); type.className = 'client-type ' + (data.type || 'unset'); type.textContent = clientTypeLabel(data.type);
     const access = document.createElement('span'); access.className = 'client-role'; access.textContent = mine ? 'Owner' : 'View only';
@@ -8696,6 +8721,7 @@ function renderChannels(){
   const hosts = { inbound: $('chanInboundGrid'), outbound: $('chanOutboundGrid') };
   hosts.inbound.innerHTML = ''; hosts.outbound.innerHTML = '';
   $('gtmCompanyName').textContent = state.client || 'Company name';
+  $('gtmProductName').textContent = state.clientProduct || 'Product name';
   $('btnAddInbound').hidden = readOnly();
   $('btnAddOutbound').hidden = readOnly();
 
@@ -8814,8 +8840,9 @@ function drawChannelWires(){
   const svg = $('chanWires');
   const flow = $('chanFlow');
   const company = flow && flow.querySelector('.gtm-company');
+  const product = flow && flow.querySelector('.gtm-product');
   const strategy = flow && flow.querySelector('.gtm-strategy-node');
-  if (!svg || !flow || !company || !strategy || $('chanPane').hidden) return;
+  if (!svg || !flow || !company || !product || !strategy || $('chanPane').hidden) return;
 
   const box = flow.getBoundingClientRect();
   const width = flow.scrollWidth;
@@ -8838,7 +8865,8 @@ function drawChannelWires(){
       ' C ' + from.x + ' ' + (from.y + bend) + ', ' + to.x + ' ' + (to.y - bend) +
       ', ' + to.x + ' ' + to.y + '"/>';
   };
-  out += path(point(company, 'bottom'), point(strategy, 'top'), true);
+  out += path(point(company, 'bottom'), point(product, 'top'), true);
+  out += path(point(product, 'bottom'), point(strategy, 'top'), true);
   Array.from(flow.querySelectorAll('.gtm-motion')).forEach(motion => {
     const head = motion.querySelector('.gtm-motion-head');
     const cards = Array.from(motion.querySelectorAll('.chan-card'));
@@ -9724,6 +9752,7 @@ function drawStrategyWires(){
 function renderStrategyGuide(){
   const g = strategyOneState();
   $('sgAboutGoal').textContent = state.clientGoal || 'Customer Acquisition';
+  $('sgAboutProduct').textContent = state.clientProduct || 'Not selected';
   $('sgAboutMarket').textContent = g.ocean === 'red' ? 'Red Ocean' :
     g.ocean === 'blue' ? 'Blue Ocean' : 'Not selected';
   $('sgAboutIndustry').textContent = state.clientType ? clientTypeLabel(state.clientType) : 'Not selected';
@@ -9732,6 +9761,7 @@ function renderStrategyGuide(){
   $('sgAboutIcp1').textContent = state.clientIcp1 || 'New Entrants';
   $('sgAboutIcp2').textContent = clientIcp2Label(g.ocean);
   $('gtmCompanyName').textContent = state.client || 'Company name';
+  $('gtmProductName').textContent = state.clientProduct || 'Product name';
   requestAnimationFrame(drawChannelWires);
 }
 

@@ -52,20 +52,22 @@ top-level sections.
 
 The separate free-form canvas collection appears under **Canvas**. In Settings,
 Clients is a compact workspace directory rather than a tile gallery. Creating a
-client asks for its name and whether it is Local, E-commerce, SaaS or Services; the type is
-saved with the board and can be changed later with Edit.
+client asks for its name, the target product and whether it is Local, E-commerce, SaaS or
+Services; those details are saved with the board and can be changed later with Edit.
 
 - **Strategy › GTM Strategy** is one connected Obsidian-style canvas. It runs from
-  the company name into GTM Strategy, splits into Inbound and Outbound motions, and
-  places every active or available channel beneath the appropriate motion. Existing
+  the company name through the target product into GTM Strategy, then splits into
+  Inbound and Outbound motions. Every peer channel beneath a motion stays in one
+  horizontal row; the canvas grows and scrolls sideways when that row is wider than
+  the screen. Existing
   Technical SEO, On-page SEO, Listicle outreach and Reddit channels migrate to
   Inbound; Email, LinkedIn and ABM initialize under Outbound. Selecting On-page SEO
   reveals the **Buyer Journey** in the same canvas: Top of funnel contains JTBD,
   pain-point, desired-outcome, functional-job and emotional-job articles; Middle of
   funnel contains service, listicle, feature and use-case pages; Bottom of funnel
   contains competitor keywords and links to the Competitor keyword matrix.
-  A compact About card in the canvas's upper-right shows the client's Goal, Market
-  Type and Industry Type. Edit those values from Settings › Clients; changing the
+  A compact About card in the canvas's upper-right shows the target Product, Goal,
+  Market Type and Industry Type. Edit those values from Settings › Clients; changing the
   Red/Blue market type there stays synchronized with the canvas and Brand Radar.
   Sales Motion is stored in the same client details as either **PLG** or **SLG**
   and appears in the About card.
