@@ -85,7 +85,9 @@ saved with the board and can be changed later with Edit.
   bands inside that direction's sector, with earlier categories toward the centre and
   later categories toward the edge. The client brand is plotted as a crosshair and
   every competitor around the client marker inside the active sector. The client is
-  shown with a location-pin icon at the true midpoint of the two sector boundaries.
+  shown with a thin, dark-green outlined location-pin icon at the true midpoint of
+  the two sector boundaries. Its name sits directly below the marker and uses the
+  same typography as competitor names.
   Competitors fill outward from that midpoint, alternating left and right. Names are
   displayed when spacing permits, shortened only when necessary, and collapse to
   small dots when the sector must be widened to reveal them. Category names sit just

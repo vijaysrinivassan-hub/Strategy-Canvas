@@ -1115,10 +1115,10 @@
                 stroke-linejoin:round}
   .radar-player.truncated{fill:#647168; font-weight:650}
   .radar-overflow-dot{fill:#3e7f51; stroke:#f8f9f6; stroke-width:1.5; vector-effect:non-scaling-stroke}
-  .radar-brand-pin{fill:#1d9a49; stroke:#fff; stroke-width:1.6; vector-effect:non-scaling-stroke}
-  .radar-brand-pin-core{fill:#f8f9f6; pointer-events:none}
-  .radar-target-label{fill:#0e622c; font-size:11px; font-weight:800; text-anchor:middle;
-                      pointer-events:none; paint-order:stroke; stroke:#f8f9f6; stroke-width:4px}
+  .radar-brand-pin{fill:none; stroke:#176f38; stroke-width:1.8; stroke-linejoin:round;
+                   vector-effect:non-scaling-stroke}
+  .radar-brand-pin-core{fill:none; stroke:#176f38; stroke-width:1.6;
+                        pointer-events:none; vector-effect:non-scaling-stroke}
   .radar-hub{fill:#f8f9f6; stroke:#329456; stroke-width:2; cursor:pointer; pointer-events:all}
   .radar-hub-dot{fill:#329456; pointer-events:none}
   .radar-empty{fill:#777872; font-size:14px; font-weight:650; text-anchor:middle}
@@ -1884,7 +1884,7 @@ const SUPABASE_URL = 'https://cskamgfvebryahkljlll.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_MdkD-TxMCIwlu69seSHA3Q_A39GADsK';
 const CLIENT_ID    = '1059013355751-6g50dsgm7df37htl2fdqrtlkh5hmrc0c.apps.googleusercontent.com';
 const ALLOWED      = ['vijaysrinivassan@gmail.com'];
-const BUILD        = 'v7.21';
+const BUILD        = 'v7.22';
 
 const STRATEGY_ONE_TAB = 'Strategy 1 — Brand Strategy';
 const PRODUCT_EVOLUTION_TAB = 'Strategy 1 — Product Evolution';
@@ -7570,10 +7570,9 @@ function renderBrandRadar(){
     const brandLimit = Math.max(10, Math.min(42, Math.floor(brandSpace / 5.7)));
     const shownBrand = brandName.length > brandLimit ?
       brandName.slice(0, Math.max(6, brandLimit - 1)) + '\u2026' : brandName;
-    const labelRadius = targetRadius + (targetRadius < outerRadius - 38 ? 27 : -31);
-    const brandLabelPoint = radarPoint(labelRadius, targetAngle);
-    const brandLabel = radarText(svg, ns, brandLabelPoint.x,
-      brandLabelPoint.y + 4, 'radar-target-label', shownBrand);
+    const brandTruncated = brandName.length > brandLimit;
+    const brandLabel = radarText(svg, ns, target.x, target.y + 29,
+      'radar-player' + (brandTruncated ? ' truncated' : ''), shownBrand);
     const brandTitle = document.createElementNS(ns, 'title');
     brandTitle.textContent = brandName; brandLabel.append(brandTitle);
   }
