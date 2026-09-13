@@ -105,10 +105,11 @@ Services; those details are saved with the board and can be changed later with E
   midpoint; click it, type the output and press Enter to place that text in a
   clean break in the line. Click the text to edit it, click the connector line
   to select it, then press `Backspace` or `Delete` to remove the connection.
-  Shift-click two or more notes in one workflow and choose **Group selected**,
-  or press `Ctrl/Cmd+G`, to place a named, light container behind them. The
-  group follows moved notes and can be renamed or removed without deleting its
-  contents. Systems and notes can be
+  Drag across empty space in a workflow row to select multiple notes, then choose
+  **Group selected**, or press `Ctrl/Cmd+G`, to place a named, light container
+  behind them. The group follows moved notes, can itself be dragged to move all
+  notes inside, and can be renamed or removed without deleting its contents.
+  Systems and notes can be
   added, renamed, moved and deleted, while system rows can be reordered and
   resized vertically. Complete connected examples for **AI Data Platform** and
   **AI SOC Product** can be loaded from the template picker; matching client

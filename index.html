@@ -1300,8 +1300,8 @@
                                        letter-spacing:.09em; text-transform:uppercase}
   .arch-flow-system-head button{padding:4px 7px; background:#fff; color:#686b65; font-size:9px}
   .arch-flow-system-head .system-remove{border-color:transparent; background:transparent; color:#9a6c68}
-  .arch-node-group{position:absolute; z-index:1; border:1px dashed #91b49a; background:rgba(222,242,228,.22);
-                   pointer-events:none}
+  .arch-node-group{position:absolute; z-index:3; border:1px dashed #91b49a; background:rgba(222,242,228,.22);
+                   cursor:move; pointer-events:auto}
   .arch-node-group-head{position:absolute; left:8px; top:-11px; display:flex; align-items:center; gap:4px;
                         height:22px; padding:1px 5px; border:1px solid #bed5c4; background:#f5fbf7;
                         pointer-events:auto}
@@ -1309,6 +1309,8 @@
                               color:#3d6549; font:inherit; font-size:8.5px; font-weight:750}
   .arch-node-group-head button{padding:0 3px; border:0; background:transparent; color:#8d9a90;
                                font-size:11px; box-shadow:none}
+  .arch-marquee{position:absolute; z-index:8; border:1px solid #42a965; background:rgba(87,201,130,.12);
+                pointer-events:none}
   .arch-flow-node{position:absolute; z-index:4; width:154px; min-height:72px; padding:9px 11px 8px;
                   border:1px solid #cfd2cc; background:#fff; box-shadow:0 1px 2px rgba(28,35,29,.05);
                   cursor:grab; user-select:none}
@@ -2352,7 +2354,7 @@ const SUPABASE_URL = 'https://cskamgfvebryahkljlll.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_MdkD-TxMCIwlu69seSHA3Q_A39GADsK';
 const CLIENT_ID    = '1059013355751-6g50dsgm7df37htl2fdqrtlkh5hmrc0c.apps.googleusercontent.com';
 const ALLOWED      = ['vijaysrinivassan@gmail.com'];
-const BUILD        = 'v7.54';
+const BUILD        = 'v7.55';
 
 const STRATEGY_ONE_TAB = 'Strategy 1 — Brand Strategy';
 const PRODUCT_EVOLUTION_TAB = 'Strategy 1 — Product Evolution';
@@ -7453,7 +7455,125 @@ function renderArchitectureGroups(row, system, architecture){
       }; head.append(remove);
     }
     box.append(head); row.append(box);
+    if (!readOnly()) enableArchitectureGroupDrag(box, group, system, architecture);
   });
+}
+
+function clamp(value, min, max){ return Math.max(min, Math.min(max, value)); }
+
+function moveArchitectureGroup(group, system, architecture, dx, dy){
+  const members = architecture.nodes.filter(node => group.nodeIds.includes(node.id));
+  if (!members.length) return;
+  let minDx = -Infinity, maxDx = Infinity, minDy = -Infinity, maxDy = Infinity;
+  members.forEach(node => {
+    const width = node.width || 154;
+    minDx = Math.max(minDx, 10 - node.x);
+    const rowWidth = $('archSystems').querySelector('[data-system-id="' + system.id + '"]')?.clientWidth || $('archBoard').clientWidth;
+    maxDx = Math.min(maxDx, Math.max(10, rowWidth - width - 10) - node.x);
+    minDy = Math.max(minDy, 54 - node.y);
+    maxDy = Math.min(maxDy, Math.max(54, system.height - 84) - node.y);
+  });
+  dx = clamp(dx, minDx, maxDx);
+  dy = clamp(dy, minDy, maxDy);
+  members.forEach(node => {
+    node.x += dx;
+    node.y += dy;
+    const el = $('archSystems').querySelector('[data-node-id="' + node.id + '"]');
+    if (el){ el.style.left = node.x + 'px'; el.style.top = node.y + 'px'; }
+  });
+  positionArchitectureGroups(architecture);
+  drawArchitectureWires(architecture);
+}
+
+function enableArchitectureGroupDrag(box, group, system, architecture){
+  box.addEventListener('pointerdown', event => {
+    if (event.target.closest('input,button')) return;
+    event.preventDefault(); event.stopPropagation();
+    architectureSelectedEdge = '';
+    architectureSelection = new Set(group.nodeIds);
+    renderArchitectureSelectionTools(architecture);
+    const startX = event.clientX, startY = event.clientY;
+    const starts = architecture.nodes.filter(node => group.nodeIds.includes(node.id))
+      .map(node => ({ node, x: node.x, y: node.y }));
+    const move = moveEvent => {
+      starts.forEach(start => { start.node.x = start.x; start.node.y = start.y; });
+      moveArchitectureGroup(group, system, architecture, moveEvent.clientX - startX, moveEvent.clientY - startY);
+    };
+    const up = () => {
+      document.removeEventListener('pointermove', move);
+      document.removeEventListener('pointerup', up);
+      markDirty();
+      renderProductArchitecture();
+    };
+    document.addEventListener('pointermove', move);
+    document.addEventListener('pointerup', up);
+  });
+}
+
+function rectsTouch(a, b){
+  return a.left <= b.right && a.right >= b.left && a.top <= b.bottom && a.bottom >= b.top;
+}
+
+function startArchitectureMarquee(row, system, architecture, event){
+  if (readOnly() || event.button !== 0) return false;
+  event.preventDefault();
+  architectureSelectedEdge = '';
+  if (!event.shiftKey && !event.ctrlKey && !event.metaKey) architectureSelection.clear();
+  const base = new Set(architectureSelection);
+  const rowRect = row.getBoundingClientRect();
+  const start = { x: event.clientX - rowRect.left, y: event.clientY - rowRect.top };
+  const box = document.createElement('div');
+  box.className = 'arch-marquee';
+  row.append(box);
+  const paint = point => {
+    const left = Math.min(start.x, point.x), top = Math.min(start.y, point.y);
+    const width = Math.abs(point.x - start.x), height = Math.abs(point.y - start.y);
+    box.style.left = left + 'px'; box.style.top = top + 'px';
+    box.style.width = width + 'px'; box.style.height = height + 'px';
+    const band = { left, top, right: left + width, bottom: top + height };
+    architectureSelection = new Set(base);
+    architecture.nodes.filter(node => node.systemId === system.id).forEach(node => {
+      const nodeRect = { left: node.x, top: node.y, right: node.x + (node.width || 154), bottom: node.y + 72 };
+      if (rectsTouch(band, nodeRect)) architectureSelection.add(node.id);
+    });
+    row.querySelectorAll('.arch-flow-node').forEach(nodeEl => {
+      nodeEl.classList.toggle('selected', architectureSelection.has(nodeEl.dataset.nodeId));
+    });
+    renderArchitectureSelectionTools(architecture);
+  };
+  const move = moveEvent => paint({ x: moveEvent.clientX - rowRect.left, y: moveEvent.clientY - rowRect.top });
+  const up = () => {
+    document.removeEventListener('pointermove', move);
+    document.removeEventListener('pointerup', up);
+    box.remove();
+    renderProductArchitecture();
+  };
+  document.addEventListener('pointermove', move);
+  document.addEventListener('pointerup', up);
+  paint(start);
+  return true;
+}
+
+function enableArchitectureMarquee(row, system, architecture){
+  row.addEventListener('pointerdown', event => {
+    if (event.target.closest('.arch-flow-system-head,.arch-flow-node,.arch-node-group,.arch-flow-resize,.arch-flow-port')) return;
+    event.stopPropagation();
+    startArchitectureMarquee(row, system, architecture, event);
+  });
+}
+
+function enableArchitectureBoardMarquee(architecture){
+  const board = $('archBoard');
+  board.onpointerdown = event => {
+    const target = event.target;
+    if (!target || !target.closest) return;
+    if (target.closest('.arch-flow-wire-hit,.arch-edge-label,.arch-flow-system-head,.arch-flow-node,.arch-node-group,.arch-flow-resize,.arch-flow-port')) return;
+    const row = document.elementsFromPoint(event.clientX, event.clientY)
+      .find(element => element.classList && element.classList.contains('arch-flow-system'));
+    if (!row) return;
+    const system = architecture.systems.find(item => item.id === row.dataset.systemId);
+    if (system) startArchitectureMarquee(row, system, architecture, event);
+  };
 }
 
 function renderArchitectureSelectionTools(architecture){
@@ -7642,6 +7762,7 @@ function renderArchitectureSystem(system, index, architecture){
       const up = () => { document.removeEventListener('pointermove', move); document.removeEventListener('pointerup', up); markDirty(); };
       document.addEventListener('pointermove', move); document.addEventListener('pointerup', up);
     }; row.append(resize);
+    enableArchitectureMarquee(row, system, architecture);
   }
   return row;
 }
@@ -7656,6 +7777,7 @@ renderProductArchitecture = function(){
   const summary = $('archProductSummary'); summary.value = architecture.summary || ''; summary.readOnly = ro;
   summary.oninput = () => { architecture.summary = summary.value; markDirty(); };
   renderArchitectureSelectionTools(architecture);
+  enableArchitectureBoardMarquee(architecture);
   const systems = $('archSystems'); systems.innerHTML = '';
   architecture.systems.forEach((system, index) => systems.append(renderArchitectureSystem(system, index, architecture)));
   if (!architecture.systems.length){
