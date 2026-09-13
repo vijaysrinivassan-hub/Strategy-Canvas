@@ -1488,6 +1488,27 @@
     .radar-head-actions{margin:10px 0 0; flex-wrap:wrap}.radar-foot{align-items:flex-start; flex-wrap:wrap}
   }
 
+  /* ================= positioning document ================= */
+  .positioning-document{flex:1; min-height:0; overflow:auto; padding:30px; background:#f7f7f5}
+  .positioning-document-sheet{width:min(980px,100%); margin:0 auto; padding:24px;
+    border:1px solid #deded9; background-color:#fbfbfa;
+    background-image:radial-gradient(circle at 1px 1px,#d4d5cf 1.1px,transparent 1.2px);
+    background-size:20px 20px}
+  .positioning-document-fields{display:flex; flex-direction:column; gap:14px}
+  .positioning-document-field{display:block; padding:16px; border:1px solid #d5d7d1;
+    background:#fff; box-shadow:0 1px 2px rgba(0,0,0,.035)}
+  .positioning-document-field span{display:block; margin-bottom:9px; color:#5c5f59;
+    font-size:10px; font-weight:800; letter-spacing:.06em; text-transform:uppercase}
+  .positioning-document-field textarea{display:block; width:100%; min-height:112px; resize:vertical;
+    padding:10px 11px; border:1px solid #dcddd8; border-radius:0; outline:none; background:#fdfdfc;
+    color:#292b27; font:inherit; font-size:12px; line-height:1.55}
+  .positioning-document-field textarea:focus{border-color:#57c982; box-shadow:0 0 0 2px rgba(87,201,130,.12)}
+  .positioning-document-field textarea:read-only{background:#fafaf8; color:#4c4e49}
+  @media(max-width:780px){
+    .positioning-document{padding:14px}.positioning-document-sheet{padding:14px}
+    .positioning-document-field{padding:12px}
+  }
+
   .toast{position:fixed; left:50%; bottom:80px; transform:translateX(-50%); z-index:200;
          font-size:13px; font-weight:500; border-radius:10px; padding:10px 16px;
          box-shadow:var(--shadow); color:var(--ok); background:var(--ok-bg);
@@ -2068,6 +2089,13 @@
       </section>
     </div>
 
+    <!-- Five editable outputs that turn the positioning canvas into a concise document. -->
+    <div class="positioning-document" id="positioningDocumentPane" hidden>
+      <section class="positioning-document-sheet">
+        <div class="positioning-document-fields" id="positioningDocumentFields"></div>
+      </section>
+    </div>
+
     <!-- A frame from the Obsidian vault, rendered read-only -->
     <div class="frame-note" id="framePane" hidden>
       <div class="sheet"><textarea id="frameText" spellcheck="false"
@@ -2182,12 +2210,13 @@ const SUPABASE_URL = 'https://cskamgfvebryahkljlll.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_MdkD-TxMCIwlu69seSHA3Q_A39GADsK';
 const CLIENT_ID    = '1059013355751-6g50dsgm7df37htl2fdqrtlkh5hmrc0c.apps.googleusercontent.com';
 const ALLOWED      = ['vijaysrinivassan@gmail.com'];
-const BUILD        = 'v7.31';
+const BUILD        = 'v7.32';
 
 const STRATEGY_ONE_TAB = 'Strategy 1 — Brand Strategy';
 const PRODUCT_EVOLUTION_TAB = 'Strategy 1 — Product Evolution';
 const PRODUCT_ARCHITECTURE_TAB = 'Strategy 1 — Product Architecture';
 const POSITIONING_TAB = 'Strategy 1 — Positioning Canvas';
+const POSITIONING_DOCUMENT_TAB = 'Strategy 1 — Positioning Document';
 const BRAND_RADAR_TAB = 'Strategy 1 — Brand Radar';
 
 const TABS = [
@@ -2200,6 +2229,7 @@ const TABS = [
   PRODUCT_EVOLUTION_TAB,
   PRODUCT_ARCHITECTURE_TAB,
   POSITIONING_TAB,
+  POSITIONING_DOCUMENT_TAB,
   BRAND_RADAR_TAB,
   'Channel Strategy',
   'Content Strategy',
@@ -2556,6 +2586,7 @@ const TAB_ICONS = {
   'Strategy 1 — Product Evolution': '<path d="M4 12h16M12 4v16"/><circle cx="12" cy="12" r="3"/>',
   'Strategy 1 — Product Architecture': '<path d="M3 7h7v5H3zM14 3h7v5h-7zM14 16h7v5h-7z"/><path d="M10 9.5h2a2 2 0 0 0 2-2V6M10 9.5h2a2 2 0 0 1 2 2v7"/>',
   'Strategy 1 — Positioning Canvas': '<circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="8"/><path d="M12 1v3M12 20v3M1 12h3M20 12h3"/>',
+  'Strategy 1 — Positioning Document': '<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 12h6M9 16h6"/>',
   'Strategy 1 — Brand Radar': '<circle cx="12" cy="12" r="8"/><path d="M12 1v22M1 12h22"/><circle cx="12" cy="12" r="3"/>',
   'Brand Strategy': '<path d="M12 3l2.6 5.6 6.1.8-4.5 4.2 1.2 6L12 16.8 6.6 19.6l1.2-6L3.3 9.4l6.1-.8z"/>',
   'New Canvas': '<path d="M12 5v14M5 12h14"/>',
@@ -2591,7 +2622,7 @@ function renderTabs(){
     b.append(label);
     const isPanel = [DOCS_TAB, CHANNELS_TAB, KEYWORDS_TAB, CONTENT_TAB,
                      STRATEGY_ONE_TAB, PRODUCT_EVOLUTION_TAB, PRODUCT_ARCHITECTURE_TAB,
-                     POSITIONING_TAB, BRAND_RADAR_TAB].indexOf(name) > -1;
+                     POSITIONING_TAB, POSITIONING_DOCUMENT_TAB, BRAND_RADAR_TAB].indexOf(name) > -1;
     if (!isPanel){
       const c = document.createElement('span');
       c.className = 'n';
@@ -2662,6 +2693,7 @@ function renderTabs(){
       box.append(tabButton(PRODUCT_EVOLUTION_TAB, 'Product Evolution'));
       box.append(tabButton(PRODUCT_ARCHITECTURE_TAB, 'Product Architecture'));
       box.append(tabButton(POSITIONING_TAB, 'Positioning Canvas'));
+      box.append(tabButton(POSITIONING_DOCUMENT_TAB, 'Positioning Document'));
       box.append(tabButton(BRAND_RADAR_TAB, 'Brand Radar'));
       return;
     }
@@ -2831,6 +2863,7 @@ function renderTabs(){
       : state.tab === PRODUCT_EVOLUTION_TAB ? 'Product Evolution'
       : state.tab === PRODUCT_ARCHITECTURE_TAB ? 'Product Architecture'
       : state.tab === POSITIONING_TAB ? 'Positioning Canvas'
+      : state.tab === POSITIONING_DOCUMENT_TAB ? 'Positioning Document'
       : state.tab === BRAND_RADAR_TAB ? 'Brand Radar' : state.tab;
   }
 }
@@ -3249,7 +3282,7 @@ function switchTab(name){
   state.frameIndex = -1;
   state.screen = 'board';
   if ([STRATEGY_ONE_TAB, PRODUCT_EVOLUTION_TAB, PRODUCT_ARCHITECTURE_TAB,
-       POSITIONING_TAB, BRAND_RADAR_TAB, CHANNELS_TAB].indexOf(name) !== -1) openNav('strategy1');
+       POSITIONING_TAB, POSITIONING_DOCUMENT_TAB, BRAND_RADAR_TAB, CHANNELS_TAB].indexOf(name) !== -1) openNav('strategy1');
   else if (isBrandTab(name)) closeNav();
   else if (name === CONTENT_TAB) openNav('content');
   clearSel();
@@ -4482,6 +4515,7 @@ function applyTabMode(){
     $('chanPane').hidden = true; $('kwPane').hidden = true; $('mxPane').hidden = true;
     $('strategyGuidePane').hidden = true; $('evoPane').hidden = true; $('architecturePane').hidden = true;
     $('positioningPane').hidden = true;
+    $('positioningDocumentPane').hidden = true;
     $('brandRadarPane').hidden = true;
     $('framePane').hidden = true; $('roFrame').hidden = true;
     $('btnFrameExport').hidden = true;
@@ -4509,9 +4543,10 @@ function applyTabMode(){
   const isEvo = state.tab === PRODUCT_EVOLUTION_TAB;
   const isArchitecture = state.tab === PRODUCT_ARCHITECTURE_TAB;
   const isPositioning = state.tab === POSITIONING_TAB;
+  const isPositioningDocument = state.tab === POSITIONING_DOCUMENT_TAB;
   const isRadar = state.tab === BRAND_RADAR_TAB;
   const isCanvas = !isDocs && !isChan && !isKw && !isMx && !isGuide && !isEvo &&
-    !isArchitecture && !isPositioning && !isRadar && !isNote;
+    !isArchitecture && !isPositioning && !isPositioningDocument && !isRadar && !isNote;
 
   if (frame){
     $('tabTitle').textContent = frame.name;
@@ -4530,6 +4565,7 @@ function applyTabMode(){
   $('evoPane').hidden = !isEvo;
   $('architecturePane').hidden = !isArchitecture;
   $('positioningPane').hidden = !isPositioning;
+  $('positioningDocumentPane').hidden = !isPositioningDocument;
   $('brandRadarPane').hidden = !isRadar;
   $('btnFit').hidden = !isCanvas;
   /* a frame can be used as a template on a real canvas, but not inside a frame */
@@ -4548,6 +4584,7 @@ function applyTabMode(){
     }
   }
   if (isPositioning) renderPositioning();
+  if (isPositioningDocument) renderPositioningDocument();
   if (isArchitecture) renderProductArchitecture();
   if (isRadar) renderBrandRadar();
   renderCrumb();
@@ -7778,6 +7815,49 @@ $('btnAddCompetitiveStage').onclick = () => {
   markDirty(); renderPositioning();
 };
 
+/* ===================================================================
+   POSITIONING DOCUMENT — five editable narrative outputs
+   =================================================================== */
+const POSITIONING_DOCUMENT_FIELDS = [
+  ['positioning_statement', 'Positioning Statement'],
+  ['icp_positioning', 'ICP Positioning'],
+  ['category_positioning', 'Category Positioning'],
+  ['competitive_positioning', 'Competitive Positioning'],
+  ['value_positioning', 'Value Positioning']
+];
+
+function positioningDocumentState(){
+  const tab = state.tabs[POSITIONING_DOCUMENT_TAB] ||
+    (state.tabs[POSITIONING_DOCUMENT_TAB] = { nodes: [], edges: [] });
+  if (!tab.fields || typeof tab.fields !== 'object') tab.fields = {};
+  POSITIONING_DOCUMENT_FIELDS.forEach(field => {
+    if (typeof tab.fields[field[0]] !== 'string') tab.fields[field[0]] = '';
+  });
+  return tab.fields;
+}
+
+function renderPositioningDocument(){
+  const fields = positioningDocumentState();
+  const host = $('positioningDocumentFields');
+  host.innerHTML = '';
+  POSITIONING_DOCUMENT_FIELDS.forEach(field => {
+    const wrapper = document.createElement('label');
+    wrapper.className = 'positioning-document-field';
+    const label = document.createElement('span');
+    label.textContent = field[1];
+    const textarea = document.createElement('textarea');
+    textarea.value = fields[field[0]];
+    textarea.placeholder = 'Add text';
+    textarea.readOnly = readOnly();
+    textarea.oninput = event => {
+      fields[field[0]] = event.target.value;
+      markDirty();
+    };
+    wrapper.append(label, textarea);
+    host.append(wrapper);
+  });
+}
+
 
 /* ===================================================================
    FRAMES  —  the Obsidian Frames folder
@@ -7843,7 +7923,7 @@ function isCanvasTab(){
   if (inFrame()) return (state.frames[state.frameIndex] || {}).kind === 'canvas';
   return [DOCS_TAB, CHANNELS_TAB, KEYWORDS_TAB, CONTENT_TAB,
           STRATEGY_ONE_TAB, PRODUCT_EVOLUTION_TAB, PRODUCT_ARCHITECTURE_TAB,
-          POSITIONING_TAB, BRAND_RADAR_TAB].indexOf(state.tab) === -1;
+          POSITIONING_TAB, POSITIONING_DOCUMENT_TAB, BRAND_RADAR_TAB].indexOf(state.tab) === -1;
 }
 const openFrameDef = () => (inFrame() ? state.frames[state.frameIndex] : null);
 
@@ -8271,7 +8351,7 @@ function renderCrumb(){
   if (state.screen !== 'board') c = 'Account';
   else if (inFrame()) c = 'Frames';
   else if ([STRATEGY_ONE_TAB, PRODUCT_EVOLUTION_TAB, PRODUCT_ARCHITECTURE_TAB,
-            POSITIONING_TAB, BRAND_RADAR_TAB, CHANNELS_TAB].indexOf(state.tab) !== -1) c = 'Strategy';
+            POSITIONING_TAB, POSITIONING_DOCUMENT_TAB, BRAND_RADAR_TAB, CHANNELS_TAB].indexOf(state.tab) !== -1) c = 'Strategy';
   else if (isBrandTab(state.tab)) c = 'Canvas';
   else if (state.tab === CONTENT_TAB) c = 'Keywords';
   else if (state.tab === KEYWORDS_TAB || state.tab === DOCS_TAB) c = 'Research';

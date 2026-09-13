@@ -59,6 +59,16 @@ export function registerBoardTools(server: McpServer) {
               ? slot.channels.items.map((item: any) => ({ name: item.name, on: !!item.on }))
               : []
           };
+        } else if (tab === "Strategy 1 — Positioning Document") {
+          summary[tab] = {
+            fields: {
+              positioning_statement: slot.fields?.positioning_statement || "",
+              icp_positioning: slot.fields?.icp_positioning || "",
+              category_positioning: slot.fields?.category_positioning || "",
+              competitive_positioning: slot.fields?.competitive_positioning || "",
+              value_positioning: slot.fields?.value_positioning || ""
+            }
+          };
         } else if (tab === "Strategy 1 — Product Architecture") {
           const architecture = slot.architecture;
           if (!architecture) {

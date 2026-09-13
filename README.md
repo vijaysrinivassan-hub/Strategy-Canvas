@@ -99,6 +99,11 @@ saved with the board and can be changed later with Edit.
   tool-stack or product-architecture evolution inside the selected category and marks
   where the product wins. Value Positioning connects four editable cards: functional
   value, core benefit, monetary benefit and strategic benefit.
+- **Strategy › Positioning Document** is the concise written output: five editable
+  fields for the Positioning Statement, ICP Positioning, Category Positioning,
+  Competitive Positioning and Value Positioning. The connected MCP server can read
+  or update the same five fields through `positioning_document_get` and
+  `positioning_document_set`.
 - **Strategy › Brand Radar** turns Product Evolution into a four-quadrant market map:
   Technology access, Input access, Process access and People access. Product Evolution
   chooses the active direction; the Category Positioning ladder becomes concentric

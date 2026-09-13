@@ -8,6 +8,7 @@ import { registerDocumentTools } from "./tools/documents.js";
 import { registerCanvasTools } from "./tools/canvas.js";
 import { registerContentTools } from "./tools/content.js";
 import { registerFrameTools } from "./tools/frames.js";
+import { registerPositioningDocumentTools } from "./tools/positioning-document.js";
 
 const server = new McpServer({
   name: "strategy-board-mcp-server",
@@ -20,6 +21,7 @@ registerDocumentTools(server);
 registerCanvasTools(server);
 registerContentTools(server);
 registerFrameTools(server);
+registerPositioningDocumentTools(server);
 
 async function main() {
   const transport = new StdioServerTransport();
