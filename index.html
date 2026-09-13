@@ -1264,10 +1264,11 @@
   .arch-selection-tools button{padding:4px 7px; background:#fff; font-size:8.5px}
   .arch-flow-board{position:relative; min-width:1060px; padding:0 0 36px}
   .arch-flow-wires{position:absolute; z-index:2; inset:0; width:100%; height:100%; overflow:visible;
-                   pointer-events:none}
+                   pointer-events:auto}
   .arch-flow-wire{fill:none; stroke:#aeb4ad; stroke-width:1.7; stroke-linecap:round;
                   marker-end:url(#archArrow); vector-effect:non-scaling-stroke}
   .arch-flow-wire.cross{stroke:#5eaa76; stroke-width:2}
+  .arch-flow-wire.selected{stroke:#2f9d58; stroke-width:2.8; filter:drop-shadow(0 0 3px rgba(75,178,106,.35))}
   .arch-flow-wire-hit{fill:none; stroke:transparent; stroke-width:13; pointer-events:stroke; cursor:pointer}
   .arch-flow-preview{fill:none; stroke:#49a86a; stroke-width:1.7; stroke-dasharray:5 4;
                      vector-effect:non-scaling-stroke}
@@ -2351,7 +2352,7 @@ const SUPABASE_URL = 'https://cskamgfvebryahkljlll.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_MdkD-TxMCIwlu69seSHA3Q_A39GADsK';
 const CLIENT_ID    = '1059013355751-6g50dsgm7df37htl2fdqrtlkh5hmrc0c.apps.googleusercontent.com';
 const ALLOWED      = ['vijaysrinivassan@gmail.com'];
-const BUILD        = 'v7.53';
+const BUILD        = 'v7.54';
 
 const STRATEGY_ONE_TAB = 'Strategy 1 — Brand Strategy';
 const PRODUCT_EVOLUTION_TAB = 'Strategy 1 — Product Evolution';
@@ -3992,6 +3993,24 @@ document.addEventListener('keydown', ev => {
   const t = ev.target.tagName;
   if (t === 'TEXTAREA' || t === 'INPUT') return;
   if (ev.code === 'Space' && !ev.repeat){ spaceHeld = true; ev.preventDefault(); }
+  if (state.tab === PRODUCT_ARCHITECTURE_TAB){
+    if (ev.key === 'Delete' || ev.key === 'Backspace'){
+      if (deleteArchitectureSelection()){ ev.preventDefault(); return; }
+    }
+    if (ev.key === 'Escape' && (architectureSelection.size || architectureSelectedEdge)){
+      architectureSelection.clear();
+      architectureSelectedEdge = '';
+      ev.preventDefault();
+      renderProductArchitecture();
+      return;
+    }
+    if ((ev.ctrlKey || ev.metaKey) && ev.key.toLowerCase() === 'g'){
+      const architecture = productArchitectureState();
+      ev.preventDefault();
+      groupArchitectureSelection(architecture);
+      return;
+    }
+  }
   if (ev.key === 'Delete' || ev.key === 'Backspace'){ ev.preventDefault(); deleteSelection(); }
   if (ev.key === 'Escape'){ clearSel(); render(); }
   /* Enter opens the selected card, for anyone who does not think to double-click */
@@ -7099,6 +7118,7 @@ const ARCH_NODE_TYPES = [
 ];
 let architectureConnection = null;
 let architectureSelection = new Set();
+let architectureSelectedEdge = '';
 
 function archFlowSystem(name, height){
   return { id: uid(), name: name || 'New system', height: Math.max(230, Number(height) || 300) };
@@ -7221,6 +7241,9 @@ productArchitectureState = function(){
     architecture.nodes.some(node => node.id === edge.from) &&
     architecture.nodes.some(node => node.id === edge.to) && edge.from !== edge.to);
   architecture.edges.forEach(edge => { if (typeof edge.label !== 'string') edge.label = ''; });
+  if (architectureSelectedEdge && !architecture.edges.some(edge => edge.id === architectureSelectedEdge)){
+    architectureSelectedEdge = '';
+  }
   architecture.groups = architecture.groups.filter(group => {
     if (!group.id) group.id = uid();
     if (typeof group.name !== 'string') group.name = 'Grouped system';
@@ -7337,13 +7360,22 @@ function drawArchitectureWires(architecture){
     const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
     path.setAttribute('d', pathData);
     path.setAttribute('class', 'arch-flow-wire' +
-      (fromNode && toNode && fromNode.systemId !== toNode.systemId ? ' cross' : ''));
+      (fromNode && toNode && fromNode.systemId !== toNode.systemId ? ' cross' : '') +
+      (architectureSelectedEdge === edge.id ? ' selected' : ''));
     svg.append(path);
     if (!readOnly()){
       const hit = document.createElementNS('http://www.w3.org/2000/svg', 'path');
       hit.setAttribute('d', pathData); hit.setAttribute('class', 'arch-flow-wire-hit');
+      hit.addEventListener('click', event => {
+        event.stopPropagation();
+        architectureSelection.clear();
+        architectureSelectedEdge = edge.id;
+        renderArchitectureSelectionTools(architecture);
+        drawArchitectureWires(architecture);
+      });
       hit.addEventListener('dblclick', event => {
         event.stopPropagation(); architecture.edges = architecture.edges.filter(item => item.id !== edge.id);
+        if (architectureSelectedEdge === edge.id) architectureSelectedEdge = '';
         markDirty(); drawArchitectureWires(architecture);
       });
       svg.append(hit);
@@ -7363,6 +7395,7 @@ function drawArchitectureWires(architecture){
 function beginArchitectureConnection(event, architecture, nodeId){
   if (readOnly()) return;
   event.preventDefault(); event.stopPropagation();
+  architectureSelectedEdge = '';
   architectureConnection = { from: nodeId, point: architecturePoint(event) };
   const move = moveEvent => {
     architectureConnection.point = architecturePoint(moveEvent); drawArchitectureWires(architecture);
@@ -7426,26 +7459,61 @@ function renderArchitectureGroups(row, system, architecture){
 function renderArchitectureSelectionTools(architecture){
   const tools = $('archSelectionTools');
   const ids = [...architectureSelection];
-  tools.hidden = readOnly() || ids.length === 0;
+  const selectedEdge = architecture.edges.find(edge => edge.id === architectureSelectedEdge);
+  tools.hidden = readOnly() || (ids.length === 0 && !selectedEdge);
   if (tools.hidden) return;
-  $('archSelectionCount').textContent = ids.length + ' selected';
+  $('archSelectionCount').textContent = selectedEdge ? 'Connector selected' : ids.length + ' selected';
   const selected = architecture.nodes.filter(node => architectureSelection.has(node.id));
   const sameSystem = selected.length > 1 && selected.every(node => node.systemId === selected[0].systemId);
   const groupButton = $('btnArchGroup'); groupButton.disabled = !sameSystem;
   groupButton.title = sameSystem ? 'Give these notes one shared group name' : 'Select at least two notes in the same workflow';
-  groupButton.onclick = () => {
-    if (!sameSystem) return;
-    const proposed = prompt('Name this group', 'Grouped system');
-    if (proposed === null || !proposed.trim()) return;
-    architecture.groups.forEach(group => {
-      group.nodeIds = group.nodeIds.filter(id => !architectureSelection.has(id));
-    });
-    architecture.groups = architecture.groups.filter(group => group.nodeIds.length >= 2);
-    architecture.groups.push({ id: uid(), systemId: selected[0].systemId,
-      name: proposed.trim(), nodeIds: selected.map(node => node.id) });
-    architectureSelection.clear(); markDirty(); renderProductArchitecture();
+  groupButton.onclick = () => groupArchitectureSelection(architecture);
+  $('btnArchClearSelection').onclick = () => {
+    architectureSelection.clear();
+    architectureSelectedEdge = '';
+    renderProductArchitecture();
   };
-  $('btnArchClearSelection').onclick = () => { architectureSelection.clear(); renderProductArchitecture(); };
+}
+
+function groupArchitectureSelection(architecture){
+  if (readOnly()) return false;
+  const selected = architecture.nodes.filter(node => architectureSelection.has(node.id));
+  const sameSystem = selected.length > 1 && selected.every(node => node.systemId === selected[0].systemId);
+  if (!sameSystem) return false;
+  const proposed = prompt('Name this group', 'Grouped system');
+  if (proposed === null || !proposed.trim()) return false;
+  architecture.groups.forEach(group => {
+    group.nodeIds = group.nodeIds.filter(id => !architectureSelection.has(id));
+  });
+  architecture.groups = architecture.groups.filter(group => group.nodeIds.length >= 2);
+  architecture.groups.push({ id: uid(), systemId: selected[0].systemId,
+    name: proposed.trim(), nodeIds: selected.map(node => node.id) });
+  architectureSelection.clear();
+  architectureSelectedEdge = '';
+  markDirty(); renderProductArchitecture();
+  return true;
+}
+
+function deleteArchitectureSelection(){
+  if (readOnly() || state.tab !== PRODUCT_ARCHITECTURE_TAB) return false;
+  const architecture = productArchitectureState();
+  if (architectureSelectedEdge){
+    const before = architecture.edges.length;
+    architecture.edges = architecture.edges.filter(edge => edge.id !== architectureSelectedEdge);
+    architectureSelectedEdge = '';
+    if (architecture.edges.length !== before){
+      markDirty(); renderProductArchitecture(); return true;
+    }
+  }
+  if (!architectureSelection.size) return false;
+  const removed = new Set([...architectureSelection]);
+  architecture.nodes = architecture.nodes.filter(node => !removed.has(node.id));
+  architecture.edges = architecture.edges.filter(edge => !removed.has(edge.from) && !removed.has(edge.to));
+  architecture.groups.forEach(group => { group.nodeIds = group.nodeIds.filter(id => !removed.has(id)); });
+  architecture.groups = architecture.groups.filter(group => group.nodeIds.length >= 2);
+  architectureSelection.clear();
+  markDirty(); renderProductArchitecture();
+  return true;
 }
 
 function enableArchitectureNodeDrag(element, node, system, architecture){
@@ -7551,6 +7619,7 @@ function renderArchitectureSystem(system, index, architecture){
     }
     card.onclick = event => {
       if (readOnly() || event.target.closest('input,select,button,.arch-flow-port')) return;
+      architectureSelectedEdge = '';
       if (event.shiftKey || event.ctrlKey || event.metaKey){
         if (architectureSelection.has(node.id)) architectureSelection.delete(node.id);
         else architectureSelection.add(node.id);
