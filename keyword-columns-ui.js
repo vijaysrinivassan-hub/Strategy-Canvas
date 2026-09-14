@@ -16,15 +16,39 @@ function syncUniversalWorkspaces(){
 function keywordOrderTools(col, rerender){
  const wrap=document.createElement('span');wrap.className='col-tools';
  if(readOnly())return wrap;
- const v=matrixState(), id=col===v.rowColumn?'__row':col.id, ids=KeywordColumns.order(v);
+ const v=state.tabs[CONTENT_TAB].views[state.contentView], id=col===v.rowColumn?'__row':col.id, ids=KeywordColumns.order(v);
  for(const [text,step] of [['‹',-1],['›',1]]){
   const b=document.createElement('button');b.type='button';b.className='col-edit';b.textContent=text;
   b.title=step<0?'Move column left':'Move column right';b.setAttribute('aria-label',b.title);
+  b.dataset.columnId=id; b.dataset.columnStep=String(step);
   b.disabled=ids.indexOf(id)+step<0||ids.indexOf(id)+step>=ids.length;
-  b.onclick=e=>{e.stopPropagation();if(!readOnly()&&KeywordColumns.move(v,id,step)){markDirty();rerender();}};
+  b.onclick=e=>{
+   e.stopPropagation();
+   if(readOnly() || state.tabs[CONTENT_TAB]?.views[state.contentView] !== v)return;
+   const before=KeywordColumns.order(v);
+   if(KeywordColumns.move(v,id,step)){
+    moveKeywordTableColumns($('mxTable'),before,KeywordColumns.order(v));
+    markDirty();
+   }
+  };
   wrap.append(b);
  }
  return wrap;
+}
+function moveKeywordTableColumns(table,before,after){
+ // Move the existing nodes: preserve input values, listeners and keyword blocks.
+ const index=new Map(before.map((id,i)=>[id,i+1]));
+ for(const row of table.querySelectorAll('tr')){
+  const cells=Array.from(row.children);
+  if(cells.length!==before.length+1)continue;
+  for(const id of after)row.append(cells[index.get(id)]);
+ }
+ const cg=table.querySelector('colgroup');
+ if(cg){const cols=Array.from(cg.children);for(const id of after)cg.append(cols[index.get(id)]);}
+ for(const b of table.querySelectorAll('[data-column-step]')){
+  const next=after.indexOf(b.dataset.columnId)+Number(b.dataset.columnStep);
+  b.disabled=next<0||next>=after.length;
+ }
 }
 function applyKeywordMatrixOrder(table,v){
  const original=['__row',...v.types.map(t=>t.id)],ids=KeywordColumns.order(v);

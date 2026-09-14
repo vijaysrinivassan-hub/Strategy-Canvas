@@ -2397,7 +2397,7 @@ const SUPABASE_URL = 'https://cskamgfvebryahkljlll.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_MdkD-TxMCIwlu69seSHA3Q_A39GADsK';
 const CLIENT_ID    = '1059013355751-6g50dsgm7df37htl2fdqrtlkh5hmrc0c.apps.googleusercontent.com';
 const ALLOWED      = ['vijaysrinivassan@gmail.com'];
-const BUILD        = 'v7.67';
+const BUILD        = 'v7.68';
 
 const STRATEGY_ONE_TAB = 'Strategy 1 — Brand Strategy';
 const PRODUCT_EVOLUTION_TAB = 'Strategy 1 — Product Evolution';
@@ -4384,7 +4384,13 @@ async function saveBoard(quiet){
   state.dirty = (state.editRevision || 0) !== editRevision;
   el.textContent = state.dirty ? 'Unsaved changes' : 'Saved'; el.className = 'save-line';
   if (state.dirty) scheduleAutosave();
-  await refreshBoards();
+  // The write response is enough to update the directory. Do not download
+  // every client's full body after each keystroke-driven autosave.
+  state.boards ||= [];
+  const cached = state.boards.find(b => b.id === state.boardId);
+  const summary = {id:state.boardId,title:payload.title,body:payload.body,
+    owner_id:state.ownerId || state.user.id,updated_at:state.boardRevision};
+  if(cached) Object.assign(cached,summary); else state.boards.unshift(summary);
   if (!quiet) toast('Board saved.');
   } catch(error){
     if (sameWorkspace()){
@@ -5978,7 +5984,8 @@ function gridCellKeywords(text, manualIds){
 const DEFAULT_ARTICLE_TYPES = ['Listicle', 'List item', 'Informational'];
 
 function articleTypes(){
-  const root = contentRoot();
+  // Rendering a dropdown is a read, not a request to normalize every table.
+  const root = state.tabs[CONTENT_TAB] || contentRoot();
   if (!Array.isArray(root.articleTypes) || !root.articleTypes.length){
     root.articleTypes = DEFAULT_ARTICLE_TYPES.map(function(x){ return { id: uid(), name: x }; });
   }
@@ -6603,16 +6610,23 @@ function renderContent(){
 
 /* Every content view reads the keyword repo now: the matrix matches on
    competitor and article type, the tables match on the cell's own words. */
+let matrixRefreshRequest = 0;
 async function refreshMatrix(){
-  renderContentView();
-  const err = await loadKeywords();
-  if (err && err !== 'no-board'){
-    $('mxSetup').hidden = false;
-    $('mxSetup').textContent = 'Could not read keywords: ' + err
-      + '  Has supabase-keywords.sql been run?';
-    kwRows = [];
+  const request = ++matrixRefreshRequest, board = state.boardId, view = state.contentView;
+  const table = $('mxTable'); table.setAttribute('aria-busy', 'true');
+  try {
+    const err = await loadKeywords().catch(error => error.message || 'Network error');
+    if(request !== matrixRefreshRequest || state.boardId !== board ||
+       state.contentView !== view || state.tab !== CONTENT_TAB || state.screen !== 'board') return;
+    if(err && err !== 'no-board') kwRows = [];
+    renderContentView();
+    if (err && err !== 'no-board'){
+      $('mxSetup').hidden = false;
+      $('mxSetup').textContent = 'Could not read keywords: ' + err;
+    }
+  } finally {
+    if(request === matrixRefreshRequest) table.removeAttribute('aria-busy');
   }
-  renderContentView();
 }
 function renderContentView(){
   if (viewDef(state.contentView).kind === 'grid') renderGrid(); else renderMatrix();
@@ -9303,7 +9317,9 @@ function showKwSetup(msg){
 }
 
 /* Fetch once; both the repo tables and the content matrix read kwRows. */
+let keywordLoadRequest = 0;
 async function loadKeywords(){
+  const request = ++keywordLoadRequest, board = state.boardId;
   if (!state.boardId){ kwRows = []; return 'no-board'; }
   const { data, error } = await sb
     .from('keywords')
@@ -9311,6 +9327,7 @@ async function loadKeywords(){
     .eq('board_id', state.boardId)
     .order('volume', { ascending: false, nullsFirst: false })
     .limit(2000);
+  if(request !== keywordLoadRequest || state.boardId !== board) return 'stale-request';
   if (error){ kwRows = []; return error.message; }
   kwRows = data || [];
   return null;
