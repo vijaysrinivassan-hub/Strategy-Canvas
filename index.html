@@ -2381,7 +2381,7 @@ const SUPABASE_URL = 'https://cskamgfvebryahkljlll.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_MdkD-TxMCIwlu69seSHA3Q_A39GADsK';
 const CLIENT_ID    = '1059013355751-6g50dsgm7df37htl2fdqrtlkh5hmrc0c.apps.googleusercontent.com';
 const ALLOWED      = ['vijaysrinivassan@gmail.com'];
-const BUILD        = 'v7.59';
+const BUILD        = 'v7.60';
 
 const STRATEGY_ONE_TAB = 'Strategy 1 — Brand Strategy';
 const PRODUCT_EVOLUTION_TAB = 'Strategy 1 — Product Evolution';
@@ -2629,6 +2629,7 @@ function isAllowed(email){
 }
 function markDirty(){
   if (readOnly()) return;
+  state.editRevision = (state.editRevision || 0) + 1;
 
   /* An edit to a frame becomes your copy of it straight away, so the Reset
      button is there the moment you need it. Held by reference, which costs
@@ -4301,9 +4302,11 @@ async function refreshBoards(){
 }
 
 async function openBoard(id){
-  const { data, error } = await sb.from('reports').select('id,title,body,owner_id').eq('id', id).single();
+  const { data, error } = await sb.from('reports').select('id,title,body,owner_id,updated_at').eq('id', id).single();
   if (error){ toast('Could not open board: ' + error.message, true); return; }
   state.boardId = data.id;
+  state.boardRevision = data.updated_at;
+  state.saveConflict = false;
   state.ownerId = data.owner_id;
   state.role = roleForBoard(data);
   gtmRevealDepth = 0;
@@ -4322,34 +4325,61 @@ async function openBoard(id){
   if (state.tab !== DOCS_TAB) zoomToFit();
 }
 
+let boardSaveInFlight = false;
 async function saveBoard(quiet){
   if (!state.user || readOnly()) return;
+  if (boardSaveInFlight){ scheduleAutosave(); return; }
   const el = $('saveState');
+  if (state.saveConflict){
+    el.textContent = 'Newer board available — reload before saving';
+    el.className = 'save-line bad';
+    return;
+  }
+  boardSaveInFlight = true;
+  const boardId = state.boardId, tabs = state.tabs, editRevision = state.editRevision || 0;
+  const sameWorkspace = () => state.tabs === tabs && (state.boardId === boardId || !boardId);
+  try {
   el.textContent = 'Saving…'; el.className = 'save-line';
   const payload = { title: state.client + ' Strategy Board', body: serialize() };
 
-  let error;
-  if (state.boardId){
-    ({ error } = await sb.from('reports').update(payload).eq('id', state.boardId));
+  let result;
+  if (boardId){
+    // Compare the revision loaded with this editor, not a freshly fetched revision.
+    // A stale browser must never overwrite changes made by MCP or another tab.
+    if (!state.boardRevision) throw new Error('Reload this board before saving.');
+    result = await sb.from('reports').update(payload).eq('id', boardId)
+      .eq('updated_at', state.boardRevision).select('id,updated_at');
   } else {
     payload.owner_id = state.user.id;
-    const res = await sb.from('reports').insert(payload).select('id').single();
-    error = res.error;
-    if (!error) state.boardId = res.data.id;
+    result = await sb.from('reports').insert(payload).select('id,updated_at');
   }
-  if (error){
-    el.textContent = 'Save failed'; el.className = 'save-line bad';
-    toast('Save failed: ' + error.message, true);
+  if (!sameWorkspace()) return;
+  if (result.error) throw result.error;
+  if (!result.data?.length){
+    state.saveConflict = true;
+    el.textContent = 'Newer board available — reload before saving'; el.className = 'save-line bad';
+    toast('A newer board was saved elsewhere. Your local edits have NOT been saved. Copy any unsaved text you need, then reload or reopen the board.', true);
     return;
   }
-  state.dirty = false;
-  el.textContent = 'Saved'; el.className = 'save-line';
+  state.boardId = result.data[0].id;
+  state.boardRevision = result.data[0].updated_at;
+  state.dirty = (state.editRevision || 0) !== editRevision;
+  el.textContent = state.dirty ? 'Unsaved changes' : 'Saved'; el.className = 'save-line';
+  if (state.dirty) scheduleAutosave();
   await refreshBoards();
   if (!quiet) toast('Board saved.');
+  } catch(error){
+    if (sameWorkspace()){
+      el.textContent = 'Save failed'; el.className = 'save-line bad';
+      toast('Save failed: ' + error.message, true);
+    }
+  } finally { boardSaveInFlight = false; }
 }
 
 async function newBoard(clientName, clientProduct, clientType, clientGoal, clientMarketType, clientSalesMotion, clientIcp1, products){
   state.boardId = null;
+  state.boardRevision = null;
+  state.saveConflict = false;
   state.ownerId = state.user ? state.user.id : null;
   state.role = 'admin';
   state.client = (clientName || '').trim() || 'Untitled';
