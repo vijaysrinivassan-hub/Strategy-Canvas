@@ -1165,6 +1165,15 @@
   .arch-actions button{padding:0 10px}
   .arch-actions .primary{border-color:#65c889; background:#effbf3; color:#22663b; font-weight:750}
   .arch-actions{flex-wrap:wrap; justify-content:flex-end}
+  .product-switcher{display:flex; flex:none; margin-left:auto; max-width:48vw; overflow-x:auto;
+    padding:3px; gap:3px; border:1px solid #d0dcd3; background:#f1f5f1}
+  .product-switcher button{flex:none; max-width:220px; overflow:hidden; text-overflow:ellipsis;
+    white-space:nowrap; padding:7px 12px; border:1px solid transparent; background:transparent;
+    color:#55635a; font:inherit; font-size:12px; cursor:pointer}
+  .product-switcher button[aria-pressed="true"]{background:#e2f4e7; border-color:#71bf88; color:#225f35; font-weight:700}
+  .product-switcher button:focus-visible{outline:2px solid #328b50; outline-offset:-2px}
+  .product-switcher:not([hidden]) + .acct{margin-left:10px}
+  .client-product-editor{display:grid; gap:8px; margin:12px 0; max-height:40vh; overflow:auto}
   .arch-prompts{width:min(660px,calc(100vw - 40px)); max-height:85vh; padding:24px;
     border:1px solid #cfd8d1; background:#fbfcf9; color:#303b33; box-shadow:0 20px 70px #15251c30}
   .arch-prompts::backdrop{background:#15251c66}
@@ -1948,6 +1957,7 @@
         <option value="">Insert a frame&hellip;</option>
       </select>
 
+      <div id="productSwitcher" class="product-switcher" role="group" aria-label="Product" hidden></div>
       <!-- who you are, and which view you are looking through -->
       <div class="acct" id="acct">
         <button class="acct-btn" id="acctBtn" type="button" title="Account and view">
@@ -2371,7 +2381,7 @@ const SUPABASE_URL = 'https://cskamgfvebryahkljlll.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_MdkD-TxMCIwlu69seSHA3Q_A39GADsK';
 const CLIENT_ID    = '1059013355751-6g50dsgm7df37htl2fdqrtlkh5hmrc0c.apps.googleusercontent.com';
 const ALLOWED      = ['vijaysrinivassan@gmail.com'];
-const BUILD        = 'v7.57';
+const BUILD        = 'v7.58';
 
 const STRATEGY_ONE_TAB = 'Strategy 1 — Brand Strategy';
 const PRODUCT_EVOLUTION_TAB = 'Strategy 1 — Product Evolution';
@@ -4091,7 +4101,124 @@ window.addEventListener('blur', () => { spaceHeld = false; });
 /* ===================================================================
    PERSISTENCE
    =================================================================== */
+/* Product workspace projection: tabs always contains the active product's data.
+   Inactive products live in snapshots; older clients and MCP tools can still use tabs. */
+function productScopedTabs(){
+  return [PRODUCT_ARCHITECTURE_TAB, POSITIONING_TAB, POSITIONING_DOCUMENT_TAB, BRAND_RADAR_TAB, CONTENT_TAB];
+}
+function ensureProductWorkspace(){
+  const catalog = channelState();
+  if (!state.productWorkspaces || typeof state.productWorkspaces !== 'object') state.productWorkspaces = {};
+  if (!state.workspaceProductId){
+    const target = catalog.products.find(p => p.name === state.clientProduct) || activeGtmProduct(catalog);
+    state.workspaceProductId = target.id;
+    if (state.tabs[PRODUCT_EVOLUTION_TAB]){
+      evolutionState(); problemEvidenceState(); delete state.tabs[PRODUCT_EVOLUTION_TAB];
+    }
+  }
+  // The active top-level tabs are authoritative, including writes made by MCP.
+  if (!catalog.products.some(p => p.id === state.workspaceProductId)){
+    catalog.products.push({id:state.workspaceProductId,name:state.clientProduct || 'Recovered product'});
+  }
+  catalog.activeProductId = state.workspaceProductId;
+  const active = activeGtmProduct(catalog);
+  state.clientProduct = active.name;
+  return catalog;
+}
+function snapshotProductWorkspace(){
+  if (!state.workspaceProductId) return;
+  state.productWorkspaces ||= {};
+  const tabs = {};
+  productScopedTabs().forEach(key => { tabs[key] = state.tabs[key] || {nodes:[],edges:[]}; });
+  state.productWorkspaces[state.workspaceProductId] = JSON.parse(JSON.stringify({tabs}));
+}
+function activateProduct(productId){
+  const catalog = ensureProductWorkspace();
+  const product = catalog.products.find(p => p.id === productId);
+  if (!product || state.workspaceProductId === productId) return;
+  // Commit focused text fields before replacing the visible editors.
+  document.activeElement?.blur();
+  snapshotProductWorkspace();
+  const saved = state.productWorkspaces[productId];
+  productScopedTabs().forEach(key => {
+    state.tabs[key] = saved?.tabs?.[key] ? JSON.parse(JSON.stringify(saved.tabs[key])) : {nodes:[],edges:[]};
+  });
+  if (!saved){
+    const architecture = blankArchitecture(); architecture.name = product.name;
+    state.tabs[PRODUCT_ARCHITECTURE_TAB].architecture = architecture;
+  }
+  state.workspaceProductId = productId;
+  catalog.activeProductId = productId;
+  state.clientProduct = product.name;
+  architectureSelection.clear(); architectureSelectedEdge = '';
+  architectureConnection = null;
+  if ($('archPromptsDialog').open) $('archPromptsDialog').close();
+  if (!readOnly()) markDirty();
+}
+function renderProductSwitcher(){
+  const host = $('productSwitcher');
+  const shown = state.screen !== 'settings' && state.screen !== 'clients' &&
+    state.screen !== 'atypes' && state.screen !== 'mcp' && productScopedTabs().includes(state.tab);
+  host.hidden = !shown;
+  if (!state.tabs || !state.client) return;
+  const catalog = ensureProductWorkspace();
+  host.replaceChildren();
+  if (!shown) return;
+  catalog.products.forEach(product => {
+    const button = document.createElement('button'); button.type = 'button';
+    button.textContent = product.name; button.title = product.name;
+    button.setAttribute('aria-pressed', String(product.id === state.workspaceProductId));
+    button.onclick = () => { activateProduct(product.id); applyTabMode(); };
+    host.append(button);
+  });
+}
+function productNameEditor(products){
+  const host = document.createElement('div'); host.className = 'client-product-editor';
+  const fields = [];
+  const addRow = product => {
+    const input = document.createElement('input'); input.className = 'modal-in';
+    input.value = product.name; input.placeholder = 'Product name';
+    input.setAttribute('aria-label', 'Product ' + (fields.length + 1));
+    fields.push({id:product.id || uid(),input}); host.append(input); return input;
+  };
+  products.forEach(addRow);
+  const add = document.createElement('button'); add.type = 'button'; add.textContent = '+ Add product';
+  add.onclick = () => addRow({name:''}).focus();
+  return {host,add,values:() => fields.map(f=>({id:f.id,name:f.input.value.trim()}))};
+}
+function validProductNames(products){
+  if (products.some(p=>!p.name)){ toast('Enter a name for each product.', true); return false; }
+  if (new Set(products.map(p=>p.name.toLowerCase())).size !== products.length){
+    toast('Use a different name for each product.', true); return false;
+  }
+  return true;
+}
+function openProductsModal(){
+  if (readOnly()) return;
+  const catalog = ensureProductWorkspace();
+  const host = $('modalHost'); host.innerHTML = '';
+  const overlay = document.createElement('div'); overlay.className = 'overlay'; overlay.onclick = closeModal;
+  const modal = document.createElement('div'); modal.className = 'modal'; modal.onclick = e=>e.stopPropagation();
+  const title = document.createElement('h3'); title.textContent = 'Products · ' + state.client;
+  const hint = document.createElement('p'); hint.textContent = 'Add or rename products. Each has its own architecture, positioning, radar and keyword tables.';
+  const editor = productNameEditor(catalog.products);
+  const foot = document.createElement('div'); foot.className = 'mrow';
+  const cancel = document.createElement('button'); cancel.textContent = 'Cancel'; cancel.onclick = closeModal;
+  const save = document.createElement('button'); save.className = 'primary'; save.textContent = 'Save products';
+  save.onclick = async () => {
+    const products = editor.values(); if (!validProductNames(products)) return;
+    catalog.products = products;
+    state.clientProduct = products.find(p=>p.id===state.workspaceProductId).name;
+    save.disabled = true;
+    markDirty(); await saveBoard();
+    if (state.dirty){ save.disabled = false; return; }
+    closeModal(); applyTabMode();
+  };
+  foot.append(cancel,save); modal.append(title,hint,editor.host,editor.add,foot); overlay.append(modal); host.append(overlay);
+}
+/* End product workspace helpers. */
 function serialize(){
+  snapshotProductWorkspace();
   captureFrame();
   /* the frame scratch tab is a working copy, not a tab of this board */
   const tabs = {};
@@ -4105,12 +4232,15 @@ function serialize(){
                           clientSalesMotion: state.clientSalesMotion || '',
                           clientIcp1: state.clientIcp1 || 'New Entrants', logo: state.logo || '',
                           extra: state.extra, brandOrder: state.brandOrder,
-                          frameEdits: state.frameEdits, tabs: tabs });
+                          frameEdits: state.frameEdits, productWorkspaces: state.productWorkspaces,
+                          workspaceProductId: state.workspaceProductId, tabs: tabs });
 }
 function hydrate(text){
   let d = null;
   try { d = JSON.parse(text); } catch (e) {}
   state.tabs = blankTabs();
+  state.productWorkspaces = d && d.productWorkspaces && typeof d.productWorkspaces === 'object' ? d.productWorkspaces : {};
+  state.workspaceProductId = d && typeof d.workspaceProductId === 'string' ? d.workspaceProductId : '';
   state.extra = [];
   state.frameEdits = (d && d.frameEdits && typeof d.frameEdits === 'object') ? d.frameEdits : {};
   state.brandOrder = (d && Array.isArray(d.brandOrder))
@@ -4218,7 +4348,7 @@ async function saveBoard(quiet){
   if (!quiet) toast('Board saved.');
 }
 
-async function newBoard(clientName, clientProduct, clientType, clientGoal, clientMarketType, clientSalesMotion, clientIcp1){
+async function newBoard(clientName, clientProduct, clientType, clientGoal, clientMarketType, clientSalesMotion, clientIcp1, products){
   state.boardId = null;
   state.ownerId = state.user ? state.user.id : null;
   state.role = 'admin';
@@ -4227,6 +4357,8 @@ async function newBoard(clientName, clientProduct, clientType, clientGoal, clien
   gtmOpenMotions = {};
   activeJourneyChannel = '';
   state.clientProduct = (clientProduct || '').trim();
+  state.productWorkspaces = {};
+  state.workspaceProductId = '';
   state.clientType = CLIENT_TYPES.some(x => x.id === clientType) ? clientType : '';
   state.clientGoal = (clientGoal || '').trim() || 'Customer Acquisition';
   state.clientMarketType = clientMarketType === 'red' || clientMarketType === 'blue' ? clientMarketType : '';
@@ -4234,6 +4366,10 @@ async function newBoard(clientName, clientProduct, clientType, clientGoal, clien
   state.clientIcp1 = (clientIcp1 || '').trim() || 'New Entrants';
   state.logo = '';
   state.tabs = blankTabs();
+  if (products && products.length){
+    const catalog = channelState(); catalog.products = products;
+    catalog.activeProductId = products[0].id; state.workspaceProductId = products[0].id;
+  }
   state.extra = [];
   state.frameEdits = {};
   state.brandOrder = [];
@@ -4717,6 +4853,7 @@ async function uploadFiles(list, targetSection){
 
 /* Swap the canvas out for the gallery on that one tab. */
 function applyTabMode(){
+  renderProductSwitcher();
   /* the three settings screens are one page; old ids still land on it */
   if (state.screen === 'clients' || state.screen === 'atypes' || state.screen === 'mcp'){
     state.screen = 'settings';
@@ -5026,6 +5163,10 @@ function openClientSettings(){
   save.onclick = async function(){
     const nm = nameIn.value.trim();
     if (!productIn.value.trim()){ toast('Enter the target product.', true); productIn.focus(); return; }
+    const catalog = ensureProductWorkspace();
+    const renamed = catalog.products.map(p=>({...p,name:p.id===state.workspaceProductId ? productIn.value.trim() : p.name}));
+    if (!validProductNames(renamed)) return;
+    catalog.products = renamed;
     state.client = nm || 'Untitled';
     state.clientProduct = productIn.value.trim();
     state.clientType = typeIn.value;
@@ -6354,6 +6495,7 @@ function renderContent(){
 /* Every content view reads the keyword repo now: the matrix matches on
    competitor and article type, the tables match on the cell's own words. */
 async function refreshMatrix(){
+  renderContentView();
   const err = await loadKeywords();
   if (err && err !== 'no-board'){
     $('mxSetup').hidden = false;
@@ -8768,7 +8910,9 @@ function openNewClientModal(){
   const nameLabel = document.createElement('label'); nameLabel.className = 'fl'; nameLabel.textContent = 'Client name';
   const name = document.createElement('input'); name.className = 'modal-in'; name.placeholder = 'Client or company name';
   const productLabel = document.createElement('label'); productLabel.className = 'fl'; productLabel.style.marginTop = '16px'; productLabel.textContent = 'Target product';
-  const product = document.createElement('input'); product.className = 'modal-in'; product.placeholder = 'Product name';
+  productLabel.textContent = 'Products';
+  const productEditor = productNameEditor([{name:''}]);
+  const product = productEditor.host.querySelector('input');
   const typeLabel = document.createElement('label'); typeLabel.className = 'fl'; typeLabel.style.marginTop = '16px'; typeLabel.textContent = 'Industry type';
   const type = document.createElement('select'); type.className = 'modal-in';
   const choose = document.createElement('option'); choose.value = ''; choose.textContent = 'Choose Local, E-commerce, SaaS, or Services'; type.append(choose);
@@ -8799,15 +8943,16 @@ function openNewClientModal(){
   create.onclick = async function(){
     if (!name.value.trim()){ toast('Enter a client name.', true); name.focus(); return; }
     if (!product.value.trim()){ toast('Enter the target product.', true); product.focus(); return; }
+    const products = productEditor.values(); if (!validProductNames(products)) return;
     if (!type.value){ toast('Choose an industry type.', true); type.focus(); return; }
     create.disabled = true; create.textContent = 'Creating…';
-    await newBoard(name.value, product.value, type.value, goal.value, market.value, salesMotion.value, icp1.value);
+    await newBoard(name.value, product.value, type.value, goal.value, market.value, salesMotion.value, icp1.value, products);
     closeModal();
   };
   name.onkeydown = function(ev){ if (ev.key === 'Enter') product.focus(); };
   product.onkeydown = function(ev){ if (ev.key === 'Enter') type.focus(); };
   foot.append(cancel, create);
-  modal.append(h, p, nameLabel, name, productLabel, product, typeLabel, type, goalLabel, goal, marketLabel, market,
+  modal.append(h, p, nameLabel, name, productLabel, productEditor.host, productEditor.add, typeLabel, type, goalLabel, goal, marketLabel, market,
     salesMotionLabel, salesMotion, icp1Label, icp1, icp2Label, icp2, foot);
   overlay.append(modal); host.append(overlay); name.focus();
 }
@@ -8861,8 +9006,10 @@ async function renderClients(){
       const actions = document.createElement('div'); actions.className = 'client-actions';
       const edit = document.createElement('button'); edit.textContent = 'Edit';
       edit.onclick = async function(){ if (b.id !== state.boardId) await openBoard(b.id); openClientSettings(); };
+      const products = document.createElement('button'); products.textContent = 'Products';
+      products.onclick = async () => { if (b.id !== state.boardId) await openBoard(b.id); openProductsModal(); };
       const manage = document.createElement('button'); manage.textContent = 'Access'; manage.onclick = function(){ openAccessModal(b); };
-      actions.append(edit, manage); card.append(actions);
+      actions.append(edit, products, manage); card.append(actions);
     }
     list.append(card);
   });
@@ -9300,11 +9447,10 @@ function revealGtmMotion(motion){
 
 function addGtmProduct(){
   if (readOnly()) return;
-  const t = channelState();
+  const t = ensureProductWorkspace();
   const product = { id: uid(), name: 'New product' };
   t.products.push(product);
-  t.activeProductId = product.id;
-  state.clientProduct = gtmProductTargetName(product);
+  activateProduct(product.id);
   markDirty();
   renderChannels();
   const names = $('gtmProductRow').querySelectorAll('.gtm-product-name');
@@ -9314,10 +9460,14 @@ function addGtmProduct(){
 
 function removeGtmProduct(productId){
   if (readOnly()) return;
-  const t = channelState();
+  const t = ensureProductWorkspace();
   const product = t.products.find(item => item.id === productId);
   if (!product) return;
   if (!confirm('Remove "' + product.name + '" from this GTM canvas?')) return;
+  if (t.activeProductId === productId){
+    if (t.products.length === 1) t.products.push({id:uid(),name:'Product name'});
+    activateProduct(t.products.find(p=>p.id!==productId).id);
+  }
   t.products = t.products.filter(item => item.id !== productId);
   if (!t.products.length) t.products.push({ id: uid(), name: 'Product name' });
   if (t.activeProductId === productId) t.activeProductId = t.products[0].id;
@@ -9380,15 +9530,14 @@ function renderChannels(){
       ev.stopPropagation();
       editGtmText(name, product.name, value => {
         product.name = value || 'Product name';
-        t.activeProductId = product.id;
-        state.clientProduct = gtmProductTargetName(product);
+        activateProduct(product.id);
+        state.clientProduct = product.name;
         markDirty();
         renderChannels();
       });
     };
     const choose = () => {
-      t.activeProductId = product.id;
-      state.clientProduct = gtmProductTargetName(product);
+      activateProduct(product.id);
       if (!readOnly()) markDirty();
       revealGtmLevel(2);
     };

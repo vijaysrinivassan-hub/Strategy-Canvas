@@ -130,6 +130,8 @@ export interface BoardBody {
   version?: number;
   client?: string;
   clientProduct?: string;
+  workspaceProductId?: string;
+  productWorkspaces?: Record<string, {tabs: Record<string, any>}>;
   clientType?: string;
   clientGoal?: string;
   clientMarketType?: string;

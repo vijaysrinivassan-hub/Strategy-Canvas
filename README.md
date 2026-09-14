@@ -359,6 +359,15 @@ courtesy — the database is the boundary. Run `supabase-access.sql` to set it u
 
 ## Data
 
+The top-right product switcher scopes Product Architecture, Positioning Canvas,
+Positioning Document, Brand Radar and all four Keywords views to a product.
+Settings > Clients > Products adds or renames products; new-client setup accepts
+multiple products too. The catalog is shared with GTM Strategy. Existing tabs
+remain with the active legacy product; new products start empty. `tabs` is always
+the active projection for compatibility with MCP; inactive tabs are stored under
+`productWorkspaces`, keyed by stable product ID. Prompts follow their architecture
+tab. Client identity, Grounded Evidences and Keyword Repo remain client-wide.
+
 Product Architecture includes an **AI Prompts** button next to Load sample and Create system.
 Its copyable prompt comes from `ai-prompts.json`, shared with the MCP's `ai_prompts_get`
 and `board_get` tools. Users can edit the prompt in the dialog; changes autosave in

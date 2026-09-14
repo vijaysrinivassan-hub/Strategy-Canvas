@@ -122,6 +122,9 @@ export function registerBoardTools(server: McpServer) {
         id: row.id,
         title: row.title,
         client: body.client,
+        products: body.tabs['Strategy 1 — Brand Strategy']?.channels?.products || [],
+        active_product_id: body.workspaceProductId || body.tabs['Strategy 1 — Brand Strategy']?.channels?.activeProductId || null,
+        product_scope: 'Architecture, positioning, radar and the four Keywords views in tabs belong to the active product. Inactive product data is preserved separately.',
         ai_prompts: { product_architecture: await architecturePrompts(body) },
         client_details: {
           goal: body.clientGoal || "Customer Acquisition",
