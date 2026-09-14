@@ -1,0 +1,13 @@
+import assert from 'node:assert/strict';
+import A from './keyword-assignments.js';
+const target={v:'Keep title',kws:['existing']},old={v:'Other title',kws:['move','keep']};
+const tabs={'Content Strategy':{views:{category:{rows:[{cells:{a:old}}]},competitor:{rows:[{id:'a'},{id:'b'}],comparisonCells:{'["a","b"]':target}}}}};
+A.move(tabs,target,['move']);
+assert.deepEqual(target.kws,['existing','move']);assert.deepEqual(old.kws,['keep']);
+assert.equal(target.v,'Keep title');
+A.move(tabs,target,['move']);assert.equal(target.kws.length,2);
+const body={tabs,workspaceProductId:'p',productWorkspaces:{p:{tabs:{'Content Strategy':{views:{category:{rows:[{cells:{a:{kws:['stale']}}}]}}}}},q:{tabs:{'Content Strategy':{views:{value:{rows:[{cells:{a:{kws:['other-product']}}}]}}}}}}};
+assert.deepEqual([...A.assigned(body)].sort(),['existing','keep','move','other-product'].sort());
+delete tabs['Content Strategy'].views.competitor.comparisonCells['["a","b"]'];
+assert(!A.assigned(body).has('move'));
+console.log('PASS: move without metric deletion, title preservation, idempotency, release on removal, inactive-product assignments and stale snapshot exclusion');

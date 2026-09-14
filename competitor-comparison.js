@@ -21,7 +21,7 @@ function renderCompetitorComparison(m){
  comparisonObserver=null;comparisonCellObserver=null;
  host.hidden=false;host.innerHTML='';
  const heading=document.createElement('h3');heading.textContent='Competitor vs. Competitor';
- const note=document.createElement('p');note.textContent='Plan comparison articles. Mirrored pairs share their fields; self-comparisons are not applicable.';
+ const note=document.createElement('p');note.textContent='Plan comparison articles. Each competitor pair appears once. Self-comparisons and repeated pairs are not applicable.';
  const toolbar=document.createElement('div');toolbar.className='comparison-toolbar';
  const copy=document.createElement('button');copy.type='button';copy.textContent='Copy';
  copy.setAttribute('aria-label','Copy all comparisons, proposed titles and keywords');
@@ -88,7 +88,8 @@ function renderCompetitorComparison(m){
    for(const b of companies){
     const td=document.createElement('td'),key=comparisonKey(a.id,b.id);
     if(key===null){td.className='comparison-null';td.textContent='—';td.title='Not applicable: same company';td.setAttribute('aria-label',a.name+' vs. itself: not applicable');tr.append(td);continue;}
-    const entry={td,key,title:a.name+' vs. '+b.name,hydrated:false};
+    if(companies.indexOf(b)<companies.indexOf(a)){td.className='comparison-null';td.textContent='';td.setAttribute('aria-label','Repeated pair omitted');tr.append(td);continue;}
+    const entry={td,key,title:a.name+' vs '+b.name,hydrated:false};
     td.className='comparison-pending';td.textContent=entry.title;
     if(!mirrors.has(key))mirrors.set(key,[]);mirrors.get(key).push(entry);
     pending.set(td,entry);tr.append(td);

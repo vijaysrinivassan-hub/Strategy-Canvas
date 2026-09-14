@@ -11,11 +11,14 @@ import { registerFrameTools } from "./tools/frames.js";
 import { registerPositioningDocumentTools } from "./tools/positioning-document.js";
 import { registerArchitectureTools } from "./tools/architecture.js";
 
+import { registerKeywordAssignmentTools } from './tools/keyword-assignments.js';
+
 const server = new McpServer({
   name: "strategy-board-mcp-server",
   version: "1.0.0"
 });
 
+registerKeywordAssignmentTools(server);
 registerBoardTools(server);
 registerKeywordTools(server);
 registerDocumentTools(server);

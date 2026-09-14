@@ -2430,6 +2430,7 @@
 <div id="modalHost"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="keyword-assignments.js"></script>
 <script src="keyword-columns.js"></script>
 <script src="keyword-columns-ui.js"></script>
 <script src="competitor-comparison.js"></script>
@@ -2441,7 +2442,7 @@ const SUPABASE_URL = 'https://cskamgfvebryahkljlll.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_MdkD-TxMCIwlu69seSHA3Q_A39GADsK';
 const CLIENT_ID    = '1059013355751-6g50dsgm7df37htl2fdqrtlkh5hmrc0c.apps.googleusercontent.com';
 const ALLOWED      = ['vijaysrinivassan@gmail.com'];
-const BUILD        = 'v7.74';
+const BUILD        = 'v7.75';
 
 const STRATEGY_ONE_TAB = 'Strategy 1 — Brand Strategy';
 const PRODUCT_EVOLUTION_TAB = 'Strategy 1 — Product Evolution';
@@ -5916,7 +5917,7 @@ function cellControls(td, o){
     const add = document.createElement('button');
     add.className = 'gr-kwadd';
     add.textContent = '+ kw';
-    add.title = 'Add a keyword to the repo that lands in this cell';
+    add.title = 'Move a keyword into this cell';
     add.onclick = function(){
       openKeywordModal(o.seed(), function(saved){
         const key = String(saved.keyword || '').trim().toLowerCase() + '|'
@@ -5929,6 +5930,7 @@ function cellControls(td, o){
         const cur = o.get();
         const kws = Array.isArray(cur.kws) ? cur.kws.slice() : [];
         if (kws.map(String).indexOf(String(row.id)) === -1) kws.push(row.id);
+        KeywordAssignments.move(state.tabs,cur,[row.id]);
         o.set({ kws: kws });
         markDirty();
         o.rerender();
@@ -9446,7 +9448,8 @@ function renderKeywordTables(overrideEmpty){
 
   /* one table: everything in the repo, whatever an old selected flag says.
      Approval lives in the content cells' ticks, not here. */
-  const repo = kwRows.filter(match);
+  const assigned = KeywordAssignments.assigned({tabs:state.tabs,workspaceProductId:state.workspaceProductId,productWorkspaces:state.productWorkspaces});
+  const repo = kwRows.filter(r=>!assigned.has(String(r.id)) && match(r));
   $('kwRepoCount').textContent = repo.length;
   kwTable($('kwRepoTable'), repo,
     overrideEmpty || (kwRows.length ? 'No keywords match that filter.'

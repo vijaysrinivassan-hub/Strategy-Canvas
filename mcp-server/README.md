@@ -73,6 +73,11 @@ npm run inspect
 
 Opens the MCP Inspector, where every tool can be called by hand.
 
+## Keyword cell assignments
+
+`keyword_cells_get` returns active product ID, revision and exact cell/competitor IDs.
+`keyword_move_to_cells` atomically assigns existing keyword IDs to comparison or ordinary article cells. Supply the product ID and revision from the read. It preserves titles, metrics and unrelated products. Keywords move out of previous cells in that product and disappear from Keyword Repo without deleting their records. `keyword_list` defaults to unassigned keywords; use `include_assigned: true` to find assigned IDs. Rebuild and reconnect the local MCP server after updating to expose the new tools.
+
 ## What Claude can do with it
 
 **Boards** — `board_list`, `board_get`, `board_create`

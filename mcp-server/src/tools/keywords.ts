@@ -1,6 +1,9 @@
 import { z } from "zod";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { boardOwner, db, ok, ToolError } from "../lib.js";
+import { boardOwner, db, loadBoard, ok, ToolError } from "../lib.js";
+
+import { createRequire } from 'node:module';
+const KeywordAssignments=createRequire(import.meta.url)('../../../keyword-assignments.js');
 
 const KeywordInput = z.object({
   keyword: z.string().min(1),
@@ -27,18 +30,20 @@ export function registerKeywordTools(server: McpServer) {
       inputSchema: {
         board_id: z.string(),
         selected_only: z.boolean().default(false).optional(),
+        include_assigned: z.boolean().default(false).optional().describe("Include keywords already filed in article cells; default shows only Keyword Repo."),
         contains: z.string().optional().describe("Case-insensitive substring filter"),
         limit: z.number().int().min(1).max(1000).default(200).optional()
       },
       annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true }
     },
-    async ({ board_id, selected_only, contains, limit }) => {
+    async ({ board_id, selected_only, include_assigned, contains, limit }) => {
       let q = db()
         .from("keywords")
         .select("id,keyword,selected,volume,kd,cpc,traffic_potential,parent_topic,intent,country,source")
         .eq("board_id", board_id)
         .order("volume", { ascending: false, nullsFirst: false })
         .limit(limit ?? 200);
+      if(!include_assigned){const {body}=await loadBoard(board_id);const ids=[...KeywordAssignments.assigned(body)];if(ids.length)q=q.not("id","in","("+ids.join(",")+")");}
       if (selected_only) q = q.eq("selected", true);
       if (contains) q = q.ilike("keyword", `%${contains}%`);
 
