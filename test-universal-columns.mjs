@@ -1,0 +1,47 @@
+import fs from 'node:fs';
+import vm from 'node:vm';
+import assert from 'node:assert/strict';
+import K from './keyword-columns.js';
+const html=fs.readFileSync(new URL('./index.html',import.meta.url),'utf8');
+new vm.Script(html.slice(html.indexOf('<script>')+8,html.indexOf('</script>',html.indexOf('<script>'))));
+assert.equal(html.split('src="keyword-columns.js"').length-1,1);
+assert.equal(html.split('src="keyword-columns-ui.js"').length-1,1);
+const config=K.seed();
+const root={views:{category:{kind:'grid',columns:[{id:'old',name:'Category name'},{id:'local',name:'Special',local:true}],rows:[{cells:{old:{v:'Keep me',mode:'seo'},local:'Local data'}}]}}};
+K.sync(root,config);
+assert.equal(root.views.category.columns.find(c=>c.name==='Category name').id,'old');
+const count=root.views.category.columns.length;K.sync(root,config);assert.equal(root.views.category.columns.length,count);
+assert.equal(root.views.category.rows[0].cells.old.v,'Keep me');
+config.views.category[0].name='Market category';config.views.category[0].instruction='Updated AI instruction';
+config.views.category[0].defaults={articleType:'Landing page',mode:'seo',aw:'Solution aware',value:'Default text'};
+K.sync(root,config);
+const c=root.views.category.columns.find(c=>c.id==='old');
+assert.equal(c.name,'Market category');assert.equal(c.instruction,'Updated AI instruction');
+assert(root.articleTypes.some(t=>t.id===c.defaults.type&&t.name==='Landing page'));
+assert(root.articleTypes.some(t=>t.name==='Listicle'));
+assert.equal(root.views.category.rows[0].cells.old.v,'Keep me');
+K.move(root.views.category,'old',1);const order=K.order(root.views.category);
+K.sync(root,config);assert.deepEqual(K.order(root.views.category),order);
+const other={};K.sync(other,config);assert(!other.views.category.columns.some(c=>c.name==='Special'));
+assert.equal(other.views.category.columns[0].name,'Market category');
+assert.notEqual(other.views.category.columns[0],c);
+other.views.category.columns[0].name='Tampered';K.sync(other,config);
+assert.equal(other.views.category.columns[0].name,'Market category');
+config.views.category=config.views.category.slice(1);K.sync(root,config);
+assert.equal(c.universalId,undefined);assert.equal(root.views.category.rows[0].cells.old.v,'Keep me');
+const matrix=root.views.competitor;matrix.types[0].id='legacy-type';matrix.cells={'employee|legacy-type':{v:'Untouched'}};
+assert(K.move(matrix,'__row',1));assert.equal(K.order(matrix)[1],'__row');
+K.sync(root,config);assert.equal(matrix.cells['employee|legacy-type'].v,'Untouched');
+// Exercise the real initializer for fresh products and live default values.
+let n=0;const state={tabs:{},contentView:'category'};
+const ctx=vm.createContext({state,KeywordColumns:K,activeUniversalColumns:()=>config,uid:()=>String(++n)});
+vm.runInContext(html.slice(html.indexOf("const CONTENT_TAB = 'Content Strategy'"),html.indexOf('function cellKeywords')),ctx);
+const fresh=ctx.contentRoot();
+assert(!fresh.views.category.columns.some(c=>c.name==='Category name')); // removed definition doesn't reappear
+assert(fresh.views.category.columns.every(c=>c.universalId));
+vm.runInContext(html.slice(html.indexOf('function cellOf('),html.indexOf('/* A cell with nothing chosen')),ctx);
+assert.equal(ctx.cellOf({cells:{}},'x',{value:'Default'}).v,'Default');
+assert.equal(ctx.cellOf({cells:{x:{v:''}}},'x',{value:'Default'}).v,''); // explicit blank stays
+assert(html.includes('if (readOnly() || col.universalId) return;'));
+assert(html.includes('if (!ro && !ty.universalId)'));
+console.log('PASS: inheritance, new products, stable IDs, local isolation, locked metadata, reorder, non-destructive retirement, defaults, and inline script syntax.');

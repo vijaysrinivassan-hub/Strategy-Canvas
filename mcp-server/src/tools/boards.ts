@@ -1,6 +1,6 @@
 import { z } from "zod";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { db, loadBoard, ok, ownerId, TABS, ToolError } from "../lib.js";
+import { db, loadBoard, ok, ownerId, TABS, ToolError, KeywordColumns } from "../lib.js";
 import { architecturePrompts } from './architecture.js';
 
 export function registerBoardTools(server: McpServer) {
@@ -21,7 +21,7 @@ export function registerBoardTools(server: McpServer) {
         .order("updated_at", { ascending: false });
       if (error) throw new ToolError(`Could not list boards: ${error.message}`);
 
-      const boards = (data || []).map((r: any) => {
+      const boards = (data || []).filter((r: any) => { try { return JSON.parse(r.body || "{}").kind !== KeywordColumns.KIND; } catch { return true; } }).map((r: any) => {
         let client: string | undefined;
         try {
           client = JSON.parse(r.body || "{}").client;

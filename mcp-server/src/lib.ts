@@ -2,6 +2,8 @@ import { createClient, SupabaseClient } from "@supabase/supabase-js";
 import { readFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
+import { createRequire } from "node:module";
+export const KeywordColumns = createRequire(import.meta.url)("../../keyword-columns.js");
 
 /* ---------------------------------------------------------------- config */
 
@@ -183,7 +185,12 @@ export async function loadBoard(boardId: string): Promise<{ row: BoardRow; body:
   } catch {
     body = { tabs: {} };
   }
+  if ((body as any).kind === KeywordColumns.KIND) throw new ToolError("This is an internal settings record, not a client board.");
   if (!body.tabs || typeof body.tabs !== "object") body.tabs = {};
+  const settings = await db().from("reports").select("body").eq("owner_id", data.owner_id).eq("title", "[Internal] Universal keyword columns");
+  if (settings.error) throw new ToolError("Could not read universal column settings: " + settings.error.message);
+  const config = (settings.data || []).map((r: any) => { try { return JSON.parse(r.body); } catch { return null; } }).find((c: any) => c?.kind === KeywordColumns.KIND);
+  if(config) KeywordColumns.sync(body.tabs["Content Strategy"] ||= {}, config);
   return { row: data as BoardRow, body };
 }
 

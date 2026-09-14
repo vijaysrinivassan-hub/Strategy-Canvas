@@ -1909,6 +1909,13 @@
     .client-open{grid-template-columns:40px minmax(130px,1fr) 96px 20px}
     .client-role{display:none}.client-actions{padding-right:8px}
   }
+  .universal-columns-table{border-collapse:collapse;width:100%;min-width:950px;margin:12px 0}
+  .universal-columns-table th{background:#171b19;color:white;text-align:left;padding:10px;font-size:11px}
+  .universal-columns-table td{border:1px solid #dce4df;padding:8px;vertical-align:top}
+  .universal-columns-table input,.universal-columns-table textarea,.universal-columns-table select{width:100%;min-width:90px;border:1px solid #dce4df;padding:8px;background:white;color:#24352b;box-sizing:border-box}
+  .universal-columns-table textarea{min-height:70px;resize:vertical}
+  #keywordColumnsSettings>button{margin:10px 12px 20px 0}
+  .col-lock{display:inline-flex;color:#68776d;padding:3px}
 </style>
 </head>
 <body>
@@ -2377,6 +2384,8 @@
 <div id="modalHost"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="keyword-columns.js"></script>
+<script src="keyword-columns-ui.js"></script>
 <script>
 /* ===================================================================
    CONFIG — all public values. No secrets belong in this file.
@@ -2385,7 +2394,7 @@ const SUPABASE_URL = 'https://cskamgfvebryahkljlll.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_MdkD-TxMCIwlu69seSHA3Q_A39GADsK';
 const CLIENT_ID    = '1059013355751-6g50dsgm7df37htl2fdqrtlkh5hmrc0c.apps.googleusercontent.com';
 const ALLOWED      = ['vijaysrinivassan@gmail.com'];
-const BUILD        = 'v7.65';
+const BUILD        = 'v7.66';
 
 const STRATEGY_ONE_TAB = 'Strategy 1 — Brand Strategy';
 const PRODUCT_EVOLUTION_TAB = 'Strategy 1 — Product Evolution';
@@ -4223,6 +4232,7 @@ function openProductsModal(){
 }
 /* End product workspace helpers. */
 function serialize(){
+  if (typeof syncUniversalWorkspaces === 'function') syncUniversalWorkspaces();
   snapshotProductWorkspace();
   captureFrame();
   /* the frame scratch tab is a working copy, not a tab of this board */
@@ -4300,7 +4310,8 @@ async function refreshBoards(){
   const { data, error } = await sb.from('reports')
     .select('id,title,updated_at,owner_id,body').order('updated_at', { ascending: false });
   if (error){ toast('Could not list boards: ' + error.message, true); return; }
-  state.boards = data || [];
+  readKeywordSettings(data || []);
+  state.boards = (data || []).filter(r => !isKeywordSettingsRecord(r));
   await seedProductArchitecturesForBoards();
   /* boards are chosen on the Clients screen now, so nothing to fill here */
 }
@@ -4911,6 +4922,7 @@ function applyTabMode(){
     renderCrumb();
     renderClients();
     renderArticleTypes();
+    renderUniversalColumns();
     renderMcp();
     applyRole();
     return;
@@ -5569,6 +5581,8 @@ function defaultsFor(col){ return normalizeColumnMeta(col).defaults; }
 function contentRoot(){
   const t = state.tabs[CONTENT_TAB] || (state.tabs[CONTENT_TAB] = { nodes: [], edges: [] });
   if (!t.views || typeof t.views !== 'object') t.views = {};
+  // Initialize new product views from the shared template before legacy defaults.
+  if (!Object.keys(t.views).length && !Array.isArray(t.competitors)) KeywordColumns.sync(t, activeUniversalColumns());
 
   /* Boards saved before the split kept one competitor matrix at the top
      level. Move it into the competitor view rather than losing it. */
@@ -5590,7 +5604,7 @@ function contentRoot(){
     if (v.kind === 'matrix'){
       if (!Array.isArray(cur.rows)) cur.rows = [];
       if (!cur.cells || typeof cur.cells !== 'object') cur.cells = {};
-      if (!Array.isArray(cur.types) || !cur.types.length){
+      if (!Array.isArray(cur.types) || (!cur.types.length && !activeUniversalColumns())){
         cur.types = v.types.map(function(d){
           return { id: uid(), name: d.name };
         });
@@ -5598,7 +5612,6 @@ function contentRoot(){
       /* Stand the whole grid up so it is there to type into. Unnamed rows and
          columns match nothing, so the padding is inert until you fill it. */
       while (cur.rows.length < GRID_ROWS) cur.rows.push({ id: uid(), name: '' });
-      while (cur.types.length < GRID_MAX_COLS) cur.types.push({ id: uid(), name: '' });
       cur.rows.forEach(function(row){ delete row.aliases; });
       cur.types.forEach(function(type){ delete type.terms; normalizeColumnMeta(type); });
       if (!cur.rowColumn || typeof cur.rowColumn !== 'object') cur.rowColumn = {};
@@ -5607,13 +5620,17 @@ function contentRoot(){
     }
 
     /* a plain table: named columns, and blank rows waiting to be filled */
-    if (!Array.isArray(cur.columns) || !cur.columns.length){
+    if (!Array.isArray(cur.columns) || (!cur.columns.length && !activeUniversalColumns())){
       cur.columns = v.columns.map(function(name){ return { id: uid(), name: name }; });
     }
     if (!Array.isArray(cur.rows)) cur.rows = [];
     cur.columns.forEach(normalizeColumnMeta);
     while (cur.rows.length < GRID_ROWS) cur.rows.push({ id: uid(), cells: {} });
   });
+  KeywordColumns.sync(t, activeUniversalColumns());
+  for (const v of Object.values(t.views)) if(v.kind === 'grid' && v.columnOrder){
+    const order = KeywordColumns.order(v); v.columns.sort((a,b) => order.indexOf(a.id)-order.indexOf(b.id));
+  }
   return t;
 }
 
@@ -5642,7 +5659,7 @@ function cellState(m, key, defaults){
              v: raw.v || '', aw: raw.aw || '', st: raw.st || '', cfg:!!raw.cfg,
              kws: Array.isArray(raw.kws) ? raw.kws.filter(Boolean) : [] };
   }
-  return { on: false, mode: d.mode || 'aeo', type: d.type || '', v: '', aw: d.aw || '', st: '', cfg:false, kws: [] };
+  return { on: false, mode: d.mode || 'aeo', type: d.type || '', v: d.value || '', aw: d.aw || '', st: '', cfg:false, kws: [] };
 }
 function setCellState(m, key, st){
   /* the default — nothing chosen, nothing written — need not be stored */
@@ -5946,7 +5963,13 @@ function columnTools(col, label, rerender){
   const wrap = document.createElement('span');
   wrap.className = 'col-tools';
   const configured = !!(col.instruction.trim() || col.defaults.mode || col.defaults.type || col.defaults.aw);
-  if (!readOnly()){
+  if (col.universalId){
+    const lock = document.createElement('span');
+    lock.className = 'col-lock'; lock.title = 'Universal column — edit in Settings';
+    lock.setAttribute('aria-label', lock.title);
+    lock.innerHTML = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>';
+    wrap.append(lock);
+  } else if (!readOnly()){
     const edit = document.createElement('button');
     edit.type = 'button';
     edit.textContent = '✎';
@@ -5956,11 +5979,12 @@ function columnTools(col, label, rerender){
     edit.onclick = function(ev){ ev.stopPropagation(); openColumnGuide(col, label, rerender); };
     wrap.append(edit);
   }
+  wrap.append(keywordOrderTools(col, rerender));
   return wrap;
 }
 
 function openColumnGuide(col, label, rerender){
-  if (readOnly()) return;
+  if (readOnly() || col.universalId) return;
   const editingTabs = state.tabs;
   const editingProduct = state.workspaceProductId;
   normalizeColumnMeta(col);
@@ -5986,6 +6010,8 @@ function openColumnGuide(col, label, rerender){
   nameBox.type = 'text';
   nameBox.value = col.name || label;
   nameBox.required = true;
+  const valueLabel = document.createElement('label'); valueLabel.className = 'fl'; valueLabel.textContent = 'Default cell text';
+  const valueBox = document.createElement('input'); valueBox.className = 'modal-in'; valueBox.value = col.defaults.value || ''; valueBox.setAttribute('aria-label', 'Default cell text');
   const promptLabel = document.createElement('label');
   promptLabel.className = 'fl';
   promptLabel.textContent = 'Instruction for AI';
@@ -6023,19 +6049,20 @@ function openColumnGuide(col, label, rerender){
   const save = document.createElement('button');
   save.type = 'button'; save.className = 'primary'; save.textContent = 'Save column settings';
   save.onclick = function(){
-    if (readOnly() || state.tabs !== editingTabs || state.workspaceProductId !== editingProduct){
+    if (readOnly() || col.universalId || state.tabs !== editingTabs || state.workspaceProductId !== editingProduct){
       closeModal(); return;
     }
     const name = nameBox.value.trim();
     if (!name){ toast('Enter a column name.', true); nameBox.focus(); return; }
     col.name = name;
     col.instruction = promptBox.value.trim();
-    col.defaults = { mode: mode.value, type: type.value, aw: awareness.value };
+    col.defaults = { mode: mode.value, type: type.value, aw: awareness.value, value: valueBox.value };
+    col.local = true;
     markDirty(); closeModal(); rerender();
     toast('Column settings saved.');
   };
   foot.append(cancel, save);
-  modal.append(h, p, nameLabel, nameBox, promptLabel, promptBox, defaults, foot);
+  modal.append(h, p, nameLabel, nameBox, promptLabel, promptBox, valueLabel, valueBox, defaults, foot);
   overlay.append(modal); host.append(overlay); nameBox.focus(); nameBox.select();
 }
 
@@ -6052,7 +6079,7 @@ function cellOf(row, colId, defaults){
              on: !!c.on, aw: c.aw || '', st: c.st || '', cfg:!!c.cfg,
              kws: Array.isArray(c.kws) ? c.kws.filter(Boolean) : [] };
   }
-  return { v: '', mode: d.mode || 'aeo', type: d.type || '', on: false, aw: d.aw || '', st: '', cfg:false, kws: [] };
+  return { v: d.value || '', mode: d.mode || 'aeo', type: d.type || '', on: false, aw: d.aw || '', st: '', cfg:false, kws: [] };
 }
 
 /* A cell with nothing chosen and nothing caught keeps its controls quiet. */
@@ -6237,19 +6264,19 @@ function renderMatrix(){
     b.className = 'hd';
     b.value = ty.name || '';
     b.placeholder = 'Article type';
-    b.disabled = ro;
-    b.oninput = function(){ ty.name = b.value; markDirty(); };
+    b.disabled = ro || !!ty.universalId;
+    b.oninput = function(){ if(readOnly() || ty.universalId) return; ty.name = b.value; ty.local = true; markDirty(); };
     b.onchange = renderMatrix;
     lab.append(b, columnTools(ty, ty.name || 'Untitled article column', renderMatrix));
-    if (!ro){
+    if (!ro && !ty.universalId){
       const x = document.createElement('button');
       x.className = 'x';
       x.innerHTML = '&times;';
-      x.title = 'Remove column';
+      x.title = 'Remove client-specific column';
       x.onclick = function(){
+        if (readOnly() || ty.universalId) return;
         if (ty.name && !confirm('Remove the "' + ty.name + '" column?')) return;
         m.types = m.types.filter(function(z){ return z.id !== ty.id; });
-        while (m.types.length < GRID_MAX_COLS) m.types.push({ id: uid(), name: '' });
         markDirty(); renderMatrix();
       };
       lab.append(x);
@@ -6363,6 +6390,7 @@ function renderMatrix(){
     tbody.append(tr);
   });
   table.append(tbody);
+  applyKeywordMatrixOrder(table, m);
 }
 
 
@@ -6380,7 +6408,7 @@ function renderGrid(){
   $('mxSetup').hidden = true;
   $('btnAddCompetitor').textContent = '+ Row';
   $('btnAddType').textContent = '+ Column';
-  $('btnAddType').hidden = ro || v.columns.length >= GRID_MAX_COLS;
+  $('btnAddType').hidden = ro;
 
   const NUM_W = 46, COL_W = 220;
   table.style.width = '100%';
@@ -6407,19 +6435,22 @@ function renderGrid(){
     lab.className = 'mx-lab';
     const b = document.createElement('b');
     b.textContent = col.name;
-    b.title = 'Double-click to rename';
+    b.title = col.universalId ? 'Universal column — edit in Settings' : 'Double-click to rename';
     b.ondblclick = function(){
+      if (readOnly() || col.universalId) return;
       inlineRename(b, col.name, function(nv){
-        col.name = nv || 'Column'; markDirty(); renderGrid();
+        if(readOnly() || col.universalId) return;
+        col.name = nv || 'Column'; col.local = true; markDirty(); renderGrid();
       });
     };
     lab.append(b, columnTools(col, col.name, renderGrid));
-    if (!ro && v.columns.length > 1){
+    if (!ro && !col.universalId && v.columns.length > 1){
       const x = document.createElement('button');
       x.className = 'x';
       x.innerHTML = '&times;';
       x.title = 'Remove column';
       x.onclick = function(){
+        if(readOnly() || col.universalId) return;
         if (!confirm('Remove the "' + col.name + '" column and everything in it?')) return;
         v.columns = v.columns.filter(function(z){ return z.id !== col.id; });
         v.rows.forEach(function(r){ delete r.cells[col.id]; });
@@ -6528,13 +6559,9 @@ function addGridRow(){
 function addGridColumn(){
   if (readOnly()) return;
   const v = matrixState();
-  if (v.columns.length >= GRID_MAX_COLS){
-    toast('Ten columns is the limit.', true);
-    return;
-  }
   const name = prompt('Column name');
   if (name === null) return;
-  v.columns.push({ id: uid(), name: name.trim() || 'Column' });
+  v.columns.push({ id: uid(), name: name.trim() || 'Column', local: true });
   markDirty();
   renderGrid();
 }
@@ -6600,9 +6627,9 @@ function addArticleType(){
   if (name === null) return;
   const v = name.trim();
   if (!v) return;
-  const blankT = m.types.filter(function(t){ return !(t.name || '').trim(); })[0];
-  if (blankT) blankT.name = v;
-  else m.types.push({ id: uid(), name: v });
+  const blankT = m.types.filter(function(t){ return !t.universalId && !(t.name || '').trim(); })[0];
+  if (blankT) { blankT.name = v; blankT.local = true; }
+  else m.types.push({ id: uid(), name: v, local: true });
   markDirty();
   renderMatrix();
   toast('Article type added.');
@@ -10948,6 +10975,10 @@ setTimeout(function(){
     sec.append(h, $(pane));
     page.append(sec);
   });
+  const columnSection = document.createElement('section'); columnSection.className = 'set-sec';
+  const columnTitle = document.createElement('h3'); columnTitle.className = 'set-h'; columnTitle.textContent = 'Universal keyword columns';
+  const columnHost = document.createElement('div'); columnHost.id = 'keywordColumnsSettings';
+  columnSection.append(columnTitle, columnHost); page.insertBefore(columnSection, $('setTypes'));
   const nav = $('navSettings');
   nav.prepend(tabIcon('Settings'));
   nav.onclick = () => goScreen('settings');

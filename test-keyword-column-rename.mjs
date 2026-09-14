@@ -13,7 +13,7 @@ class Element {
 const host=new Element('host');
 let readonly=false,dirty=0,renders=0;
 const state={tabs:{},workspaceProductId:'payroll'};
-const ctx=vm.createContext({state,$:()=>host,document:{createElement:t=>new Element(t)},readOnly:()=>readonly,
+const ctx=vm.createContext({state,keywordOrderTools:()=>new Element('span'),$:()=>host,document:{createElement:t=>new Element(t)},readOnly:()=>readonly,
   closeModal:()=>host.children=[],markDirty:()=>dirty++,toast:()=>{},articleTypes:()=>[],AWARENESS:['Problem aware']});
 vm.runInContext(html.slice(html.indexOf('function normalizeColumnMeta'),html.indexOf('function defaultsFor')),ctx);
 vm.runInContext(html.slice(html.indexOf('function columnTools'),html.indexOf('/* ---- table cells ----')),ctx);
@@ -45,6 +45,6 @@ assert(html.includes("cName.textContent = m.rowColumn.name || vd.label + ' Name'
 ctx.openColumnGuide(row,row.name,()=>renders++);name().value='Wrong board';state.tabs={};
 button('Save column settings').onclick();assert.equal(row.name,'Players');
 readonly=true;ctx.openColumnGuide(row,row.name,()=>renders++);assert.equal(host.children.length,0);
-assert.equal(ctx.columnTools(row,row.name,()=>{}).children.length,0);
+assert.equal(ctx.columnTools(row,row.name,()=>{}).children.filter(e=>e.tag==='button').length,0);
 assert.equal(dirty,5);assert.equal(renders,5);
 console.log('PASS: pencil rename across four tables; IDs, cells and settings preserved; reopen, cancel, blank names, row header, read-only and stale workspace guards.');

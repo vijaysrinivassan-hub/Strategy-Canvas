@@ -56,11 +56,14 @@ function guidanceFor(column: any, root: any) {
   const defaults = column?.defaults || {};
   const types = articleTypes(root);
   return {
+    scope: column?.universalId ? "universal" : "client-specific",
+    locked: !!column?.universalId,
     instruction: String(column?.instruction || ""),
     defaults: {
       mode: defaults.mode === "aeo" || defaults.mode === "seo" ? defaults.mode : null,
       article_type: types.find((t) => t.id === defaults.type)?.name ?? null,
-      awareness: AWARENESS.includes(defaults.aw) ? defaults.aw : null
+      awareness: AWARENESS.includes(defaults.aw) ? defaults.aw : null,
+      value: defaults.value || ""
     }
   };
 }
@@ -189,8 +192,8 @@ export function registerContentTools(server: McpServer) {
         "order you want them. A name that already exists keeps its column and everything " +
         "in it; a new name is added empty; any column you leave out is removed along with " +
         "its cells. To rename a column and keep its contents, give that entry as " +
-        '{"name":"New heading","replaces":"Old heading"} rather than a bare string. Ten ' +
-        "columns is the limit. Use this before content_set_rows when the table's headings " +
+        '{"name":"New heading","replaces":"Old heading"} rather than a bare string. One hundred ' +
+        "columns is the limit. Universal columns must be retained unchanged; edit them in Settings. Use this before content_set_rows when the table's headings " +
         "do not suit what you are filling it with.",
       inputSchema: {
         board_id: z.string(),
@@ -209,7 +212,7 @@ export function registerContentTools(server: McpServer) {
             ])
           )
           .min(1)
-          .max(10)
+          .max(100)
           .describe('The full list, in order, e.g. ["Slug","Category","Article type","URL"]')
       },
       annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true }
@@ -249,10 +252,14 @@ export function registerContentTools(server: McpServer) {
         }
         if (match && claimed.has(match.id)) match = undefined;   // already spoken for
         if (match) { claimed.add(match.id); kept.push({ ...match, id: match.id, name: c.name }); }
-        else kept.push({ id: uid(), name: c.name });
+        else kept.push({ id: uid(), name: c.name, local: true });
       }
 
       /* cells belonging to a column that has gone go with it */
+      for (const column of before.filter((c: any) => c.universalId)) {
+        const next = kept.find((c: any) => c.id === column.id);
+        if (!next || next.name !== column.name) throw new ToolError("Universal columns cannot be renamed or removed here. Edit them in Settings.");
+      }
       const live = new Set(kept.map((c) => c.id));
       let dropped = 0;
       for (const r of v.rows || []) {
@@ -261,6 +268,7 @@ export function registerContentTools(server: McpServer) {
         }
       }
       v.columns = kept;
+      v.columnOrder = kept.map((c: any) => c.id);
       await saveBoard(board_id, body);
 
       return ok({
