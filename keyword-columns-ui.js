@@ -14,11 +14,11 @@ function syncUniversalWorkspaces(){
  for(const w of Object.values(state.productWorkspaces||{})) {w.tabs ||= {};KeywordColumns.sync(w.tabs[CONTENT_TAB] ||= {},config);}
 }
 function keywordOrderTools(col, rerender){
- const wrap=document.createElement('span');wrap.className='col-tools';
+ const wrap=document.createElement('span');wrap.className='column-order';
  if(readOnly())return wrap;
  const v=state.tabs[CONTENT_TAB].views[state.contentView], id=col===v.rowColumn?'__row':col.id, ids=KeywordColumns.order(v);
  for(const [text,step] of [['‹',-1],['›',1]]){
-  const b=document.createElement('button');b.type='button';b.className='col-edit';b.textContent=text;
+  const b=document.createElement('button');b.type='button';b.className='column-move '+(step<0?'column-move-left':'column-move-right');b.textContent=text;
   b.title=step<0?'Move column left':'Move column right';b.setAttribute('aria-label',b.title);
   b.dataset.columnId=id; b.dataset.columnStep=String(step);
   b.disabled=ids.indexOf(id)+step<0||ids.indexOf(id)+step>=ids.length;

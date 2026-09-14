@@ -23,6 +23,25 @@ const move=vm.createContext({KeywordColumns:K});
 vm.runInContext(fs.readFileSync(new URL('./keyword-columns-ui.js',import.meta.url),'utf8'),move);
 move.moveKeywordTableColumns(grid,['a','b'],['b','a']);
 rows.forEach((row,i)=>{assert.equal(row.children[0],old[i][0]);assert.equal(row.children[1],old[i][2]);assert.equal(row.children[2],old[i][1]);});
+// Header arrows retain their direction and move only the selected column.
+const view={columns:[{id:'a'},{id:'b'},{id:'c'}]};
+const controls=vm.createContext({
+ KeywordColumns:K,CONTENT_TAB:'content',state:{contentView:'category',tabs:{content:{views:{category:view}}}},
+ readOnly:()=>false,markDirty:()=>{},$:()=>grid,
+ document:{createElement:()=>({children:[],dataset:{},setAttribute(){},append(b){this.children.push(b);}})}
+});
+vm.runInContext(fs.readFileSync(new URL('./keyword-columns-ui.js',import.meta.url),'utf8'),controls);
+controls.moveKeywordTableColumns=()=>{};
+const arrows=controls.keywordOrderTools(view.columns[1]).children;
+assert.equal(arrows[0].textContent,'‹');assert.equal(arrows[1].textContent,'›');
+assert.equal(arrows[0].className,'column-move column-move-left');
+assert.equal(arrows[1].className,'column-move column-move-right');
+arrows[0].onclick({stopPropagation(){}});
+assert.deepEqual(K.order(view),['b','a','c']);
+controls.keywordOrderTools(view.columns.find(c=>c.id==='b')).children[1].onclick({stopPropagation(){}});
+assert.deepEqual(K.order(view),['a','b','c']);
+assert.match(html,/\.column-move-left\{left:2px\}/);
+assert.match(html,/\.column-move-right\{right:2px\}/);
 const save=html.slice(html.indexOf('let boardSaveInFlight'),html.indexOf('async function newBoard'));
 assert(!save.includes('refreshBoards()'));
 console.log('PASS: 10,000 dropdown reads trigger 0 table normalizations; one render per load; stale loads ignored; 100 rows reordered with identical cell nodes; autosave has no directory fetch.');
