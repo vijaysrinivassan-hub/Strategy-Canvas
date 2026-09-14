@@ -359,6 +359,13 @@ courtesy — the database is the boundary. Run `supabase-access.sql` to set it u
 
 ## Data
 
+Product Architecture includes an **AI Prompts** button next to Load sample and Create system.
+Its copyable prompt comes from `ai-prompts.json`, shared with the MCP's `ai_prompts_get`
+and `board_get` tools. `product_architecture_get` / `product_architecture_set` read and
+save the Strategy workflow editor, including groups and labelled outputs, with revision
+checks to prevent overwriting concurrent edits. Rebuild and restart the MCP server after
+updating to load these tools. The generic canvas tools target the older canvas instead.
+
 Boards live in Supabase, one row per board, with every tab serialised into it.
 Node and edge shapes follow the [JSON Canvas](https://jsoncanvas.org) vocabulary
 (`nodes` with `x/y/width/height/text`, `edges` with `fromNode/fromSide/toNode/toSide`).

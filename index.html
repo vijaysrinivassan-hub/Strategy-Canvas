@@ -1164,6 +1164,16 @@
   .arch-actions select{min-width:170px; padding:0 28px 0 9px}
   .arch-actions button{padding:0 10px}
   .arch-actions .primary{border-color:#65c889; background:#effbf3; color:#22663b; font-weight:750}
+  .arch-actions{flex-wrap:wrap; justify-content:flex-end}
+  .arch-prompts{width:min(660px,calc(100vw - 40px)); max-height:85vh; padding:24px;
+    border:1px solid #cfd8d1; background:#fbfcf9; color:#303b33; box-shadow:0 20px 70px #15251c30}
+  .arch-prompts::backdrop{background:#15251c66}
+  .arch-prompts header,.arch-prompts footer{display:flex; align-items:center; justify-content:space-between; gap:12px}
+  .arch-prompts h3{margin:0; font-size:18px}.arch-prompts p{font-size:12px; color:#68726b; line-height:1.6}
+  .arch-prompts textarea{box-sizing:border-box; width:100%; height:330px; max-height:45vh; resize:vertical;
+    padding:14px; border:1px solid #d4ddd6; background:white; color:#303b33; font-family:inherit; font-size:12px; line-height:1.7}
+  .arch-prompts footer{margin-top:12px; font-size:11px; color:#68726b}
+  .arch-prompts button{padding:7px 12px; border:1px solid #b8d7c1; background:#effbf3; color:#22663b}
   .arch-system{display:grid; grid-template-columns:minmax(280px,1fr) auto; gap:16px; margin-bottom:14px;
                padding:16px; border:1px solid #d9dbd6; background:rgba(255,255,255,.86)}
   .arch-product input,.arch-product textarea,.arch-editor input,.arch-editor textarea,.arch-editor select,
@@ -2093,6 +2103,12 @@
     </div>
 
     <!-- Stackable workflow systems with draggable, typed and connected nodes. -->
+    <dialog class="arch-prompts" id="archPromptsDialog" aria-labelledby="archPromptsTitle">
+      <header><h3 id="archPromptsTitle">AI Prompts</h3><button id="btnArchPromptsClose" type="button" aria-label="Close AI Prompts">Close</button></header>
+      <p>Replace the bracketed details, then give this prompt to your connected AI.</p>
+      <textarea id="archPromptText" readonly aria-label="Product Architecture AI prompt"></textarea>
+      <footer><span id="archPromptStatus" role="status">Available to connected AI through the Strategy Board MCP.</span><button id="btnArchPromptCopy" type="button">Copy prompt</button></footer>
+    </dialog>
     <div class="architecture" id="architecturePane" hidden>
       <div class="arch-shell">
         <div class="arch-head">
@@ -2108,6 +2124,7 @@
               <option value="blank">Blank template</option>
             </select>
             <button id="btnArchLoadSample" type="button">Load sample</button>
+            <button id="btnArchPrompts" type="button">AI Prompts</button>
             <button class="primary" id="btnArchAddDomain" type="button">+ Create system</button>
           </div>
         </div>
@@ -2354,7 +2371,7 @@ const SUPABASE_URL = 'https://cskamgfvebryahkljlll.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_MdkD-TxMCIwlu69seSHA3Q_A39GADsK';
 const CLIENT_ID    = '1059013355751-6g50dsgm7df37htl2fdqrtlkh5hmrc0c.apps.googleusercontent.com';
 const ALLOWED      = ['vijaysrinivassan@gmail.com'];
-const BUILD        = 'v7.55';
+const BUILD        = 'v7.56';
 
 const STRATEGY_ONE_TAB = 'Strategy 1 — Brand Strategy';
 const PRODUCT_EVOLUTION_TAB = 'Strategy 1 — Product Evolution';
@@ -7118,6 +7135,38 @@ const ARCH_NODE_TYPES = [
   ['technology', 'Technology'],
   ['people', 'People']
 ];
+let architecturePrompt = '';
+$('btnArchPrompts').onclick = async () => {
+  const dialog = $('archPromptsDialog');
+  if (!dialog.open) dialog.showModal();
+  $('archPromptStatus').textContent = 'Loading prompt…';
+  $('btnArchPromptCopy').disabled = true;
+  try {
+    if (!architecturePrompt){
+      const response = await fetch('./ai-prompts.json?v=' + encodeURIComponent(BUILD));
+      if (!response.ok) throw new Error('Prompt unavailable');
+      const prompts = await response.json();
+      if (typeof prompts.product_architecture?.prompt !== 'string') throw new Error('Invalid prompt');
+      architecturePrompt = prompts.product_architecture.prompt;
+    }
+    $('archPromptText').value = architecturePrompt;
+    $('btnArchPromptCopy').disabled = false;
+    $('archPromptStatus').textContent = 'Ask your connected AI to read the Product Architecture AI Prompts.';
+  } catch {
+    $('archPromptStatus').textContent = 'Could not load the prompt. Close and reopen to retry.';
+  }
+};
+$('btnArchPromptsClose').onclick = () => $('archPromptsDialog').close();
+$('archPromptsDialog').addEventListener('keydown', event => event.stopPropagation());
+$('btnArchPromptCopy').onclick = async () => {
+  try {
+    await navigator.clipboard.writeText(architecturePrompt);
+    $('archPromptStatus').textContent = 'Prompt copied.';
+  } catch {
+    $('archPromptText').focus(); $('archPromptText').select();
+    $('archPromptStatus').textContent = 'Press Ctrl+C or Command+C to copy the selected prompt.';
+  }
+};
 let architectureConnection = null;
 let architectureSelection = new Set();
 let architectureSelectedEdge = '';

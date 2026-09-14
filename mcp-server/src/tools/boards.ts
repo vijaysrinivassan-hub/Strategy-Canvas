@@ -1,6 +1,7 @@
 import { z } from "zod";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { db, loadBoard, ok, ownerId, TABS, ToolError } from "../lib.js";
+import { architecturePrompts } from './architecture.js';
 
 export function registerBoardTools(server: McpServer) {
   server.registerTool(
@@ -121,6 +122,7 @@ export function registerBoardTools(server: McpServer) {
         id: row.id,
         title: row.title,
         client: body.client,
+        ai_prompts: { product_architecture: await architecturePrompts() },
         client_details: {
           goal: body.clientGoal || "Customer Acquisition",
           target_product: body.clientProduct || "",
