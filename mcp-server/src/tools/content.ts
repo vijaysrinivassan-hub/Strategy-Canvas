@@ -182,7 +182,7 @@ export function registerContentTools(server: McpServer) {
             try {
               const [a,b] = JSON.parse(key);
               const left = rows.find((r: any) => r.id === a), right = rows.find((r: any) => r.id === b);
-              return left && right && a !== b ? [{competitor_a:left.name,competitor_b:right.name,planned:!!value.on}] : [];
+              return left && right && a !== b ? [{competitor_a:left.name,competitor_b:right.name,planned:!!value.on,title:value.v ?? (left.name+' vs. '+right.name),url:value.url||'',mode:value.mode||'aeo',status:value.st||'',article_type:kindName(value.type)||null,awareness:value.aw||'',written_by:value.writtenBy||'',keyword_ids:value.kws||[]}] : [];
             } catch { return []; }
           }),
           planned: cells

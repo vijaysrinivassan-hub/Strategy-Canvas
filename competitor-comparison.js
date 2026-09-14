@@ -1,52 +1,82 @@
-/* Compact pairwise planning matrix; no article editors are created per pair. */
+/* Pairwise articles share data by stable competitor IDs. Editors load on demand. */
 function comparisonKey(a,b){return a===b?null:JSON.stringify([a,b].sort());}
-let comparisonObserver=null, comparisonRender=0;
+let comparisonObserver=null, comparisonCellObserver=null, comparisonRender=0;
 function renderCompetitorComparison(m){
  const host=$('competitorComparison'), generation=++comparisonRender;
- if(comparisonObserver){comparisonObserver.disconnect();comparisonObserver=null;}
+ comparisonObserver?.disconnect();comparisonCellObserver?.disconnect();
+ comparisonObserver=null;comparisonCellObserver=null;
  host.hidden=false;host.innerHTML='';
  const heading=document.createElement('h3');heading.textContent='Competitor vs. Competitor';
- const note=document.createElement('p');note.textContent='Mark comparisons to write. Mirrored pairs share one selection; self-comparisons are not applicable.';
+ const note=document.createElement('p');note.textContent='Plan comparison articles. Mirrored pairs share their fields; self-comparisons are not applicable.';
  host.append(heading,note);
  const companies=m.rows.filter(c=>(c.name||'').trim());
  if(companies.length<2){const empty=document.createElement('p');empty.textContent='Add at least two named competitors in the table above.';host.append(empty);return;}
  m.comparisonCells ||= {};
  let built=false;
+ const valid=()=>generation===comparisonRender&&!host.hidden&&state.contentView==='competitor'&&state.tabs[CONTENT_TAB]?.views?.competitor===m;
  const build=()=>{
-  if(built||generation!==comparisonRender||host.hidden||state.contentView!=='competitor')return;
-  built=true;
+  if(built||!valid())return;built=true;
   const scroller=document.createElement('div');scroller.className='comparison-scroll';
   const table=document.createElement('table');table.className='comparison-table';
-  table.setAttribute('aria-label','Competitor vs. Competitor');
-  table.style.width=(companies.length+1)*190+'px';
+  table.setAttribute('aria-label','Competitor vs. Competitor');table.style.width=(companies.length+1)*310+'px';
   const thead=document.createElement('thead'),head=document.createElement('tr');
   const corner=document.createElement('th');corner.textContent='Competitor';head.append(corner);
   for(const company of companies){const th=document.createElement('th');th.scope='col';th.textContent=company.name;head.append(th);}
   thead.append(head);table.append(thead);
-  const tbody=document.createElement('tbody'),mirrors=new Map();
+  const tbody=document.createElement('tbody'),mirrors=new Map(),pending=new Map();
+  const bucket={cells:m.comparisonCells};
+  function paint(entry){
+   if(!valid())return;
+   entry.hydrated=true;const {td,key,title}=entry;td.innerHTML='';td.className='gr-cell';
+   const get=()=>{
+    const value=cellState(bucket,key,{});
+    if(m.comparisonCells[key]?.v===undefined)value.v=title;
+    return value;
+   };
+   const updateFlags=()=>{const c=get();td.classList.toggle('planned',!!c.on);td.classList.toggle('written',c.st==='written');};
+   const set=patch=>{
+    if(readOnly()||!valid())return;
+    setCellState(bucket,key,{...get(),...patch,cfg:true});
+    updateFlags();
+    for(const other of mirrors.get(key)||[])if(other!==entry&&other.hydrated)paint(other);
+   };
+   const input=document.createElement('input');input.type='text';input.value=get().v;
+   input.placeholder='Title....';input.disabled=readOnly();input.setAttribute('aria-label','Comparison title');td.append(input);
+   const keywords=document.createElement('div');keywords.className='gr-kws';td.append(keywords);
+   const refreshKeywords=()=>{keywords.innerHTML='';const c=get();keywords.append(keywordBlock(gridCellKeywords(c.v,c.kws)));};
+   refreshKeywords();updateFlags();
+   let timer;
+   input.oninput=()=>{
+    if(readOnly()||!valid())return;
+    set({v:input.value});markDirty();clearTimeout(timer);
+    timer=setTimeout(()=>{if(valid()&&input.parentNode===td)refreshKeywords();},250);
+   };
+   cellControls(td,{
+    ro:readOnly(),get,set,seed:()=>get().v||title,
+    refreshEmpty:updateFlags,
+    rerender:()=>{paint(entry);for(const other of mirrors.get(key)||[])if(other!==entry&&other.hydrated)paint(other);}
+   });
+  }
   for(const a of companies){
    const tr=document.createElement('tr'),rh=document.createElement('th');rh.scope='row';rh.textContent=a.name;tr.append(rh);
    for(const b of companies){
     const td=document.createElement('td'),key=comparisonKey(a.id,b.id);
     if(key===null){td.className='comparison-null';td.textContent='—';td.title='Not applicable: same company';td.setAttribute('aria-label',a.name+' vs. itself: not applicable');tr.append(td);continue;}
-    const label=document.createElement('label'),check=document.createElement('input'),text=document.createElement('span');
-    text.textContent=a.name+' vs. '+b.name;check.type='checkbox';
-    check.checked=!!m.comparisonCells[key]?.on;check.disabled=readOnly();
-    check.setAttribute('aria-label','Write '+text.textContent);
-    td.classList.toggle('planned',check.checked);
-    if(!mirrors.has(key))mirrors.set(key,[]);
-    mirrors.get(key).push({td,check});
-    check.onchange=()=>{
-     if(readOnly()||state.tabs[CONTENT_TAB]?.views?.competitor!==m)return;
-     m.comparisonCells[key]={...m.comparisonCells[key],on:check.checked};
-     for(const item of mirrors.get(key)){item.check.checked=check.checked;item.td.classList.toggle('planned',check.checked);}
-     markDirty();
-    };
-    label.append(check,text);td.append(label);tr.append(td);
+    const entry={td,key,title:a.name+' vs. '+b.name,hydrated:false};
+    td.className='comparison-pending';td.textContent=entry.title;
+    if(!mirrors.has(key))mirrors.set(key,[]);mirrors.get(key).push(entry);
+    pending.set(td,entry);tr.append(td);
    }
    tbody.append(tr);
   }
   table.append(tbody);scroller.append(table);host.append(scroller);
+  if(typeof IntersectionObserver==='function'){
+   comparisonCellObserver=new IntersectionObserver(entries=>{
+    if(!valid())return;
+    for(const item of entries)if(item.isIntersecting){const entry=pending.get(item.target);if(entry&&!entry.hydrated)paint(entry);comparisonCellObserver?.unobserve(item.target);}
+   },{rootMargin:'200px'});
+   for(const td of pending.keys())comparisonCellObserver.observe(td);
+  }else for(const entry of pending.values())paint(entry);
  };
  if(typeof IntersectionObserver==='function'){
   comparisonObserver=new IntersectionObserver(entries=>{
