@@ -2265,6 +2265,7 @@
 
     <!-- Five editable outputs that turn the positioning canvas into a concise document. -->
     <div class="positioning-document" id="positioningDocumentPane" hidden>
+      <div style="display:flex;justify-content:flex-end;margin-bottom:12px"><button id="btnDocumentPrompts" type="button">AI Prompts</button></div>
       <section class="positioning-document-sheet">
         <div class="positioning-document-fields" id="positioningDocumentFields"></div>
       </section>
@@ -2384,7 +2385,7 @@ const SUPABASE_URL = 'https://cskamgfvebryahkljlll.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_MdkD-TxMCIwlu69seSHA3Q_A39GADsK';
 const CLIENT_ID    = '1059013355751-6g50dsgm7df37htl2fdqrtlkh5hmrc0c.apps.googleusercontent.com';
 const ALLOWED      = ['vijaysrinivassan@gmail.com'];
-const BUILD        = 'v7.61';
+const BUILD        = 'v7.62';
 
 const STRATEGY_ONE_TAB = 'Strategy 1 — Brand Strategy';
 const PRODUCT_EVOLUTION_TAB = 'Strategy 1 — Product Evolution';
@@ -7349,6 +7350,7 @@ async function openAiPrompt(tabKey, promptKey, label){
 }
 $('btnArchPrompts').onclick = () => openAiPrompt(PRODUCT_ARCHITECTURE_TAB, 'product_architecture', 'Product Architecture');
 $('btnPositioningPrompts').onclick = () => openAiPrompt(POSITIONING_TAB, 'positioning_canvas', 'Positioning Canvas');
+$('btnDocumentPrompts').onclick = () => openAiPrompt(POSITIONING_DOCUMENT_TAB, 'positioning_document', 'Positioning Document');
 $('btnArchPromptsClose').onclick = () => $('archPromptsDialog').close();
 $('archPromptsDialog').addEventListener('keydown', event => event.stopPropagation());
 $('btnArchPromptCopy').onclick = async () => {

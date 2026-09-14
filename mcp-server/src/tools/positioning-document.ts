@@ -1,6 +1,7 @@
 import { z } from "zod";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { loadBoard, ok, saveBoard, tabSlot } from "../lib.js";
+import { architecturePrompts } from './architecture.js';
 
 const TAB = "Strategy 1 — Positioning Document";
 const FIELD_KEYS = [
@@ -43,7 +44,7 @@ export function registerPositioningDocumentTools(server: McpServer) {
     },
     async ({ board_id }) => {
       const { body } = await loadBoard(board_id);
-      return ok({ fields: fieldsOf(body) });
+      return ok({ fields: fieldsOf(body), ai_prompt: await architecturePrompts(body, 'positioning_document') });
     }
   );
 

@@ -23,4 +23,12 @@ const body={tabs:{'Strategy 1 — Positioning Canvas':{aiPrompt:'Custom sparse p
 assert.equal((await architecturePrompts(body,'positioning_canvas')).prompt,'Custom sparse prompt');
 assert.equal((await architecturePrompts(undefined,'positioning_canvas')).prompt,defaults.positioning_canvas.prompt);
 assert.equal((await architecturePrompts(body)).prompt,defaults.product_architecture.prompt);
+state.tabs.doc={aiPrompt:'Custom document guidance'};readonly=false;
+await context.openAiPrompt('doc','positioning_document','Positioning Document');
+assert.equal($('archPromptText').value,'Custom document guidance');
+$('archPromptText').value='Updated document guidance';$('archPromptText').oninput();
+assert.equal(state.tabs.doc.aiPrompt,'Updated document guidance');
+assert.equal(state.tabs.arch.aiPrompt,undefined);
+assert.equal((await architecturePrompts({tabs:{'Strategy 1 — Positioning Document':{aiPrompt:'Saved document prompt'}}},'positioning_document')).prompt,'Saved document prompt');
+assert.equal((await architecturePrompts(undefined,'positioning_document')).prompt,defaults.positioning_document.prompt);
 console.log('PASS: positioning defaults, manual edits, architecture isolation, product-switch guard, read-only guard and MCP custom/default prompts.');
