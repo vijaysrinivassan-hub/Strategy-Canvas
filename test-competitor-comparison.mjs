@@ -51,9 +51,12 @@ const exportModel={rows:[{id:'a',name:'Alpha'},{id:'b',name:'Beta'},{id:'c',name
 exportModel.comparisonCells[ctx.comparisonKey('a','b')]={v:'Custom comparison',kws:['one','two']};
 const output=ctx.comparisonClipboardText(exportModel);
 assert.equal(output.split('\n').length,4);
-assert(output.includes('Alpha vs. Beta\tCustom comparison\tkeyword one; keyword two'));
-assert(output.includes('Alpha vs. Gamma\tAlpha vs. Gamma\t'));
+assert(output.includes('Alpha vs. Beta,Custom comparison,"keyword one, keyword two"'));
+assert(output.includes('Alpha vs. Gamma,Alpha vs. Gamma,'));
 assert(!output.includes('Alpha vs. Alpha'));assert(!output.includes('Beta vs. Alpha'));
+exportModel.comparisonCells[ctx.comparisonKey('a','c')]={v:'Compare, "carefully"',kws:[]};
+assert(ctx.comparisonClipboardText(exportModel).includes('Alpha vs. Gamma,"Compare, ""carefully""",'));
+delete exportModel.comparisonCells[ctx.comparisonKey('a','c')];
 state.tabs.content.views.competitor=exportModel;
 ctx.renderCompetitorComparison(exportModel);
 const copy=all().find(e=>e.textContent==='Copy');

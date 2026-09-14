@@ -9,10 +9,10 @@ function comparisonClipboardText(m){
   const title=cell.v===undefined?pair:cell.v;
   const keywords=gridCellKeywords(title,cell.kws).map(r=>r.keyword);
   if(cell.v===undefined)keywords.push(...gridCellKeywords(b.name+' vs. '+a.name,cell.kws).map(r=>r.keyword));
-  rows.push([pair,title,[...new Set(keywords)].join('; ')]);
+  rows.push([pair,title,[...new Set(keywords)].join(', ')]);
  }
- const field=value=>{const s=String(value??'');return /[\t\r\n"]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s;};
- return rows.map(row=>row.map(field).join('\t')).join('\n');
+ const field=value=>{const s=String(value??'');return /[,\t\r\n"]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s;};
+ return rows.map(row=>row.map(field).join(',')).join('\n');
 }
 let comparisonObserver=null, comparisonCellObserver=null, comparisonRender=0;
 function renderCompetitorComparison(m){
