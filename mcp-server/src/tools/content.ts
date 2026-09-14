@@ -16,12 +16,13 @@ const STATUS_LABEL: Record<string, string> = {
 };
 
 function readCell(raw: any): {
-  value: string; mode: "aeo" | "seo"; type: string; on: boolean; aw: string; st: string;
+  value: string; url?: string; writtenBy?: string; mode: "aeo" | "seo"; type: string; on: boolean; aw: string; st: string;
 } {
   if (typeof raw === "string") return { value: raw, mode: "aeo", type: "", on: false, aw: "", st: "" };
   if (raw && typeof raw === "object") {
     return {
       value: raw.v || "",
+      url: raw.url || "", writtenBy: raw.writtenBy || "",
       mode: raw.mode === "seo" ? "seo" : "aeo",
       type: raw.type || "",
       on: !!raw.on,
@@ -113,9 +114,9 @@ export function registerContentTools(server: McpServer) {
             const cells: Record<string, any> = {};
             for (const c of cols) {
               const cell = readCell(r.cells?.[c.id]);
-              if (!cell.value && !cell.type && !cell.on && !cell.aw && !cell.st) continue;
+              if (!cell.url && !cell.writtenBy && !cell.value && !cell.type && !cell.on && !cell.aw && !cell.st) continue;
               cells[c.name] = {
-                value: cell.value,
+                value: cell.value, url: cell.url || null, written_by: cell.writtenBy || null,
                 planned: cell.on,
                 status: cell.st ? STATUS_LABEL[cell.st] ?? cell.st : null,
                 mode: cell.mode,
@@ -152,13 +153,13 @@ export function registerContentTools(server: McpServer) {
           const raw = v.cells?.[`${r.id}|${t.id}`];
           if (!raw) continue;
           const cell = readCell(raw);
-          if (cell.on || cell.value || cell.aw || cell.st) {
+          if (cell.url || cell.writtenBy || cell.on || cell.value || cell.aw || cell.st) {
             cells.push({
               row: r.name,
               article_type: t.name,
               planned: cell.on,
               status: cell.st ? STATUS_LABEL[cell.st] ?? cell.st : null,
-              text: cell.value || null,
+              text: cell.value || null, url: cell.url || null, written_by: cell.writtenBy || null,
               mode: cell.mode,
               article_kind: cell.type ? kindName(cell.type) : null,
               awareness: cell.aw || null
@@ -446,8 +447,8 @@ export function registerContentTools(server: McpServer) {
       const aw = awareness ?? (prev.aw || defaults.aw || "");
       const st = status ?? prev.st;
       const words = text ?? prev.value;
-      if (!on && m === "aeo" && !type_ && !aw && !words && !st) delete v.cells[key];
-      else v.cells[key] = { on, mode: m, type: type_, v: words, aw, st };
+      if (!prev.url && !prev.writtenBy && !on && m === "aeo" && !type_ && !aw && !words && !st) delete v.cells[key];
+      else v.cells[key] = { ...v.cells[key], on, mode: m, type: type_, v: words, aw, st, url: prev.url || '', writtenBy: prev.writtenBy || '' };
 
       await saveBoard(board_id, body);
       return ok({

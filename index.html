@@ -1916,6 +1916,9 @@
   .universal-columns-table textarea{min-height:70px;resize:vertical}
   #keywordColumnsSettings>button{margin:10px 12px 20px 0}
   .col-lock{display:inline-flex;color:#68776d;padding:3px}
+  .gr-url{display:flex;align-items:center;gap:6px;padding:0 6px 5px;color:#748177;font-size:10px}
+  .gr-url input[type=text]{min-width:0;flex:1;font-weight:400;padding:4px 2px}
+  .gr-foot2 .gr-author{flex:1 1 0;min-width:0}
 </style>
 </head>
 <body>
@@ -2394,7 +2397,7 @@ const SUPABASE_URL = 'https://cskamgfvebryahkljlll.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_MdkD-TxMCIwlu69seSHA3Q_A39GADsK';
 const CLIENT_ID    = '1059013355751-6g50dsgm7df37htl2fdqrtlkh5hmrc0c.apps.googleusercontent.com';
 const ALLOWED      = ['vijaysrinivassan@gmail.com'];
-const BUILD        = 'v7.66';
+const BUILD        = 'v7.67';
 
 const STRATEGY_ONE_TAB = 'Strategy 1 — Brand Strategy';
 const PRODUCT_EVOLUTION_TAB = 'Strategy 1 — Product Evolution';
@@ -5656,7 +5659,7 @@ function cellState(m, key, defaults){
   if (raw === true) return { on: true, mode: d.mode || 'aeo', type: d.type || '', v: '', aw: d.aw || '', st: '', cfg:false, kws: [] };
   if (raw && typeof raw === 'object'){
     return { on: !!raw.on, mode: raw.mode === 'seo' ? 'seo' : 'aeo', type: raw.type || '',
-             v: raw.v || '', aw: raw.aw || '', st: raw.st || '', cfg:!!raw.cfg,
+             v: raw.v || '', url: raw.url || '', writtenBy: raw.writtenBy || '', aw: raw.aw || '', st: raw.st || '', cfg:!!raw.cfg,
              kws: Array.isArray(raw.kws) ? raw.kws.filter(Boolean) : [] };
   }
   return { on: false, mode: d.mode || 'aeo', type: d.type || '', v: d.value || '', aw: d.aw || '', st: '', cfg:false, kws: [] };
@@ -5664,9 +5667,9 @@ function cellState(m, key, defaults){
 function setCellState(m, key, st){
   /* the default — nothing chosen, nothing written — need not be stored */
   const kws = Array.isArray(st.kws) ? st.kws.filter(Boolean) : [];
-  if (!st.cfg && !st.on && st.mode === 'aeo' && !st.type && !st.v && !st.aw && !st.st && !kws.length) delete m.cells[key];
+  if (!st.url && !st.writtenBy && !st.cfg && !st.on && st.mode === 'aeo' && !st.type && !st.v && !st.aw && !st.st && !kws.length) delete m.cells[key];
   else m.cells[key] = { on: !!st.on, mode: st.mode, type: st.type || '', v: st.v || '',
-                        aw: st.aw || '', st: st.st || '', cfg:!!st.cfg, kws: kws };
+                        aw: st.aw || '', st: st.st || '', url: st.url || '', writtenBy: st.writtenBy || '', cfg:!!st.cfg, kws: kws };
 }
 
 /* What a matrix cell catches: the repo keywords that mention the competitor
@@ -5805,6 +5808,18 @@ function statusSelect(current, disabled, onPick){
    and `set` writes a patch to it, so the two views cannot drift apart. */
 function cellControls(td, o){
   const cell = o.get();
+  if (!td.querySelector(':scope > .gr-url')){
+    const urlRow = document.createElement('label'); urlRow.className = 'gr-url';
+    const caption = document.createElement('span'); caption.textContent = 'URL';
+    const url = document.createElement('input'); url.type = 'text'; url.placeholder = 'slug';
+    url.value = cell.url || ''; url.disabled = o.ro; url.setAttribute('aria-label', 'URL slug');
+    url.oninput = function(){
+      if(o.ro || readOnly()) return;
+      o.set({url:url.value}); o.refreshEmpty(); markDirty();
+    };
+    urlRow.append(caption, url);
+    td.insertBefore(urlRow, td.querySelector(':scope > .gr-kws'));
+  }
   const ctl = document.createElement('div');
   ctl.className = 'gr-ctl';
 
@@ -5886,6 +5901,18 @@ function cellControls(td, o){
     o.refreshEmpty();
     markDirty();
   }));
+  const writtenBy = document.createElement('select');
+  writtenBy.className = 'gr-kind gr-author'; writtenBy.disabled = o.ro;
+  writtenBy.title = 'Written by'; writtenBy.setAttribute('aria-label', 'Written by');
+  [['','Written by'],['old','Old'],['new','New']].forEach(function(pair){
+    const opt = document.createElement('option'); opt.value = pair[0]; opt.textContent = pair[1]; writtenBy.append(opt);
+  });
+  writtenBy.value = cell.writtenBy || '';
+  writtenBy.onchange = function(){
+    if(o.ro || readOnly()) return;
+    o.set({writtenBy:writtenBy.value}); o.refreshEmpty(); markDirty();
+  };
+  foot2.append(writtenBy);
   ctl.append(foot2);
 
   td.append(ctl);
@@ -6076,7 +6103,7 @@ function cellOf(row, colId, defaults){
   if (typeof c === 'string') return { v: c, mode: d.mode || 'aeo', type: d.type || '', on: false, aw: d.aw || '', st: '', cfg:false, kws: [] };
   if (c && typeof c === 'object'){
     return { v: c.v || '', mode: c.mode === 'seo' ? 'seo' : 'aeo', type: c.type || '',
-             on: !!c.on, aw: c.aw || '', st: c.st || '', cfg:!!c.cfg,
+             on: !!c.on, aw: c.aw || '', st: c.st || '', url: c.url || '', writtenBy: c.writtenBy || '', cfg:!!c.cfg,
              kws: Array.isArray(c.kws) ? c.kws.filter(Boolean) : [] };
   }
   return { v: d.value || '', mode: d.mode || 'aeo', type: d.type || '', on: false, aw: d.aw || '', st: '', cfg:false, kws: [] };
@@ -6084,7 +6111,7 @@ function cellOf(row, colId, defaults){
 
 /* A cell with nothing chosen and nothing caught keeps its controls quiet. */
 function cellQuiet(c, keywordCount){
-  return !c.v && !c.on && !keywordCount && !c.type && !c.aw && !c.st;
+  return !c.url && !c.writtenBy && !c.v && !c.on && !keywordCount && !c.type && !c.aw && !c.st;
 }
 
 /* An empty cell is left out of the record entirely, so a blank table saves as
@@ -6092,8 +6119,8 @@ function cellQuiet(c, keywordCount){
 function setCellIn(row, colId, patch, defaults){
   const c = Object.assign(cellOf(row, colId, defaults), patch);
   const kws = Array.isArray(c.kws) ? c.kws.filter(Boolean) : [];
-  if (!c.cfg && !c.v && !c.type && c.mode === 'aeo' && !c.on && !c.aw && !c.st && !kws.length) delete row.cells[colId];
-  else row.cells[colId] = { v: c.v, mode: c.mode, type: c.type, on: c.on, aw: c.aw, st: c.st, cfg:!!c.cfg, kws: kws };
+  if (!c.url && !c.writtenBy && !c.cfg && !c.v && !c.type && c.mode === 'aeo' && !c.on && !c.aw && !c.st && !kws.length) delete row.cells[colId];
+  else row.cells[colId] = { v: c.v, mode: c.mode, type: c.type, on: c.on, aw: c.aw, st: c.st, url: c.url || '', writtenBy: c.writtenBy || '', cfg:!!c.cfg, kws: kws };
 }
 
 function renderArticleTypes(){
@@ -6344,7 +6371,8 @@ function renderMatrix(){
       inp.type = 'text';
       inp.value = st.v || '';
       inp.disabled = ro;
-      if (ri === 0 && ti === 0) inp.placeholder = 'Title or keyword…';
+      inp.placeholder = 'title';
+      inp.setAttribute('aria-label', 'Title');
       td.append(inp);
 
       const kwHost = document.createElement('div');
@@ -6503,7 +6531,8 @@ function renderGrid(){
       inp.type = 'text';
       inp.value = cell.v;
       inp.disabled = ro;
-      if (i === 0 && ci === 0) inp.placeholder = 'Type here\u2026';
+      inp.placeholder = 'title';
+      inp.setAttribute('aria-label', 'Title');
       td.append(inp);
 
       /* the keywords this cell's words catch in the repo, with their total */
