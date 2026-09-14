@@ -1119,7 +1119,7 @@
   .pe-head p{margin:0; color:#70716c; font-size:11px; line-height:1.5}
   .pe-head button{margin-left:auto; flex:none}
   .pe-scroll{overflow-x:auto}
-  .pe-table{width:100%; min-width:760px; border-collapse:collapse; table-layout:fixed}
+  .pe-table{width:100%; border-collapse:collapse; table-layout:fixed}
   .pe-table th{padding:9px 12px; border-bottom:1px solid #deded9; border-right:1px solid #e7e7e3;
                background:#f3f3f0; color:#666761; font-size:9px; font-weight:800;
                letter-spacing:.08em; text-align:left; text-transform:uppercase}
@@ -1129,18 +1129,21 @@
   .pe-table td:last-child{border-right:0}.pe-table tbody:last-child tr:last-child td{border-bottom:0}
   .pe-number{text-align:center; color:#777872; font-size:11px; font-weight:700}
   .pe-problem{position:relative}
-  .pe-problem textarea{display:block; width:100%; min-height:64px; resize:vertical; border:0;
+  .pe-problem textarea{display:block; width:100%; min-height:64px; resize:none; overflow:hidden; box-sizing:border-box; border:0;
                        padding:3px 20px 3px 1px; outline:none; color:#252622;
                        font:inherit; font-size:12px; font-weight:500; line-height:1.5}
   .pe-problem textarea:focus{box-shadow:inset 0 -1px #57c982}
   .pe-remove-problem{position:absolute; top:5px; right:5px; padding:2px 5px; border:0;
                      background:transparent; color:#92938d}
-  .pe-evidence{display:grid; grid-template-columns:132px minmax(120px,.8fr) minmax(180px,1.2fr) auto;
+  .pe-evidence{display:grid; grid-template-columns:minmax(0,1fr) auto;
                align-items:center; gap:8px}
-  .pe-evidence select,.pe-evidence input{width:100%; min-width:0; height:34px; padding:6px 8px;
+  .pe-evidence select,.pe-evidence textarea{width:100%; min-width:0; min-height:34px; padding:6px 8px; box-sizing:border-box;
                                         border:1px solid #d8d9d4; border-radius:4px; background:#fff;
                                         color:#30312d; font:inherit; font-size:11px; outline:none}
-  .pe-evidence select:focus,.pe-evidence input:focus{border-color:#57c982}
+  .pe-evidence textarea{grid-column:1 / -1; resize:none; overflow:hidden; line-height:1.5; overflow-wrap:anywhere; white-space:pre-wrap}
+  .pe-evidence select:focus,.pe-evidence textarea:focus{border-color:#57c982}
+  .pe-evidence-actions{grid-column:2; grid-row:1}
+  .pe-file-name{grid-column:1 / -1; overflow-wrap:anywhere; font-size:11px; color:#666}
   .pe-type{font-weight:700}
   .pe-open{min-width:58px; height:34px; padding:5px 9px; font-size:10px; background:#fff}
   .pe-open.web{color:#4569a8; border-color:#bfccec}.pe-open.file{color:#8a5c20; border-color:#dfc79d}
@@ -2381,7 +2384,7 @@ const SUPABASE_URL = 'https://cskamgfvebryahkljlll.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_MdkD-TxMCIwlu69seSHA3Q_A39GADsK';
 const CLIENT_ID    = '1059013355751-6g50dsgm7df37htl2fdqrtlkh5hmrc0c.apps.googleusercontent.com';
 const ALLOWED      = ['vijaysrinivassan@gmail.com'];
-const BUILD        = 'v7.60';
+const BUILD        = 'v7.61';
 
 const STRATEGY_ONE_TAB = 'Strategy 1 — Brand Strategy';
 const PRODUCT_EVOLUTION_TAB = 'Strategy 1 — Product Evolution';
@@ -9883,6 +9886,25 @@ function externalEvidenceUrl(value){
   } catch (e){ return ''; }
 }
 
+function fitEvidenceText(field){
+  if (!field.getBoundingClientRect().width) return;
+  field.style.height = 'auto';
+  field.style.height = (field.scrollHeight + 2) + 'px';
+}
+let evidenceResizeObserver;
+function sizeEvidenceFields(host){
+  requestAnimationFrame(() => host.querySelectorAll('textarea').forEach(fitEvidenceText));
+  if (!evidenceResizeObserver){
+    let lastWidth = -1;
+    evidenceResizeObserver = new ResizeObserver(entries => {
+      const width = entries[0].contentRect.width;
+      if (width === lastWidth) return;
+      lastWidth = width;
+      requestAnimationFrame(() => host.querySelectorAll('textarea').forEach(fitEvidenceText));
+    });
+    evidenceResizeObserver.observe(host);
+  }
+}
 function renderProblemEvidence(focus){
   const problems = problemEvidenceState();
   const host = $('problemEvidenceTable');
@@ -9909,7 +9931,7 @@ function renderProblemEvidence(focus){
         problemInput.value = problem.problem;
         problemInput.placeholder = 'Describe the problem people face';
         problemInput.readOnly = readOnly();
-        problemInput.oninput = ev => { problem.problem = ev.target.value; markDirty(); };
+        problemInput.oninput = ev => { problem.problem = ev.target.value; fitEvidenceText(problemInput); markDirty(); };
         problemCell.append(problemInput);
         if (!readOnly()){
           const removeProblem = document.createElement('button');
@@ -9949,12 +9971,13 @@ function renderProblemEvidence(focus){
         renderProblemEvidence({ evidenceId: evidence.id, field: 'source' });
       };
 
-      const label = document.createElement('input');
+      const label = document.createElement('textarea');
+      label.rows = 1;
       label.value = evidence.label;
       label.placeholder = 'Evidence ' + (evidenceIndex + 1);
       label.title = 'Evidence name';
       label.readOnly = readOnly();
-      label.oninput = ev => { evidence.label = ev.target.value; markDirty(); };
+      label.oninput = ev => { evidence.label = ev.target.value; fitEvidenceText(label); markDirty(); };
 
       let source;
       if (evidence.type === 'document'){
@@ -9984,13 +10007,15 @@ function renderProblemEvidence(focus){
           markDirty();
         };
       } else {
-        source = document.createElement('input');
+        source = document.createElement('textarea');
+        source.rows = 1;
         source.value = evidence.url;
         source.placeholder = 'https://reddit.com/...';
         source.title = 'Source URL';
         source.readOnly = readOnly();
         source.oninput = ev => {
           evidence.url = ev.target.value;
+          fitEvidenceText(source);
           open.disabled = !externalEvidenceUrl(evidence.url);
           markDirty();
         };
@@ -10032,6 +10057,12 @@ function renderProblemEvidence(focus){
         actions.append(remove);
       }
       editor.append(type, label, source, actions);
+      if (evidence.type === 'document'){
+        const fileName = document.createElement('div');
+        fileName.className = 'pe-file-name';
+        const updateName = () => { fileName.textContent = source.selectedOptions[0]?.textContent || ''; };
+        updateName(); source.addEventListener('change', updateName); editor.append(fileName);
+      }
       evidenceCell.append(editor);
 
       if (evidenceIndex === problem.evidences.length - 1 && !readOnly()){
@@ -10064,6 +10095,7 @@ function renderProblemEvidence(focus){
     group.append(row);
     host.append(group);
   }
+  sizeEvidenceFields(host);
   if (focus){
     requestAnimationFrame(() => {
       const group = host.querySelector('[data-problem="' + (focus.problemId || '') + '"]');

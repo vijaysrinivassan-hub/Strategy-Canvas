@@ -1,0 +1,17 @@
+import fs from 'node:fs';
+import vm from 'node:vm';
+import assert from 'node:assert/strict';
+const html=fs.readFileSync(new URL('./index.html',import.meta.url),'utf8');
+const fields=[{style:{},scrollHeight:500,getBoundingClientRect:()=>({width:220})}];
+let resize;
+const ctx=vm.createContext({requestAnimationFrame:f=>f(),ResizeObserver:class {constructor(f){resize=f}observe(){}}});
+vm.runInContext(html.slice(html.indexOf('function fitEvidenceText('),html.indexOf('function renderProblemEvidence(')),ctx);
+const host={querySelectorAll:()=>fields};
+ctx.sizeEvidenceFields(host);assert.equal(fields[0].style.height,'502px');
+fields[0].scrollHeight=700;resize([{contentRect:{width:100}}]);assert.equal(fields[0].style.height,'702px');
+fields[0].scrollHeight=40;ctx.fitEvidenceText(fields[0]);assert.equal(fields[0].style.height,'42px');
+const hidden={style:{},getBoundingClientRect:()=>({width:0})};ctx.fitEvidenceText(hidden);assert.equal(hidden.style.height,undefined);
+const render=html.slice(html.indexOf('function renderProblemEvidence('),html.indexOf('function renderProblemEvidence(')+16000);
+assert(render.includes("const label = document.createElement('textarea')"));
+assert(render.includes("source = document.createElement('textarea')"));
+console.log('PASS: full-content height, width-change resizing, shrinking text, hidden fields and multiline evidence editors.');
