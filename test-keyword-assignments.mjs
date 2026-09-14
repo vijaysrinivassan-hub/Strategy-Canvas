@@ -10,4 +10,7 @@ const body={tabs,workspaceProductId:'p',productWorkspaces:{p:{tabs:{'Content Str
 assert.deepEqual([...A.assigned(body)].sort(),['existing','keep','move','other-product'].sort());
 delete tabs['Content Strategy'].views.competitor.comparisonCells['["a","b"]'];
 assert(!A.assigned(body).has('move'));
+const root={articleTypes:[{id:'x',name:'Listicle'}]};
+assert.deepEqual(A.comparisonDefaults(root),{type:'competitor',aw:'Competitor aware'});
+A.comparisonDefaults(root);assert.equal(root.articleTypes.length,2);
 console.log('PASS: move without metric deletion, title preservation, idempotency, release on removal, inactive-product assignments and stale snapshot exclusion');

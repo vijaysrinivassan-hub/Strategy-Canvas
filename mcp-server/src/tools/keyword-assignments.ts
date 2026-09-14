@@ -8,7 +8,8 @@ const destination=z.object({
  view:z.enum(['category','competitor','icp','value','comparison']),
  row_id:z.string().optional(),column_id:z.string().optional(),
  competitor_ids:z.array(z.string()).length(2).optional(),
- keyword_ids:z.array(z.string().uuid()).min(1).max(500)
+ keyword_ids:z.array(z.string().uuid()).min(1).max(500),
+ status:z.enum(['written','review','progress','planned','for_review','selected','rejected']).optional()
 });
 export function registerKeywordAssignmentTools(server:McpServer){
  server.registerTool('keyword_cells_get',{
@@ -21,7 +22,7 @@ export function registerKeywordAssignmentTools(server:McpServer){
  });
  server.registerTool('keyword_move_to_cells',{
   title:'Move keywords into article cells',
-  description:'Move existing board keyword IDs into cells on the specified ACTIVE product. Read keyword_cells_get first. Batch is atomic with revision guard. Moves remove previous explicit cell assignments within this product. Assigned records disappear from Keyword Repo but metrics remain available in their cells. Existing titles and article settings are preserved. Comparison accepts two distinct competitor IDs in either order.',
+  description:'Move existing board keyword IDs into cells on the specified ACTIVE product. Read keyword_cells_get first. Batch is atomic with revision guard. Moves remove previous explicit cell assignments within this product. Assigned records disappear from Keyword Repo but metrics remain available in their cells. Existing titles and article settings are preserved unless status is explicitly supplied. Comparison defaults are Competitor article type and Competitor aware; positive-volume keyword assignments start For review when no status exists. Comparison accepts two distinct competitor IDs in either order.',
   inputSchema:{board_id:z.string(),product_id:z.string(),revision:z.string(),assignments:z.array(destination).min(1).max(100)},
   annotations:{readOnlyHint:false,destructiveHint:false,idempotentHint:true}
  },async({board_id,product_id,revision,assignments})=>{
@@ -30,7 +31,7 @@ export function registerKeywordAssignmentTools(server:McpServer){
   if(body.workspaceProductId!==product_id)throw new ToolError('Active product changed. Read again.');
   const ids=assignments.flatMap(a=>a.keyword_ids);
   if(new Set(ids).size!==ids.length)throw new ToolError('Assign each keyword to only one destination per batch.');
-  const {data:keywords,error:readError}=await db().from('keywords').select('id').eq('board_id',board_id).in('id',ids);
+  const {data:keywords,error:readError}=await db().from('keywords').select('id,volume').eq('board_id',board_id).in('id',ids);
   if(readError)throw new ToolError(readError.message);
   if(keywords?.length!==ids.length)throw new ToolError('Some keyword IDs do not belong to this board.');
   for(const a of assignments){
@@ -51,6 +52,13 @@ export function registerKeywordAssignmentTools(server:McpServer){
     const old=bucket[key];target=bucket[key]=typeof old==='string'?{v:old}:old===true?{on:true}:old||{};
    }
    A.move(body.tabs,target,a.keyword_ids);
+   if(a.view==='comparison'){
+    const defaults=A.comparisonDefaults(body.tabs[TAB]);
+    if(!target.type)target.type=defaults.type;
+    if(!target.aw)target.aw=defaults.aw;
+    if(target.st===undefined && keywords?.some(k=>a.keyword_ids.includes(k.id)&&Number(k.volume)>0))target.st='for_review';
+   }
+   if(a.status!==undefined)target.st=a.status;
   }
   const {data,error}=await db().from('reports').update({body:JSON.stringify(body),updated_at:new Date().toISOString()}).eq('id',board_id).eq('updated_at',revision).select('updated_at');
   if(error)throw new ToolError(error.message);

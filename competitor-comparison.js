@@ -4,11 +4,11 @@ function comparisonKey(a,b){return a===b?null:JSON.stringify([a,b].sort());}
 function comparisonClipboardText(m){
  const companies=m.rows.filter(c=>(c.name||'').trim()), rows=[];
  for(let i=0;i<companies.length;i++)for(let j=i+1;j<companies.length;j++){
-  const a=companies[i],b=companies[j],pair=a.name+' vs. '+b.name;
+  const a=companies[i],b=companies[j],pair=b.name+' vs '+a.name;
   const cell=m.comparisonCells?.[comparisonKey(a.id,b.id)]||{};
   const title=cell.v===undefined?pair:cell.v;
   const keywords=gridCellKeywords(title,cell.kws).map(r=>r.keyword);
-  if(cell.v===undefined)keywords.push(...gridCellKeywords(b.name+' vs. '+a.name,cell.kws).map(r=>r.keyword));
+  if(cell.v===undefined)keywords.push(...gridCellKeywords(a.name+' vs '+b.name,cell.kws).map(r=>r.keyword));
   rows.push([...new Set([title,...keywords].filter(value=>String(value??'').trim()).map(value=>String(value).replace(/\b(vs|versus)\.(?=\s|$)/gi,'$1')))]);
  }
  const field=value=>{const s=String(value??'');return /[,\t\r\n"]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s;};
@@ -38,6 +38,7 @@ function renderCompetitorComparison(m){
  const companies=m.rows.filter(c=>(c.name||'').trim());
  if(companies.length<2){const empty=document.createElement('p');empty.textContent='Add at least two named competitors in the table above.';host.append(empty);return;}
  m.comparisonCells ||= {};
+ const defaults=KeywordAssignments.comparisonDefaults(state.tabs[CONTENT_TAB]);
  let built=false;
  const valid=()=>generation===comparisonRender&&!host.hidden&&state.contentView==='competitor'&&state.tabs[CONTENT_TAB]?.views?.competitor===m;
  const build=()=>{
@@ -55,7 +56,11 @@ function renderCompetitorComparison(m){
    if(!valid())return;
    entry.hydrated=true;const {td,key,title}=entry;td.innerHTML='';td.className='gr-cell';
    const get=()=>{
-    const value=cellState(bucket,key,{});
+    const value=cellState(bucket,key,defaults);
+    const raw=m.comparisonCells[key]||{};
+    if(!raw.type)value.type=defaults.type;
+    if(!raw.aw)value.aw=defaults.aw;
+    if(raw.st===undefined && keywordRowsByIds(raw.kws).some(k=>Number(k.volume)>0))value.st='for_review';
     if(m.comparisonCells[key]?.v===undefined)value.v=title;
     return value;
    };
@@ -88,7 +93,7 @@ function renderCompetitorComparison(m){
    for(const b of companies){
     const td=document.createElement('td'),key=comparisonKey(a.id,b.id);
     if(key===null){td.className='comparison-null';td.textContent='—';td.title='Not applicable: same company';td.setAttribute('aria-label',a.name+' vs. itself: not applicable');tr.append(td);continue;}
-    if(companies.indexOf(b)<companies.indexOf(a)){td.className='comparison-null';td.textContent='';td.setAttribute('aria-label','Repeated pair omitted');tr.append(td);continue;}
+    if(companies.indexOf(b)>companies.indexOf(a)){td.className='comparison-null';td.textContent='';td.setAttribute('aria-label','Repeated pair omitted');tr.append(td);continue;}
     const entry={td,key,title:a.name+' vs '+b.name,hydrated:false};
     td.className='comparison-pending';td.textContent=entry.title;
     if(!mirrors.has(key))mirrors.set(key,[]);mirrors.get(key).push(entry);

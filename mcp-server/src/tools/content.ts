@@ -10,9 +10,9 @@ const CONTENT_TAB = "Content Strategy";
  *  read correctly. */
 const AWARENESS = ["Problem aware", "Solution aware", "Feature aware", "Competitor aware"] as const;
 /** Where an article stands. The app stores the short id. */
-const STATUS = ["written", "review", "progress", "planned"] as const;
+const STATUS = ["written", "review", "progress", "planned", "for_review", "selected", "rejected"] as const;
 const STATUS_LABEL: Record<string, string> = {
-  written: "Already written", review: "Sent for review", progress: "In progress", planned: "Planned"
+  written: "Already written", review: "Sent for review", progress: "In progress", planned: "Planned", for_review: "For review", selected: "Selected", rejected: "Rejected"
 };
 
 function readCell(raw: any): {

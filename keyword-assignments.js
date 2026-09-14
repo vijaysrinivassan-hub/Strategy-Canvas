@@ -20,5 +20,11 @@
   for(const cell of cells(tabs))if(cell!==target&&Array.isArray(cell.kws))cell.kws=cell.kws.filter(id=>!wanted.has(String(id)));
   target.kws=[...new Set([...(target.kws||[]).map(String),...wanted])];
  }
- return {cells,assigned,move};
+ function comparisonDefaults(root){
+  root.articleTypes ||= [];
+  let type=root.articleTypes.find(t=>String(t.name).toLowerCase()==='competitor');
+  if(!type){let id='competitor';while(root.articleTypes.some(t=>t.id===id))id+='_';type={id,name:'Competitor'};root.articleTypes.push(type);}
+  return {type:type.id,aw:'Competitor aware'};
+ }
+ return {cells,assigned,move,comparisonDefaults};
 });

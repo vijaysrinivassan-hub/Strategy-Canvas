@@ -73,6 +73,10 @@ npm run inspect
 
 Opens the MCP Inspector, where every tool can be called by hand.
 
+## Comparison defaults and review status
+
+Comparison cells default to Competitor article type and Competitor aware. Positive-volume keyword assignments start For review when no status is set. Assignment calls can explicitly set status to for_review, selected, rejected, written, review, progress or planned. The matrix displays only the lower triangle; unordered pair IDs preserve all previous content.
+
 ## Keyword cell assignments
 
 `keyword_cells_get` returns active product ID, revision and exact cell/competitor IDs.
