@@ -1,5 +1,19 @@
 /* Pairwise articles share data by stable competitor IDs. Editors load on demand. */
 function comparisonKey(a,b){return a===b?null:JSON.stringify([a,b].sort());}
+// Export from model data, including cells that have not been scrolled into view.
+function comparisonClipboardText(m){
+ const companies=m.rows.filter(c=>(c.name||'').trim()), rows=[['Comparison','Proposed title','Keywords']];
+ for(let i=0;i<companies.length;i++)for(let j=i+1;j<companies.length;j++){
+  const a=companies[i],b=companies[j],pair=a.name+' vs. '+b.name;
+  const cell=m.comparisonCells?.[comparisonKey(a.id,b.id)]||{};
+  const title=cell.v===undefined?pair:cell.v;
+  const keywords=gridCellKeywords(title,cell.kws).map(r=>r.keyword);
+  if(cell.v===undefined)keywords.push(...gridCellKeywords(b.name+' vs. '+a.name,cell.kws).map(r=>r.keyword));
+  rows.push([pair,title,[...new Set(keywords)].join('; ')]);
+ }
+ const field=value=>{const s=String(value??'');return /[\t\r\n"]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s;};
+ return rows.map(row=>row.map(field).join('\t')).join('\n');
+}
 let comparisonObserver=null, comparisonCellObserver=null, comparisonRender=0;
 function renderCompetitorComparison(m){
  const host=$('competitorComparison'), generation=++comparisonRender;
@@ -8,7 +22,19 @@ function renderCompetitorComparison(m){
  host.hidden=false;host.innerHTML='';
  const heading=document.createElement('h3');heading.textContent='Competitor vs. Competitor';
  const note=document.createElement('p');note.textContent='Plan comparison articles. Mirrored pairs share their fields; self-comparisons are not applicable.';
- host.append(heading,note);
+ const toolbar=document.createElement('div');toolbar.className='comparison-toolbar';
+ const copy=document.createElement('button');copy.type='button';copy.textContent='Copy';
+ copy.setAttribute('aria-label','Copy all comparisons, proposed titles and keywords');
+ const status=document.createElement('span');status.className='comparison-copy-status';status.setAttribute('role','status');
+ copy.disabled=m.rows.filter(c=>(c.name||'').trim()).length<2;
+ copy.onclick=async()=>{
+  if(generation!==comparisonRender)return;
+  copy.disabled=true;
+  try{await navigator.clipboard.writeText(comparisonClipboardText(m));status.textContent='Copied';}
+  catch{status.textContent='Could not copy. Allow clipboard access and try again.';}
+  finally{copy.disabled=false;}
+ };
+ toolbar.append(heading,status,copy);host.append(toolbar,note);
  const companies=m.rows.filter(c=>(c.name||'').trim());
  if(companies.length<2){const empty=document.createElement('p');empty.textContent='Add at least two named competitors in the table above.';host.append(empty);return;}
  m.comparisonCells ||= {};

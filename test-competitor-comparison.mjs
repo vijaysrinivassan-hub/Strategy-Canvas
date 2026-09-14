@@ -43,4 +43,24 @@ const before=JSON.stringify(m.comparisonCells);all().find(e=>e.options).options.
 const other={rows:m.rows};state.tabs.content.views.competitor=other;ctx.renderCompetitorComparison(other);
 assert.equal(checks().filter(e=>e.checked).length,0);
 assert(!html.includes("caption.textContent = 'URL'"));
+// Copy includes all model pairs, not only hydrated/visible cells.
+let copied='';
+ctx.navigator={clipboard:{writeText:async text=>{copied=text;}}};
+ctx.gridCellKeywords=(title,ids)=>(ids||[]).map(id=>({keyword:'keyword '+id}));
+const exportModel={rows:[{id:'a',name:'Alpha'},{id:'b',name:'Beta'},{id:'c',name:'Gamma'}],comparisonCells:{}};
+exportModel.comparisonCells[ctx.comparisonKey('a','b')]={v:'Custom comparison',kws:['one','two']};
+const output=ctx.comparisonClipboardText(exportModel);
+assert.equal(output.split('\n').length,4);
+assert(output.includes('Alpha vs. Beta\tCustom comparison\tkeyword one; keyword two'));
+assert(output.includes('Alpha vs. Gamma\tAlpha vs. Gamma\t'));
+assert(!output.includes('Alpha vs. Alpha'));assert(!output.includes('Beta vs. Alpha'));
+state.tabs.content.views.competitor=exportModel;
+ctx.renderCompetitorComparison(exportModel);
+const copy=all().find(e=>e.textContent==='Copy');
+assert(copy&&!copy.disabled);await copy.onclick();assert.equal(copied,output);
+assert(all().some(e=>e.textContent==='Copied'));
+ctx.navigator.clipboard.writeText=async()=>{throw Error('Permission denied');};
+await copy.onclick();assert(!copy.disabled);
+assert(all().some(e=>e.textContent==='Could not copy. Allow clipboard access and try again.'));
+console.log('PASS: clipboard export includes unique pairs, custom/default titles and keywords; read-only copying and permission errors handled.');
 console.log('PASS: full shared cell fields, generated/editable titles, Slug, mirrored edits, disabled diagonal, reload persistence, read-only guard and product isolation.');
