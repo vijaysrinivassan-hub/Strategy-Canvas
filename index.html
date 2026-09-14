@@ -1919,6 +1919,17 @@
   .gr-url{display:flex;align-items:center;gap:6px;padding:0 6px 5px;color:#748177;font-size:10px}
   .gr-url input[type=text]{min-width:0;flex:1;font-weight:400;padding:4px 2px}
   .gr-foot2 .gr-author{flex:1 1 0;min-width:0}
+  #competitorComparison{padding:28px 0 12px;border-top:1px solid #dce4df;margin-top:28px}
+  #competitorComparison h3,#competitorComparison p{margin:0 16px 12px}
+  .comparison-scroll{overflow:auto}
+  .comparison-table{border-collapse:collapse;table-layout:fixed;font-size:12px}
+  .comparison-table th,.comparison-table td{border:1px solid #dce4df;padding:12px;min-width:180px;vertical-align:middle;background:#fff}
+  .comparison-table thead th{background:#171b19;color:#fff}
+  .comparison-table tbody th{background:#f4f7f4;text-align:left}
+  .comparison-table td.comparison-null{background:#eef1ee;color:#8b958e;text-align:center}
+  .comparison-table td.planned{background:#edf9f1}
+  .comparison-table label{display:flex;gap:8px;align-items:center;cursor:pointer}
+  .comparison-table input{accent-color:#24834d}
 </style>
 </head>
 <body>
@@ -2361,7 +2372,7 @@
         <button id="btnAddType">+ Article type</button>
       </div>
       <div class="mx-setup" id="mxSetup" hidden></div>
-      <div class="mx-wrap"><table class="mx-table" id="mxTable"></table></div>
+      <div class="mx-wrap"><table class="mx-table" id="mxTable"></table><section id="competitorComparison" hidden></section></div>
     </div>
 
     <!-- Keyword Repo: selected keywords on top, the full pull underneath -->
@@ -2389,6 +2400,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="keyword-columns.js"></script>
 <script src="keyword-columns-ui.js"></script>
+<script src="competitor-comparison.js"></script>
 <script>
 /* ===================================================================
    CONFIG — all public values. No secrets belong in this file.
@@ -2397,7 +2409,7 @@ const SUPABASE_URL = 'https://cskamgfvebryahkljlll.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_MdkD-TxMCIwlu69seSHA3Q_A39GADsK';
 const CLIENT_ID    = '1059013355751-6g50dsgm7df37htl2fdqrtlkh5hmrc0c.apps.googleusercontent.com';
 const ALLOWED      = ['vijaysrinivassan@gmail.com'];
-const BUILD        = 'v7.68';
+const BUILD        = 'v7.69';
 
 const STRATEGY_ONE_TAB = 'Strategy 1 — Brand Strategy';
 const PRODUCT_EVOLUTION_TAB = 'Strategy 1 — Product Evolution';
@@ -5668,7 +5680,7 @@ function cellState(m, key, defaults){
              v: raw.v || '', url: raw.url || '', writtenBy: raw.writtenBy || '', aw: raw.aw || '', st: raw.st || '', cfg:!!raw.cfg,
              kws: Array.isArray(raw.kws) ? raw.kws.filter(Boolean) : [] };
   }
-  return { on: false, mode: d.mode || 'aeo', type: d.type || '', v: d.value || '', aw: d.aw || '', st: '', cfg:false, kws: [] };
+  return { on: false, mode: d.mode || 'aeo', type: d.type || '', v: '', aw: d.aw || '', st: '', cfg:false, kws: [] };
 }
 function setCellState(m, key, st){
   /* the default — nothing chosen, nothing written — need not be stored */
@@ -6044,8 +6056,6 @@ function openColumnGuide(col, label, rerender){
   nameBox.type = 'text';
   nameBox.value = col.name || label;
   nameBox.required = true;
-  const valueLabel = document.createElement('label'); valueLabel.className = 'fl'; valueLabel.textContent = 'Default cell text';
-  const valueBox = document.createElement('input'); valueBox.className = 'modal-in'; valueBox.value = col.defaults.value || ''; valueBox.setAttribute('aria-label', 'Default cell text');
   const promptLabel = document.createElement('label');
   promptLabel.className = 'fl';
   promptLabel.textContent = 'Instruction for AI';
@@ -6090,13 +6100,13 @@ function openColumnGuide(col, label, rerender){
     if (!name){ toast('Enter a column name.', true); nameBox.focus(); return; }
     col.name = name;
     col.instruction = promptBox.value.trim();
-    col.defaults = { mode: mode.value, type: type.value, aw: awareness.value, value: valueBox.value };
+    col.defaults = { mode: mode.value, type: type.value, aw: awareness.value };
     col.local = true;
     markDirty(); closeModal(); rerender();
     toast('Column settings saved.');
   };
   foot.append(cancel, save);
-  modal.append(h, p, nameLabel, nameBox, promptLabel, promptBox, valueLabel, valueBox, defaults, foot);
+  modal.append(h, p, nameLabel, nameBox, promptLabel, promptBox, defaults, foot);
   overlay.append(modal); host.append(overlay); nameBox.focus(); nameBox.select();
 }
 
@@ -6113,7 +6123,7 @@ function cellOf(row, colId, defaults){
              on: !!c.on, aw: c.aw || '', st: c.st || '', url: c.url || '', writtenBy: c.writtenBy || '', cfg:!!c.cfg,
              kws: Array.isArray(c.kws) ? c.kws.filter(Boolean) : [] };
   }
-  return { v: d.value || '', mode: d.mode || 'aeo', type: d.type || '', on: false, aw: d.aw || '', st: '', cfg:false, kws: [] };
+  return { v: '', mode: d.mode || 'aeo', type: d.type || '', on: false, aw: d.aw || '', st: '', cfg:false, kws: [] };
 }
 
 /* A cell with nothing chosen and nothing caught keeps its controls quiet. */
@@ -6158,7 +6168,7 @@ function renderArticleTypes(){
     nm.title = ro ? t.name : 'Double-click to rename';
     if (!ro) nm.ondblclick = function(){
       inlineRename(nm, t.name, function(nv){
-        t.name = nv || t.name; markDirty(); renderArticleTypes();
+        t.name = nv || t.name; markDirty(); renderArticleTypes(); renderUniversalColumns();
       });
     };
     row.append(nm);
@@ -6189,7 +6199,7 @@ function renderArticleTypes(){
             });
           });
         });
-        markDirty(); renderArticleTypes();
+        markDirty(); renderArticleTypes(); renderUniversalColumns();
       };
       row.append(x);
     }
@@ -6221,7 +6231,7 @@ function addTypeToLibrary(){
   list.push({ id: uid(), name: name });
   box.value = '';
   markDirty();
-  renderArticleTypes();
+  renderArticleTypes(); renderUniversalColumns();
 }
 
 /* One switch, used by the matrix cells and by the table rows. */
@@ -6426,11 +6436,13 @@ function renderMatrix(){
   });
   table.append(tbody);
   applyKeywordMatrixOrder(table, m);
+  renderCompetitorComparison(m);
 }
 
 
 /* ---- plain tables (Category, ICP, Value) ---------------------------- */
 function renderGrid(){
+  $('competitorComparison').hidden = true;
   const v = matrixState();
   const vd = viewDef(state.contentView);
   const ro = readOnly();

@@ -40,7 +40,7 @@ const fresh=ctx.contentRoot();
 assert(!fresh.views.category.columns.some(c=>c.name==='Category name')); // removed definition doesn't reappear
 assert(fresh.views.category.columns.every(c=>c.universalId));
 vm.runInContext(html.slice(html.indexOf('function cellOf('),html.indexOf('/* A cell with nothing chosen')),ctx);
-assert.equal(ctx.cellOf({cells:{}},'x',{value:'Default'}).v,'Default');
+assert.equal(ctx.cellOf({cells:{}},'x',{value:'Legacy default'}).v,'');
 assert.equal(ctx.cellOf({cells:{x:{v:''}}},'x',{value:'Default'}).v,''); // explicit blank stays
 assert(html.includes('if (readOnly() || col.universalId) return;'));
 assert(html.includes('if (!ro && !ty.universalId)'));

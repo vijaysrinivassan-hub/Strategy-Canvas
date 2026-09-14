@@ -23,7 +23,7 @@ const sb={from(){let filters=[],payload,insert=false;return{
  }}}};
 const ctx=vm.createContext({state,sb,KeywordColumns:K,crypto:webcrypto,TextEncoder,CONTENT_TAB:'Content Strategy',
  $:()=>host,document:{createElement:t=>new El(t)},uid:()=>String(++n),
- clientView:()=>readonly,toast:()=>{},markDirty:()=>dirty++,AWARENESS:['Problem aware']});
+ articleTypes:()=>[{id:'listicle',name:'Listicle'},{id:'info',name:'Informational'}],clientView:()=>readonly,toast:()=>{},markDirty:()=>dirty++,AWARENESS:['Problem aware']});
 vm.runInContext(fs.readFileSync(new URL('./keyword-columns-ui.js',import.meta.url),'utf8'),ctx);
 ctx.readKeywordSettings([]);ctx.renderUniversalColumns();
 const all=(e=host)=>[e,...e.children.flatMap(all)];

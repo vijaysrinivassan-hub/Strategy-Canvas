@@ -89,13 +89,13 @@ function renderUniversalColumns(){
  if(!state.user||clientView())return;
  const draft=JSON.parse(JSON.stringify(keywordSettings||KeywordColumns.seed(state.tabs?.[CONTENT_TAB])));
  const expected=keywordSettingsRecord;
- const note=document.createElement('p');note.textContent='Removing a universal definition makes existing copies local; it never deletes keyword content.';host.append(note);
+ const note=document.createElement('p');note.textContent='Manage the dropdown choices in Settings → Article Types. Removing a universal definition makes existing copies local; it never deletes keyword content.';host.append(note);
  for(const [view,defs] of Object.entries(draft.views)){
   const h=document.createElement('h4');h.textContent=view==='icp'?'ICP':view[0].toUpperCase()+view.slice(1);host.append(h);
   const scroller=document.createElement('div');scroller.style.overflowX='auto';
   const table=document.createElement('table');table.className='universal-columns-table';
   const head=document.createElement('tr');
-  ['Column name','AI instruction','Default text','AEO / SEO','Article type','Awareness','Order / remove'].forEach(x=>{const th=document.createElement('th');th.textContent=x;head.append(th);});table.append(head);
+  ['Column name','AI instruction','AEO / SEO','Default article type','Awareness','Order / remove'].forEach(x=>{const th=document.createElement('th');th.textContent=x;head.append(th);});table.append(head);
   const draw=()=>{
    while(table.children.length>1)table.lastChild.remove();
    defs.forEach((d,i)=>{
@@ -103,14 +103,15 @@ function renderUniversalColumns(){
     function field(value,save,multi=false,options){
      const td=document.createElement('td'),el=document.createElement(options?'select':multi?'textarea':'input');
      if(options)for(const value of options){const o=document.createElement('option');o.value=value;o.textContent=value||'No default';el.append(o);}
-     el.value=value||'';el.setAttribute('aria-label',view+' '+d.name+' '+['name','instruction','default text','channel','article type','awareness'][tr.children.length]);
+     el.value=value||'';el.setAttribute('aria-label',view+' '+d.name+' '+['name','instruction','channel','article type','awareness'][tr.children.length]);
      el.oninput=()=>save(el.value);td.append(el);tr.append(td);
     }
     field(d.name,x=>d.name=x);
     field(d.instruction,x=>d.instruction=x,true);
-    field(d.defaults.value,x=>d.defaults.value=x,true);
+    delete d.defaults.value;
     field(d.defaults.mode,x=>d.defaults.mode=x,false,['','aeo','seo']);
-    field(d.defaults.articleType,x=>d.defaults.articleType=x);
+    field(d.defaults.articleType,x=>d.defaults.articleType=x,false,
+      ['',...new Set([...articleTypes().map(t=>t.name),d.defaults.articleType].filter(Boolean))]);
     field(d.defaults.aw,x=>d.defaults.aw=x,false,['',...AWARENESS]);
     const td=document.createElement('td');
     for(const [label,delta] of [['↑',-1],['↓',1]]){

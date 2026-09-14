@@ -8,8 +8,8 @@ function seed(root){
  for(const view of Object.keys(names)){
   const v=root?.views?.[view], cols=v?.columns || v?.types;
   out.views[view]=(cols?.filter(c=>c.name?.trim()).length ? cols.filter(c=>c.name?.trim()) : names[view].map(name=>({name})))
-   .map((c,i)=>({id:'universal-'+view+'-'+i,name:c.name,instruction:c.instruction||'',defaults:{mode:c.defaults?.mode||'',articleType:root?.articleTypes?.find(t=>t.id===c.defaults?.type)?.name||'',aw:c.defaults?.aw||'',value:c.defaults?.value||''}}));
-  if(view==='competitor') out.views[view].unshift({id:'universal-competitor-row',role:'row',name:v?.rowColumn?.name||'Competitor Name',instruction:v?.rowColumn?.instruction||'',defaults:{mode:'',articleType:'',aw:'',value:''}});
+   .map((c,i)=>({id:'universal-'+view+'-'+i,name:c.name,instruction:c.instruction||'',defaults:{mode:c.defaults?.mode||'',articleType:root?.articleTypes?.find(t=>t.id===c.defaults?.type)?.name||'',aw:c.defaults?.aw||''}}));
+  if(view==='competitor') out.views[view].unshift({id:'universal-competitor-row',role:'row',name:v?.rowColumn?.name||'Competitor Name',instruction:v?.rowColumn?.instruction||'',defaults:{mode:'',articleType:'',aw:''}});
  }
  return out;
 }
@@ -35,7 +35,7 @@ function sync(root,config){
     if(!t){t={id:'universal-type-'+encodeURIComponent(d.defaults.articleType),name:d.defaults.articleType};root.articleTypes.push(t);}
     type=t.id;
    }
-   Object.assign(c,{universalId:d.id,name:d.name,instruction:d.instruction||'',defaults:{mode:d.defaults?.mode||'',type,aw:d.defaults?.aw||'',value:d.defaults?.value||''}});
+   Object.assign(c,{universalId:d.id,name:d.name,instruction:d.instruction||'',defaults:{mode:d.defaults?.mode||'',type,aw:d.defaults?.aw||''}});
   }
  }
  return root;

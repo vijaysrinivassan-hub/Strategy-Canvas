@@ -1,6 +1,6 @@
 # Universal keyword columns
 
-Settings → Universal keyword columns defines the owner's Category, Competitor, ICP and Value templates. Names, AI instructions, default cell text, channel, article type (stored by name across products) and awareness are editable. Save explicitly; conflicting settings edits are rejected.
+Settings → Universal keyword columns defines the owner's Category, Competitor, ICP and Value templates. Names, AI instructions, channel, default article type (a dropdown from Settings → Article Types, stored by name across products) and awareness are editable. Save explicitly; conflicting settings edits are rejected.
 
 The existing reports store holds one internal settings record per owner, protected by the existing owner-only write policies. The record is excluded from client lists and MCP board_list. No schema, policy or public credential changes are required.
 

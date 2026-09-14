@@ -64,7 +64,7 @@ function guidanceFor(column: any, root: any) {
       mode: defaults.mode === "aeo" || defaults.mode === "seo" ? defaults.mode : null,
       article_type: types.find((t) => t.id === defaults.type)?.name ?? null,
       awareness: AWARENESS.includes(defaults.aw) ? defaults.aw : null,
-      value: defaults.value || ""
+      // Default title text is no longer supported.
     }
   };
 }
@@ -178,6 +178,13 @@ export function registerContentTools(server: McpServer) {
             ...guidanceFor(t, body.tabs[CONTENT_TAB])
           })),
           competitor_column_guidance: guidanceFor(v.rowColumn, body.tabs[CONTENT_TAB]),
+          comparisons: Object.entries(v.comparisonCells || {}).flatMap(([key, value]: [string, any]) => {
+            try {
+              const [a,b] = JSON.parse(key);
+              const left = rows.find((r: any) => r.id === a), right = rows.find((r: any) => r.id === b);
+              return left && right && a !== b ? [{competitor_a:left.name,competitor_b:right.name,planned:!!value.on}] : [];
+            } catch { return []; }
+          }),
           planned: cells
         }
       });
