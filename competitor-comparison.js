@@ -2,17 +2,17 @@
 function comparisonKey(a,b){return a===b?null:JSON.stringify([a,b].sort());}
 // Export from model data, including cells that have not been scrolled into view.
 function comparisonClipboardText(m){
- const companies=m.rows.filter(c=>(c.name||'').trim()), rows=[['Comparison','Proposed title','Keywords']];
+ const companies=m.rows.filter(c=>(c.name||'').trim()), rows=[];
  for(let i=0;i<companies.length;i++)for(let j=i+1;j<companies.length;j++){
   const a=companies[i],b=companies[j],pair=a.name+' vs. '+b.name;
   const cell=m.comparisonCells?.[comparisonKey(a.id,b.id)]||{};
   const title=cell.v===undefined?pair:cell.v;
   const keywords=gridCellKeywords(title,cell.kws).map(r=>r.keyword);
   if(cell.v===undefined)keywords.push(...gridCellKeywords(b.name+' vs. '+a.name,cell.kws).map(r=>r.keyword));
-  rows.push([pair,title,[...new Set(keywords)].join(', ')]);
+  rows.push([...new Set([title,...keywords].filter(value=>String(value??'').trim()).map(value=>String(value).replace(/\b(vs|versus)\.(?=\s|$)/gi,'$1')))]);
  }
  const field=value=>{const s=String(value??'');return /[,\t\r\n"]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s;};
- return rows.map(row=>row.map(field).join(',')).join('\n');
+ return rows.filter(row=>row.length).map(row=>row.map(field).join(',')).join('\n');
 }
 let comparisonObserver=null, comparisonCellObserver=null, comparisonRender=0;
 function renderCompetitorComparison(m){
