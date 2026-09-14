@@ -122,7 +122,7 @@ export function registerBoardTools(server: McpServer) {
         id: row.id,
         title: row.title,
         client: body.client,
-        ai_prompts: { product_architecture: await architecturePrompts() },
+        ai_prompts: { product_architecture: await architecturePrompts(body) },
         client_details: {
           goal: body.clientGoal || "Customer Acquisition",
           target_product: body.clientProduct || "",

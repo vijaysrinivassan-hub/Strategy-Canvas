@@ -361,7 +361,10 @@ courtesy — the database is the boundary. Run `supabase-access.sql` to set it u
 
 Product Architecture includes an **AI Prompts** button next to Load sample and Create system.
 Its copyable prompt comes from `ai-prompts.json`, shared with the MCP's `ai_prompts_get`
-and `board_get` tools. `product_architecture_get` / `product_architecture_set` read and
+and `board_get` tools. Users can edit the prompt in the dialog; changes autosave in
+the current board's architecture tab (`aiPrompt`). Pass `board_id` to `ai_prompts_get`
+to retrieve that override. Boards without an override use the shared default, and
+read-only visitors can copy but cannot edit. `product_architecture_get` / `product_architecture_set` read and
 save the Strategy workflow editor, including groups and labelled outputs, with revision
 checks to prevent overwriting concurrent edits. Rebuild and restart the MCP server after
 updating to load these tools. The generic canvas tools target the older canvas instead.
