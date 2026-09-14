@@ -4,9 +4,9 @@ import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { db, loadBoard, ok, ToolError } from '../lib.js';
 
 const TAB = 'Strategy 1 — Product Architecture';
-export async function architecturePrompts(body?: {tabs: Record<string, any>}) {
-  const defaults = JSON.parse(await readFile(new URL('../../../ai-prompts.json', import.meta.url), 'utf8')).product_architecture;
-  const custom = body?.tabs[TAB]?.aiPrompt;
+export async function architecturePrompts(body?: {tabs: Record<string, any>}, section: 'product_architecture' | 'positioning_canvas' = 'product_architecture') {
+  const defaults = JSON.parse(await readFile(new URL('../../../ai-prompts.json', import.meta.url), 'utf8'))[section];
+  const custom = body?.tabs[section === 'positioning_canvas' ? 'Strategy 1 — Positioning Canvas' : TAB]?.aiPrompt;
   return {...defaults, prompt: typeof custom === 'string' ? custom : defaults.prompt};
 }
 const architectureSchema = z.object({
@@ -18,9 +18,9 @@ const architectureSchema = z.object({
 });
 export function registerArchitectureTools(server:McpServer) {
   server.registerTool('ai_prompts_get', {
-    title:'Read AI Prompts', description:'Read the Product Architecture AI prompt. Supply board_id to read that client’s manually edited prompt; omit only for the default template. Use before building architecture.',
-    inputSchema:{board_id:z.string().optional()}, annotations:{readOnlyHint:true,destructiveHint:false,idempotentHint:true}
-  }, async({board_id})=>ok(await architecturePrompts(board_id ? (await loadBoard(board_id)).body : undefined)));
+    title:'Read AI Prompts', description:'Read the Product Architecture or Positioning Canvas AI prompt. Supply board_id to read the active product’s manually edited prompt; omit only for the default template. Use before filling that section.',
+    inputSchema:{board_id:z.string().optional(),section:z.enum(['product_architecture','positioning_canvas']).default('product_architecture')}, annotations:{readOnlyHint:true,destructiveHint:false,idempotentHint:true}
+  }, async({board_id,section})=>ok(await architecturePrompts(board_id ? (await loadBoard(board_id)).body : undefined,section)));
   server.registerTool('product_architecture_get', {
     title:'Read product architecture workflows', description:'Read the Strategy Product Architecture workflow editor (not the older generic canvas), plus its AI prompt. Keep revision for a subsequent write.',
     inputSchema:{board_id:z.string()}, annotations:{readOnlyHint:true,destructiveHint:false,idempotentHint:true}
