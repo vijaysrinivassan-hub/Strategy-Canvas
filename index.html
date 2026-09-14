@@ -2385,7 +2385,7 @@ const SUPABASE_URL = 'https://cskamgfvebryahkljlll.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_MdkD-TxMCIwlu69seSHA3Q_A39GADsK';
 const CLIENT_ID    = '1059013355751-6g50dsgm7df37htl2fdqrtlkh5hmrc0c.apps.googleusercontent.com';
 const ALLOWED      = ['vijaysrinivassan@gmail.com'];
-const BUILD        = 'v7.64';
+const BUILD        = 'v7.65';
 
 const STRATEGY_ONE_TAB = 'Strategy 1 — Brand Strategy';
 const PRODUCT_EVOLUTION_TAB = 'Strategy 1 — Product Evolution';
@@ -5951,7 +5951,7 @@ function columnTools(col, label, rerender){
     edit.type = 'button';
     edit.textContent = '✎';
     edit.className = 'col-edit' + (configured ? ' configured' : '');
-    edit.title = 'Edit AI instruction and defaults';
+    edit.title = 'Edit column name, AI instruction and defaults';
     edit.setAttribute('aria-label', 'Edit settings for ' + label);
     edit.onclick = function(ev){ ev.stopPropagation(); openColumnGuide(col, label, rerender); };
     wrap.append(edit);
@@ -5960,6 +5960,9 @@ function columnTools(col, label, rerender){
 }
 
 function openColumnGuide(col, label, rerender){
+  if (readOnly()) return;
+  const editingTabs = state.tabs;
+  const editingProduct = state.workspaceProductId;
   normalizeColumnMeta(col);
   const host = $('modalHost');
   host.innerHTML = '';
@@ -5970,9 +5973,19 @@ function openColumnGuide(col, label, rerender){
   modal.className = 'modal column-guide';
   modal.onclick = function(ev){ ev.stopPropagation(); };
   const h = document.createElement('h3');
-  h.textContent = label + ' — column guidance';
+  h.textContent = label + ' — column settings';
   const p = document.createElement('p');
-  p.textContent = 'Tell a connected AI what belongs in this column, then choose the defaults inherited by untouched cells.';
+  p.textContent = 'Rename this column, guide the AI, and choose defaults for untouched cells. Existing cell content stays unchanged.';
+  const nameLabel = document.createElement('label');
+  nameLabel.className = 'fl';
+  nameLabel.textContent = 'Column name';
+  nameLabel.htmlFor = 'columnGuideName';
+  const nameBox = document.createElement('input');
+  nameBox.id = 'columnGuideName';
+  nameBox.className = 'modal-in';
+  nameBox.type = 'text';
+  nameBox.value = col.name || label;
+  nameBox.required = true;
   const promptLabel = document.createElement('label');
   promptLabel.className = 'fl';
   promptLabel.textContent = 'Instruction for AI';
@@ -6010,14 +6023,20 @@ function openColumnGuide(col, label, rerender){
   const save = document.createElement('button');
   save.type = 'button'; save.className = 'primary'; save.textContent = 'Save column settings';
   save.onclick = function(){
+    if (readOnly() || state.tabs !== editingTabs || state.workspaceProductId !== editingProduct){
+      closeModal(); return;
+    }
+    const name = nameBox.value.trim();
+    if (!name){ toast('Enter a column name.', true); nameBox.focus(); return; }
+    col.name = name;
     col.instruction = promptBox.value.trim();
     col.defaults = { mode: mode.value, type: type.value, aw: awareness.value };
     markDirty(); closeModal(); rerender();
-    toast('Column guidance and defaults saved.');
+    toast('Column settings saved.');
   };
   foot.append(cancel, save);
-  modal.append(h, p, promptLabel, promptBox, defaults, foot);
-  overlay.append(modal); host.append(overlay); promptBox.focus();
+  modal.append(h, p, nameLabel, nameBox, promptLabel, promptBox, defaults, foot);
+  overlay.append(modal); host.append(overlay); nameBox.focus(); nameBox.select();
 }
 
 /* ---- table cells ----
@@ -6205,8 +6224,8 @@ function renderMatrix(){
   const cLab = document.createElement('div');
   cLab.className = 'mx-lab';
   const cName = document.createElement('b');
-  cName.textContent = vd.label + ' Name';
-  cLab.append(cName, columnTools(m.rowColumn, vd.label + ' Name', renderMatrix));
+  cName.textContent = m.rowColumn.name || vd.label + ' Name';
+  cLab.append(cName, columnTools(m.rowColumn, cName.textContent, renderMatrix));
   corner.append(cLab);
   hr.append(corner);
 
