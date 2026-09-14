@@ -2,6 +2,7 @@
 (function(root, factory){ const api=factory(); if(typeof module==='object') module.exports=api; else root.KeywordColumns=api; })(globalThis, function(){
 const KIND='strategy-keyword-column-settings-v1';
 const names={category:['Category name','Category synonyms','Features','Reviews','Pricing'],competitor:['Alternatives','Pricing','Reviews','Features'],icp:['ICP','Synonyms','Pains','Use cases','Content angles'],value:['Value proposition','Synonyms','Proof points','Objections','Content angles']};
+const comparisonRouting='Comparison routing: any keyword containing vs, vs. or versus belongs exclusively in the Competitor vs. Competitor matrix, never in this column. Route A vs B pricing, reviews, features and other modifiers to the same unordered A vs B cell. Preserve keyword metrics and existing article decisions; do not duplicate B vs A. Default to Competitor article type and Competitor aware; use For review for positive-volume keywords without a status. Resolve both competitors first; keep ambiguous or three-way comparisons for review rather than guessing.';
 const copy=x=>JSON.parse(JSON.stringify(x));
 function seed(root){
  const out={kind:KIND,views:{}};
@@ -11,6 +12,7 @@ function seed(root){
    .map((c,i)=>({id:'universal-'+view+'-'+i,name:c.name,instruction:c.instruction||'',defaults:{mode:c.defaults?.mode||'',articleType:root?.articleTypes?.find(t=>t.id===c.defaults?.type)?.name||'',aw:c.defaults?.aw||''}}));
   if(view==='competitor') out.views[view].unshift({id:'universal-competitor-row',role:'row',name:v?.rowColumn?.name||'Competitor Name',instruction:v?.rowColumn?.instruction||'',defaults:{mode:'',articleType:'',aw:''}});
  }
+ for(const defs of Object.values(out.views))for(const d of defs)d.instruction=[d.instruction,comparisonRouting].filter(Boolean).join('\n\n');
  return out;
 }
 function sync(root,config){
@@ -45,5 +47,5 @@ function order(v){
  return [...new Set([...(v.columnOrder||[]).filter(id=>ids.includes(id)),...ids])];
 }
 function move(v,id,delta){const ids=order(v),i=ids.indexOf(id),j=i+delta;if(i<0||j<0||j>=ids.length)return false;[ids[i],ids[j]]=[ids[j],ids[i]];v.columnOrder=ids;if(v.kind!=='matrix')v.columns.sort((a,b)=>ids.indexOf(a.id)-ids.indexOf(b.id));return true;}
-return {KIND,names,seed,sync,order,move};
+return {KIND,names,seed,sync,order,move,comparisonRouting};
 });

@@ -35,6 +35,12 @@ function renderCompetitorComparison(m){
   finally{copy.disabled=false;}
  };
  toolbar.append(heading,status,copy);host.append(toolbar,note);
+ if(m.comparisonUnresolved?.length){
+  const details=document.createElement('details');details.style.margin='12px 16px';
+  const summary=document.createElement('summary');summary.textContent='Comparisons needing review ('+m.comparisonUnresolved.length+')';details.append(summary);
+  for(const item of m.comparisonUnresolved){const p=document.createElement('p');p.textContent=item.title+' — '+item.reason;details.append(p);}
+  host.append(details);
+ }
  const companies=m.rows.filter(c=>(c.name||'').trim());
  if(companies.length<2){const empty=document.createElement('p');empty.textContent='Add at least two named competitors in the table above.';host.append(empty);return;}
  m.comparisonCells ||= {};

@@ -26,5 +26,13 @@
   if(!type){let id='competitor';while(root.articleTypes.some(t=>t.id===id))id+='_';type={id,name:'Competitor'};root.articleTypes.push(type);}
   return {type:type.id,aw:'Competitor aware'};
  }
- return {cells,assigned,move,comparisonDefaults};
+ function isComparison(text){return /(?:^|[^a-z0-9])(?:vs\.?|versus)(?=$|[^a-z0-9])/i.test(String(text||''));}
+ function comparisonPair(text,rows){
+  const norm=s=>String(s||'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
+  const parts=norm(text).split(/\b(?:vs|versus)\b/);
+  if(parts.length!==2)return null;
+  const hits=parts.map(p=>(rows||[]).filter(r=>norm(r.name)&&(' '+p.trim()+' ').includes(' '+norm(r.name)+' ')));
+  return hits.every(h=>h.length===1)&&hits[0][0].id!==hits[1][0].id?[hits[0][0].id,hits[1][0].id].sort():null;
+ }
+ return {cells,assigned,move,comparisonDefaults,isComparison,comparisonPair};
 });

@@ -31,10 +31,11 @@ export function registerKeywordAssignmentTools(server:McpServer){
   if(body.workspaceProductId!==product_id)throw new ToolError('Active product changed. Read again.');
   const ids=assignments.flatMap(a=>a.keyword_ids);
   if(new Set(ids).size!==ids.length)throw new ToolError('Assign each keyword to only one destination per batch.');
-  const {data:keywords,error:readError}=await db().from('keywords').select('id,volume').eq('board_id',board_id).in('id',ids);
+  const {data:keywords,error:readError}=await db().from('keywords').select('id,volume,keyword').eq('board_id',board_id).in('id',ids);
   if(readError)throw new ToolError(readError.message);
   if(keywords?.length!==ids.length)throw new ToolError('Some keyword IDs do not belong to this board.');
   for(const a of assignments){
+   if(a.view!=='comparison' && keywords?.some(k=>a.keyword_ids.includes(k.id)&&A.isComparison(k.keyword)))throw new ToolError('Vs/versus keywords belong only in the comparison matrix, including pricing, features and reviews variants.');
    const v=body.tabs[TAB]?.views?.[a.view==='comparison'?'competitor':a.view];
    if(!v)throw new ToolError('View does not exist.');
    let target:any;
