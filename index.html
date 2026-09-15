@@ -2457,7 +2457,7 @@ const SUPABASE_URL = 'https://cskamgfvebryahkljlll.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_MdkD-TxMCIwlu69seSHA3Q_A39GADsK';
 const CLIENT_ID    = '1059013355751-6g50dsgm7df37htl2fdqrtlkh5hmrc0c.apps.googleusercontent.com';
 const ALLOWED      = ['vijaysrinivassan@gmail.com'];
-const BUILD        = 'v7.79';
+const BUILD        = 'v7.80';
 
 const STRATEGY_ONE_TAB = 'Strategy 1 — Brand Strategy';
 const PRODUCT_EVOLUTION_TAB = 'Strategy 1 — Product Evolution';
@@ -4371,17 +4371,24 @@ function hydrate(text){
 
 async function refreshBoards(){
   const { data, error } = await sb.from('reports')
-    .select('id,title,updated_at,owner_id,body').order('updated_at', { ascending: false });
+    .select('id,title,updated_at,owner_id').order('updated_at', { ascending: false });
   if (error){ toast('Could not list boards: ' + error.message, true); return; }
-  readKeywordSettings(data || []);
-  state.boards = (data || []).filter(r => !isKeywordSettingsRecord(r));
-  await seedProductArchitecturesForBoards();
+  const settings = await sb.from('reports').select('id,title,updated_at,owner_id,body')
+    .eq('title', '[Internal] Universal keyword columns').eq('owner_id', state.user.id);
+  if (settings.error){ toast('Could not load column settings: ' + settings.error.message, true); return; }
+  readKeywordSettings(settings.data || []);
+  state.boards = (data || []).filter(r => r.title !== '[Internal] Universal keyword columns');
   /* boards are chosen on the Clients screen now, so nothing to fill here */
 }
 
+let boardOpenRequest = 0;
 async function openBoard(id){
+  const request = ++boardOpenRequest;
   const { data, error } = await sb.from('reports').select('id,title,body,owner_id,updated_at').eq('id', id).single();
+  if (request !== boardOpenRequest) return;
   if (error){ toast('Could not open board: ' + error.message, true); return; }
+  keywordCache.clear();
+  kwRows = [];
   state.boardId = data.id;
   state.boardRevision = data.updated_at;
   state.saveConflict = false;
@@ -4397,7 +4404,8 @@ async function openBoard(id){
   state.dirty = false;
   $('saveState').textContent = 'Saved';
   $('saveState').className = 'save-line';
-  await refreshBoards();
+  const cachedBoard = state.boards.find(b => b.id === data.id);
+  if (cachedBoard) Object.assign(cachedBoard, data);
   render();
   applyTabMode();
   if (state.tab !== DOCS_TAB) zoomToFit();
@@ -5401,7 +5409,8 @@ async function saveKeywords(rows, source){
   const unique = {};
   rows.forEach(function(r){ unique[keyOf(r)] = r; });
 
-  await loadKeywords();
+  const loadError = await loadKeywords(true);
+  if (loadError){ toast('Could not load existing keywords: ' + loadError, true); return false; }
   const existing = {};
   kwRows.forEach(function(r){ existing[keyOf(r)] = r.id; });
 
@@ -5447,7 +5456,7 @@ async function saveKeywords(rows, source){
 }
 
 async function repaintFromDb(){
-  await loadKeywords();
+  await loadKeywords(true);
   if (state.tab === KEYWORDS_TAB) renderKeywordTables();
   if (state.tab === CONTENT_TAB) renderContent();
 }
@@ -9166,7 +9175,25 @@ function openNewClientModal(){
   overlay.append(modal); host.append(overlay); name.focus();
 }
 
+let clientDetailsRequest = null;
+async function loadClientDetails(){
+  const ids = state.boards.filter(b => !b.body).map(b => b.id);
+  if (!ids.length) return;
+  if (clientDetailsRequest) return clientDetailsRequest;
+  const user = state.user.id;
+  clientDetailsRequest = (async () => {
+    const {data,error} = await sb.from('reports').select('id,body,updated_at').in('id', ids);
+    if (error || state.user?.id !== user) return;
+    for (const row of data || []){
+      const board = state.boards.find(b => b.id === row.id);
+      if (board && !board.body) Object.assign(board, row);
+    }
+  })();
+  try { await clientDetailsRequest; } finally { clientDetailsRequest = null; }
+}
 async function renderClients(){
+  await loadClientDetails();
+  if (state.screen !== 'settings') return;
   const grid = $('clientGrid');
   grid.className = 'client-directory';
   grid.innerHTML = '';
@@ -9399,44 +9426,55 @@ function showKwSetup(msg){
 
 /* Fetch once; both the repo tables and the content matrix read kwRows. */
 let keywordLoadRequest = 0;
-async function loadKeywords(){
-  const request = ++keywordLoadRequest, board = state.boardId;
-  if (!state.boardId){ kwRows = []; return 'no-board'; }
-  const { data, error } = await sb
-    .from('keywords')
-    .select('id,keyword,selected,volume,kd,cpc,traffic_potential,parent_topic,intent,country')
-    .eq('board_id', state.boardId)
-    .order('volume', { ascending: false, nullsFirst: false })
-    .limit(2000);
-  if(request !== keywordLoadRequest || state.boardId !== board) return 'stale-request';
-  if (error){ kwRows = []; return error.message; }
-  kwRows = data || [];
+const keywordCache = new Map();
+const KEYWORD_CACHE_MS = 30000;
+async function loadKeywords(force = false){
+  const request = ++keywordLoadRequest, board = state.boardId, user = state.user?.id;
+  if (!board){ kwRows = []; return 'no-board'; }
+  const key = user + ':' + board;
+  let entry = keywordCache.get(key);
+  if (force || !entry || (!entry.pending && Date.now() - entry.loadedAt >= KEYWORD_CACHE_MS)){
+    entry = {loadedAt:0, rows:[], pending:null};
+    keywordCache.set(key, entry);
+    entry.pending = (async () => {
+      try {
+        const {data,error} = await sb.from('keywords')
+          .select('id,keyword,selected,volume,kd,cpc,traffic_potential,parent_topic,intent,country')
+          .eq('board_id', board).order('volume', {ascending:false,nullsFirst:false}).limit(2000);
+        if (error) throw error;
+        entry.rows = data || [];
+        entry.loadedAt = Date.now();
+        return null;
+      } catch(error){
+        if (keywordCache.get(key) === entry) keywordCache.delete(key);
+        return error.message || 'Network error';
+      } finally { entry.pending = null; }
+    })();
+  }
+  const error = entry.pending ? await entry.pending : null;
+  if (request !== keywordLoadRequest || state.boardId !== board || state.user?.id !== user) return 'stale-request';
+  if (error){ kwRows = []; return error; }
+  kwRows = entry.rows;
   return null;
 }
 
 async function refreshKeywords(){
-  if (!state.boardId){
-    kwRows = [];
-    renderKeywordTables('Save this board first — keywords are filed under it.');
-    return;
-  }
-  const { data, error } = await sb
-    .from('keywords')
-    .select('id,keyword,selected,volume,kd,cpc,traffic_potential,parent_topic,intent,country')
-    .eq('board_id', state.boardId)
-    .order('volume', { ascending: false, nullsFirst: false })
-    .limit(2000);
-
-  if (error){
-    kwRows = [];
-    renderKeywordTables('');
-    showKwSetup(error.message);
-    return;
-  }
+  const board = state.boardId;
+  const error = await loadKeywords();
+  if (error === 'stale-request' || state.boardId !== board ||
+      state.tab !== KEYWORDS_TAB || state.screen !== 'board') return;
   $('kwSetup').hidden = true;
-  kwRows = data || [];
-  renderKeywordTables();
+  renderKeywordTables(error === 'no-board' ? 'Save this board first — keywords are filed under it.' : '');
+  if (error && error !== 'no-board') showKwSetup(error);
 }
+
+/* Returning from an external research/MCP session refreshes only the visible keyword view. */
+window.addEventListener('focus', () => {
+  keywordCache.clear();
+  if (!state.user || state.screen !== 'board') return;
+  if (state.tab === KEYWORDS_TAB) refreshKeywords();
+  else if (state.tab === CONTENT_TAB) refreshMatrix();
+});
 
 function kwTable(tableEl, rows, emptyMsg){
   tableEl.innerHTML = '';
