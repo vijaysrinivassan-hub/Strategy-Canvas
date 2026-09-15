@@ -85,6 +85,28 @@ async function saveUniversalColumns(draft, expected){
  toast('Universal columns saved for your clients and products.');
  renderUniversalColumns();return true;
 }
+function renderKeywordStrategyPrompt(){
+ const host=$('clientKeywordPrompts');if(!host)return;host.innerHTML='';
+ if(!state.user||clientView())return;
+ const heading=document.createElement('h4');heading.textContent='AI Prompts — Keyword strategy';
+ const note=document.createElement('p');note.textContent='Shared high-level instructions for all your clients and products. Read this first, then the relevant column prompt. MCP: ai_prompts_get → keywords.';
+ const input=document.createElement('textarea');
+ input.setAttribute('aria-label','Keyword strategy AI prompt');
+ input.value=keywordSettings?.routingInstruction ?? (KeywordColumns.strategyPrompt+'\n\n'+KeywordColumns.comparisonRouting);
+ const expected=keywordSettingsRecord;
+ const save=document.createElement('button');save.className='primary';save.textContent='Save AI prompt';
+ save.onclick=async()=>{
+  if(!input.value.trim()){toast('The AI prompt cannot be empty.',true);return;}
+  save.disabled=true;
+  try{
+   const draft=JSON.parse(JSON.stringify(keywordSettings||KeywordColumns.seed(state.tabs?.[CONTENT_TAB])));
+   draft.routingInstruction=input.value;
+   if(await saveUniversalColumns(draft,expected))renderKeywordStrategyPrompt();
+  }catch(e){toast('Prompt not saved: '+e.message,true);}finally{save.disabled=false;}
+ };
+ host.append(heading,note,input,save);
+}
+
 function renderUniversalColumns(){
  const host=$('keywordColumnsSettings');if(!host)return;host.innerHTML='';
  const p=document.createElement('p');p.textContent='Universal columns appear in every client/product. Edit their names, AI guidance and defaults here. Locked columns can still be reordered in Keywords. Extra columns added there stay local to that product.';
@@ -94,11 +116,7 @@ function renderUniversalColumns(){
  KeywordColumns.ensurePageViews(draft);
  const sections=[['competitor',draft.views.competitor],...['category','icp','value'].flatMap(v=>Object.entries(draft.pageViews[v]).map(([g,defs])=>[v+' — '+({listicle:'Listicle pages',informational:'Informational pages',landing:'Landing pages'}[g]),defs]))];
  const expected=keywordSettingsRecord;
- const routingLabel=document.createElement('label');routingLabel.textContent='Shared keyword routing prompt';
- const routing=document.createElement('textarea');routing.value=draft.routingInstruction??KeywordColumns.comparisonRouting;
- routing.style.width='100%';routing.rows=4;routing.setAttribute('aria-label','Shared keyword routing prompt');
- routing.oninput=()=>draft.routingInstruction=routing.value;
- draft.routingInstruction=routing.value;routingLabel.append(routing);host.append(routingLabel);
+ const promptHint=document.createElement('p');promptHint.textContent='High-level routing instructions are in Clients → AI Prompts. Keep the instructions below specific to each column.';host.append(promptHint);
  const note=document.createElement('p');note.textContent='Manage the dropdown choices in Settings → Article Types. Removing a universal definition makes existing copies local; it never deletes keyword content.';host.append(note);
  for(const [view,defs] of sections){
   const h=document.createElement('h4');h.textContent=view==='icp'?'ICP':view[0].toUpperCase()+view.slice(1);host.append(h);

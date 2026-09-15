@@ -41,4 +41,15 @@ state.user={id:'user-b'};state.ownerId='user-b';ctx.readKeywordSettings([...reco
 assert.equal(ctx.activeUniversalColumns(),null);
 readonly=true;await ctx.saveUniversalColumns(draft,null);assert.equal(records.size,1);
 assert.equal(dirty,1);
+readonly=false;
+ctx.renderKeywordStrategyPrompt();
+const promptInput=host.children.find(e=>e.tag==='textarea');
+assert.ok(promptInput.value.includes('FOUR POSITIONING CATEGORIES'));
+promptInput.value='Custom high-level keyword guidance';
+await host.children.find(e=>e.tag==='button').onclick();
+assert.equal(JSON.parse([...records.values()].find(r=>r.owner_id==='user-b').body).routingInstruction,'Custom high-level keyword guidance');
+ctx.renderKeywordStrategyPrompt();
+assert.equal(host.children.find(e=>e.tag==='textarea').value,'Custom high-level keyword guidance');
+readonly=true;ctx.renderKeywordStrategyPrompt();assert.equal(host.children.length,0);
+console.log('PASS: editable Clients prompt persists and reloads; client view has no editor.');
 console.log('PASS: ten Settings tables, persisted owner-scoped templates, inactive product sync, concurrent-save rejection and cross-owner isolation.');
