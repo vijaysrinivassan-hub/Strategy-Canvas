@@ -1979,6 +1979,7 @@
   .gr-status option[data-status=""]{--status-bg:#fff;--status-fg:#465367}
 .keyword-page-section { margin: 0 0 32px; }
 .keyword-page-section > h3 { margin: 0; padding: 20px 16px 12px; font-size: 15px; color: #17221c; }
+.gr-author[data-author="old"]{background:#fff0d4 !important;color:#805000 !important;border-color:#d7a747 !important;font-weight:600}
 </style>
 </head>
 <body>
@@ -2460,7 +2461,7 @@ const SUPABASE_URL = 'https://cskamgfvebryahkljlll.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_MdkD-TxMCIwlu69seSHA3Q_A39GADsK';
 const CLIENT_ID    = '1059013355751-6g50dsgm7df37htl2fdqrtlkh5hmrc0c.apps.googleusercontent.com';
 const ALLOWED      = ['vijaysrinivassan@gmail.com'];
-const BUILD        = 'v7.82';
+const BUILD        = 'v7.83';
 
 const STRATEGY_ONE_TAB = 'Strategy 1 — Brand Strategy';
 const PRODUCT_EVOLUTION_TAB = 'Strategy 1 — Product Evolution';
@@ -6008,8 +6009,10 @@ function cellControls(td, o){
     const opt = document.createElement('option'); opt.value = pair[0]; opt.textContent = pair[1]; writtenBy.append(opt);
   });
   writtenBy.value = cell.writtenBy || '';
+  writtenBy.dataset.author = writtenBy.value;
   writtenBy.onchange = function(){
     if(o.ro || readOnly()) return;
+    writtenBy.dataset.author = writtenBy.value;
     o.set({writtenBy:writtenBy.value}); o.refreshEmpty(); markDirty();
   };
   foot2.append(writtenBy);

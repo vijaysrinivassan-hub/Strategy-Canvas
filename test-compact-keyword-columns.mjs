@@ -1,0 +1,12 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import C from './tools/compact-keyword-columns.cjs';
+const a={url:'one',kws:['k1'],st:'selected'},b={url:'two',writtenBy:'old'},c={url:'three'};
+const v={rows:[{id:'r1',pageGroup:'informational',cells:{}},{id:'r2',pageGroup:'informational',cells:{x:a}},{id:'r3',pageGroup:'informational',cells:{y:c}},{id:'r4',pageGroup:'informational',cells:{}},{id:'r5',pageGroup:'informational',cells:{x:b}}]};
+C.compact(v);
+assert.equal(v.rows.length,2);assert.equal(v.rows[0].cells.x,a);assert.equal(v.rows[1].cells.x,b);assert.equal(v.rows[0].cells.y,c);
+const once=JSON.stringify(v);C.compact(v);assert.equal(JSON.stringify(v),once);
+const html=fs.readFileSync(new URL('./index.html',import.meta.url),'utf8');
+assert.ok(html.includes('.gr-author[data-author="old"]'));
+assert.ok(html.includes('writtenBy.dataset.author = writtenBy.value;'));
+console.log('PASS: no leading/internal gaps, stable column order, cell object identity, repeat stability, Old styling on load/change.');
