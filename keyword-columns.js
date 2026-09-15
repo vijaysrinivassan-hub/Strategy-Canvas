@@ -15,7 +15,28 @@ function seed(root){
  out.routingInstruction=comparisonRouting;
  return out;
 }
-function sync(root,config){
+const pageTypes={listicle:'Listicle',informational:'Informational',landing:'Landing page'};
+function ensurePageViews(config){
+ config.pageViews ||= {};
+ for(const view of ['category','icp','value']){
+  config.pageViews[view] ||= {};
+  for(const [group,type] of Object.entries(pageTypes)){
+   config.pageViews[view][group] ||= copy(config.views[view]||[]).map(d=>({...d,defaults:{...d.defaults,articleType:type}}));
+  }
+ }
+ return config;
+}
+function pageView(v,group){
+ v.pageColumns ||= {}; v.pageOrders ||= {};
+ v.pageColumns[group] ||= copy(v.columns||[]);
+ const proxy=Object.create(v);
+ Object.defineProperties(proxy,{
+  columns:{get:()=>v.pageColumns[group],set:x=>v.pageColumns[group]=x},
+  columnOrder:{get:()=>v.pageOrders[group],set:x=>v.pageOrders[group]=x}
+ });
+ return proxy;
+}
+function sync(root,config, nested=false){
  if(!config?.views) return root;
  root.routingInstruction=config.routingInstruction||comparisonRouting;
  root.views ||= {}; if(!root.articleTypes?.length) root.articleTypes=['Listicle','List item','Informational'].map(name=>({id:'universal-type-'+encodeURIComponent(name),name}));
@@ -41,6 +62,17 @@ function sync(root,config){
    Object.assign(c,{universalId:d.id,name:d.name,instruction:d.instruction||'',defaults:{mode:d.defaults?.mode||'',type,aw:d.defaults?.aw||''}});
   }
  }
+ if(!nested){
+  ensurePageViews(config);
+  for(const [view,groups] of Object.entries(config.pageViews)){
+   const v=root.views[view];
+   if(!v)continue;
+   for(const [group,defs] of Object.entries(groups)){
+    const proxy=pageView(v,group);
+    sync({views:{[view]:proxy},articleTypes:root.articleTypes},{views:{[view]:defs}},true);
+   }
+  }
+ }
  return root;
 }
 function order(v){
@@ -48,5 +80,5 @@ function order(v){
  return [...new Set([...(v.columnOrder||[]).filter(id=>ids.includes(id)),...ids])];
 }
 function move(v,id,delta){const ids=order(v),i=ids.indexOf(id),j=i+delta;if(i<0||j<0||j>=ids.length)return false;[ids[i],ids[j]]=[ids[j],ids[i]];v.columnOrder=ids;if(v.kind!=='matrix')v.columns.sort((a,b)=>ids.indexOf(a.id)-ids.indexOf(b.id));return true;}
-return {KIND,names,seed,sync,order,move,comparisonRouting};
+return {KIND,names,seed,sync,order,move,comparisonRouting,ensurePageViews,pageView};
 });

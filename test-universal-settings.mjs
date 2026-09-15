@@ -27,7 +27,7 @@ const ctx=vm.createContext({state,sb,KeywordColumns:K,crypto:webcrypto,TextEncod
 vm.runInContext(fs.readFileSync(new URL('./keyword-columns-ui.js',import.meta.url),'utf8'),ctx);
 ctx.readKeywordSettings([]);ctx.renderUniversalColumns();
 const all=(e=host)=>[e,...e.children.flatMap(all)];
-assert.equal(all().filter(e=>e.tag==='table').length,4);
+assert.equal(all().filter(e=>e.tag==='table').length,10);
 const draft=K.seed();draft.views.category[0].instruction='Shared guidance';
 await ctx.saveUniversalColumns(draft,null);assert.equal(records.size,1);
 assert.equal(state.tabs['Content Strategy'].views.category.columns[0].instruction,'Shared guidance');
@@ -41,4 +41,4 @@ state.user={id:'user-b'};state.ownerId='user-b';ctx.readKeywordSettings([...reco
 assert.equal(ctx.activeUniversalColumns(),null);
 readonly=true;await ctx.saveUniversalColumns(draft,null);assert.equal(records.size,1);
 assert.equal(dirty,1);
-console.log('PASS: four Settings tables, persisted owner-scoped templates, inactive product sync, concurrent-save rejection and cross-owner isolation.');
+console.log('PASS: ten Settings tables, persisted owner-scoped templates, inactive product sync, concurrent-save rejection and cross-owner isolation.');

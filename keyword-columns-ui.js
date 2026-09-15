@@ -16,7 +16,9 @@ function syncUniversalWorkspaces(){
 function keywordOrderTools(col, rerender){
  const wrap=document.createElement('span');wrap.className='column-order';
  if(readOnly())return wrap;
- const v=state.tabs[CONTENT_TAB].views[state.contentView], id=col===v.rowColumn?'__row':col.id, ids=KeywordColumns.order(v);
+ const base=state.tabs[CONTENT_TAB].views[state.contentView];
+ const group=Object.keys(base.pageColumns||{}).find(g=>base.pageColumns[g].includes(col));
+ const v=group?KeywordColumns.pageView(base,group):base, id=col===v.rowColumn?'__row':col.id, ids=KeywordColumns.order(v);
  for(const [text,step] of [['‹',-1],['›',1]]){
   const b=document.createElement('button');b.type='button';b.className='column-move '+(step<0?'column-move-left':'column-move-right');b.textContent=text;
   b.title=step<0?'Move column left':'Move column right';b.setAttribute('aria-label',b.title);
@@ -24,7 +26,7 @@ function keywordOrderTools(col, rerender){
   b.disabled=ids.indexOf(id)+step<0||ids.indexOf(id)+step>=ids.length;
   b.onclick=e=>{
    e.stopPropagation();
-   if(readOnly() || state.tabs[CONTENT_TAB]?.views[state.contentView] !== v)return;
+   if(readOnly() || state.tabs[CONTENT_TAB]?.views[state.contentView] !== base)return;
    const before=KeywordColumns.order(v);
    if(KeywordColumns.move(v,id,step)){
     if (v.kind === 'grid') rerender();
@@ -89,6 +91,8 @@ function renderUniversalColumns(){
  host.append(p);
  if(!state.user||clientView())return;
  const draft=JSON.parse(JSON.stringify(keywordSettings||KeywordColumns.seed(state.tabs?.[CONTENT_TAB])));
+ KeywordColumns.ensurePageViews(draft);
+ const sections=[['competitor',draft.views.competitor],...['category','icp','value'].flatMap(v=>Object.entries(draft.pageViews[v]).map(([g,defs])=>[v+' — '+({listicle:'Listicle pages',informational:'Informational pages',landing:'Landing pages'}[g]),defs]))];
  const expected=keywordSettingsRecord;
  const routingLabel=document.createElement('label');routingLabel.textContent='Shared keyword routing prompt';
  const routing=document.createElement('textarea');routing.value=draft.routingInstruction??KeywordColumns.comparisonRouting;
@@ -96,7 +100,7 @@ function renderUniversalColumns(){
  routing.oninput=()=>draft.routingInstruction=routing.value;
  draft.routingInstruction=routing.value;routingLabel.append(routing);host.append(routingLabel);
  const note=document.createElement('p');note.textContent='Manage the dropdown choices in Settings → Article Types. Removing a universal definition makes existing copies local; it never deletes keyword content.';host.append(note);
- for(const [view,defs] of Object.entries(draft.views)){
+ for(const [view,defs] of sections){
   const h=document.createElement('h4');h.textContent=view==='icp'?'ICP':view[0].toUpperCase()+view.slice(1);host.append(h);
   const scroller=document.createElement('div');scroller.style.overflowX='auto';
   const table=document.createElement('table');table.className='universal-columns-table';
@@ -134,7 +138,7 @@ function renderUniversalColumns(){
  }
  const save=document.createElement('button');save.className='primary';save.textContent='Save universal columns';
  save.onclick=async()=>{
-  for(const defs of Object.values(draft.views)){
+  for(const [,defs] of sections){
    const names=defs.map(d=>d.name.trim().toLowerCase());
    if(names.some(n=>!n)||new Set(names).size!==names.length){toast('Use non-empty, unique column names within each table.',true);return;}
    defs.forEach(d=>d.name=d.name.trim());

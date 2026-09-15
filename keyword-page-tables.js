@@ -19,9 +19,14 @@
       const fallback=groups.some(g=>g.id===row.pageGroup)?row.pageGroup:'listicle';
       const buckets=new Map();
       for(const [column,cell] of Object.entries(row.cells || {})){
-        const col=view.columns.find(c=>c.id===column);
+        const col=(view.pageColumns?.[fallback] || view.columns).find(c=>c.id===column)
+          || Object.values(view.pageColumns||{}).flat().find(c=>c.id===column);
         const type=typeof cell==='string'?col?.defaults?.type:cell?.type;
         const group=groupFor(type,types,fallback);
+        if(view.pageColumns?.[group] && col && !view.pageColumns[group].some(c=>c.id===column)){
+          view.pageColumns[group].push({...JSON.parse(JSON.stringify(col)),universalId:undefined,local:true});
+          changed=true;
+        }
         if(!buckets.has(group)) buckets.set(group,{});
         buckets.get(group)[column]=cell;
       }

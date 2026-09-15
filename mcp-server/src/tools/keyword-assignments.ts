@@ -14,7 +14,7 @@ const destination=z.object({
 export function registerKeywordAssignmentTools(server:McpServer){
  server.registerTool('keyword_cells_get',{
   title:'Read keyword cells and comparison matrix',
-  description:'Read active product cell IDs, comparison cells and board revision before assigning keywords. Comparison pairs are unordered; use each pair once.',
+  description:'Read active product cell IDs, comparison cells and board revision before assigning keywords. Grid pageColumns contains independent listicle/informational/landing columns; use the row pageGroup. Cell url is the Slug field; v is the human-readable Title, not a slug. Comparison pairs are unordered; use each pair once.',
   inputSchema:{board_id:z.string()},annotations:{readOnlyHint:true}
  },async({board_id})=>{
   const {row,body}=await loadBoard(board_id);
@@ -50,7 +50,7 @@ export function registerKeywordAssignmentTools(server:McpServer){
     v.comparisonCells ||= {};target=v.comparisonCells[key] ||= {};
    }else{
     const r=v.rows?.find((r:any)=>r.id===a.row_id);
-    const columns=v.kind==='matrix'?v.types:v.columns;
+    const columns=v.kind==='matrix'?v.types:(v.pageColumns?.[r?.pageGroup || 'listicle'] || v.columns);
     if(!r||!columns?.some((c:any)=>c.id===a.column_id))throw new ToolError('Unknown row or column.');
     const bucket=v.kind==='matrix'?(v.cells ||= {}):(r.cells ||= {});
     const key=v.kind==='matrix'?a.row_id+'|'+a.column_id:a.column_id!;
