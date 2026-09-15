@@ -27,7 +27,8 @@ function keywordOrderTools(col, rerender){
    if(readOnly() || state.tabs[CONTENT_TAB]?.views[state.contentView] !== v)return;
    const before=KeywordColumns.order(v);
    if(KeywordColumns.move(v,id,step)){
-    moveKeywordTableColumns($('mxTable'),before,KeywordColumns.order(v));
+    if (v.kind === 'grid') rerender();
+    else moveKeywordTableColumns($('mxTable'),before,KeywordColumns.order(v));
     markDirty();
    }
   };

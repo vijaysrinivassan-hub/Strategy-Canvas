@@ -1977,6 +1977,8 @@
   .gr-status[data-status="selected"],.gr-status option[data-status="selected"]{--status-bg:#def5f2;--status-fg:#00695c;--status-border:#85c9bd}
   .gr-status[data-status="rejected"],.gr-status option[data-status="rejected"]{--status-bg:#fde8e8;--status-fg:#a32626;--status-border:#e4a0a0}
   .gr-status option[data-status=""]{--status-bg:#fff;--status-fg:#465367}
+.keyword-page-section { margin: 0 0 32px; }
+.keyword-page-section > h3 { margin: 0; padding: 20px 16px 12px; font-size: 15px; color: #17221c; }
 </style>
 </head>
 <body>
@@ -2446,6 +2448,7 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="keyword-assignments.js"></script>
+<script src="keyword-page-tables.js"></script>
 <script src="keyword-columns.js"></script>
 <script src="keyword-columns-ui.js"></script>
 <script src="competitor-comparison.js"></script>
@@ -2457,7 +2460,7 @@ const SUPABASE_URL = 'https://cskamgfvebryahkljlll.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_MdkD-TxMCIwlu69seSHA3Q_A39GADsK';
 const CLIENT_ID    = '1059013355751-6g50dsgm7df37htl2fdqrtlkh5hmrc0c.apps.googleusercontent.com';
 const ALLOWED      = ['vijaysrinivassan@gmail.com'];
-const BUILD        = 'v7.80';
+const BUILD        = 'v7.81';
 
 const STRATEGY_ONE_TAB = 'Strategy 1 — Brand Strategy';
 const PRODUCT_EVOLUTION_TAB = 'Strategy 1 — Product Evolution';
@@ -5991,6 +5994,7 @@ function cellControls(td, o){
     o.set({ type: id });
     o.refreshEmpty();
     markDirty();
+    if (o.onTypeChange) o.onTypeChange();
   }));
   foot2.append(awarenessSelect(cell.aw, o.ro, function(a){
     o.set({ aw: a });
@@ -6329,6 +6333,8 @@ function modeSwitch(current, disabled, onPick){
 }
 
 function renderMatrix(){
+  $('mxTable').hidden = false;
+  if ($('keywordPageTables')) $('keywordPageTables').hidden = true;
   const m = matrixState();
   const vd = viewDef(state.contentView);
   const heading = $('mxHeading');
@@ -6520,12 +6526,37 @@ function renderMatrix(){
 
 /* ---- plain tables (Category, ICP, Value) ---------------------------- */
 function renderGrid(){
+  const v = matrixState(), types = articleTypes();
+  if (!readOnly()){
+    for (const group of KeywordPageTables.groups){
+      if (!types.some(t => t.name.toLowerCase() === group.type.toLowerCase())){
+        types.push({id:uid(),name:group.type}); markDirty();
+      }
+    }
+  }
+  if (KeywordPageTables.split(v, types, uid) && !readOnly()) markDirty();
+  const legacy = $('mxTable');
+  legacy.hidden = true;
+  let host = $('keywordPageTables');
+  if (!host){
+    host = document.createElement('div'); host.id = 'keywordPageTables';
+    legacy.after(host);
+  }
+  host.hidden = false; host.innerHTML = '';
+  for (const group of KeywordPageTables.groups){
+    const section = document.createElement('section');
+    section.className = 'keyword-page-section';
+    const title = document.createElement('h3'); title.textContent = group.label;
+    const table = document.createElement('table'); table.className = 'mx-table';
+    section.append(title, table); host.append(section);
+    renderGridTable(v, group, table);
+  }
+}
+function renderGridTable(v, group, table){
   $('competitorComparison').hidden = true;
-  const v = matrixState();
   const vd = viewDef(state.contentView);
   const ro = readOnly();
   $('mxPane').querySelector('.mx-head').hidden = true;
-  const table = $('mxTable');
   table.innerHTML = '';
 
   const heading = $('mxHeading');
@@ -6552,7 +6583,7 @@ function renderGrid(){
 
   const thead = document.createElement('thead');
   const hr = document.createElement('tr');
-  hr.append(matrixCornerActions(addGridColumn, addGridRow, 'Add column', 'Add row'));
+  hr.append(matrixCornerActions(addGridColumn, () => addGridRow(group.id), 'Add column', 'Add row'));
 
   v.columns.forEach(function(col){
     const th = document.createElement('th');
@@ -6590,7 +6621,8 @@ function renderGrid(){
   table.append(thead);
 
   const tbody = document.createElement('tbody');
-  v.rows.forEach(function(row, i){
+  const groupRows = v.rows.filter(row => row.pageGroup === group.id);
+  groupRows.forEach(function(row, i){
     const tr = document.createElement('tr');
 
     const num = document.createElement('th');
@@ -6606,8 +6638,8 @@ function renderGrid(){
       del.innerHTML = '&times;';
       del.title = 'Delete row';
       del.onclick = function(){
-        v.rows.splice(i, 1);
-        while (v.rows.length < GRID_ROWS) v.rows.push({ id: uid(), cells: {} });
+        if (Object.keys(row.cells).length && !confirm('Delete this row and its contents?')) return;
+        v.rows.splice(v.rows.indexOf(row), 1);
         markDirty(); renderGrid();
       };
       wrap.append(del);
@@ -6616,7 +6648,7 @@ function renderGrid(){
     tr.append(num);
 
     v.columns.forEach(function(col, ci){
-      const defaults = defaultsFor(col);
+      const defaults = Object.assign({}, defaultsFor(col), {type: articleTypes().find(t => t.name.toLowerCase() === group.type.toLowerCase())?.id || ''});
       const cell = cellOf(row, col.id, defaults);
       const kws = gridCellKeywords(cell.v, cell.kws);
       const td = document.createElement('td');
@@ -6663,6 +6695,7 @@ function renderGrid(){
           const now = cellOf(row, col.id, defaults);
           td.classList.toggle('empty', cellQuiet(now, gridCellKeywords(now.v, now.kws).length));
         },
+        onTypeChange: renderGrid,
         rerender: renderGrid
       });
 
@@ -6671,13 +6704,24 @@ function renderGrid(){
 
     tbody.append(tr);
   });
+  if (!groupRows.length){
+    const tr = document.createElement('tr'), td = document.createElement('td');
+    td.colSpan = v.columns.length + 1;
+    td.style.padding = '20px';
+    td.textContent = 'No ' + group.label.toLowerCase() + ' yet.';
+    if (!ro){
+      const add = document.createElement('button'); add.textContent = '+ Add row';
+      add.style.marginLeft = '12px'; add.onclick = () => addGridRow(group.id); td.append(add);
+    }
+    tr.append(td); tbody.append(tr);
+  }
   table.append(tbody);
 }
 
-function addGridRow(){
+function addGridRow(pageGroup = 'listicle'){
   if (readOnly()) return;
   const v = matrixState();
-  v.rows.push({ id: uid(), cells: {} });
+  v.rows.push({ id: uid(), pageGroup, cells: {} });
   markDirty();
   renderGrid();
 }
