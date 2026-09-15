@@ -1,0 +1,28 @@
+import fs from 'node:fs';
+import vm from 'node:vm';
+import assert from 'node:assert/strict';
+const html=fs.readFileSync(new URL('./index.html',import.meta.url),'utf8');
+const nodes={productSwitcher:{after(node){nodes[node.id]=node}}};
+function element(){return {style:{},children:[],attrs:{},append(n){this.children.push(n)},replaceChildren(){this.children=[]},setAttribute(k,v){this.attrs[k]=v}}}
+let renders=0;
+const ctx=vm.createContext({document:{createElement:element},$:id=>nodes[id],state:{tab:'keywords',screen:'board'},CONTENT_TAB:'keywords',renderContentView:()=>renders++});
+vm.runInContext(html.slice(html.indexOf("let keywordMode ="),html.indexOf('function renderMatrix(){')),ctx);
+ctx.renderKeywordModeFilter();
+assert.deepEqual(nodes.keywordModeFilter.children.map(n=>n.textContent),['AU','SEO']);
+nodes.keywordModeFilter.children[1].onclick();
+assert.equal(renders,1);
+assert.equal(nodes.keywordModeFilter.children[1].attrs['aria-pressed'],'true');
+vm.runInContext(html.slice(html.indexOf('function cellState('),html.indexOf('/* What a matrix cell catches')),ctx);
+vm.runInContext(html.slice(html.indexOf('function cellOf('),html.indexOf('function renderArticleTypes(')),ctx);
+const row={cells:{old:{v:'Keep',mode:'aeo'},legacy:'Legacy'}};
+assert.equal(ctx.cellOf(row,'old',{mode:'seo'}).mode,'aeo');
+assert.equal(ctx.cellOf(row,'legacy',{mode:'seo'}).mode,'aeo');
+ctx.setCellIn(row,'new',{v:'SEO article'},{mode:'seo'});
+assert.equal(row.cells.new.mode,'seo');
+assert.equal(row.cells.old.v,'Keep');
+const controls=html.slice(html.indexOf('function cellControls('),html.indexOf('function keywordBlock('));
+assert.ok(!controls.includes('modeSwitch('));
+assert.ok(controls.includes("td.replaceChildren()"));
+ctx.state.tab='architecture';ctx.renderKeywordModeFilter();
+assert.equal(nodes.keywordModeFilter.hidden,true);
+console.log('PASS: AU/SEO page toggle, new entry routing, legacy assignment preservation and no per-cell switch');

@@ -40,7 +40,7 @@ function renderCompetitorComparison(m){
  const companies=m.rows.filter(c=>c.role!=='others'&&String(c.name||'').trim().toLowerCase()!=='others'&&(c.name||'').trim());
  if(companies.length<2){const empty=document.createElement('p');empty.textContent='Add at least two named competitors in the table above.';host.append(empty);}
  m.comparisonCells ||= {};
- const defaults=KeywordAssignments.comparisonDefaults(state.tabs[CONTENT_TAB]);
+ const defaults={...KeywordAssignments.comparisonDefaults(state.tabs[CONTENT_TAB]),mode:keywordMode};
  let built=false;
  const valid=()=>generation===comparisonRender&&!host.hidden&&state.contentView==='competitor'&&state.tabs[CONTENT_TAB]?.views?.competitor===m;
  const build=()=>{
@@ -99,7 +99,7 @@ function renderCompetitorComparison(m){
     if(key===null){td.className='comparison-null';td.textContent='—';td.title='Not applicable: same company';td.setAttribute('aria-label',a.name+' vs. itself: not applicable');tr.append(td);continue;}
     if(companies.indexOf(b)>companies.indexOf(a)){td.className='comparison-null';td.textContent='';td.setAttribute('aria-label','Repeated pair omitted');tr.append(td);continue;}
     const entry={td,key,title:a.name+' vs '+b.name,hydrated:false};
-    td.className='comparison-pending';td.textContent=entry.title;
+    td.className='comparison-pending';td.textContent=((m.comparisonCells[key]?.mode||defaults.mode)===keywordMode)?entry.title:'';
     if(!mirrors.has(key))mirrors.set(key,[]);mirrors.get(key).push(entry);
     pending.set(td,entry);tr.append(td);
    }
