@@ -131,6 +131,7 @@ export function registerContentTools(server: McpServer) {
         return ok({
           view,
           kind: "grid",
+          routing_instruction:body.tabs[CONTENT_TAB]?.routingInstruction||'',
           data: {
             columns: cols.map((c: any) => c.name),
             column_guidance: (v.columns || []).map((c: any) => ({
@@ -170,7 +171,9 @@ export function registerContentTools(server: McpServer) {
       return ok({
         view,
         kind: "matrix",
+        routing_instruction:body.tabs[CONTENT_TAB]?.routingInstruction||'',
         data: {
+          others:v.comparisonOthers||{},
           rows: rows.map((r: any) => r.name),
           article_types: types.map((t: any) => t.name),
           column_guidance: types.map((t: any) => ({

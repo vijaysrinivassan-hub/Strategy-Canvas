@@ -89,6 +89,11 @@ function renderUniversalColumns(){
  if(!state.user||clientView())return;
  const draft=JSON.parse(JSON.stringify(keywordSettings||KeywordColumns.seed(state.tabs?.[CONTENT_TAB])));
  const expected=keywordSettingsRecord;
+ const routingLabel=document.createElement('label');routingLabel.textContent='Shared keyword routing prompt';
+ const routing=document.createElement('textarea');routing.value=draft.routingInstruction??KeywordColumns.comparisonRouting;
+ routing.style.width='100%';routing.rows=4;routing.setAttribute('aria-label','Shared keyword routing prompt');
+ routing.oninput=()=>draft.routingInstruction=routing.value;
+ draft.routingInstruction=routing.value;routingLabel.append(routing);host.append(routingLabel);
  const note=document.createElement('p');note.textContent='Manage the dropdown choices in Settings → Article Types. Removing a universal definition makes existing copies local; it never deletes keyword content.';host.append(note);
  for(const [view,defs] of Object.entries(draft.views)){
   const h=document.createElement('h4');h.textContent=view==='icp'?'ICP':view[0].toUpperCase()+view.slice(1);host.append(h);

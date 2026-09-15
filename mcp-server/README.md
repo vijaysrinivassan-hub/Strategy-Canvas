@@ -73,6 +73,10 @@ npm run inspect
 
 Opens the MCP Inspector, where every tool can be called by hand.
 
+## Shared routing and Others rows
+
+Read `routing_instruction` from `keyword_cells_get` or `content_get`. Edit routing once in Settings → Shared keyword routing prompt, not in every column. Two-company comparisons use their existing unordered pair cell. Use `keyword_move_to_cells` with `view: comparison_others`, a stable `entry_id`, optional `title`, and keyword IDs for three-way or extra comparison articles. These editable entries appear in the bottom Others row and in Copy output. Extra standard articles belong in Others rows using the existing column, not duplicate columns such as Switching 2.
+
 ## Comparison defaults and review status
 
 Comparison cells default to Competitor article type and Competitor aware. Positive-volume keyword assignments start For review when no status is set. Assignment calls can explicitly set status to for_review, selected, rejected, written, review, progress or planned. The matrix displays only the lower triangle; unordered pair IDs preserve all previous content.

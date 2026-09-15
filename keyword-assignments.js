@@ -4,6 +4,7 @@
   const out=[];
   for(const v of Object.values(tabs?.['Content Strategy']?.views||{})){
    for(const cell of Object.values(v.cells||{}))if(cell&&typeof cell==='object')out.push(cell);
+   for(const cell of Object.values(v.comparisonOthers||{}))if(cell&&typeof cell==='object')out.push(cell);
    const valid=new Set((v.rows||[]).map(r=>r.id));
    for(const [key,cell] of Object.entries(v.comparisonCells||{})){try{if(JSON.parse(key).every(id=>valid.has(id)))out.push(cell);}catch{}}
    for(const row of v.rows||[])for(const cell of Object.values(row.cells||{}))if(cell&&typeof cell==='object')out.push(cell);
@@ -31,7 +32,7 @@
   const norm=s=>String(s||'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
   const parts=norm(text).split(/\b(?:vs|versus)\b/);
   if(parts.length!==2)return null;
-  const hits=parts.map(p=>(rows||[]).filter(r=>norm(r.name)&&(' '+p.trim()+' ').includes(' '+norm(r.name)+' ')));
+  const hits=parts.map(p=>(rows||[]).filter(r=>r.role!=='others'&&norm(r.name)!=='others'&&norm(r.name)&&(' '+p.trim()+' ').includes(' '+norm(r.name)+' ')));
   return hits.every(h=>h.length===1)&&hits[0][0].id!==hits[1][0].id?[hits[0][0].id,hits[1][0].id].sort():null;
  }
  return {cells,assigned,move,comparisonDefaults,isComparison,comparisonPair};

@@ -2,7 +2,7 @@
 function comparisonKey(a,b){return a===b?null:JSON.stringify([a,b].sort());}
 // Export from model data, including cells that have not been scrolled into view.
 function comparisonClipboardText(m){
- const companies=m.rows.filter(c=>(c.name||'').trim()), rows=[];
+ const companies=m.rows.filter(c=>c.role!=='others'&&String(c.name||'').trim().toLowerCase()!=='others'&&(c.name||'').trim()), rows=[];
  for(let i=0;i<companies.length;i++)for(let j=i+1;j<companies.length;j++){
   const a=companies[i],b=companies[j],pair=b.name+' vs '+a.name;
   const cell=m.comparisonCells?.[comparisonKey(a.id,b.id)]||{};
@@ -11,6 +11,7 @@ function comparisonClipboardText(m){
   if(cell.v===undefined)keywords.push(...gridCellKeywords(a.name+' vs '+b.name,cell.kws).map(r=>r.keyword));
   rows.push([...new Set([title,...keywords].filter(value=>String(value??'').trim()).map(value=>String(value).replace(/\b(vs|versus)\.(?=\s|$)/gi,'$1')))]);
  }
+ for(const cell of Object.values(m.comparisonOthers||{})){const keywords=gridCellKeywords(cell.v,cell.kws).map(k=>k.keyword);rows.push([...new Set([cell.v,...keywords].filter(Boolean))]);}
  const field=value=>{const s=String(value??'');return /[,\t\r\n"]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s;};
  return rows.filter(row=>row.length).map(row=>row.map(field).join(',')).join('\n');
 }
@@ -26,7 +27,7 @@ function renderCompetitorComparison(m){
  const copy=document.createElement('button');copy.type='button';copy.textContent='Copy';
  copy.setAttribute('aria-label','Copy all comparisons, proposed titles and keywords');
  const status=document.createElement('span');status.className='comparison-copy-status';status.setAttribute('role','status');
- copy.disabled=m.rows.filter(c=>(c.name||'').trim()).length<2;
+ copy.disabled=m.rows.filter(c=>c.role!=='others'&&String(c.name||'').trim().toLowerCase()!=='others'&&(c.name||'').trim()).length<2&&!Object.keys(m.comparisonOthers||{}).length;
  copy.onclick=async()=>{
   if(generation!==comparisonRender)return;
   copy.disabled=true;
@@ -35,14 +36,9 @@ function renderCompetitorComparison(m){
   finally{copy.disabled=false;}
  };
  toolbar.append(heading,status,copy);host.append(toolbar,note);
- if(m.comparisonUnresolved?.length){
-  const details=document.createElement('details');details.style.margin='12px 16px';
-  const summary=document.createElement('summary');summary.textContent='Comparisons needing review ('+m.comparisonUnresolved.length+')';details.append(summary);
-  for(const item of m.comparisonUnresolved){const p=document.createElement('p');p.textContent=item.title+' — '+item.reason;details.append(p);}
-  host.append(details);
- }
- const companies=m.rows.filter(c=>(c.name||'').trim());
- if(companies.length<2){const empty=document.createElement('p');empty.textContent='Add at least two named competitors in the table above.';host.append(empty);return;}
+ m.comparisonOthers ||= {};
+ const companies=m.rows.filter(c=>c.role!=='others'&&String(c.name||'').trim().toLowerCase()!=='others'&&(c.name||'').trim());
+ if(companies.length<2){const empty=document.createElement('p');empty.textContent='Add at least two named competitors in the table above.';host.append(empty);}
  m.comparisonCells ||= {};
  const defaults=KeywordAssignments.comparisonDefaults(state.tabs[CONTENT_TAB]);
  let built=false;
@@ -55,25 +51,27 @@ function renderCompetitorComparison(m){
   const thead=document.createElement('thead'),head=document.createElement('tr');
   const corner=document.createElement('th');corner.textContent='Competitor';head.append(corner);
   for(const company of companies){const th=document.createElement('th');th.scope='col';th.textContent=company.name;head.append(th);}
+  if(!companies.length){const th=document.createElement('th');th.textContent='Articles';head.append(th);}
   thead.append(head);table.append(thead);
   const tbody=document.createElement('tbody'),mirrors=new Map(),pending=new Map();
   const bucket={cells:m.comparisonCells};
   function paint(entry){
    if(!valid())return;
    entry.hydrated=true;const {td,key,title}=entry;td.innerHTML='';td.className='gr-cell';
+   const cellBucket=entry.other?{cells:m.comparisonOthers}:bucket;
    const get=()=>{
-    const value=cellState(bucket,key,defaults);
-    const raw=m.comparisonCells[key]||{};
+    const value=cellState(cellBucket,key,defaults);
+    const raw=cellBucket.cells[key]||{};
     if(!raw.type)value.type=defaults.type;
     if(!raw.aw)value.aw=defaults.aw;
     if(raw.st===undefined && keywordRowsByIds(raw.kws).some(k=>Number(k.volume)>0))value.st='for_review';
-    if(m.comparisonCells[key]?.v===undefined)value.v=title;
+    if(cellBucket.cells[key]?.v===undefined)value.v=title;
     return value;
    };
    const updateFlags=()=>{const c=get();td.classList.toggle('planned',!!c.on);td.classList.toggle('written',c.st==='written');};
    const set=patch=>{
     if(readOnly()||!valid())return;
-    setCellState(bucket,key,{...get(),...patch,cfg:true});
+    setCellState(cellBucket,key,{...get(),...patch,cfg:true});
     updateFlags();
     for(const other of mirrors.get(key)||[])if(other!==entry&&other.hydrated)paint(other);
    };
@@ -89,7 +87,7 @@ function renderCompetitorComparison(m){
     timer=setTimeout(()=>{if(valid()&&input.parentNode===td)refreshKeywords();},250);
    };
    cellControls(td,{
-    ro:readOnly(),get,set,seed:()=>get().v||title,
+    ro:readOnly(),get,set,seed:()=>get().v||title,comparisonOtherId:entry.other?key:null,
     refreshEmpty:updateFlags,
     rerender:()=>{paint(entry);for(const other of mirrors.get(key)||[])if(other!==entry&&other.hydrated)paint(other);}
    });
@@ -107,6 +105,17 @@ function renderCompetitorComparison(m){
    }
    tbody.append(tr);
   }
+  const otherRow=document.createElement('tr'),otherHead=document.createElement('th');
+  otherHead.scope='row';otherHead.textContent='Others';
+  if(!readOnly()){const add=document.createElement('button');add.type='button';add.textContent='+';add.setAttribute('aria-label','Add Others article');
+   add.onclick=()=>{if(!valid())return;const id=uid();m.comparisonOthers[id]={v:'',...defaults};markDirty();renderCompetitorComparison(m);};otherHead.append(add);}
+  otherRow.append(otherHead);
+  const otherCell=document.createElement('td');otherCell.colSpan=Math.max(1,companies.length);
+  for(const [key,cell] of Object.entries(m.comparisonOthers)){
+   const box=document.createElement('div');box.style.maxWidth='620px';box.style.marginBottom='12px';
+   const entry={td:box,key,title:cell.v||'',other:true,hydrated:false};pending.set(box,entry);otherCell.append(box);
+  }
+  otherRow.append(otherCell);tbody.append(otherRow);
   table.append(tbody);scroller.append(table);host.append(scroller);
   if(typeof IntersectionObserver==='function'){
    comparisonCellObserver=new IntersectionObserver(entries=>{

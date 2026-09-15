@@ -5,8 +5,8 @@ import { db, loadBoard, ok, ToolError } from '../lib.js';
 const A=createRequire(import.meta.url)('../../../keyword-assignments.js');
 const TAB='Content Strategy';
 const destination=z.object({
- view:z.enum(['category','competitor','icp','value','comparison']),
- row_id:z.string().optional(),column_id:z.string().optional(),
+ view:z.enum(['category','competitor','icp','value','comparison','comparison_others']),
+ row_id:z.string().optional(),column_id:z.string().optional(),entry_id:z.string().min(1).optional(),title:z.string().optional(),
  competitor_ids:z.array(z.string()).length(2).optional(),
  keyword_ids:z.array(z.string().uuid()).min(1).max(500),
  status:z.enum(['written','review','progress','planned','for_review','selected','rejected']).optional()
@@ -18,7 +18,7 @@ export function registerKeywordAssignmentTools(server:McpServer){
   inputSchema:{board_id:z.string()},annotations:{readOnlyHint:true}
  },async({board_id})=>{
   const {row,body}=await loadBoard(board_id);
-  return ok({revision:row.updated_at,product_id:body.workspaceProductId,views:body.tabs[TAB]?.views||{}});
+  return ok({revision:row.updated_at,product_id:body.workspaceProductId,routing_instruction:body.tabs[TAB]?.routingInstruction||'',views:body.tabs[TAB]?.views||{}});
  });
  server.registerTool('keyword_move_to_cells',{
   title:'Move keywords into article cells',
@@ -35,11 +35,15 @@ export function registerKeywordAssignmentTools(server:McpServer){
   if(readError)throw new ToolError(readError.message);
   if(keywords?.length!==ids.length)throw new ToolError('Some keyword IDs do not belong to this board.');
   for(const a of assignments){
-   if(a.view!=='comparison' && keywords?.some(k=>a.keyword_ids.includes(k.id)&&A.isComparison(k.keyword)))throw new ToolError('Vs/versus keywords belong only in the comparison matrix, including pricing, features and reviews variants.');
-   const v=body.tabs[TAB]?.views?.[a.view==='comparison'?'competitor':a.view];
+   if(!['comparison','comparison_others'].includes(a.view) && keywords?.some(k=>a.keyword_ids.includes(k.id)&&A.isComparison(k.keyword)))throw new ToolError('Vs/versus keywords belong only in the comparison matrix, including pricing, features and reviews variants.');
+   const v=body.tabs[TAB]?.views?.[['comparison','comparison_others'].includes(a.view)?'competitor':a.view];
    if(!v)throw new ToolError('View does not exist.');
    let target:any;
-   if(a.view==='comparison'){
+   if(a.view==='comparison_others'){
+    if(!a.entry_id)throw new ToolError('Supply a stable entry_id for the Others row article.');
+    v.comparisonOthers ||= {};target=v.comparisonOthers[a.entry_id] ||= {};
+    if(a.title!==undefined)target.v=a.title;
+   }else if(a.view==='comparison'){
     const pair=a.competitor_ids;
     if(!pair||pair[0]===pair[1]||pair.some(id=>!v.rows.some((r:any)=>r.id===id)))throw new ToolError('Choose two existing, different competitors.');
     const key=JSON.stringify([...pair].sort());
@@ -53,7 +57,7 @@ export function registerKeywordAssignmentTools(server:McpServer){
     const old=bucket[key];target=bucket[key]=typeof old==='string'?{v:old}:old===true?{on:true}:old||{};
    }
    A.move(body.tabs,target,a.keyword_ids);
-   if(a.view==='comparison'){
+   if(['comparison','comparison_others'].includes(a.view)){
     const defaults=A.comparisonDefaults(body.tabs[TAB]);
     if(!target.type)target.type=defaults.type;
     if(!target.aw)target.aw=defaults.aw;
