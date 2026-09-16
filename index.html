@@ -1508,7 +1508,7 @@
   .industry-model-parcel{display:flex; flex-direction:column; align-items:center;
                          justify-content:center; min-height:96px; padding:14px 16px;
                          border:1px solid #d2d5d0; border-radius:6px; background:#fff}
-  .industry-model-source{color:#303630; font-size:15px; font-weight:600; text-align:center}
+  .industry-model-source{color:#2d7144; font-size:15px; font-weight:600; text-align:center}
   .industry-model-axis{color:#2d7144; font-size:15px; font-weight:600;
                        letter-spacing:.08em; text-transform:uppercase}
   .industry-model-choice-arrow{display:grid; place-items:center; color:#7d837d;
@@ -1517,6 +1517,10 @@
                        border-top:1px solid #e4e6e2; color:#252925;
                        font-size:9px; font-weight:750; text-align:center;
                        letter-spacing:.035em; text-transform:uppercase}
+  .industry-model-market{width:100%; margin-top:12px; padding-top:10px;
+                         border-top:1px solid #e4e6e2; color:#252925;
+                         font-size:9px; font-weight:750; text-align:center;
+                         letter-spacing:.035em; text-transform:uppercase}
   .icp-card{position:relative; padding:16px; border:1px solid #d0d1cc; border-radius:6px;
             background:#fff; box-shadow:0 1px 2px rgba(0,0,0,.04); cursor:pointer}
   .icp-card:hover{border-color:#a9aaa4}.icp-card.on{border-color:#57c982; background:#effbf3;
@@ -2574,7 +2578,7 @@ const SUPABASE_URL = 'https://cskamgfvebryahkljlll.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_MdkD-TxMCIwlu69seSHA3Q_A39GADsK';
 const CLIENT_ID    = '1059013355751-6g50dsgm7df37htl2fdqrtlkh5hmrc0c.apps.googleusercontent.com';
 const ALLOWED      = ['vijaysrinivassan@gmail.com'];
-const BUILD        = 'v8.12';
+const BUILD        = 'v8.13';
 
 const STRATEGY_ONE_TAB = 'Strategy 1 — Brand Strategy';
 const PRODUCT_EVOLUTION_TAB = 'Strategy 1 — Product Evolution';
@@ -8690,7 +8694,7 @@ function renderIndustryFit(ro){
   const models = [
     {id:'b2b-saas',name:'B2B SaaS',axis:'process',axisLabel:'Process',
      pages:['Use case','Country','Industry','Company size']},
-    {id:'b2c-saas',name:'Prosumer SaaS',axis:'people',axisLabel:'People',
+    {id:'b2c-saas',name:'Consumer SaaS',axis:'people',axisLabel:'People',
      pages:['Person or role','Identity','Cognitive jobs']},
     {id:'technical-infrastructure',name:'Technical infrastructure providers',axis:'technology',axisLabel:'Technology',
      pages:['Technology environment','Stack','Infrastructure architecture','Quality']},
@@ -8766,7 +8770,8 @@ function renderIndustryFit(ro){
     const arrow = document.createElement('span'); arrow.className = 'industry-model-choice-arrow'; arrow.textContent = '\u2192';
     const targetParcel = document.createElement('span'); targetParcel.className = 'industry-model-parcel';
     const axis = document.createElement('span'); axis.className = 'industry-model-axis'; axis.textContent = model.axisLabel;
-    targetParcel.append(axis);
+    const market = document.createElement('span'); market.className = 'industry-model-market'; market.textContent = model.name + ' market';
+    targetParcel.append(axis, market);
     choice.append(sourceParcel, arrow, targetParcel);
     option.append(choice);
     const selectModel = () => {
