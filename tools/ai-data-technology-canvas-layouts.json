@@ -1,0 +1,113 @@
+[
+  {
+    "id": "marketing-attribution",
+    "stages": [
+      [
+        "Channel reporting — ad-spend exports + order exports → spreadsheet reconciliation by date/channel → descriptive spend and sales report."
+      ],
+      [
+        "Joined attribution reporting — ad clicks/UTMs + consented sessions + orders → connector ingestion, deduplication and identity rules → attributable conversions with unmatched orders shown."
+      ],
+      [
+        "Attribution-model comparison — joined touchpoints + orders → explicit attribution windows/models → compare credited revenue and acquisition cost. Attribution is not causal lift.",
+        "Incrementality analysis — valid experiment or holdout data + campaign exposure + outcomes → experiment analysis with uncertainty → evidence for incremental contribution. Observational data alone is insufficient."
+      ]
+    ]
+  },
+  {
+    "id": "campaign-budget-planning",
+    "stages": [
+      [
+        "Budget pacing — campaign budgets + current spend → scheduled aggregation and rules → under/overspend alerts."
+      ],
+      [
+        "Performance diagnosis — campaign spend + orders + product margins → joined metrics and anomaly analysis → investigate changes in acquisition efficiency."
+      ],
+      [
+        "Budget simulation — historical spend/outcomes + seasonality + business constraints → validated response models and explicit assumptions → compare allocation scenarios, not guaranteed ROAS."
+      ],
+      [
+        "Reviewed budget recommendations — scenarios + stock/margin constraints → explainable recommendation and approval queue → marketer approves a supported change."
+      ]
+    ]
+  },
+  {
+    "id": "inventory-management",
+    "stages": [
+      [
+        "Stock reporting — SKU/location stock + receipts + sales + returns → spreadsheet or batch reconciliation → stock-on-hand report."
+      ],
+      [
+        "Inventory visibility — authorised inventory/WMS feeds + sales feeds → connector ingestion and shared SKU/location IDs → stock movement and availability dashboard."
+      ],
+      [
+        "Inventory-performance analysis — stock history + sales + returns → turnover, sell-through and stock-cover calculations using agreed definitions → identify slow and fast movement.",
+        "Stock-exception diagnosis — stock history + demand + lead times → exception rules and analytical joins → identify stockout, ageing-stock and excess-stock drivers."
+      ],
+      [
+        "Demand forecasting — relevant SKU/location history + promotions + availability → validated forecasting models with uncertainty → demand estimates that account for stockout-censored sales."
+      ],
+      [
+        "Safety-stock planning — forecast uncertainty + lead-time variability + service goals → buffer scenarios → compare stock protection and working-capital trade-offs.",
+        "Reorder planning — demand estimates + available/open-order stock + lead times + minimum order quantities → constrained model → compare order quantities and timing."
+      ],
+      [
+        "Reviewed replenishment — proposed orders + cash/service-level constraints → human approval and audit workflow → approved plan; purchase-order execution requires a supported API."
+      ],
+      [
+        "Outcome monitoring — actual demand + deliveries + stock outcomes → forecast-error and inventory-performance tracking → revise models and replenishment rules."
+      ]
+    ]
+  },
+  {
+    "id": "retention-planning",
+    "stages": [
+      [
+        "Cohort reporting — orders + consented customer identifiers → cohort aggregation → observed repeat-purchase rate and time to second order."
+      ],
+      [
+        "Lifecycle diagnosis — order cohorts + CRM engagement + cancellation/return signals → governed joins and segment comparisons → identify where repeat purchasing weakens.",
+        "Retention prediction — sufficient historical behaviour and outcomes → validated churn/next-purchase models → risk estimates with uncertainty; not assumed available from an LLM alone."
+      ],
+      [
+        "Intervention experiments — eligible consented segments + diagnostic or predictive outputs + campaign rules → reviewed audience proposals and controlled tests → assess retention interventions."
+      ]
+    ]
+  },
+  {
+    "id": "merchandising",
+    "stages": [
+      [
+        "Product reporting — orders + variants + refunds → product-level aggregation → best/worst sellers by units, revenue and returns."
+      ],
+      [
+        "Conversion diagnosis — product/session/cart events + orders + availability → funnel and stock-aware analysis → identify where product journeys lose demand.",
+        "Basket and assortment analysis — baskets + margins + inventory + product attributes → co-purchase and catalogue analysis → bundle or range hypotheses."
+      ],
+      [
+        "Merchandising simulation — historical outcomes + proposed range/price changes + explicit assumptions → scenario models → compare possible margin and demand effects."
+      ],
+      [
+        "Reviewed experiments — scenario hypotheses + business constraints → experiment design and approved publishing workflow → measure actual results."
+      ]
+    ]
+  },
+  {
+    "id": "profitability",
+    "stages": [
+      [
+        "Revenue reporting — orders + refunds → consistent aggregation → net sales by period, product and channel."
+      ],
+      [
+        "Contribution calculation — sales + product costs + ad spend + fulfilment/payment fees → reconciled cost joins and agreed definitions → contribution views with missing costs flagged."
+      ],
+      [
+        "Profitability diagnosis — contribution data + channels + product mix → variance analysis → explain changes in observed profitability without inventing costs.",
+        "Customer payback analysis — acquisition cost + observed cohort contribution → cohort comparison with explicit cost coverage → assess payback without assuming future lifetime value."
+      ],
+      [
+        "Cash and margin scenarios — demand assumptions + unit economics + inventory commitments → finance-reviewed scenario model → compare consequences; estimates are not booked results."
+      ]
+    ]
+  }
+]

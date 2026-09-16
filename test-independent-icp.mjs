@@ -14,7 +14,7 @@ assert.match(b.tabs[m.TAB].aiPrompt,/Categories: Keep research/);
 assert.deepEqual(b.tabs[m.TAB],b.productWorkspaces[m.PRODUCT].tabs[m.TAB]);
 assert.equal(m.migrate(b).changed,false);
 const ctx=vm.createContext({document:{addEventListener(){}},uid:()=>crypto.randomUUID()});
-for(const f of ['icp-table.js','icp-choices.js'])vm.runInContext(fs.readFileSync(f,'utf8'),ctx);
+for(const f of ['icp-table.js','icp-cell-canvas.js','icp-choices.js'])vm.runInContext(fs.readFileSync(f,'utf8'),ctx);
 vm.runInContext('globalThis.model=IcpChoices;',ctx);
 const columns=ctx.model.columns(p);
 assert.equal(columns.length,18);

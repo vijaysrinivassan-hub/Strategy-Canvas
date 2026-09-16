@@ -61,8 +61,10 @@ function renderIcpChoicesBody(p,ro,table,el,button,save){
     label.className='icp-choice-select';tick.setAttribute('aria-label','Select '+col.label+' option '+(index+1));
     tick.onchange=()=>{if(ro||readOnly())return;option.selected=tick.checked;IcpChoices.sync(p);markDirty();td.classList.toggle('chosen',tick.checked);updateSummary();};
     label.append(tick,el('span','Include in ICP'));td.append(label);
-    const input=positioningTextarea(option.text,'Add an option',ro,v=>{option.text=v;IcpChoices.sync(p);updateSummary();});
-    input.setAttribute('aria-label',col.label+' option '+(index+1));td.append(input);
+    IcpCellCanvas.render(td,option,col,ro,{el,button,
+     onChange:()=>{IcpChoices.sync(p);updateSummary();markDirty();},
+     onStructure:()=>{IcpChoices.sync(p);save();}
+    });
     appendIcpKeywordControl(td,{...(option.source||{icpId:IcpChoices.id,rowId:option.id,axis:col.axis,column:col.column}),label:col.label},()=>option.text,ro);
     if(!ro)td.append(button('Remove',()=>{if(!confirm('Remove this option?'))return;list.splice(index,1);save();}));
    }else td.className='icp-choice-empty';

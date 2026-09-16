@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import vm from 'node:vm';
 import assert from 'node:assert/strict';
 class Element{
- constructor(tag){this.tag=tag;this.children=[];this.dataset={};this.attrs={};this.classList={toggle:(c,on)=>{this.className=(this.className||'').replace(' '+c,'')+(on?' '+c:'');}};}
+ constructor(tag){this.tag=tag;this.children=[];this.dataset={};this.attrs={};this.style={setProperty:(k,v)=>this.style[k]=v};this.classList={toggle:(c,on)=>{this.className=(this.className||'').replace(' '+c,'')+(on?' '+c:'');}};}
  append(...x){this.children.push(...x);}prepend(...x){this.children.unshift(...x);}
  replaceChildren(...x){this.children=x;}setAttribute(k,v){this.attrs[k]=v;}
  querySelector(tag){return this.children.find(n=>n.tag===tag)||null;}focus(){}
@@ -13,7 +13,7 @@ const p={icps:[{id:'old',name:'Old persona',buyingTrigger:'Manual work',rows:[{i
 const ctx=vm.createContext({structuredClone,document:{createElement:t=>new Element(t),addEventListener:(k,f)=>listeners[k]=f,querySelectorAll:()=>all(host).filter(n=>n.tag==='details'&&n.open)},$:()=>host,uid:()=>String(++id),readOnly:()=>ro,markDirty:()=>dirty++,confirm:()=>true,alert:()=>{},appendIcpKeywordControl:()=>{},openIcpWorkflowPage:()=>{},
  positioningTextarea:(value,ph,readonly,fn)=>{const e=new Element('textarea');e.value=value;e.oninput=()=>fn(e.value);return e;}});
 ctx.renderPositioning=()=>ctx.renderIcpTable(p,ro);
-for(const file of ['icp-table.js','icp-choices.js'])vm.runInContext(fs.readFileSync(file,'utf8'),ctx);
+for(const file of ['icp-table.js','icp-cell-canvas.js','icp-choices.js'])vm.runInContext(fs.readFileSync(file,'utf8'),ctx);
 vm.runInContext('globalThis.choices=IcpChoices;',ctx);
 ctx.renderPositioning();
 assert.equal(dirty,1);
