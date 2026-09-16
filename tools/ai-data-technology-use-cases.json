@@ -1,0 +1,72 @@
+[
+  {
+    "id": "marketing-attribution",
+    "name": "Marketing attribution",
+    "department": "Marketing",
+    "stages": [
+      "Channel reporting — ad-spend exports + order exports → spreadsheet reconciliation by date/channel → descriptive spend and sales report. No customer-level attribution is implied.",
+      "Joined attribution reporting — ad clicks/UTMs + consented sessions + orders → connector ingestion, deduplication and identity rules → attributable conversions with unmatched orders shown.",
+      "Attribution comparison — joined touchpoints + orders → a semantic layer applies explicit attribution windows/models → compare credited revenue and acquisition cost. Attribution is not causal lift.",
+      "Incrementality analysis — valid experiment or holdout data + campaign exposure + outcomes → experiment analysis with uncertainty → evidence for incremental contribution; observational data alone is insufficient."
+    ]
+  },
+  {
+    "id": "campaign-budget-planning",
+    "name": "Campaign budget planning",
+    "department": "Marketing",
+    "stages": [
+      "Budget pacing — campaign budgets + current spend → scheduled aggregation and rules → under/overspend alerts for the marketer.",
+      "Performance diagnosis — campaign spend + orders + product margins → joined metrics and anomaly analysis → investigate changes in acquisition efficiency.",
+      "Budget simulation — historical spend/outcomes + seasonality + business constraints → validated response models and explicit assumptions → compare allocation scenarios, not guaranteed ROAS.",
+      "Reviewed budget recommendations — scenario results + stock/margin constraints → explainable recommendation and approval queue → marketer approves a supported change; write-back API and permissions must be verified."
+    ]
+  },
+  {
+    "id": "inventory-management",
+    "name": "Inventory planning and replenishment",
+    "department": "Inventory",
+    "stages": [
+      "Stock reporting — SKU/location stock + receipts + sales + returns → spreadsheet or batch reconciliation → stock-on-hand report.",
+      "Inventory visibility — authorised inventory/WMS feeds + sales feeds → connector ingestion and shared SKU/location IDs → stock movement and availability dashboard.",
+      "Inventory diagnosis — stock history + demand + lead times → exception rules and analytical joins → identify stockout, ageing-stock and excess-stock drivers.",
+      "Demand forecasting — relevant SKU/location sales history + promotions + availability → validated forecasting models with uncertainty → demand estimates; account for stockout-censored sales.",
+      "Replenishment simulation — demand estimates + available/open-order stock + lead times + minimum order quantities → constrained planning model → compare reorder quantities, timing and safety-stock scenarios.",
+      "Reviewed replenishment — proposed orders + cash/service-level constraints → human approval and audit workflow → an approved plan; purchase-order execution requires a supported external API.",
+      "Outcome monitoring — actual demand + deliveries + stock outcomes → forecast-error and inventory-performance tracking → planners revise models and replenishment rules."
+    ]
+  },
+  {
+    "id": "retention-planning",
+    "name": "Customer retention planning",
+    "department": "CRM / Retention",
+    "stages": [
+      "Cohort reporting — orders + consented customer identifiers → cohort aggregation → observed repeat-purchase rate and time to second order.",
+      "Lifecycle diagnosis — order cohorts + CRM engagement + cancellation/return signals → governed joins and segment comparisons → identify where repeat purchasing weakens.",
+      "Retention prediction — sufficient historical behaviour and outcomes → validated churn/next-purchase models → risk estimates with uncertainty; not assumed available from an LLM alone.",
+      "Intervention experiments — eligible consented segments + model outputs + campaign rules → reviewed audience proposals and controlled tests → assess retention interventions before expanding them."
+    ]
+  },
+  {
+    "id": "merchandising",
+    "name": "Product assortment and merchandising",
+    "department": "E-commerce / Product",
+    "stages": [
+      "Product reporting — orders + variants + refunds → product-level aggregation → best/worst sellers by units, revenue and returns.",
+      "Conversion diagnosis — product/session/cart events + orders + availability → funnel and stock-aware analysis → identify where product journeys lose demand.",
+      "Assortment analysis — baskets + margins + inventory + product attributes → co-purchase and catalogue analysis → bundle or range hypotheses, not proof of causal impact.",
+      "Merchandising simulation — historical outcomes + proposed range/price changes + explicit assumptions → scenario models → compare possible margin and demand effects.",
+      "Reviewed experiments — scenario hypotheses + business constraints → experiment design and approved publishing workflow → measure actual results; storefront write-back is optional and must be verified."
+    ]
+  },
+  {
+    "id": "profitability",
+    "name": "Contribution margin and profitability analysis",
+    "department": "Finance",
+    "stages": [
+      "Revenue reporting — orders + refunds → consistent aggregation → net sales by period/product/channel.",
+      "Contribution calculation — sales + product costs + ad spend + fulfilment/payment fees → reconciled cost joins and agreed definitions → contribution views with missing costs flagged.",
+      "Profitability diagnosis — contribution data + cohorts + channels + product mix → variance analysis → explain changes in observed profitability without inventing costs.",
+      "Cash and margin scenarios — demand assumptions + unit economics + inventory commitments → finance-reviewed scenario model → compare economic consequences; management estimates are not booked accounting results."
+    ]
+  }
+]
