@@ -1372,6 +1372,21 @@
   .radar-head p{max-width:700px; margin:0; color:#6f706a; font-size:11.5px; line-height:1.55}
   .radar-head-actions{display:flex; gap:8px; margin-left:auto; flex:none}
   .radar-head-actions button{background:#fff; font-size:10.5px}
+  .radar-axis-picker{position:relative}
+  .radar-axis-picker > button{min-width:132px}
+  .radar-axis-picker > button.has-axis{border-color:#63ba7e; background:#eff9f2; color:#176f38}
+  .radar-axis-menu{
+    position:absolute; z-index:8; top:calc(100% + 6px); right:0; width:190px;
+    padding:5px; border:1px solid #cfd8d1; background:#fff;
+    box-shadow:0 9px 24px rgba(31,43,34,.12);
+  }
+  .radar-axis-menu button{
+    display:flex; width:100%; align-items:center; justify-content:space-between;
+    padding:8px 9px; border:0; background:#fff; color:#454b46; text-align:left;
+  }
+  .radar-axis-menu button:hover:not(:disabled){border:0; background:#f0f7f2; color:#176f38}
+  .radar-axis-menu button.on{background:#e8f6ec; color:#176f38; font-weight:750}
+  .radar-axis-menu button.on::after{content:'\2713'; color:#269650}
   .radar-figure{position:relative; width:min(1000px,100%); margin:4px auto 0; overflow:visible}
   .radar-svg{display:block; width:100%; height:auto; overflow:visible; user-select:none}
   .radar-band{fill:rgba(236,246,239,.38); stroke:#a9c7b2; stroke-width:1;
@@ -2176,7 +2191,7 @@
     <div class="evo" id="evoPane" hidden>
       <div class="evo-canvas">
         <div class="evo-head" id="evoHead">
-          <h3>What is the axis of evolution?</h3>
+          <h3>What is the axis of product evolution?</h3>
           <p>Choose one axis, then map what came before and every stage that followed.</p>
         </div>
         <div class="evo-map" id="evoMap">
@@ -2253,17 +2268,21 @@
       </div>
     </div>
 
-    <!-- Zoomable category radar driven by the selected evolution direction and Category Positioning. -->
+    <!-- Zoomable category radar with an axis independent of Product Evolution. -->
     <div class="radar" id="brandRadarPane" hidden>
       <div class="radar-canvas">
         <div class="radar-head">
           <div>
             <span class="pos-axis-label">Market position</span>
             <h3>Brand Radar</h3>
-            <p>The selected evolution axis is the active field. Every category band and competitor sits inside it; drag either green edge to widen the field and click the centre to reset.</p>
+            <p>Choose a radar axis independently from Product Evolution. Every category band and competitor sits inside it; drag either green edge to widen the field and click the centre to reset.</p>
           </div>
           <div class="radar-head-actions">
-            <button id="btnOpenProductEvolution" type="button">Set direction</button>
+            <button id="btnOpenProductEvolution" type="button">Product evolution axis</button>
+            <div class="radar-axis-picker">
+              <button id="btnRadarAxis" type="button" aria-expanded="false">Choose radar axis</button>
+              <div class="radar-axis-menu" id="radarAxisMenu" hidden></div>
+            </div>
             <button id="btnOpenCategoryPositioning" type="button">Edit categories</button>
           </div>
         </div>
@@ -2486,7 +2505,7 @@ const SUPABASE_URL = 'https://cskamgfvebryahkljlll.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_MdkD-TxMCIwlu69seSHA3Q_A39GADsK';
 const CLIENT_ID    = '1059013355751-6g50dsgm7df37htl2fdqrtlkh5hmrc0c.apps.googleusercontent.com';
 const ALLOWED      = ['vijaysrinivassan@gmail.com'];
-const BUILD        = 'v7.99';
+const BUILD        = 'v8.00';
 
 const STRATEGY_ONE_TAB = 'Strategy 1 — Brand Strategy';
 const PRODUCT_EVOLUTION_TAB = 'Strategy 1 — Product Evolution';
@@ -10509,7 +10528,6 @@ function renderEvolution(focusLast){
     if (last){ last.focus(); last.scrollIntoView({ block: 'nearest', inline: 'center' }); }
   }
   requestAnimationFrame(drawEvolutionWires);
-  if (!$('brandRadarPane').hidden) requestAnimationFrame(renderBrandRadar);
 }
 
 $('btnEvoChange').onclick = () => {
@@ -10528,6 +10546,44 @@ const RADAR_AXES = [
   { id: 'process',    label: 'PROCESS',    angle:  90, direction: '\u2193' },
   { id: 'people',     label: 'PEOPLE',     angle: 180, direction: '\u2190' }
 ];
+function brandRadarState(){
+  const tab = state.tabs[BRAND_RADAR_TAB] ||
+              (state.tabs[BRAND_RADAR_TAB] = { nodes: [], edges: [] });
+  if (!tab.radar || typeof tab.radar !== 'object'){
+    tab.radar = { axis: tab.evolution && tab.evolution.axis || '' };
+  }
+  if (!RADAR_AXES.some(axis => axis.id === tab.radar.axis)) tab.radar.axis = '';
+  return tab.radar;
+}
+
+function renderRadarAxisPicker(){
+  const radar = brandRadarState();
+  const button = $('btnRadarAxis');
+  const menu = $('radarAxisMenu');
+  const selected = RADAR_AXES.find(axis => axis.id === radar.axis);
+  button.textContent = selected ? selected.label[0] + selected.label.slice(1).toLowerCase() + ' axis' : 'Choose radar axis';
+  button.classList.toggle('has-axis', !!selected);
+  button.disabled = readOnly();
+  menu.innerHTML = '';
+  RADAR_AXES.forEach(axis => {
+    const option = document.createElement('button');
+    option.type = 'button';
+    option.textContent = axis.label[0] + axis.label.slice(1).toLowerCase();
+    option.className = axis.id === radar.axis ? 'on' : '';
+    option.setAttribute('aria-pressed', axis.id === radar.axis ? 'true' : 'false');
+    option.onclick = ev => {
+      ev.stopPropagation();
+      if (readOnly()) return;
+      radar.axis = axis.id;
+      menu.hidden = true;
+      button.setAttribute('aria-expanded', 'false');
+      markDirty();
+      renderBrandRadar();
+    };
+    menu.append(option);
+  });
+}
+
 let radarDragSide = '';
 function radarPoint(radius, degrees){
   const angle = degrees * Math.PI / 180;
@@ -10612,15 +10668,16 @@ function renderBrandRadar(){
   const svg = $('brandRadarSvg');
   const status = $('brandRadarStatus');
   if (!svg || !status) return;
-  const evo = evolutionState();
+  const radar = brandRadarState();
   const positioning = positioningState();
   const ns = 'http://www.w3.org/2000/svg';
   const outerRadius = 292;
   const innerRadius = 34;
   svg.innerHTML = '';
 
-  const active = RADAR_AXES.find(axis => axis.id === evo.axis);
-  const activeIndex = RADAR_AXES.findIndex(axis => axis.id === evo.axis);
+  renderRadarAxisPicker();
+  const active = RADAR_AXES.find(axis => axis.id === radar.axis);
+  const activeIndex = RADAR_AXES.findIndex(axis => axis.id === radar.axis);
   const categories = positioning.categories;
   const selectedIndex = categories.findIndex(category => category.id === positioning.selectedCategory);
   const marketType = strategyOneState().ocean;
@@ -10629,7 +10686,7 @@ function renderBrandRadar(){
   marketCard.querySelector('strong').textContent = marketType === 'red' ? 'Red Ocean' :
     marketType === 'blue' ? 'Blue Ocean' : 'Not selected';
   const band = (outerRadius - innerRadius) / Math.max(1, categories.length);
-  const focus = radarFocusState(positioning, evo.axis || 'technology');
+  const focus = radarFocusState(positioning, radar.axis || 'technology');
   const layout = radarAxisLayout(Math.max(0, activeIndex), active ? focus : { left: 45, right: 45 });
   if (!active) layout.forEach(zone => { zone.active = false; });
   const activeZone = active ? layout[0] : null;
@@ -10813,7 +10870,7 @@ function renderBrandRadar(){
   };
 
   if (!active){
-    radarText(svg, ns, 380, 385, 'radar-empty', 'Choose an evolution direction');
+    radarText(svg, ns, 380, 385, 'radar-empty', 'Choose a radar axis');
   }
 
   status.innerHTML = '';
@@ -10830,12 +10887,26 @@ function renderBrandRadar(){
   } else if (active){
     message.textContent = 'Select your category in Positioning Canvas to locate your brand on this radar.';
   } else {
-    message.textContent = 'Choose an evolution direction above to orient the radar.';
+    message.textContent = 'Choose the Brand Radar axis to orient the category map.';
   }
   status.append(message);
 }
 
 $('btnOpenProductEvolution').onclick = () => $('radarEvolutionHost').scrollIntoView({ behavior: 'smooth', block: 'start' });
+$('btnRadarAxis').onclick = ev => {
+  ev.stopPropagation();
+  if (readOnly()) return;
+  const menu = $('radarAxisMenu');
+  menu.hidden = !menu.hidden;
+  $('btnRadarAxis').setAttribute('aria-expanded', menu.hidden ? 'false' : 'true');
+};
+$('radarAxisMenu').onclick = ev => ev.stopPropagation();
+document.addEventListener('click', () => {
+  const menu = $('radarAxisMenu');
+  if (!menu || menu.hidden) return;
+  menu.hidden = true;
+  $('btnRadarAxis').setAttribute('aria-expanded', 'false');
+});
 $('btnOpenCategoryPositioning').onclick = () => switchTab(POSITIONING_TAB);
 
 /* ===================================================================
