@@ -9,7 +9,7 @@ function renderLegacyIcpDetails(icp,ro){
  });
  return details;
 }
-function renderIcpCards(p,ro){
+function renderIcpCards(p,ro,activeAxis){
  const host=$('positioningIcps');host.replaceChildren();host.className='icp-list';
  p.icps.forEach((icp,index)=>{
   const selected=p.selectedIcp===icp.id,card=document.createElement('article');
@@ -23,9 +23,10 @@ function renderIcpCards(p,ro){
   nameField.append(nameLabel,name);head.append(nameField);card.append(head);
   const rows=document.createElement('div');rows.className='icp-rows';
   icp.rows.forEach((rowData,rowIndex)=>{
-   const row=document.createElement('div');row.className='icp-row';
+   const row=document.createElement('div');row.className='icp-row'+(activeAxis?' single-axis':'');
    const number=document.createElement('span');number.className='icp-row-number';number.textContent=String(rowIndex+1).padStart(2,'0');row.append(number);
-   [['people','People'],['process','Process'],['technology','Technology'],['input','Input']].forEach(([key,labelText])=>{
+   const axes=[['people','People'],['process','Process'],['technology','Technology'],['input','Input']];
+   axes.filter(([key])=>!activeAxis||key===activeAxis).forEach(([key,labelText])=>{
     const field=document.createElement('div');field.className='icp-field';
     const label=document.createElement('label');label.textContent=labelText;
     const input=positioningInput(rowData[key],labelText+' maturity',ro,value=>{rowData[key]=value;if(rowIndex===0)syncLegacyIcpFields(icp);});
