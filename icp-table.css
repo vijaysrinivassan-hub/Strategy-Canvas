@@ -1,0 +1,24 @@
+.positioning>.pos-section:first-child{width:100%;box-sizing:border-box}
+.icp-table-scroll{display:block;max-width:100%;overflow:auto;border:1px solid #cdd8cf;min-height:430px}
+.icp-positioning-table{border-collapse:separate;border-spacing:0;table-layout:fixed;width:max-content;min-width:100%;font-size:12px}
+.icp-positioning-table th,.icp-positioning-table td{border-right:1px solid #dce3dd;border-bottom:1px solid #e1e7e2;padding:12px;vertical-align:top;box-sizing:border-box;min-width:210px;width:210px}
+.icp-positioning-table thead th{background:#edf3ee;color:#2f4636;text-align:left;font-weight:700}
+.icp-positioning-table thead tr:first-child th{background:#253c2e;color:#fff}
+.icp-positioning-table .icp-table-name{width:240px;min-width:240px;text-align:left;background:#fafcf9}
+.icp-positioning-table .icp-table-trigger{width:240px;min-width:240px}
+.icp-positioning-table .icp-group-start{border-left:2px solid #bdcdc1}
+.icp-positioning-table tbody+tbody tr:first-child>*{border-top:5px solid #d4ded6}
+.icp-positioning-table tbody.selected th,.icp-positioning-table tbody.selected td{background:#effaf2}
+.icp-positioning-table textarea{display:block;box-sizing:border-box;width:100%;min-height:100px;resize:vertical;background:transparent;border:1px solid transparent;padding:5px;font:inherit;font-weight:400;line-height:1.6;color:#29372d;border-radius:0}
+.icp-positioning-table textarea:focus{outline:1px solid #58a775;background:#fff}
+.icp-positioning-table small{display:block;font-size:10px;color:#657e6c;margin-bottom:8px}
+.icp-positioning-table button{font-size:10px;padding:6px 8px;border-radius:0;margin:4px 5px 0 0}
+.icp-positioning-table button[aria-pressed=true]{background:#d9f1e0;border-color:#6fba87;color:#246037}
+.icp-positioning-table .icp-table-row-tools{min-width:65px;width:65px}
+.icp-table-group details{position:relative}
+.icp-table-group summary{cursor:pointer;list-style:none;padding:3px 0}
+.icp-table-group summary:focus-visible{outline:2px solid #8ae4a5}
+.icp-column-menu{position:absolute;top:100%;left:0;z-index:20;min-width:230px;padding:14px;background:#fff;color:#253c2e;border:1px solid #bccfc1;box-shadow:0 8px 20px #15391c24;font-weight:400}
+.icp-column-menu label{display:flex;align-items:center;gap:9px;padding:6px 0;font-size:12px}
+.icp-column-menu>input{box-sizing:border-box;width:100%;padding:7px;border:1px solid #ccd8cf}
+.icp-column-menu small{margin-top:10px;line-height:1.5}

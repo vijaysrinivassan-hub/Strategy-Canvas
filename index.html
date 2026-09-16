@@ -2279,7 +2279,7 @@
           <div>
             <span class="pos-axis-label">Positioning axis 01</span>
             <h3>ICP Positioning</h3>
-            <p>Build ICP options from People, Process, Technology and Input maturity. Each column is an independent list: add rows as needed and leave unused cells blank.</p>
+            <p>Compare ICPs across People, Process, Technology and Input. Choose subcolumns from each grouped header, add rows as needed, and leave unused cells blank.</p>
           </div>
           <div style="display:flex;gap:8px;align-items:center"><button id="btnPositioningPrompts" type="button">AI Prompts</button><button id="btnAddPositioningIcp" type="button">+ Add ICP</button></div>
         </div>
@@ -2462,6 +2462,8 @@
 <script src="competitor-comparison.js"></script>
 <link rel="stylesheet" href="icp-workflows.css">
 <script src="icp-workflows.js"></script>
+<link rel="stylesheet" href="icp-table.css">
+<script src="icp-table.js"></script>
 <script>
 /* ===================================================================
    CONFIG — all public values. No secrets belong in this file.
@@ -2470,7 +2472,7 @@ const SUPABASE_URL = 'https://cskamgfvebryahkljlll.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_MdkD-TxMCIwlu69seSHA3Q_A39GADsK';
 const CLIENT_ID    = '1059013355751-6g50dsgm7df37htl2fdqrtlkh5hmrc0c.apps.googleusercontent.com';
 const ALLOWED      = ['vijaysrinivassan@gmail.com'];
-const BUILD        = 'v7.88';
+const BUILD        = 'v7.89';
 
 const STRATEGY_ONE_TAB = 'Strategy 1 — Brand Strategy';
 const PRODUCT_EVOLUTION_TAB = 'Strategy 1 — Product Evolution';
@@ -8325,6 +8327,7 @@ function newPositioningIcpRow(values){
   const source = values || {};
   return {
     id: source.id || uid(),
+    dimensions: source.dimensions && typeof source.dimensions === 'object' ? source.dimensions : {},
     people: typeof source.people === 'string' ? source.people : '',
     process: typeof source.process === 'string' ? source.process : '',
     technology: typeof source.technology === 'string' ? source.technology : '',
@@ -8498,115 +8501,7 @@ function renderPositioning(){
   $('btnAddPositioningIcp').hidden = ro;
   $('btnAddPositioningCategory').hidden = ro;
 
-  const icpHost = $('positioningIcps');
-  icpHost.innerHTML = '';
-  p.icps.forEach((icp, index) => {
-    const card = document.createElement('article');
-    const selected = p.selectedIcp === icp.id;
-    card.className = 'icp-card' + (selected ? ' on' : '');
-    card.tabIndex = ro ? -1 : 0;
-    card.setAttribute('role', 'button');
-    card.setAttribute('aria-pressed', selected ? 'true' : 'false');
-    card.onclick = ev => {
-      if (ro || ev.target.closest('input,textarea,label,button')) return;
-      selectPositioningIcp(icp.id);
-    };
-    card.onkeydown = ev => {
-      if (ev.target !== card || (ev.key !== 'Enter' && ev.key !== ' ')) return;
-      ev.preventDefault();
-      selectPositioningIcp(icp.id);
-    };
-
-    const cardHead = document.createElement('div');
-    cardHead.className = 'icp-card-head';
-    const nameField = document.createElement('div');
-    nameField.className = 'icp-name icp-field';
-    const nameLabel = document.createElement('label');
-    nameLabel.textContent = 'ICP ' + (index + 1);
-    const name = positioningInput(icp.name, 'ICP name / maturity stage', ro, value => { icp.name = value; }, 'icp-title');
-    nameField.append(nameLabel, name);
-    cardHead.append(nameField);
-    card.append(cardHead);
-
-    const rows = document.createElement('div');
-    rows.className = 'icp-rows';
-    icp.rows.forEach((rowData, rowIndex) => {
-      const row = document.createElement('div');
-      row.className = 'icp-row';
-      const rowNumber = document.createElement('span');
-      rowNumber.className = 'icp-row-number';
-      rowNumber.textContent = String(rowIndex + 1).padStart(2, '0');
-      row.append(rowNumber);
-      [['people', 'People'], ['process', 'Process'], ['technology', 'Technology'], ['input', 'Input']].forEach(pair => {
-        const field = document.createElement('div');
-        field.className = 'icp-field';
-        const label = document.createElement('label');
-        label.textContent = pair[1];
-        const input = positioningInput(rowData[pair[0]], pair[1] + ' maturity', ro, value => {
-          rowData[pair[0]] = value;
-          if (rowIndex === 0) syncLegacyIcpFields(icp);
-        });
-        field.append(label, input);
-        row.append(field);
-      });
-      if (!ro){
-        const removeRow = document.createElement('button');
-        removeRow.type = 'button';
-        removeRow.className = 'icp-row-x';
-        removeRow.title = 'Remove this row';
-        removeRow.setAttribute('aria-label', 'Remove ICP row ' + (rowIndex + 1));
-        removeRow.textContent = '\u00d7';
-        removeRow.onclick = ev => {
-          ev.stopPropagation();
-          if (icp.rows.length === 1){
-            icp.rows[0] = newPositioningIcpRow();
-          } else {
-            icp.rows.splice(rowIndex, 1);
-          }
-          syncLegacyIcpFields(icp);
-          markDirty(); renderPositioning();
-        };
-        row.append(removeRow);
-      }
-      rows.append(row);
-    });
-    card.append(rows);
-    if (selected) card.append(renderIcpDetails(icp, ro));
-    if (!ro){
-      const addRow = document.createElement('button');
-      addRow.type = 'button';
-      addRow.className = 'icp-add-row';
-      addRow.textContent = '+ Add row';
-      addRow.onclick = ev => {
-        ev.stopPropagation();
-        icp.rows.push(newPositioningIcpRow());
-        markDirty(); renderPositioning();
-      };
-      card.append(addRow);
-    }
-    if (selected){
-      const status = document.createElement('span');
-      status.className = 'icp-selected';
-      status.textContent = 'Selected ICP';
-      card.append(status);
-    }
-    if (!ro){
-      const remove = document.createElement('button');
-      remove.type = 'button';
-      remove.className = 'pos-x';
-      remove.title = 'Remove this ICP';
-      remove.textContent = '\u00d7';
-      remove.onclick = () => {
-        if ((icp.name || '').trim() && !confirm('Remove this ICP?')) return;
-        p.icps = p.icps.filter(x => x.id !== icp.id);
-        if (p.selectedIcp === icp.id) p.selectedIcp = '';
-        if (!p.icps.length) p.icps.push(newPositioningIcp());
-        markDirty(); renderPositioning();
-      };
-      card.append(remove);
-    }
-    icpHost.append(card);
-  });
+  renderIcpTable(p, ro);
 
   const categoryHost = $('positioningCategories');
   categoryHost.innerHTML = '';
