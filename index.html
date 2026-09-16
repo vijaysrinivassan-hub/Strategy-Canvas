@@ -1451,6 +1451,12 @@
   .pos-axis-label{color:#878882; font-size:8.5px; font-weight:800; letter-spacing:.12em;
                   text-transform:uppercase}
   .icp-list{display:flex; flex-direction:column; gap:14px; width:min(820px,100%); margin:0 auto}
+  .positioning-evolution-host{width:min(920px,100%); margin:0 auto 22px}
+  .positioning-evolution-host .evo-canvas{width:100%; min-height:0; padding:28px 24px 34px}
+  .positioning-radar-host{width:min(920px,100%); margin:24px auto}
+  .positioning-radar-host .radar-canvas{width:100%; min-height:0; padding:18px 0 24px;
+                                       border-top:1px solid #d7dad5;
+                                       border-bottom:1px solid #d7dad5}
   .industry-fit{width:min(820px,100%); margin:0 auto 18px}
   .industry-fit-preview{display:grid; grid-template-columns:minmax(0,1fr) 64px minmax(0,1fr);
                         align-items:start; gap:18px; width:100%; margin:0 auto 20px}
@@ -2360,7 +2366,6 @@
             <button id="btnOpenCategoryPositioning" type="button">Edit categories</button>
           </div>
         </div>
-        <section class="pos-section radar-evolution-section" id="radarEvolutionHost"></section>
         <div class="radar-figure">
           <aside class="radar-market-type" id="radarMarketType">
             <span>Market type</span>
@@ -2383,7 +2388,9 @@
           </div>
           <div style="display:flex;gap:8px;align-items:center"><button id="btnPositioningPrompts" type="button">AI Prompts</button><button id="btnAddPositioningIcp" type="button">+ Add ICP</button></div>
         </div>
+        <div class="positioning-evolution-host" id="positioningEvolutionHost"></div>
         <div class="industry-fit" id="icpIndustryFit"></div>
+        <div class="positioning-radar-host" id="positioningRadarHost"></div>
         <div class="icp-list" id="positioningIcps"></div>
       </section>
 
@@ -2580,7 +2587,7 @@ const SUPABASE_URL = 'https://cskamgfvebryahkljlll.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_MdkD-TxMCIwlu69seSHA3Q_A39GADsK';
 const CLIENT_ID    = '1059013355751-6g50dsgm7df37htl2fdqrtlkh5hmrc0c.apps.googleusercontent.com';
 const ALLOWED      = ['vijaysrinivassan@gmail.com'];
-const BUILD        = 'v8.14';
+const BUILD        = 'v8.15';
 
 const STRATEGY_ONE_TAB = 'Strategy 1 — Brand Strategy';
 const PRODUCT_EVOLUTION_TAB = 'Strategy 1 — Product Evolution';
@@ -2599,7 +2606,6 @@ const TABS = [
   PRODUCT_ARCHITECTURE_TAB,
   POSITIONING_TAB,
   POSITIONING_DOCUMENT_TAB,
-  BRAND_RADAR_TAB,
   'Channel Strategy',
   'Content Strategy',
   'Keyword Repo',
@@ -2674,7 +2680,8 @@ function closeNav(){
 const $ = id => document.getElementById(id);
 const uid = () => Math.random().toString(36).slice(2, 10) + Date.now().toString(36).slice(-4);
 $('brandChannelHost').append($('chanPane'));
-$('radarEvolutionHost').append($('evoHead'), $('evoMap'), $('evoSequence'));
+$('positioningEvolutionHost').append($('evoPane').querySelector('.evo-canvas'));
+$('positioningRadarHost').append($('brandRadarPane').querySelector('.radar-canvas'));
 
 /* ===================================================================
    STATE
@@ -2733,9 +2740,10 @@ function rememberLocation(){
 }
 function restoreLocation(location){
   if (!location || location.boardId !== state.boardId) return false;
-  const knownTab = typeof location.tab === 'string' &&
-    (Object.prototype.hasOwnProperty.call(state.tabs, location.tab) || state.extra.indexOf(location.tab) !== -1);
-  if (knownTab) state.tab = location.tab;
+  const rememberedTab = location.tab === BRAND_RADAR_TAB ? POSITIONING_TAB : location.tab;
+  const knownTab = typeof rememberedTab === 'string' &&
+    (Object.prototype.hasOwnProperty.call(state.tabs, rememberedTab) || state.extra.indexOf(rememberedTab) !== -1);
+  if (knownTab) state.tab = rememberedTab;
   if (CONTENT_VIEWS.some(view => view.id === location.contentView)) state.contentView = location.contentView;
   const frameIndex = Number(location.frameIndex);
   if (state.tab === FRAME_TAB && Number.isInteger(frameIndex) && state.frames[frameIndex]){
@@ -3119,7 +3127,6 @@ function renderTabs(){
       box.append(tabButton(PRODUCT_ARCHITECTURE_TAB, 'Product Architecture'));
       box.append(tabButton(POSITIONING_TAB, 'Positioning Canvas'));
       box.append(tabButton(POSITIONING_DOCUMENT_TAB, 'Positioning Document'));
-      box.append(tabButton(BRAND_RADAR_TAB, 'Brand Radar'));
       return;
     }
 
@@ -5207,7 +5214,7 @@ function applyTabMode(){
   const isArchitecture = state.tab === PRODUCT_ARCHITECTURE_TAB;
   const isPositioning = state.tab === POSITIONING_TAB;
   const isPositioningDocument = state.tab === POSITIONING_DOCUMENT_TAB;
-  const isRadar = state.tab === BRAND_RADAR_TAB;
+  const isRadar = false;
   const isCanvas = !isDocs && !isChan && !isKw && !isMx && !isGuide && !isEvo &&
     !isArchitecture && !isPositioning && !isPositioningDocument && !isRadar && !isNote;
 
@@ -5229,7 +5236,7 @@ function applyTabMode(){
   $('architecturePane').hidden = !isArchitecture;
   $('positioningPane').hidden = !isPositioning;
   $('positioningDocumentPane').hidden = !isPositioningDocument;
-  $('brandRadarPane').hidden = !isRadar;
+  $('brandRadarPane').hidden = true;
   $('btnFit').hidden = !isCanvas;
   /* a frame can be used as a template on a real canvas, but not inside a frame */
   $('framePick').hidden = !isCanvas || readOnly();
@@ -5240,6 +5247,8 @@ function applyTabMode(){
   if (isGuide){ renderStrategyGuide(); renderChannels(); }
   if (isPositioning){
     renderPositioning();
+    renderEvolution();
+    renderBrandRadar();
     renderProblemEvidence();
     if (state.user) refreshDocs().then(() => {
       if (state.tab === POSITIONING_TAB) renderProblemEvidence();
@@ -5247,7 +5256,6 @@ function applyTabMode(){
   }
   if (isPositioningDocument) renderPositioningDocument();
   if (isArchitecture) renderProductArchitecture();
-  if (isRadar){ renderEvolution(); renderBrandRadar(); }
   renderCrumb();
   applyRole();
 }
@@ -11145,7 +11153,7 @@ function renderBrandRadar(){
   status.append(message);
 }
 
-$('btnOpenProductEvolution').onclick = () => $('radarEvolutionHost').scrollIntoView({ behavior: 'smooth', block: 'start' });
+$('btnOpenProductEvolution').onclick = () => $('positioningEvolutionHost').scrollIntoView({ behavior: 'smooth', block: 'start' });
 $('btnRadarAxis').onclick = ev => {
   ev.stopPropagation();
   if (readOnly()) return;
@@ -11160,7 +11168,7 @@ document.addEventListener('click', () => {
   menu.hidden = true;
   $('btnRadarAxis').setAttribute('aria-expanded', 'false');
 });
-$('btnOpenCategoryPositioning').onclick = () => switchTab(POSITIONING_TAB);
+$('btnOpenCategoryPositioning').onclick = () => $('positioningCategories').scrollIntoView({ behavior: 'smooth', block: 'start' });
 
 /* ===================================================================
    STRATEGY 1 — clickable brand-strategy decision canvas

@@ -6,6 +6,12 @@ const html=fs.readFileSync(new URL('./index.html',import.meta.url),'utf8');
 assert(html.includes('What is the axis of product evolution?'));
 assert(html.includes('id="btnRadarAxis"'));
 assert(html.includes('Product evolution axis'));
+assert(html.includes('id="positioningEvolutionHost"'));
+assert(html.includes('id="positioningRadarHost"'));
+assert(html.includes("$('positioningEvolutionHost').append($('evoPane').querySelector('.evo-canvas'))"));
+assert(html.includes("$('positioningRadarHost').append($('brandRadarPane').querySelector('.radar-canvas'))"));
+assert(!html.includes("box.append(tabButton(BRAND_RADAR_TAB, 'Brand Radar'))"));
+assert(html.includes('renderPositioning();\n    renderEvolution();\n    renderBrandRadar();'));
 
 const start=html.indexOf('const RADAR_AXES = [');
 const end=html.indexOf('let radarDragSide',start);
