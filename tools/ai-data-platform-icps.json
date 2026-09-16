@@ -1,0 +1,194 @@
+[
+  {
+    "name": "Founder-led store — understand what is happening",
+    "size": "AI analytics for small e-commerce stores\nOne primary storefront, a limited catalogue and a small set of data sources; low data volume need not mean simple operations.",
+    "quality": "Order and product IDs may be usable while costs, refunds and campaign tags are incomplete. Start with reconciled reporting; short history limits reliable forecasting.",
+    "controls": "Owner-controlled access, daily summaries and clear data timestamps. Restrict personal data; show the source behind answers before taking action.",
+    "roles": [
+      "Founder or e-commerce owner buys and uses the tool; needs answers without assembling spreadsheets.",
+      "One generalist runs marketing, merchandising and customer operations; separate departments are not assumed.",
+      "No dedicated analyst required for basic reporting; a named business owner still validates metric definitions and recommendations."
+    ],
+    "departments": [
+      "Orders plus ad spend → daily performance summary and unusual-change flags → owner reviews next steps. Platform ROAS is not proof of incremental sales.",
+      "Orders by product/variant → identify best sellers and weak sellers → choose a merchandising investigation.",
+      "Repeat-order history → simple returning-customer cohorts when sufficient records exist; avoid premature lifetime-value predictions.",
+      "Stock and recent sales, if available → low-stock checks → owner reviews replenishment needs.",
+      "",
+      "Orders, refunds and supplied costs → provisional margin view. Missing costs must be visible, not filled with invented values.",
+      "Order status and authorised support records, if connected → summarise recurring queries; keep customer outreach under human review."
+    ],
+    "models": [
+      "For a one-off or seasonal catalogue: compare product sales over relevant periods; short history cannot establish seasonality.",
+      "",
+      ""
+    ],
+    "technology": [
+      "Shopify is in the proposed architecture; another storefront needs a verified connector and compatible order/product fields.",
+      "Meta Ads, Google Ads and Klaviyo are design inputs, not proof of shipped connectors. Verify scopes, account access and common dates.",
+      "Cost or stock spreadsheet may be the only operational source; supplier and finance sources are not yet in the architecture.",
+      "Native reports/spreadsheets are the current alternative. Proposed semantic layer and AI analyst should expose definitions and source freshness."
+    ],
+    "trigger": "The founder repeatedly downloads reports, cannot explain a sales change, or needs a trustworthy daily business summary."
+  },
+  {
+    "name": "Paid-growth DTC brand — diagnose acquisition performance",
+    "size": "AI data platform for growing DTC brands\nMultiple campaigns/channels and an expanding catalogue; growth spend and decision frequency matter more than headcount.",
+    "quality": "Align spend, order, refund and campaign data; agree attribution windows, time zones and currencies. Identity gaps limit cross-channel conclusions.",
+    "controls": "Growth lead reviews recommendations; record attribution assumptions. Ad-budget changes require explicit approval, supported write access and spending limits.",
+    "roles": [
+      "Founder or head of growth owns the business case and budget.",
+      "Performance marketer, e-commerce manager and creative/agency partners need shared answers rather than disconnected platform reports.",
+      "Marketing analyst or capable generalist owns metric definitions and checks anomalies; engineering support is conditional on source complexity."
+    ],
+    "departments": [
+      "Spend and order cohorts → investigate acquisition efficiency and creative/product differences → propose tests. Do not infer causation from correlations.",
+      "Product conversion and return patterns → prioritise product-page or assortment tests; funnel analysis requires tracked events.",
+      "Klaviyo engagement plus order history → compare new/repeat buyer cohorts and propose lifecycle tests with consent controls.",
+      "Stock availability plus campaign demand → flag campaigns promoting constrained products, where inventory is connected.",
+      "",
+      "Ad cost, discounts, refunds and unit costs → estimate contribution by campaign/product with transparent missing-cost exclusions.",
+      "Support/return themes → propose explanations for conversion or repeat-purchase issues; ticket data requires an additional source."
+    ],
+    "models": [
+      "Launch-led or fashion brands: connect campaign timing to product/variant sales and returns; simulation needs elasticity assumptions and a test plan.",
+      "Replenishable products: compare acquisition cohorts by later repeat purchases before proposing spend shifts.",
+      ""
+    ],
+    "technology": [
+      "Shopify order, product and refund data; verify event coverage before promising checkout-funnel analysis.",
+      "Meta/Google campaign data and Klaviyo cohorts, with stable definitions and permissions. Proposed architecture names these sources.",
+      "Product cost, fulfilment and inventory feeds extend the current design; verify the available data before a profitability claim.",
+      "Current point tools and dashboards may remain; governed metrics feed proposed AI explanations and reviewer-approved Slack/task delivery."
+    ],
+    "trigger": "Ad platforms disagree with store results, paid spend grows faster than insight, or an agency/client review needs a joined-up explanation."
+  },
+  {
+    "name": "Repeat-purchase brand — retention and customer economics",
+    "size": "AI analytics for repeat-purchase and subscription commerce\nCustomer history, repeat events and subscription activity matter more than company size; this context can overlap with a small or large brand.",
+    "quality": "Need deduplicated customer IDs, consistent order/refund history and enough repeat behaviour. Subscription states and cancellations require separate data where applicable.",
+    "controls": "Honour consent and access boundaries; aggregate where possible. Validate cohort definitions and predictive error before activating audiences or retention offers.",
+    "roles": [
+      "Head of retention, CRM lead or founder owns the retention outcome; finance reviews economics.",
+      "Lifecycle marketer and customer-experience operators turn approved segments and recommendations into campaigns.",
+      "Analyst or data owner checks customer identity, cohort windows and model calibration; a model score is not a guaranteed outcome."
+    ],
+    "departments": [
+      "Acquisition source plus later order behaviour → assess cohort quality; avoid rewarding low acquisition cost without downstream economics.",
+      "Products bought together and reorder patterns → propose bundles or replenishment tests, subject to margin and stock checks.",
+      "Customer/order/engagement history → observed repeat-rate cohorts; propose churn/LTV estimates only after readiness and validation checks.",
+      "Repeat demand and stock data → investigate availability gaps affecting replenishment; do not assume a subscription forecast model exists.",
+      "Subscription schedules and supplier lead times, if connected → proposed demand scenarios → purchasing review; optional capability.",
+      "Refunds, acquisition costs and fulfilment costs → cohort contribution and payback estimates, with explicit cost assumptions.",
+      "Ticket themes, cancellations and refunds → identify service-related retention hypotheses; recommendations need review before contacting customers."
+    ],
+    "models": [
+      "Durable or infrequent-purchase goods: retention may mean accessories, service or referrals rather than frequent repurchase.",
+      "Consumables/subscriptions: distinguish cancelled, paused and delayed orders before proposing renewal or replenishment interventions.",
+      ""
+    ],
+    "technology": [
+      "Store order/customer data plus subscription billing/events where relevant; subscription connectors are additional requirements.",
+      "Klaviyo engagement and authorised acquisition data support cohort analysis; account identity and consent must be checked.",
+      "Returns, service, cost and supplier sources are extensions, not established native integrations.",
+      "Existing CRM/CDP or BI models may hold trusted segments. Proposed AI layer should reuse definitions rather than silently redefine customer value."
+    ],
+    "trigger": "Repeat purchases flatten, acquisition payback becomes unclear, subscriptions grow, or teams cannot connect service/campaign behaviour to retention."
+  },
+  {
+    "name": "Catalogue and inventory-led merchant — plan stock and purchasing",
+    "size": "AI analytics for inventory-heavy e-commerce\nMany SKUs/variants, multiple suppliers or warehouses; a small team with a complex catalogue can fit this ICP.",
+    "quality": "Need consistent SKU/location IDs, stock snapshots, receipts, returns and supplier lead times. Stockouts censor observed demand; sales are not always unconstrained demand.",
+    "controls": "Inventory/planning staff approve recommendations; forecasts need backtesting and uncertainty ranges. Never place purchase orders from an unvalidated simulation.",
+    "roles": [
+      "Operations leader, merchandising head or owner sponsors the system.",
+      "Inventory planner, merchandiser and purchasing manager need different decisions from shared product data; roles may be combined.",
+      "Data steward validates inventory movements, costs and supplier mappings; an analyst tests forecast quality where prediction is proposed."
+    ],
+    "departments": [
+      "Campaign plans plus available stock → flag potential conflicts and propose promotion changes for review.",
+      "Product/variant sales and returns → assortment comparisons → scenario analysis for range or price changes, only with explicit assumptions.",
+      "Purchase history plus availability → propose relevant cross-sell or replenishment audiences; consent and stock rules apply.",
+      "SKU/location movement → stockout/overstock investigation → proposed demand forecasts and safety-stock scenarios after validation.",
+      "Sales, purchase orders, lead times and minimum order quantities → compare replenishment options → buyer approves any order.",
+      "Costs, discounts, returns and stock balances → working-capital and margin scenarios; not an accounting valuation without agreed rules.",
+      "Delivery/return reasons plus product data → investigate service problems associated with specific variants or stock decisions."
+    ],
+    "models": [
+      "Apparel/home goods: size/colour variants, launches and seasonal markdown decisions change the workflow.",
+      "Consumables: shelf-life/batch or subscription inputs may change replenishment; add those sources only where relevant.",
+      "Multi-location fulfilment: availability by warehouse/channel matters; transfers and reservations need explicit definitions."
+    ],
+    "technology": [
+      "Store catalogue and order lines are starting points; SKU and variant identifiers must match operational systems.",
+      "Ad/lifecycle sources explain commercial context but cannot replace inventory and purchasing records.",
+      "OMS/WMS/ERP, purchasing and supplier feeds are necessary extensions for these use cases; current architecture does not prove them.",
+      "Existing inventory reports/BI provide baselines. Modelled data and a reviewed AI layer can be proposed above them; validate forecast and write-back support."
+    ],
+    "trigger": "Persistent stockouts and dead stock, rising purchasing effort, catalogue expansion, or a need to understand demand before committing cash."
+  },
+  {
+    "name": "Omnichannel retailer — reconcile channels and locations",
+    "size": "AI data platform for omnichannel retail\nOnline store plus marketplaces, stores/POS or wholesale; location/channel complexity can appear before enterprise scale.",
+    "quality": "Reconcile product/customer/channel IDs, returns, discounts, currencies and settlement dates. Online attribution does not automatically explain offline purchases.",
+    "controls": "Role- and location-scoped access; show which channels are complete and current. Any price, stock or campaign change needs the appropriate channel owner's approval.",
+    "roles": [
+      "Head of e-commerce, retail/operations leader or finance sponsor needs a consistent commercial view.",
+      "Channel managers, store operations, merchandising and finance consume different cuts of the same underlying data.",
+      "Analyst/integration owner governs cross-channel mappings and reconciliation; identity matching must respect permission boundaries."
+    ],
+    "departments": [
+      "Cross-channel sales and media data → identify patterns worth testing; separate observed attribution from incremental impact.",
+      "Product performance by store/channel → range and price comparisons; account for returns, availability and channel-specific costs.",
+      "Consented customer identity across channels → cohort analysis where matching is legitimate and reliable; do not assume universal customer stitching.",
+      "Inventory by channel/location → availability discrepancies and allocation scenarios → operations review.",
+      "Supplier commitments plus channel demand → purchasing scenarios; avoid double-counting transfers or marketplace orders.",
+      "Orders, fees, settlements and refunds → channel profitability/reconciliation views when source coverage is complete.",
+      "Service records plus shipment/order data → investigate channel-specific issues; marketplace messaging permissions may restrict actions."
+    ],
+    "models": [
+      "Seasonal categories: compare range and promotions by channel, with comparable calendars.",
+      "Repeat-purchase retail: reconcile loyalty and repeat behaviour only across permitted linked identities.",
+      "POS/marketplace/wholesale: each adds different order, return and settlement semantics; not merely another ad account."
+    ],
+    "technology": [
+      "Shopify plus POS/marketplace/wholesale sources where used; non-Shopify connectors must be validated rather than assumed.",
+      "Advertising/lifecycle data may cover only some channels; expose those limits in reports and AI answers.",
+      "OMS/WMS, payments and accounting data connect orders to stock and economics; access and reconciliation rules are requirements.",
+      "Current channel dashboards or warehouse: agree canonical metric definitions; proposed AI recommendations should link to channel-specific supporting data."
+    ],
+    "trigger": "Launching a new sales channel, conflicting channel totals, fragmented stock visibility, or margin decisions made from incomplete revenue reports."
+  },
+  {
+    "name": "Multi-brand business with a data team — governed AI decision support",
+    "size": "AI analytics for multi-brand / enterprise commerce\nSeveral brands, entities, stores or regions, often with an existing warehouse. Data-team maturity is separate from revenue or employee count.",
+    "quality": "Curated and raw datasets can coexist; semantic conflicts, lineage gaps and delayed feeds still need checks. Validated datasets, not unrestricted source access, should ground answers.",
+    "controls": "Brand/role isolation, query budgets, audit trails and freshness rules. Predictive models require validation; write-back needs approved scopes, limits and accountable owners.",
+    "roles": [
+      "Chief data/digital officer, group e-commerce lead or business sponsor defines scope and outcomes.",
+      "Specialist growth, CRM, merchandising, supply-chain and finance teams use domain-specific workflows.",
+      "Analytics engineers, analysts and security/data owners govern models, permissions and evaluation of AI answers."
+    ],
+    "departments": [
+      "Governed cross-brand performance → explanations and scenario proposals → accountable budget owners review changes.",
+      "Brand/category/product comparisons → proposed assortment or conversion experiments with consistent definitions.",
+      "Permitted brand-level cohorts → retention hypotheses and model evaluation; no automatic pooling of personal data across brands.",
+      "Multi-site stock/demand views → validated forecast and allocation scenarios; preserve entity and operational constraints.",
+      "Supplier/lead-time/cost inputs → purchasing scenarios with explicit constraints and uncertainty; procurement retains authority.",
+      "Entity/brand contribution and planning scenarios → finance review and reconciliation; distinguish management estimates from booked results.",
+      "Authorised support themes → cross-functional issue summaries and task routing; no unsupported autonomous refunds or policy changes."
+    ],
+    "models": [
+      "Diverse product categories: retain their different seasonality, returns and merchandising logic rather than forcing one playbook.",
+      "Subscription and transactional brands: use different retention and revenue definitions within governed models.",
+      "International/multi-entity operations: currency, calendars, permissions and source coverage are configuration requirements; not proof of global readiness."
+    ],
+    "technology": [
+      "Several commerce platforms and brand accounts may feed approved warehouse models; named source support must be verified.",
+      "Multiple ad/CRM accounts require account ownership, permissions and consistent metric definitions.",
+      "ERP, warehouse, purchasing, fulfilment and support systems add business context where authorised; connector availability remains a validation task.",
+      "BigQuery/Snowflake or another warehouse and BI layer may already exist. Propose governed AI over trusted models; verify compatibility, latency and reviewer-approved activation."
+    ],
+    "trigger": "An analytics request backlog, too many dashboards without decisions, inconsistent brand metrics, or a governed AI rollout over an existing data investment."
+  }
+]
