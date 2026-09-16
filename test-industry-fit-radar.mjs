@@ -41,6 +41,7 @@ assert(html.includes('choice.append(sourceParcel, arrow, targetParcel)'));
 assert(html.includes('const pagesByAxis = Object.fromEntries'));
 assert(html.includes("sharedPages.className = 'industry-fit-shared-pages'"));
 assert(html.includes("sharedPagesLabel.textContent = 'Pages to create'"));
+assert(/\.industry-fit-axis-row button\{[^}]*min-height:38px;[^}]*font-size:11px;[^}]*white-space:normal;[^}]*overflow-wrap:anywhere/.test(html));
 assert(html.includes("previewRight.append(buyingHeading, previewAxis, axisRow(activeTargetAxis, 'target'), sharedPages)"));
 assert(!html.includes("pages.className = 'industry-model-pages'"));
 assert(html.includes("option.onclick = selectModel"));

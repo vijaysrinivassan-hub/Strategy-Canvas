@@ -1480,9 +1480,11 @@
                                     background:#fbfbfa}
   .industry-fit-axis-row{display:grid; grid-template-columns:repeat(4,1fr); gap:4px;
                          width:100%}
-  .industry-fit-axis-row button{padding:5px 3px; border:1px solid #d8dcd7; border-radius:3px;
-                                background:#fff; color:#777d77; font-size:7px; font-weight:800;
-                                letter-spacing:.055em; text-align:center; text-transform:uppercase}
+  .industry-fit-axis-row button{min-width:0; min-height:38px; padding:7px 3px;
+                                border:1px solid #d8dcd7; border-radius:3px;
+                                background:#fff; color:#777d77; font-size:11px; font-weight:800;
+                                line-height:1.2; letter-spacing:.035em; text-align:center;
+                                text-transform:uppercase; white-space:normal; overflow-wrap:anywhere}
   .industry-fit-axis-row button:hover:not(:disabled){border-color:#8ec69f; background:#f2faf4; color:#2b6840}
   .industry-fit-axis-row button:focus-visible{outline:2px solid #2f9a54; outline-offset:1px}
   .industry-fit-axis-row button.on{border-color:#78c491; background:#eaf8ee; color:#216c3d}
@@ -2578,7 +2580,7 @@ const SUPABASE_URL = 'https://cskamgfvebryahkljlll.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_MdkD-TxMCIwlu69seSHA3Q_A39GADsK';
 const CLIENT_ID    = '1059013355751-6g50dsgm7df37htl2fdqrtlkh5hmrc0c.apps.googleusercontent.com';
 const ALLOWED      = ['vijaysrinivassan@gmail.com'];
-const BUILD        = 'v8.13';
+const BUILD        = 'v8.14';
 
 const STRATEGY_ONE_TAB = 'Strategy 1 — Brand Strategy';
 const PRODUCT_EVOLUTION_TAB = 'Strategy 1 — Product Evolution';
