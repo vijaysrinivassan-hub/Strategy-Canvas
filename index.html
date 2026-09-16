@@ -1457,9 +1457,10 @@
   .positioning-radar-host .radar-canvas{width:100%; min-height:0; padding:18px 0 24px;
                                        border-top:1px solid #d7dad5;
                                        border-bottom:1px solid #d7dad5}
-  .industry-fit{width:min(820px,100%); margin:0 auto 18px}
+  .industry-fit{display:grid; grid-template-columns:minmax(360px,.82fr) minmax(500px,1.18fr);
+                gap:28px; align-items:start; width:100%; margin:0 auto 18px}
   .industry-fit-preview{display:grid; grid-template-columns:minmax(0,1fr) 64px minmax(0,1fr);
-                        align-items:start; gap:18px; width:100%; margin:0 auto 20px}
+                        align-items:start; gap:14px; width:100%; margin:0}
   .industry-fit-preview-side{display:flex; flex-direction:column; align-items:center; gap:10px}
   .industry-fit-preview-side:first-child{grid-column:1}.industry-fit-preview-side:last-child{grid-column:3}
   .industry-fit-preview-heading{color:#555b55; font-size:9px; font-weight:800;
@@ -1529,6 +1530,10 @@
                          border-top:1px solid #e4e6e2; color:#252925;
                          font-size:9px; font-weight:750; text-align:center;
                          letter-spacing:.035em; text-transform:uppercase}
+  @media(max-width:1050px){
+    .industry-fit{display:block; width:min(820px,100%)}
+    .industry-fit-preview{margin:0 auto 20px}
+  }
   .icp-card{position:relative; padding:16px; border:1px solid #d0d1cc; border-radius:6px;
             background:#fff; box-shadow:0 1px 2px rgba(0,0,0,.04); cursor:pointer}
   .icp-card:hover{border-color:#a9aaa4}.icp-card.on{border-color:#57c982; background:#effbf3;
@@ -2587,7 +2592,7 @@ const SUPABASE_URL = 'https://cskamgfvebryahkljlll.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_MdkD-TxMCIwlu69seSHA3Q_A39GADsK';
 const CLIENT_ID    = '1059013355751-6g50dsgm7df37htl2fdqrtlkh5hmrc0c.apps.googleusercontent.com';
 const ALLOWED      = ['vijaysrinivassan@gmail.com'];
-const BUILD        = 'v8.20';
+const BUILD        = 'v8.21';
 
 const STRATEGY_ONE_TAB = 'Strategy 1 — Brand Strategy';
 const PRODUCT_EVOLUTION_TAB = 'Strategy 1 — Product Evolution';

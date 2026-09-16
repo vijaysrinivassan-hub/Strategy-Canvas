@@ -37,6 +37,8 @@ assert(html.includes("arrow.className = 'industry-model-choice-arrow'"));
 assert(html.includes("source.textContent = 'Example: ' + model.exampleLabel"));
 assert(html.includes("exampleLabel:'CRM, payroll and ERP software'"));
 assert(/\.industry-model-source\{color:#737a73; font-size:9px;/.test(html));
+assert(/\.industry-fit\{display:grid; grid-template-columns:minmax\(360px,\.82fr\) minmax\(500px,1\.18fr\);/.test(html));
+assert(html.includes('@media(max-width:1050px)'));
 assert(html.includes("marketLabel:'B2B SaaS market'"));
 assert(html.includes("marketLabel:'Consumer SaaS market'"));
 assert(html.includes("marketLabel:'Technical infrastructure providers market'"));
