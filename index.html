@@ -1478,6 +1478,23 @@
                                    font-weight:750}
   .industry-fit-note{grid-column:1/-1; margin:8px 0 0; color:#71756f; font-size:9.5px;
                      line-height:1.45; text-align:center}
+  .industry-models{grid-column:1/-1; display:grid; grid-template-columns:1fr 1fr;
+                   gap:8px; margin-top:14px}
+  .industry-model{
+    display:grid; grid-template-columns:18px minmax(140px,.8fr) 84px minmax(220px,1.2fr);
+    gap:10px; align-items:center; width:100%; min-height:58px; padding:10px 12px;
+    border:1px solid #d7d9d4; background:#fff; color:#424640; text-align:left;
+  }
+  .industry-model:hover:not(:disabled){border-color:#8ec69f; background:#f6fbf7}
+  .industry-model.on{border-color:#57c982; background:#edf9f1;
+                     box-shadow:inset 3px 0 #3aa761}
+  .industry-model-check{width:14px; height:14px; border:1px solid #b8bdb8;
+                        background:#fff; color:#fff; font-size:9px; text-align:center}
+  .industry-model.on .industry-model-check{border-color:#2f9a54; background:#2f9a54}
+  .industry-model-name{font-size:10.5px; font-weight:750}
+  .industry-model-axis{color:#2d7144; font-size:8.5px; font-weight:850;
+                       letter-spacing:.08em; text-transform:uppercase}
+  .industry-model-examples{color:#737870; font-size:9px; line-height:1.4}
   .icp-card{position:relative; padding:16px; border:1px solid #d0d1cc; border-radius:6px;
             background:#fff; box-shadow:0 1px 2px rgba(0,0,0,.04); cursor:pointer}
   .icp-card:hover{border-color:#a9aaa4}.icp-card.on{border-color:#57c982; background:#effbf3;
@@ -1595,6 +1612,8 @@
     .industry-fit{grid-template-columns:1fr}.industry-fit-arrow{height:34px; transform:rotate(90deg)}
     .industry-fit-piece.selling,.industry-fit-piece.buying{border-radius:6px}
     .industry-fit-piece.selling::after,.industry-fit-piece.buying::before{display:none}
+    .industry-models{grid-template-columns:1fr}
+    .industry-model{grid-template-columns:18px minmax(120px,1fr) 76px minmax(150px,1.2fr)}
   }
   .pe-empty-source{color:#858680; font-size:10.5px; line-height:1.4}
   @media(max-width:780px){
@@ -2536,7 +2555,7 @@ const SUPABASE_URL = 'https://cskamgfvebryahkljlll.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_MdkD-TxMCIwlu69seSHA3Q_A39GADsK';
 const CLIENT_ID    = '1059013355751-6g50dsgm7df37htl2fdqrtlkh5hmrc0c.apps.googleusercontent.com';
 const ALLOWED      = ['vijaysrinivassan@gmail.com'];
-const BUILD        = 'v8.01';
+const BUILD        = 'v8.02';
 
 const STRATEGY_ONE_TAB = 'Strategy 1 — Brand Strategy';
 const PRODUCT_EVOLUTION_TAB = 'Strategy 1 — Product Evolution';
@@ -8594,6 +8613,16 @@ function renderIndustryFit(ro){
     {id:'process',label:'Process'},
     {id:'input',label:'Input'}
   ];
+  const models = [
+    {id:'b2b-saas',name:'B2B SaaS',axis:'process',axisLabel:'Process',
+     examples:'Use case, country, industry, company size'},
+    {id:'b2c-saas',name:'B2C SaaS',axis:'people',axisLabel:'People',
+     examples:'Person or role, identity, cognitive jobs'},
+    {id:'technical-infrastructure',name:'Technical infrastructure providers',axis:'technology',axisLabel:'Technology',
+     examples:'Technology environment, stack, infrastructure architecture, quality'},
+    {id:'data-providers',name:'Data / raw-material providers',axis:'input',axisLabel:'Input',
+     examples:'Input type, quality, characteristics'}
+  ];
   function piece(kind, title, current, onSelect){
     const card = document.createElement('section');
     card.className = 'industry-fit-piece ' + kind;
@@ -8627,12 +8656,35 @@ function renderIndustryFit(ro){
   arrow.className = 'industry-fit-arrow'; arrow.setAttribute('aria-hidden','true'); arrow.textContent = '\u2192';
   const buyingPiece = piece('buying','Buying industry',buying.axis,axis => {
     buying.axis = axis;
+    buying.industryModel = '';
     toast('Brand Radar axis set to ' + axes.find(x => x.id === axis).label + '.');
+  });
+  const modelGrid = document.createElement('div'); modelGrid.className = 'industry-models';
+  models.forEach(model => {
+    const option = document.createElement('button');
+    option.type = 'button'; option.className = 'industry-model' + (buying.industryModel === model.id ? ' on' : '');
+    option.disabled = ro;
+    option.setAttribute('aria-pressed', buying.industryModel === model.id ? 'true' : 'false');
+    const check = document.createElement('span'); check.className = 'industry-model-check';
+    check.textContent = buying.industryModel === model.id ? '\u2713' : '';
+    const name = document.createElement('span'); name.className = 'industry-model-name'; name.textContent = model.name;
+    const axis = document.createElement('span'); axis.className = 'industry-model-axis'; axis.textContent = model.axisLabel;
+    const examples = document.createElement('span'); examples.className = 'industry-model-examples'; examples.textContent = model.examples;
+    option.append(check, name, axis, examples);
+    option.onclick = () => {
+      if (readOnly()) return;
+      buying.industryModel = model.id;
+      buying.axis = model.axis;
+      markDirty();
+      renderIndustryFit(false);
+      toast(model.name + ' sets Brand Radar to the ' + model.axisLabel + ' axis.');
+    };
+    modelGrid.append(option);
   });
   const note = document.createElement('p');
   note.className = 'industry-fit-note';
   note.textContent = 'Selling industry sets Product Evolution. Buying industry sets the Brand Radar axis.';
-  host.append(sellingPiece, arrow, buyingPiece, note);
+  host.append(sellingPiece, arrow, buyingPiece, modelGrid, note);
 }
 
 function renderPositioning(){
@@ -10660,6 +10712,7 @@ function renderRadarAxisPicker(){
       ev.stopPropagation();
       if (readOnly()) return;
       radar.axis = axis.id;
+      radar.industryModel = '';
       menu.hidden = true;
       button.setAttribute('aria-expanded', 'false');
       markDirty();
