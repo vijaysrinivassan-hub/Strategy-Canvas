@@ -15,12 +15,12 @@ assert(html.includes('renderPositioning();\n    renderEvolution();\n    renderBr
 
 const render=html.slice(html.indexOf('function renderBrandRadar()'),html.indexOf("$('btnOpenProductEvolution')"));
 assert(render.includes('const radar = brandRadarState()'));
-assert(render.includes("radar.axis = evolutionState().axis || '';"));
+assert(render.includes("radar.axis = radar.buyingAxis || '';"));
 assert(render.includes("radar.axis || 'technology'"));
 const evolution=html.slice(html.indexOf('function renderEvolution('),html.indexOf("$('btnEvoChange')"));
-assert(evolution.includes('radar.axis = evo.axis;'));
 assert(evolution.includes('renderPositioning();'));
-assert(evolution.includes('renderBrandRadar();'));
+assert(!evolution.includes('renderBrandRadar();'));
 assert(html.includes("if (!svg || !map || !market || !map.clientWidth || !map.clientHeight) return;"));
 assert(!html.includes("$('brandRadarPane').hidden) return"));
-console.log('PASS: Product Evolution is the shared Selling, Brand Radar and ICP axis, and embedded wires render while the old pane stays hidden.');
+assert(html.includes('radar.buyingAxis = axis.id;'));
+console.log('PASS: Product Evolution controls Selling Industry, Buying Industry controls Brand Radar and ICP cards, and embedded wires render.');

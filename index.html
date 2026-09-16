@@ -2347,14 +2347,14 @@
       </div>
     </div>
 
-    <!-- Zoomable category radar driven by the selected Product Evolution axis. -->
+    <!-- Zoomable category radar driven by the selected Buying Industry axis. -->
     <div class="radar" id="brandRadarPane" hidden>
       <div class="radar-canvas">
         <div class="radar-head">
           <div>
             <span class="pos-axis-label">Market position</span>
             <h3>Brand Radar</h3>
-            <p>The Product Evolution axis also controls this radar and the ICP cards. Every category band and competitor sits inside it; drag either green edge to widen the field and click the centre to reset.</p>
+            <p>The Buying Industry axis controls this radar and the ICP cards. Every category band and competitor sits inside it; drag either green edge to widen the field and click the centre to reset.</p>
           </div>
           <div class="radar-head-actions">
             <button id="btnOpenProductEvolution" type="button">Product evolution axis</button>
@@ -2586,7 +2586,7 @@ const SUPABASE_URL = 'https://cskamgfvebryahkljlll.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_MdkD-TxMCIwlu69seSHA3Q_A39GADsK';
 const CLIENT_ID    = '1059013355751-6g50dsgm7df37htl2fdqrtlkh5hmrc0c.apps.googleusercontent.com';
 const ALLOWED      = ['vijaysrinivassan@gmail.com'];
-const BUILD        = 'v8.16';
+const BUILD        = 'v8.17';
 
 const STRATEGY_ONE_TAB = 'Strategy 1 — Brand Strategy';
 const PRODUCT_EVOLUTION_TAB = 'Strategy 1 — Product Evolution';
@@ -8720,9 +8720,10 @@ function renderIndustryFit(ro){
   const axisLabel = id => (axisOptions.find(axis => axis[0] === id) || [,''])[1];
   const manualAxes = buying.industrySelectionMode === 'axes';
   const modelControlsPuzzle = !!selectedModel && !manualAxes;
-  const sellingAxis = evolutionState().axis || buying.axis || '';
-  if (buying.axis !== sellingAxis) buying.axis = sellingAxis;
-  const buyingAxis = buying.buyingAxis || (selectedModel && selectedModel.axis) || '';
+  const sellingAxis = evolutionState().axis || '';
+  const buyingAxis = buying.buyingAxis || (selectedModel && selectedModel.axis) || buying.axis || '';
+  if (buying.buyingAxis !== buyingAxis) buying.buyingAxis = buyingAxis;
+  if (buying.axis !== buyingAxis) buying.axis = buyingAxis;
   const preview = document.createElement('div'); preview.className = 'industry-fit-preview';
   const previewName = document.createElement('span'); previewName.className = 'industry-fit-preview-piece industry-fit-preview-name';
   const previewNameText = document.createElement('span'); previewNameText.className = 'industry-fit-preview-name-text';
@@ -8743,18 +8744,21 @@ function renderIndustryFit(ro){
         if (readOnly()) return;
         if (side === 'source'){
           evolutionState().axis = id;
-          buying.axis = id;
           buying.sourceAxis = id;
         } else {
           buying.industrySelectionMode = 'axes';
           buying.buyingAxis = id;
+          buying.axis = id;
         }
         markDirty();
         if (side === 'source'){
           renderPositioning();
           renderEvolution();
           renderBrandRadar();
-        } else renderIndustryFit(false);
+        } else {
+          renderPositioning();
+          renderBrandRadar();
+        }
         toast((side === 'source' ? 'Selling' : 'Buying') + ' axis set to ' + label + '.');
       };
       row.append(item);
@@ -8801,8 +8805,10 @@ function renderIndustryFit(ro){
       buying.industryModel = model.id;
       buying.industrySelectionMode = 'card';
       buying.buyingAxis = model.axis;
+      buying.axis = model.axis;
       markDirty();
-      renderIndustryFit(false);
+      renderPositioning();
+      renderBrandRadar();
       toast(model.name + ' selected for the buying industry.');
     };
     option.onclick = selectModel;
@@ -8822,7 +8828,7 @@ function renderPositioning(){
   $('btnAddPositioningCategory').hidden = ro;
 
   renderIndustryFit(ro);
-  renderIcpCards(p, ro, evolutionState().axis);
+  renderIcpCards(p, ro, brandRadarState().buyingAxis || '');
 
   const categoryHost = $('positioningCategories');
   categoryHost.innerHTML = '';
@@ -10710,13 +10716,9 @@ function renderEvolution(focusLast){
     button.onclick = () => {
       if (readOnly()) return;
       evo.axis = button.dataset.axis;
-      const radar = brandRadarState();
-      radar.axis = evo.axis;
-      radar.sourceAxis = evo.axis;
       markDirty();
       renderEvolution();
       renderPositioning();
-      renderBrandRadar();
     };
   });
 
@@ -10809,11 +10811,9 @@ function renderEvolution(focusLast){
 $('btnEvoChange').onclick = () => {
   if (readOnly()) return;
   evolutionState().axis = '';
-  brandRadarState().axis = '';
   markDirty();
   renderEvolution();
   renderPositioning();
-  renderBrandRadar();
 };
 
 /* ===================================================================
@@ -10853,13 +10853,11 @@ function renderRadarAxisPicker(){
     option.onclick = ev => {
       ev.stopPropagation();
       if (readOnly()) return;
-      evolutionState().axis = axis.id;
+      radar.buyingAxis = axis.id;
       radar.axis = axis.id;
-      radar.sourceAxis = axis.id;
       menu.hidden = true;
       button.setAttribute('aria-expanded', 'false');
       markDirty();
-      renderEvolution();
       renderPositioning();
       renderBrandRadar();
     };
@@ -10952,7 +10950,7 @@ function renderBrandRadar(){
   const status = $('brandRadarStatus');
   if (!svg || !status) return;
   const radar = brandRadarState();
-  radar.axis = evolutionState().axis || '';
+  radar.axis = radar.buyingAxis || '';
   const positioning = positioningState();
   const ns = 'http://www.w3.org/2000/svg';
   const outerRadius = 292;

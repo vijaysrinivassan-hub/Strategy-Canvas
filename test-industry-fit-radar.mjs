@@ -12,6 +12,7 @@ assert(html.includes("name:'Technical infrastructure providers',axis:'technology
 assert(html.includes("name:'Data / raw-material providers',axis:'input'"));
 assert(html.includes("pages:['Use case','Country','Industry','Company size']"));
 assert(html.includes('buying.buyingAxis = model.axis;'));
+assert(html.includes('buying.axis = model.axis;'));
 assert(html.includes('buying.industryModel = model.id;'));
 assert(html.includes("sharedPagesLabel.textContent = 'Pages to create'"));
 assert(html.includes("buying.industrySelectionMode === 'axes'"));
@@ -28,6 +29,7 @@ assert(html.includes("buying.industrySelectionMode = 'axes'"));
 assert(html.includes("buying.industrySelectionMode = 'card'"));
 assert(html.includes('evolutionState().axis = id;'));
 assert(html.includes('buying.buyingAxis = id;'));
+assert(html.includes("renderIcpCards(p, ro, brandRadarState().buyingAxis || '')"));
 assert(!html.includes("preview.append(previewName, previewFlow, previewAxis)"));
 assert(html.includes("const option = document.createElement('article')"));
 assert(html.includes("arrow.className = 'industry-model-choice-arrow'"));
@@ -58,4 +60,4 @@ assert(!table.includes('.positioning>.pos-section:first-child{width:100%'));
 const scripts=[...html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/g)]
   .map(match=>match[1]).filter(source=>source.trim());
 scripts.forEach(source=>new vm.Script(source));
-console.log('PASS: shared Selling axis, independent Buying target, four example cards, explicit page outputs, and inline syntax.');
+console.log('PASS: Product Evolution controls Selling, Buying controls Brand Radar and ICP, with four example cards and explicit page outputs.');
