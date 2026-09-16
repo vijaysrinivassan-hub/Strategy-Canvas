@@ -46,7 +46,8 @@ function check(key,label,checked){
  const line=all(menu(key)).find(n=>n.tag==='label'&&n.children[1]?.textContent===label);
  line.children[0].checked=checked;line.children[0].onchange();
 }
-check('process','Industries',true);check('process','Departments',true);check('process','Maturity',false);
+assert.equal(host.children[0].children[0].children.length,1);
+check('process','Industries',true);check('process','Departments',true);
 assert.deepEqual([...p.icpTableColumns.process],['industries','departments']);
 assert.equal(p.icps[0].rows[0].process,'Manual');
 assert.equal(menu('people').children[0].textContent,'People ▾');
@@ -70,6 +71,32 @@ assert.equal(p.icps[0].rows.length,oldRows+1);
 const custom=all(menu('technology')).find(n=>n.placeholder==='Custom subcolumn');custom.value='Integrations';
 all(menu('technology')).find(n=>n.textContent==='+ Add subcolumn').onclick({stopPropagation(){}});
 assert.equal(p.icpCustomColumns.technology[0].name,'Integrations');
+const childMenu=()=>all(host).find(n=>n.tag==='details'&&n.children[0]?.textContent==='Industries ▾');
+for(const name of ['Mining','SaaS','Retail','Manufacturing','Healthcare']){
+ const childInput=all(childMenu()).find(n=>n.attrs['aria-label']==='Process / Industries new child column');
+ childInput.value=name;
+ all(childMenu()).find(n=>n.textContent==='+ Add child column').onclick({stopPropagation(){}});
+}
+assert.equal(p.icpNestedColumns.process.industries.length,5);
+assert.equal(host.children[0].children[0].children.length,3);
+let mining=all(host).find(n=>n.attrs['aria-label']==='ICP 1, row 1, Process, Industries / Mining');
+mining.oninput({target:{value:'Mine reporting flow'}});
+const miningId=p.icpNestedColumns.process.industries[0].id;
+assert.equal(p.icps[0].rows[0].dimensions.process[JSON.stringify(['industries',miningId])],'Mine reporting flow');
+assert.equal(p.icps[0].rows[0].dimensions.process.industries,'Retail');
+all(host).find(n=>n.attrs['aria-label']==='Remove Process / Industries / Mining').onclick({stopPropagation(){}});
+assert.ok(!all(host).some(n=>n.attrs['aria-label']==='ICP 1, row 1, Process, Industries / Mining'));
+const miningChoice=all(childMenu()).find(n=>n.tag==='label'&&n.children[1]?.textContent==='Mining');
+miningChoice.children[0].checked=true;miningChoice.children[0].onchange();
+mining=all(host).find(n=>n.attrs['aria-label']==='ICP 1, row 1, Process, Industries / Mining');
+assert.equal(mining.value,'Mine reporting flow');
+const reloaded=ctx.newPositioningIcpRow(JSON.parse(JSON.stringify(p.icps[0].rows[0])));
+assert.equal(reloaded.dimensions.process[JSON.stringify(['industries',miningId])],'Mine reporting flow');
+check('process','Industries',false);check('process','Departments',false);
+assert.equal(p.icpTableColumns.process.length,0);
+assert.ok(all(host).some(n=>n.tag==='textarea'&&n.value==='Manual'));
+check('process','Industries',true);
+assert.ok(all(host).some(n=>n.tag==='textarea'&&n.value==='Mine reporting flow'));
 readonly=true;ctx.renderIcpTable(p,true);
 assert.ok(all(host).filter(n=>n.tag==='textarea').every(n=>n.readOnly));
 assert.ok(all(host).filter(n=>n.type==='checkbox').every(n=>n.disabled));

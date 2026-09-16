@@ -1,10 +1,21 @@
 /* Product-scoped ICP table; hidden subcolumns retain their data. */
 const IcpTable = {
   groups:[['people','People'],['process','Process'],['technology','Technology'],['input','Input']],
-  options:[['maturity','Maturity'],['industries','Industries'],['departments','Departments'],['countries','Countries'],['functions','Functions'],['useCases','Use Cases']],
+  options:[['industries','Industries'],['departments','Departments'],['countries','Countries'],['functions','Functions'],['useCases','Use Cases']],
   columns(p,key){
     const saved=p.icpTableColumns?.[key];
-    return Array.isArray(saved)&&saved.length?saved:['maturity'];
+    return Array.isArray(saved)?saved.filter(id=>id!=='maturity'):[];
+  },
+  children(p,key,id){return (p.icpNestedColumns?.[key]?.[id]||[]).filter(c=>!c.hidden);},
+  leaves(p,key){
+    const selected=this.columns(p,key);
+    if(!selected.length)return [{id:'maturity',name:''}];
+    const options=[...this.options,...(p.icpCustomColumns?.[key]||[]).map(c=>[c.id,c.name])];
+    return selected.flatMap(id=>{
+      const name=options.find(o=>o[0]===id)?.[1]||id;
+      const children=this.children(p,key,id);
+      return children.length?children.map(c=>({id:JSON.stringify([id,c.id]),name:name+' / '+c.name})):[{id,name}];
+    });
   },
   value(row,key,column){
     return column==='maturity'?(row[key]||''):(row.dimensions?.[key]?.[column]||'');
@@ -41,12 +52,16 @@ function renderIcpTable(p,ro){
     b.onclick=e=>{e.stopPropagation();if(!ro&&!readOnly())fn();};return b;
   };
   const save=()=>{markDirty();renderPositioning();};
-  const head=el('thead'),groups=el('tr'),sub=el('tr');
+  const head=el('thead'),groups=el('tr'),sub=el('tr'),nested=el('tr');
+  const hasSub=IcpTable.groups.some(([key])=>IcpTable.columns(p,key).length);
+  const hasNested=IcpTable.groups.some(([key])=>IcpTable.columns(p,key).some(id=>IcpTable.children(p,key,id).length));
+  const depth=hasNested?3:hasSub?2:1;
   for(const title of ['ICP Name','Buying Trigger']){
-    const th=el('th',title);th.rowSpan=2;th.scope='col';th.className=title==='ICP Name'?'icp-table-name':'icp-table-trigger';groups.append(th);
+    const th=el('th',title);th.rowSpan=depth;th.scope='col';th.className=title==='ICP Name'?'icp-table-name':'icp-table-trigger';groups.append(th);
   }
   IcpTable.groups.forEach(([key,label])=>{
-    const selected=IcpTable.columns(p,key),th=el('th');th.colSpan=selected.length;th.scope='colgroup';
+    const selected=IcpTable.columns(p,key),th=el('th');th.colSpan=IcpTable.leaves(p,key).length;th.scope='colgroup';
+    if(!selected.length)th.rowSpan=depth;
     th.className='icp-table-group';
     const menu=el('details'),summary=el('summary',label+' ▾');menu.append(summary);
     summary.onclick=event=>{
@@ -64,7 +79,6 @@ function renderIcpTable(p,ro){
         if(ro||readOnly())return;
         const current=IcpTable.columns(p,key);
         const next=check.checked?[...current,id]:current.filter(v=>v!==id);
-        if(!next.length){check.checked=true;return;}
         p.icpTableColumns ||= {};p.icpTableColumns[key]=next;save();
         const opened=$('positioningIcps').querySelector('[data-group="'+key+'"]');if(opened)opened.open=true;
       };
@@ -83,12 +97,49 @@ function renderIcpTable(p,ro){
     panel.append(el('small','Unchecking hides a column; it does not delete its contents.'));
     menu.dataset.group=key;menu.append(panel);th.append(menu);groups.append(th);
     selected.forEach((id,index)=>{
-      const cell=el('th',options.find(o=>o[0]===id)?.[1]||id);cell.scope='col';
-      if(index===0)cell.className='icp-group-start';sub.append(cell);
+      const title=options.find(o=>o[0]===id)?.[1]||id;
+      const children=IcpTable.children(p,key,id);
+      const cell=el('th');cell.scope=children.length?'colgroup':'col';
+      cell.colSpan=children.length||1;
+      if(!children.length)cell.rowSpan=depth-1;
+      if(index===0)cell.className='icp-group-start';
+      const childMenu=el('details'),childSummary=el('summary',title+' ▾');childMenu.append(childSummary);
+      childSummary.onclick=e=>{e.preventDefault();const open=!childMenu.open;closeIcpColumnMenus(childMenu);childMenu.open=open;};
+      const childPanel=el('div');childPanel.className='icp-column-menu';
+      childPanel.append(el('strong','Columns under '+title));
+      for(const child of p.icpNestedColumns?.[key]?.[id]||[]){
+        const line=el('label'),check=el('input');check.type='checkbox';check.checked=!child.hidden;check.disabled=ro;
+        check.onchange=()=>{if(ro||readOnly())return;child.hidden=!check.checked;save();};
+        line.append(check,el('span',child.name));childPanel.append(line);
+      }
+      if(!ro){
+        const custom=el('input');custom.placeholder=id==='industries'?'Industry name, e.g. Mining':'Name a subcolumn';
+        custom.setAttribute('aria-label',label+' / '+title+' new child column');
+        childPanel.append(custom,button('+ Add child column',()=>{
+          const name=custom.value.trim();if(!name)return;
+          p.icpNestedColumns ||= {};p.icpNestedColumns[key] ||= {};p.icpNestedColumns[key][id] ||= [];
+          const list=p.icpNestedColumns[key][id];
+          const existing=list.find(c=>c.name.toLowerCase()===name.toLowerCase());
+          if(existing)existing.hidden=false;else list.push({id:uid(),name});
+          save();
+        }));
+        childPanel.append(button('Remove '+title,()=>{
+          p.icpTableColumns ||= {};p.icpTableColumns[key]=IcpTable.columns(p,key).filter(c=>c!==id);save();
+        }));
+      }
+      childPanel.append(el('small','Subcolumns are optional. Removed columns retain their data and can be restored here.'));
+      childMenu.append(childPanel);cell.append(childMenu);sub.append(cell);
+      children.forEach(child=>{
+        const leaf=el('th',child.name);leaf.scope='col';leaf.className='icp-nested-heading';
+        if(!ro){
+          const remove=button('×',()=>{child.hidden=true;save();});remove.setAttribute('aria-label','Remove '+label+' / '+title+' / '+child.name);leaf.append(remove);
+        }
+        nested.append(leaf);
+      });
     });
   });
-  const actions=el('th','Rows');actions.rowSpan=2;actions.scope='col';groups.append(actions);
-  head.append(groups,sub);table.append(head);
+  const actions=el('th','Rows');actions.rowSpan=depth;actions.scope='col';groups.append(actions);
+  head.append(groups);if(hasSub)head.append(sub);if(hasNested)head.append(nested);table.append(head);
   p.icps.forEach((icp,index)=>{
     const body=el('tbody');body.className='icp-table-block'+(p.selectedIcp===icp.id?' selected':'');
     body.setAttribute('aria-label','ICP '+(index+1));
@@ -119,10 +170,9 @@ function renderIcpTable(p,ro){
       }
       IcpTable.groups.forEach(([key,label])=>{
         const options=[...IcpTable.options,...(p.icpCustomColumns?.[key]||[]).map(c=>[c.id,c.name])];
-        IcpTable.columns(p,key).forEach((id,columnIndex)=>{
+        IcpTable.leaves(p,key).forEach(({id,name:columnName},columnIndex)=>{
           const td=el('td');if(columnIndex===0)td.className='icp-group-start';
-          const columnName=options.find(o=>o[0]===id)?.[1]||id;
-          const input=positioningTextarea(IcpTable.value(row,key,id),label+' · '+columnName,ro,value=>{
+          const input=positioningTextarea(IcpTable.value(row,key,id),columnName?label+' · '+columnName:label,ro,value=>{
             IcpTable.set(row,key,id,value);if(rowIndex===0&&id==='maturity')syncLegacyIcpFields(icp);
           });
           input.setAttribute('aria-label','ICP '+(index+1)+', row '+(rowIndex+1)+', '+label+', '+columnName);
