@@ -1785,6 +1785,13 @@
     box-shadow:inset 0 -1px 0 rgba(255,255,255,.12);
   }
   .mx-table thead th{height:48px}
+  .mx-table thead .icp-axis-head{
+    height:31px; padding:7px 12px; border-right-color:#45624f;
+    color:#bfe5ca; font-size:10px; font-weight:800; letter-spacing:.11em;
+    text-align:left; text-transform:uppercase;
+  }
+  .mx-table thead .icp-column-row th{height:48px}
+  .mx-table thead .icp-axis-corner{height:79px}
   .mx-table thead .mx-lab b,.mx-table thead .mx-lab input.hd{
     color:#fff !important; -webkit-text-fill-color:#fff; opacity:1;
   }
@@ -2479,7 +2486,7 @@ const SUPABASE_URL = 'https://cskamgfvebryahkljlll.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_MdkD-TxMCIwlu69seSHA3Q_A39GADsK';
 const CLIENT_ID    = '1059013355751-6g50dsgm7df37htl2fdqrtlkh5hmrc0c.apps.googleusercontent.com';
 const ALLOWED      = ['vijaysrinivassan@gmail.com'];
-const BUILD        = 'v7.98';
+const BUILD        = 'v7.99';
 
 const STRATEGY_ONE_TAB = 'Strategy 1 — Brand Strategy';
 const PRODUCT_EVOLUTION_TAB = 'Strategy 1 — Product Evolution';
@@ -6190,6 +6197,9 @@ function openColumnGuide(col, label, rerender){
     return sel;
   }
   const mode = selectField('Default channel', [['', 'No default'], ['aeo', 'AEO'], ['seo', 'SEO']], col.defaults.mode);
+  const axis = state.contentView === 'icp'
+    ? selectField('ICP axis', KeywordColumns.ICP_AXIS_ORDER.map(function(x){ return [x, KeywordColumns.ICP_AXIS_LABELS[x]]; }), col.axis || KeywordColumns.inferIcpAxis(col.name))
+    : null;
   const typeOptions = [['', 'No default']].concat(articleTypes().map(function(t){ return [t.id, t.name]; }));
   const type = selectField('Default article type', typeOptions, col.defaults.type);
   const awareness = selectField('Default awareness', [['', 'No default']].concat(AWARENESS.map(function(a){ return [a, a]; })), col.defaults.aw);
@@ -6207,6 +6217,7 @@ function openColumnGuide(col, label, rerender){
     const name = nameBox.value.trim();
     if (!name){ toast('Enter a column name.', true); nameBox.focus(); return; }
     col.name = name;
+    if (axis) col.axis = axis.value;
     col.instruction = promptBox.value.trim();
     col.defaults = { mode: mode.value, type: type.value, aw: awareness.value };
     col.local = true;
@@ -6617,15 +6628,16 @@ function renderGridTable(v, group, table){
   $('btnAddType').textContent = '+ Column';
   $('btnAddType').hidden = ro;
 
+  const columns = state.contentView === 'icp' ? KeywordColumns.sortIcpColumns(v.columns) : v.columns;
   const NUM_W = 46, COL_W = 310;
   table.style.width = '100%';
-  table.style.minWidth = (NUM_W + COL_W * v.columns.length) + 'px';
+  table.style.minWidth = (NUM_W + COL_W * columns.length) + 'px';
 
   const cg = document.createElement('colgroup');
   const c0 = document.createElement('col');
   c0.style.width = NUM_W + 'px';
   cg.append(c0);
-  v.columns.forEach(function(){
+  columns.forEach(function(){
     const c = document.createElement('col');
     c.style.width = COL_W + 'px';
     cg.append(c);
@@ -6633,10 +6645,24 @@ function renderGridTable(v, group, table){
   table.append(cg);
 
   const thead = document.createElement('thead');
+  if (state.contentView === 'icp'){
+    const axisRow = document.createElement('tr');
+    axisRow.className = 'icp-axis-row';
+    const corner = matrixCornerActions(() => addGridColumn(group.id), () => addGridRow(group.id), 'Add column', 'Add row');
+    corner.rowSpan = 2; corner.classList.add('icp-axis-corner'); axisRow.append(corner);
+    for (const axis of KeywordColumns.ICP_AXIS_ORDER){
+      const count = columns.filter(col => (col.axis || KeywordColumns.inferIcpAxis(col.name)) === axis).length;
+      if (!count) continue;
+      const th = document.createElement('th'); th.className = 'icp-axis-head'; th.colSpan = count;
+      th.textContent = KeywordColumns.ICP_AXIS_LABELS[axis]; axisRow.append(th);
+    }
+    thead.append(axisRow);
+  }
   const hr = document.createElement('tr');
-  hr.append(matrixCornerActions(() => addGridColumn(group.id), () => addGridRow(group.id), 'Add column', 'Add row'));
+  hr.className = state.contentView === 'icp' ? 'icp-column-row' : '';
+  if (state.contentView !== 'icp') hr.append(matrixCornerActions(() => addGridColumn(group.id), () => addGridRow(group.id), 'Add column', 'Add row'));
 
-  v.columns.forEach(function(col){
+  columns.forEach(function(col){
     const th = document.createElement('th');
     const lab = document.createElement('div');
     lab.className = 'mx-lab';
@@ -6698,7 +6724,7 @@ function renderGridTable(v, group, table){
     num.append(wrap);
     tr.append(num);
 
-    v.columns.forEach(function(col, ci){
+    columns.forEach(function(col, ci){
       const defaults = Object.assign({}, defaultsFor(col), {mode:keywordMode});
       if (!defaults.type) defaults.type = articleTypes().find(t => t.name.toLowerCase() === group.type.toLowerCase())?.id || '';
       const cell = cellOf(row, col.id, defaults);
@@ -6783,7 +6809,8 @@ function addGridColumn(pageGroup = 'listicle'){
   const v = KeywordColumns.pageView(matrixState(), pageGroup);
   const name = prompt('Column name');
   if (name === null) return;
-  v.columns.push({ id: uid(), name: name.trim() || 'Column', local: true });
+  v.columns.push({ id: uid(), name: name.trim() || 'Column', local: true,
+                   ...(state.contentView === 'icp' ? {axis:'process'} : {}) });
   markDirty();
   renderGrid();
 }

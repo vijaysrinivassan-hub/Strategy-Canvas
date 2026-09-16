@@ -2,7 +2,7 @@ const K=require('../keyword-columns.js'), C=require('./compact-keyword-columns.c
 const id=(...p)=>'agreed-'+crypto.createHash('sha256').update(p.join('|')).digest('hex').slice(0,16);
 const split=s=>s.split('|');
 const schema={
-icp:{listicle:split('Industry|Country|Use Case|Company Size|Role / Team|Maturity Stage|Existing Tech Stack'),informational:split('Doing It Yourself|Segment-Specific Problems|Segment-Specific Outcomes|Segment-Specific Requirements'),landing:split('Industry|Country|Use Case|Company Size|Role / Team|Maturity Stage|Existing Tech Stack')},
+icp:{listicle:split('Role / Team|Technology|Industry|Country|Use Case|Company Size'),informational:split('Role / Team|Technology|Industry|Country|Use Case|Company Size'),landing:split('Role / Team|Technology|Industry|Country|Use Case|Company Size')},
 value:{listicle:split('Best for Achieving an Outcome|Best for Reducing a Problem'),informational:split('Why the Problem Happens|How to Achieve the Outcome|How to Measure the Outcome'),landing:split('Feature Pages|Integration Pages|Service Pages|Product Pages|Tools & Templates')},
 category:{listicle:split('Category Names|Category Synonyms|Adjacent Categories'),informational:split('What the Category Is|How It Works|Minimum Capabilities|Category Boundaries|Internal Selection Factors|External Selection Factors|Category Evolution & Trends'),landing:split('Feature Pages|Integration Pages|Service Pages|Product Pages')}};
 const guidance={
@@ -11,8 +11,7 @@ Country:'Fit for jurisdiction, language, coverage or regulatory needs; a country
 'Use Case':'Fit for a specific job, process or operating situation; distinguish the situation from its benefit.',
 'Company Size':'Fit by employee count, workload or organizational scale; size is not maturity.',
 'Role / Team':'Fit for a buyer role or team; generic job definitions are not ICP.',
-'Maturity Stage':'Fit for an operational or technology maturity stage, not merely company size.',
-'Existing Tech Stack':'Fit with installed tools and environment; explaining a connector belongs in Integration Pages.',
+Technology:'Fit with installed tools and environment; explaining a connector belongs in Integration Pages.',
 'Doing It Yourself':'Nuances and trade-offs when this specific segment performs the work itself.',
 'Segment-Specific Problems':'Problems particular to an industry, role, size or situation, not generic pains.',
 'Segment-Specific Outcomes':'Positive results particular to a segment, not generic benefits.',
@@ -40,7 +39,7 @@ Country:'Fit for jurisdiction, language, coverage or regulatory needs; a country
 };
 function configure(cfg){
 K.ensurePageViews(cfg);
-for(const [v,gs]of Object.entries(schema))for(const [g,names]of Object.entries(gs))cfg.pageViews[v][g]=names.map(name=>({id:id(v,g,name),name,instruction:guidance[name]+' Format: '+g+'. Reuse this column; preserve existing article decisions.',defaults:{mode:'seo',articleType:g==='landing'?'Landing page':g==='listicle'?'Listicle':'Informational',aw:''}}));
+for(const [v,gs]of Object.entries(schema))for(const [g,names]of Object.entries(gs))cfg.pageViews[v][g]=names.map(name=>({id:id(v,g,name),name,...(v==='icp'?{axis:K.inferIcpAxis(name)}:{}),instruction:guidance[name]+' Format: '+g+'. Reuse this column; preserve existing article decisions.',defaults:{mode:'seo',articleType:g==='landing'?'Landing page':g==='listicle'?'Listicle':'Informational',aw:''}}));
 const marker='\n\nAPPROVED UNIVERSAL COLUMN MAP\n';
 cfg.routingInstruction=(cfg.routingInstruction||K.strategyPrompt).split(marker)[0]+marker+Object.entries(schema).flatMap(([v,gs])=>Object.entries(gs).map(([g,ns])=>v+' / '+g+': '+ns.join('; '))).join('\n')+'\nUse these exact headings. Keep specialized educational topics local if none fits. Do not invent synonym intent or force entries into empty columns. Preserve content and decisions; compact independent columns after moves.';
 return cfg;
@@ -48,14 +47,8 @@ return cfg;
 function route(view,group,column,cell){
 const s=String(cell.url||cell.v||'').replace(/[-_/]+/g,' ').toLowerCase(), out=(name,g=group,local=false)=>({view,group:g,name,local});
 if(view==='icp'){
- if(group==='informational'){
-  if(/\b(diy|do it yourself|in house|manual)\b/.test(s))return out('Doing It Yourself');
-  if(/\b(challenges?|problems?|chaos|issues?|pain)\b/.test(s))return out('Segment-Specific Problems');
-  if(/\b(choose|choosing|requirements?|selection|checklist|compliance|roadmap|metrics|terms|guide)\b/.test(s))return out('Segment-Specific Requirements');
-  return out('Segment-Specific Outcomes');
- }
- if(/\b(tally|sap|salesforce|hubspot|snowflake|bigquery|existing stack)\b/.test(s))return out('Existing Tech Stack');
- if(/\b(maturity|early stage|transitioning|spreadsheet|first time)\b/.test(s))return out('Maturity Stage');
+ if(/\b(tally|sap|salesforce|hubspot|snowflake|bigquery|existing stack|tech stack)\b/.test(s))return out('Technology');
+ if(/\b(smb|small business|mid market|enterprise|company size|employee count|headcount)\b/.test(s))return out('Company Size');
  const c=column.toLowerCase();
  return out(c.includes('industry')?'Industry':c.includes('size')?'Company Size':c.includes('role')?'Role / Team':c.includes('use')?'Use Case':'Country');
 }

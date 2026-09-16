@@ -7,7 +7,7 @@ assert.ok(Object.values(cfg.pageViews).flatMap(Object.values).flat().every(c=>c.
 const cases=[
  ['category','listicle','Solution roundups',{url:'best-payroll-software-india'},'Category Names'],
  ['category','informational','Evaluation & buying',{url:'hrms-buying-checklist'},'Internal Selection Factors'],
- ['icp','informational','By industry',{url:'manufacturing-hr-challenges'},'Segment-Specific Problems'],
+ ['icp','informational','Industry',{url:'manufacturing-hr-challenges'},'Industry'],
  ['value','informational','Glossary & concepts',{url:'gross-salary'},'HR Glossary'],
  ['value','listicle','Practical tips & strategies',{url:'tips-to-reduce-payroll-errors'},'Best for Reducing a Problem']
 ];
@@ -19,4 +19,4 @@ A.migrate(root,cfg);
 const after=root.views.category.rows.flatMap(r=>Object.values(r.cells));
 assert.equal(after.length,1);assert.equal(after[0],cell);assert.equal(JSON.stringify(cell),before);
 assert.equal(root.views.competitor.comparisonCells.pair.v,'A vs B');
-console.log('PASS: 42 columns, distinct prompts, routing examples and in-place content preservation.');
+console.log('PASS: 42 columns, ICP axes, distinct prompts, routing examples and in-place content preservation.');

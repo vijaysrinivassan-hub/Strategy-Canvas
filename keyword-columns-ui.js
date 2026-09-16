@@ -114,16 +114,17 @@ function renderUniversalColumns(){
  if(!state.user||clientView())return;
  const draft=JSON.parse(JSON.stringify(keywordSettings||KeywordColumns.seed(state.tabs?.[CONTENT_TAB])));
  KeywordColumns.ensurePageViews(draft);
- const sections=[['competitor',draft.views.competitor],...['category','icp','value'].flatMap(v=>Object.entries(draft.pageViews[v]).map(([g,defs])=>[v+' — '+({listicle:'Listicle pages',informational:'Informational pages',landing:'Landing pages'}[g]),defs]))];
+ const sections=[['competitor',draft.views.competitor,'competitor'],...['category','icp','value'].flatMap(v=>Object.entries(draft.pageViews[v]).map(([g,defs])=>[v+' — '+({listicle:'Listicle pages',informational:'Informational pages',landing:'Landing pages'}[g]),defs,v]))];
  const expected=keywordSettingsRecord;
  const promptHint=document.createElement('p');promptHint.textContent='High-level routing instructions are in Clients → AI Prompts. Keep the instructions below specific to each column.';host.append(promptHint);
  const note=document.createElement('p');note.textContent='Manage the dropdown choices in Settings → Article Types. Removing a universal definition makes existing copies local; it never deletes keyword content.';host.append(note);
- for(const [view,defs] of sections){
+ for(const [view,defs,baseView] of sections){
   const h=document.createElement('h4');h.textContent=view==='icp'?'ICP':view[0].toUpperCase()+view.slice(1);host.append(h);
   const scroller=document.createElement('div');scroller.style.overflowX='auto';
   const table=document.createElement('table');table.className='universal-columns-table';
   const head=document.createElement('tr');
-  ['Column name','AI instruction','AEO / SEO','Default article type','Awareness','Order / remove'].forEach(x=>{const th=document.createElement('th');th.textContent=x;head.append(th);});table.append(head);
+  const headings=['Column name',...(baseView==='icp'?['ICP axis']:[]),'AI instruction','AEO / SEO','Default article type','Awareness','Order / remove'];
+  headings.forEach(x=>{const th=document.createElement('th');th.textContent=x;head.append(th);});table.append(head);
   const draw=()=>{
    while(table.children.length>1)table.lastChild.remove();
    defs.forEach((d,i)=>{
@@ -135,6 +136,7 @@ function renderUniversalColumns(){
      el.oninput=()=>save(el.value);td.append(el);tr.append(td);
     }
     field(d.name,x=>d.name=x);
+    if(baseView==='icp')field(d.axis||KeywordColumns.inferIcpAxis(d.name),x=>d.axis=x,false,KeywordColumns.ICP_AXIS_ORDER);
     field(d.instruction,x=>d.instruction=x,true);
     delete d.defaults.value;
     field(d.defaults.mode,x=>d.defaults.mode=x,false,['','aeo','seo']);
@@ -152,7 +154,7 @@ function renderUniversalColumns(){
    });
   };draw();scroller.append(table);host.append(scroller);
   const add=document.createElement('button');add.textContent='+ Universal '+h.textContent+' column';
-  add.onclick=()=>{defs.push({id:'universal-'+uid(),name:'New column',instruction:'',defaults:{}});draw();};host.append(add);
+  add.onclick=()=>{defs.push({id:'universal-'+uid(),name:'New column',instruction:'',...(baseView==='icp'?{axis:'process'}:{}),defaults:{}});draw();};host.append(add);
  }
  const save=document.createElement('button');save.className='primary';save.textContent='Save universal columns';
  save.onclick=async()=>{
