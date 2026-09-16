@@ -1451,9 +1451,16 @@
   .pos-axis-label{color:#878882; font-size:8.5px; font-weight:800; letter-spacing:.12em;
                   text-transform:uppercase}
   .icp-list{display:flex; flex-direction:column; gap:14px; width:min(820px,100%); margin:0 auto}
-  .industry-fit{display:grid; grid-template-columns:minmax(0,1fr) 54px minmax(0,1fr);
-                align-items:stretch; width:min(820px,100%); margin:0 auto 16px}
-  .industry-fit-piece{position:relative; min-height:118px; padding:14px 18px;
+  .industry-fit{display:grid; grid-template-columns:minmax(0,1fr) 42px minmax(0,1fr);
+                align-items:stretch; width:min(820px,100%); margin:0 auto 18px; padding:18px;
+                border:1px solid #d0d1cc; border-radius:7px; background:#f5f6f3;
+                box-shadow:0 2px 8px rgba(27,34,29,.05); overflow:hidden}
+  .industry-fit-head{grid-column:1/-1; display:flex; align-items:center; justify-content:space-between;
+                     gap:18px; margin:-18px -18px 18px; padding:13px 16px;
+                     background:#181a18; color:#fff}
+  .industry-fit-head strong{font-size:11.5px; letter-spacing:.02em}
+  .industry-fit-head span{color:#bfc5bf; font-size:9px; line-height:1.4; text-align:right}
+  .industry-fit-piece{position:relative; min-height:126px; padding:16px 18px;
                       border:1px solid #d0d1cc; background:#fff}
   .industry-fit-piece.selling{border-radius:6px 0 0 6px}
   .industry-fit-piece.buying{border-radius:0 6px 6px 0}
@@ -1467,34 +1474,38 @@
     transform:translateY(-50%); border:1px solid #d0d1cc; border-left:0;
     border-radius:0 50% 50% 0; background:#fbfbfa;
   }
-  .industry-fit-arrow{display:grid; place-items:center; color:#9da19b; font-size:22px}
+  .industry-fit-arrow{display:grid; place-items:center; color:#858b85; font-size:20px}
   .industry-fit-piece small{display:block; color:#858680; font-size:8px; font-weight:850;
                             letter-spacing:.1em; text-transform:uppercase}
-  .industry-fit-piece strong{display:block; margin:8px 0 12px; color:#2d342f; font-size:15px}
+  .industry-fit-piece strong{display:block; margin:8px 0 14px; color:#202420; font-size:15px}
   .industry-axis-options{position:relative; z-index:3; display:flex; flex-wrap:wrap; gap:5px}
-  .industry-axis-options button{padding:5px 7px; border-color:#d7ddd8; background:#fff;
-                                color:#68716a; font-size:9px}
+  .industry-axis-options button{padding:6px 9px; border-color:#d7ddd8; background:#fff;
+                                color:#59615b; font-size:9.5px}
   .industry-axis-options button.on{border-color:#57c982; background:#eaf8ee; color:#176f38;
                                    font-weight:750}
-  .industry-fit-note{grid-column:1/-1; margin:8px 0 0; color:#71756f; font-size:9.5px;
+  .industry-fit-note{grid-column:1/-1; margin:12px 0 -2px; color:#71756f; font-size:9.5px;
                      line-height:1.45; text-align:center}
   .industry-models{grid-column:1/-1; display:grid; grid-template-columns:1fr 1fr;
-                   gap:8px; margin-top:14px}
+                   gap:9px; margin-top:16px}
   .industry-model{
-    display:grid; grid-template-columns:18px minmax(140px,.8fr) 84px minmax(220px,1.2fr);
-    gap:10px; align-items:center; width:100%; min-height:58px; padding:10px 12px;
-    border:1px solid #d7d9d4; background:#fff; color:#424640; text-align:left;
+    display:grid; grid-template-columns:18px minmax(0,1fr) auto; grid-template-rows:auto auto;
+    column-gap:10px; row-gap:5px; align-items:center; width:100%; min-width:0; min-height:76px;
+    padding:11px 13px; border:1px solid #d7d9d4; border-radius:5px;
+    background:#fff; color:#424640; text-align:left;
   }
   .industry-model:hover:not(:disabled){border-color:#8ec69f; background:#f6fbf7}
   .industry-model.on{border-color:#57c982; background:#edf9f1;
                      box-shadow:inset 3px 0 #3aa761}
-  .industry-model-check{width:14px; height:14px; border:1px solid #b8bdb8;
+  .industry-model-check{grid-row:1/3; display:grid; place-items:center; width:15px; height:15px;
+                        border:1px solid #b8bdb8; border-radius:2px;
                         background:#fff; color:#fff; font-size:9px; text-align:center}
   .industry-model.on .industry-model-check{border-color:#2f9a54; background:#2f9a54}
-  .industry-model-name{font-size:10.5px; font-weight:750}
-  .industry-model-axis{color:#2d7144; font-size:8.5px; font-weight:850;
+  .industry-model-name{min-width:0; color:#252925; font-size:10.5px; font-weight:750}
+  .industry-model-axis{padding:3px 6px; border:1px solid #cce4d3; background:#f1f9f3;
+                       color:#2d7144; font-size:8px; font-weight:850;
                        letter-spacing:.08em; text-transform:uppercase}
-  .industry-model-examples{color:#737870; font-size:9px; line-height:1.4}
+  .industry-model-examples{grid-column:2/-1; min-width:0; color:#737870;
+                           font-size:9px; line-height:1.45}
   .icp-card{position:relative; padding:16px; border:1px solid #d0d1cc; border-radius:6px;
             background:#fff; box-shadow:0 1px 2px rgba(0,0,0,.04); cursor:pointer}
   .icp-card:hover{border-color:#a9aaa4}.icp-card.on{border-color:#57c982; background:#effbf3;
@@ -1610,10 +1621,11 @@
     .competitive-card{grid-template-columns:64px 1fr}.competitive-status{position:absolute; right:12px; top:10px}
     .competitive-controls{grid-column:1/-1}.value-row-grid{grid-template-columns:1fr 1fr}
     .industry-fit{grid-template-columns:1fr}.industry-fit-arrow{height:34px; transform:rotate(90deg)}
+    .industry-fit-head{display:block}.industry-fit-head span{display:block; margin-top:4px; text-align:left}
     .industry-fit-piece.selling,.industry-fit-piece.buying{border-radius:6px}
     .industry-fit-piece.selling::after,.industry-fit-piece.buying::before{display:none}
     .industry-models{grid-template-columns:1fr}
-    .industry-model{grid-template-columns:18px minmax(120px,1fr) 76px minmax(150px,1.2fr)}
+    .industry-model{grid-template-columns:18px minmax(0,1fr) auto}
   }
   .pe-empty-source{color:#858680; font-size:10.5px; line-height:1.4}
   @media(max-width:780px){
@@ -2555,7 +2567,7 @@ const SUPABASE_URL = 'https://cskamgfvebryahkljlll.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_MdkD-TxMCIwlu69seSHA3Q_A39GADsK';
 const CLIENT_ID    = '1059013355751-6g50dsgm7df37htl2fdqrtlkh5hmrc0c.apps.googleusercontent.com';
 const ALLOWED      = ['vijaysrinivassan@gmail.com'];
-const BUILD        = 'v8.02';
+const BUILD        = 'v8.03';
 
 const STRATEGY_ONE_TAB = 'Strategy 1 — Brand Strategy';
 const PRODUCT_EVOLUTION_TAB = 'Strategy 1 — Product Evolution';
@@ -8648,6 +8660,11 @@ function renderIndustryFit(ro){
     card.append(eyebrow, value, options);
     return card;
   }
+  const header = document.createElement('div'); header.className = 'industry-fit-head';
+  const headerTitle = document.createElement('strong'); headerTitle.textContent = 'Industry fit';
+  const headerHint = document.createElement('span');
+  headerHint.textContent = 'Choose the market model, then refine either axis when needed.';
+  header.append(headerTitle, headerHint);
   const sellingPiece = piece('selling','Selling industry',selling.axis,axis => {
     selling.axis = axis;
     toast('Product Evolution axis set to ' + axes.find(x => x.id === axis).label + '.');
@@ -8684,7 +8701,7 @@ function renderIndustryFit(ro){
   const note = document.createElement('p');
   note.className = 'industry-fit-note';
   note.textContent = 'Selling industry sets Product Evolution. Buying industry sets the Brand Radar axis.';
-  host.append(sellingPiece, arrow, buyingPiece, modelGrid, note);
+  host.append(header, sellingPiece, arrow, buyingPiece, modelGrid, note);
 }
 
 function renderPositioning(){

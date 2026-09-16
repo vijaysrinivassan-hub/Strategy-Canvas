@@ -1,4 +1,3 @@
-.positioning>.pos-section:first-child{width:100%;box-sizing:border-box}
 .icp-table-scroll{display:block;max-width:100%;overflow:auto;border:1px solid #d4d4d4;min-height:430px;background:#fff}
 .icp-positioning-table{border-collapse:separate;border-spacing:0;table-layout:fixed;width:max-content;min-width:100%;font-size:12px;background:#fff;color:#202020}
 .icp-positioning-table th,.icp-positioning-table td{border-right:1px solid #e3e3e3;border-bottom:1px solid #e7e7e7;padding:14px;vertical-align:top;box-sizing:border-box;min-width:210px;width:210px;background:#fff}
