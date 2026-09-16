@@ -43,6 +43,8 @@ document.addEventListener('keydown',event=>{
   if(event.key==='Escape')closeIcpColumnMenus(null,true);
 });
 function renderIcpTable(p,ro){
+  if(ro)p=structuredClone(p);
+  if(IcpChoices.migrate(p)&&!ro)markDirty();
   const host=$('positioningIcps');host.replaceChildren();host.className='icp-table-scroll';
   const table=document.createElement('table');table.className='icp-positioning-table';
   table.setAttribute('aria-label','ICP positioning');
@@ -51,14 +53,11 @@ function renderIcpTable(p,ro){
     const b=el('button',title);b.type='button';b.disabled=ro;
     b.onclick=e=>{e.stopPropagation();if(!ro&&!readOnly())fn();};return b;
   };
-  const save=()=>{markDirty();renderPositioning();};
+  const save=()=>{IcpChoices.sync(p);markDirty();renderPositioning();};
   const head=el('thead'),groups=el('tr'),sub=el('tr'),nested=el('tr');
   const hasSub=IcpTable.groups.some(([key])=>IcpTable.columns(p,key).length);
   const hasNested=IcpTable.groups.some(([key])=>IcpTable.columns(p,key).some(id=>IcpTable.children(p,key,id).length));
   const depth=hasNested?3:hasSub?2:1;
-  for(const title of ['ICP Name']){
-    const th=el('th',title);th.rowSpan=depth;th.scope='col';th.className=title==='ICP Name'?'icp-table-name':'icp-table-trigger';groups.append(th);
-  }
   IcpTable.groups.forEach(([key,label])=>{
     const selected=IcpTable.columns(p,key),th=el('th');th.colSpan=IcpTable.leaves(p,key).length;th.scope='colgroup';
     if(!selected.length)th.rowSpan=depth;
@@ -138,62 +137,8 @@ function renderIcpTable(p,ro){
       });
     });
   });
-  const actions=el('th','Rows');actions.rowSpan=depth;actions.scope='col';groups.append(actions);
   const triggerHeader=el('th','Buying Trigger');triggerHeader.rowSpan=depth;triggerHeader.scope='col';triggerHeader.className='icp-table-trigger';groups.append(triggerHeader);
   head.append(groups);if(hasSub)head.append(sub);if(hasNested)head.append(nested);table.append(head);
-  p.icps.forEach((icp,index)=>{
-    const body=el('tbody');body.className='icp-table-block'+(p.selectedIcp===icp.id?' selected':'');
-    body.setAttribute('aria-label','ICP '+(index+1));
-    icp.rows.forEach((row,rowIndex)=>{
-      const tr=el('tr');
-      let triggerCell=null;
-      if(rowIndex===0){
-        const name=el('th');name.scope='rowgroup';name.rowSpan=icp.rows.length;name.className='icp-table-name';
-        name.append(el('small','ICP '+(index+1)));
-        const title=positioningTextarea(icp.name,'ICP name / maturity stage',ro,v=>{icp.name=v;});title.setAttribute('aria-label','ICP '+(index+1)+' name');
-        name.append(title);
-        appendIcpKeywordControl(name,{icpId:icp.id,axis:'name',label:'ICP '+(index+1)+' name'},()=>icp.name,ro);
-        const select=button(p.selectedIcp===icp.id?'Selected ICP':'Select ICP',()=>selectPositioningIcp(icp.id));
-        select.setAttribute('aria-pressed',String(p.selectedIcp===icp.id));name.append(select);
-        if(p.selectedIcp===icp.id){
-          const more=el('button','View More');more.type='button';more.onclick=()=>openIcpWorkflowPage(icp);name.append(more);
-        }
-        if(!ro){
-          name.append(button('+ Add row',()=>{icp.rows.push(newPositioningIcpRow());save();}));
-          name.append(button('Remove ICP',()=>{
-            if(!confirm('Remove this ICP and its details?'))return;
-            p.icps=p.icps.filter(item=>item.id!==icp.id);
-            if(p.selectedIcp===icp.id)p.selectedIcp='';
-            if(!p.icps.length)p.icps.push(newPositioningIcp());save();
-          }));
-        }
-        const trigger=el('td');trigger.rowSpan=icp.rows.length;trigger.className='icp-table-trigger';
-        const text=positioningTextarea(icp.buyingTrigger,'What triggers a purchase?',ro,v=>{icp.buyingTrigger=v;});
-        text.setAttribute('aria-label','ICP '+(index+1)+' buying trigger');trigger.append(text);tr.append(name);triggerCell=trigger;
-        appendIcpKeywordControl(trigger,{icpId:icp.id,axis:'trigger',label:'ICP '+(index+1)+' buying trigger'},()=>icp.buyingTrigger,ro);
-      }
-      IcpTable.groups.forEach(([key,label])=>{
-        const options=[...IcpTable.options,...(p.icpCustomColumns?.[key]||[]).map(c=>[c.id,c.name])];
-        IcpTable.leaves(p,key).forEach(({id,name:columnName},columnIndex)=>{
-          const td=el('td');if(columnIndex===0)td.className='icp-group-start';
-          const input=positioningTextarea(IcpTable.value(row,key,id),columnName?label+' · '+columnName:label,ro,value=>{
-            IcpTable.set(row,key,id,value);if(rowIndex===0&&id==='maturity')syncLegacyIcpFields(icp);
-          });
-          input.setAttribute('aria-label','ICP '+(index+1)+', row '+(rowIndex+1)+', '+label+', '+columnName);
-          td.append(input);
-          appendIcpKeywordControl(td,{icpId:icp.id,rowId:row.id,axis:key,column:id,label:icp.name+' / '+label+(columnName?' / '+columnName:'')},()=>IcpTable.value(row,key,id),ro);
-          tr.append(td);
-        });
-      });
-      const controls=el('td');controls.className='icp-table-row-tools';controls.append(el('small',String(rowIndex+1)));
-      if(!ro)controls.append(button('×',()=>{
-        if(!confirm('Remove this row and its contents?'))return;
-        if(icp.rows.length===1)icp.rows[0]=newPositioningIcpRow();else icp.rows.splice(rowIndex,1);
-        syncLegacyIcpFields(icp);save();
-      }));
-      tr.append(controls);if(triggerCell)tr.append(triggerCell);body.append(tr);
-    });
-    table.append(body);
-  });
+  renderIcpChoicesBody(p,ro,table,el,button,save);
   host.append(table);
 }

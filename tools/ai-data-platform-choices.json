@@ -1,0 +1,156 @@
+{
+  "groups": {
+    "people": {
+      "commerce-roles": {
+        "buyer": [
+          "Founder or general manager owns data decisions; no dedicated analytics sponsor.",
+          "Head of growth owns acquisition efficiency and reporting budget.",
+          "Head of e-commerce owns trading, conversion and merchandising decisions.",
+          "Operations or supply-chain lead owns stock and replenishment decisions.",
+          "Finance leader owns margin, cash and reconciliation decisions.",
+          "Data/IT leader owns governed access and the shared analytics platform."
+        ],
+        "operator": [
+          "No dedicated analyst: functional staff investigate data alongside daily work.",
+          "Marketing specialist analyses spend, campaigns and acquisition cohorts.",
+          "Merchandiser analyses products, variants, pricing and conversion.",
+          "CRM specialist analyses repeat buying, segments and lifecycle campaigns.",
+          "Inventory planner analyses demand, availability and replenishment.",
+          "Finance analyst reconciles revenue, costs and contribution.",
+          "Customer-support lead investigates returns, cancellations and service issues."
+        ],
+        "steward": [
+          "No dedicated data role; an operator manages exports and access.",
+          "External analyst or agency maintains reporting and data definitions.",
+          "Internal analyst owns models, joins and metric definitions.",
+          "Data engineer maintains pipelines, reliability and source contracts.",
+          "Platform/security team controls permissions, audit and governance."
+        ]
+      }
+    },
+    "process": {
+      "departments": {
+        "marketing": [
+          "Campaign reporting: combine spend and orders to see channel performance.",
+          "Acquisition diagnosis: investigate changes by campaign, creative and audience; correlation is not causation.",
+          "Cohort-quality analysis: compare later repeat purchases and margin by acquisition source.",
+          "Budget simulation: compare allocation scenarios using explicit response assumptions.",
+          "Experiment planning: recommend controlled tests; budget owners approve execution."
+        ],
+        "product": [
+          "Product sales reporting: rank products and variants by units, revenue and returns.",
+          "Conversion-funnel analysis: find drop-off by product or journey when events are available.",
+          "Basket analysis: identify co-purchase patterns for bundle hypotheses.",
+          "Assortment analysis: assess demand, availability and margin across the catalogue.",
+          "Price/assortment simulation: compare scenarios with stated elasticity and substitution assumptions.",
+          "Merchandising experimentation: test approved changes and assess results."
+        ],
+        "crm": [
+          "Repeat-purchase reporting: measure observed cohorts and purchase intervals.",
+          "Customer segmentation: group customers by permitted behavioural signals.",
+          "Lifecycle diagnosis: investigate where repeat purchase or engagement drops.",
+          "Retention prediction: estimate churn or next-order timing only with adequate history and validation.",
+          "Lifetime-value modelling: estimate future contribution with uncertainty and cost assumptions.",
+          "Intervention planning: prioritise consented lifecycle experiments for human approval."
+        ],
+        "inventory": [
+          "Stock visibility: reconcile on-hand stock by SKU and location.",
+          "Stock movement reporting: track receipts, sales, returns and adjustments.",
+          "Inventory performance analysis: calculate sell-through, turnover and stock cover with agreed definitions.",
+          "Exception detection: identify low stock, ageing stock and overstocks.",
+          "Stockout diagnosis: distinguish demand changes from inaccurate stock or delayed replenishment.",
+          "Demand forecasting: estimate future SKU/location demand; validate history, seasonality and uncertainty.",
+          "Safety-stock planning: model buffers using variability, lead times and service-level goals.",
+          "Replenishment planning: suggest quantities and timing using forecasts, stock and order constraints.",
+          "Allocation simulation: compare transfers or channel allocation under stock and fulfilment constraints.",
+          "Approved replenishment review: planners approve supported actions and monitor forecast error and stock outcomes; no automatic orders assumed."
+        ],
+        "purchase": [
+          "Purchase requirement reporting: consolidate stock needs and open purchase orders.",
+          "Supplier performance analysis: compare observed lead times, delivery reliability and costs.",
+          "Demand-linked purchase planning: translate demand into proposed orders using lead times and minimum quantities.",
+          "Sourcing scenario comparison: compare suppliers, order timing and cash constraints.",
+          "Purchase approval and tracking: buyers authorise orders and monitor delivery exceptions; integration must support execution."
+        ],
+        "finance": [
+          "Revenue reconciliation: reconcile orders, refunds, fees and settlements.",
+          "Contribution analysis: combine actual costs with sales; show missing costs explicitly.",
+          "Customer payback analysis: compare acquisition spend with observed cohort contribution.",
+          "Working-capital planning: assess stock commitments and payment timing.",
+          "Financial scenario planning: model demand, margin and cash assumptions for finance review; not booked accounts."
+        ],
+        "support": [
+          "Service reporting: count contact reasons, returns and cancellations from authorised records.",
+          "Issue classification: group recurring product, delivery and payment complaints.",
+          "Root-cause investigation: join service themes with orders and operational events.",
+          "Impact prioritisation: assess repeat contacts, refunds and retention associations.",
+          "Service improvement planning: propose reviewed tasks and experiments; no autonomous refunds or outreach."
+        ]
+      }
+    },
+    "technology": {
+      "commerce-stack": {
+        "store": [
+          "Single commerce source with manual CSV exports; no continuous ingestion.",
+          "Commerce APIs supply orders, products and customer records with stable identifiers.",
+          "Multiple sales channels require shared product/order definitions and deduplication.",
+          "POS, marketplaces or wholesale sources add distinct returns and settlement models; verify connectors."
+        ],
+        "growth": [
+          "Separate advertising and CRM exports, with manual reconciliation.",
+          "Advertising and order feeds joined for descriptive performance reporting.",
+          "CRM events joined with consented order history for cohort analysis.",
+          "Governed customer identity and activation interfaces; permissions and supported actions verified."
+        ],
+        "operations": [
+          "Operational records in spreadsheets; stock and supplier history may be incomplete.",
+          "Inventory/WMS feeds expose stock, movements and locations.",
+          "ERP/procurement feeds expose purchase orders, suppliers, lead times and costs.",
+          "Finance and support systems provide settlements, costs and service context.",
+          "Write-back APIs with scoped permissions, approval and audit are required before any execution."
+        ],
+        "data": [
+          "Spreadsheet reporting; no shared data model.",
+          "Connector-fed dashboards with fixed calculations.",
+          "Central warehouse with defined metrics and governed joins.",
+          "Semantic layer and reviewed natural-language analysis.",
+          "Validated predictive models and scenario engines; not implied by an LLM alone.",
+          "Governed decision support with human approval, monitoring and traceable outputs."
+        ]
+      }
+    },
+    "input": {
+      "commerce-scale": [
+        "Limited workload: few sources and a small catalogue; page angle: analytics for lean e-commerce teams.",
+        "Growing workload: more orders, campaigns and SKUs; page angle: analytics for scaling e-commerce operations.",
+        "Catalogue complexity: many variants, intermittent demand or long-tail SKUs; page angle: inventory analytics for complex catalogues.",
+        "Location complexity: multiple warehouses or fulfilment locations; page angle: multi-location inventory analytics.",
+        "Channel complexity: online, marketplace, POS or wholesale feeds; page angle: omnichannel analytics.",
+        "Entity complexity: several brands, currencies or entities; page angle: multi-brand data analytics."
+      ],
+      "commerce-quality": [
+        "Sparse or inconsistent records: prioritise reconciliation and reporting; forecasting may be unsuitable.",
+        "Reliable IDs and transaction history: joins and descriptive comparisons are feasible.",
+        "Complete cost, returns and stock records: margin and inventory diagnosis become feasible.",
+        "Long enough relevant history with lead times and demand context: evaluate predictive readiness; do not guarantee accuracy."
+      ],
+      "commerce-controls": [
+        "Periodic batch refresh is adequate for planning decisions.",
+        "Daily freshness is needed for trading and campaign reviews.",
+        "Operational exceptions require a verified low-latency pipeline and monitoring.",
+        "Sensitive customer/financial data requires least-privilege access and clear retention rules.",
+        "Cross-brand or regional data requires explicit permission boundaries and agreed definitions."
+      ]
+    }
+  },
+  "triggers": [
+    "Manual reconciliation delays routine business decisions.",
+    "Departments disagree because metrics or identifiers are inconsistent.",
+    "Campaign growth creates reporting work that current staff cannot sustain.",
+    "Repeated stockouts or excess stock prompt better demand and replenishment planning.",
+    "Poor visibility into contribution or cash creates pressure to connect costs and revenue.",
+    "Additional channels or brands make the existing reporting approach unreliable.",
+    "Existing dashboards explain what happened but cannot support the next decision.",
+    "AI initiatives are blocked by unreliable data, permissions or a lack of reviewed workflows."
+  ]
+}

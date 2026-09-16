@@ -2279,7 +2279,7 @@
           <div>
             <span class="pos-axis-label">Positioning axis 01</span>
             <h3>ICP Positioning</h3>
-            <p>Compare ICPs across People, Process, Technology and Input. Choose subcolumns from each grouped header, add rows as needed, and leave unused cells blank.</p>
+            <p>Build your ICP by selecting any combination of cells across People, Process, Technology and Input. Each column has its own options; horizontal rows do not define a profile.</p>
           </div>
           <div style="display:flex;gap:8px;align-items:center"><button id="btnPositioningPrompts" type="button">AI Prompts</button><button id="btnAddPositioningIcp" type="button">+ Add ICP</button></div>
         </div>
@@ -2464,6 +2464,7 @@
 <script src="icp-workflows.js"></script>
 <link rel="stylesheet" href="icp-table.css">
 <script src="icp-table.js"></script>
+<script src="icp-choices.js"></script>
 <script src="icp-keyword-bridge.js"></script>
 <link rel="stylesheet" href="icp-keyword-bridge.css">
 <script>
@@ -2474,7 +2475,7 @@ const SUPABASE_URL = 'https://cskamgfvebryahkljlll.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_MdkD-TxMCIwlu69seSHA3Q_A39GADsK';
 const CLIENT_ID    = '1059013355751-6g50dsgm7df37htl2fdqrtlkh5hmrc0c.apps.googleusercontent.com';
 const ALLOWED      = ['vijaysrinivassan@gmail.com'];
-const BUILD        = 'v7.94';
+const BUILD        = 'v7.95';
 
 const STRATEGY_ONE_TAB = 'Strategy 1 — Brand Strategy';
 const PRODUCT_EVOLUTION_TAB = 'Strategy 1 — Product Evolution';
@@ -8503,7 +8504,7 @@ function renderIcpDetails(icp, ro){
 function renderPositioning(){
   const p = positioningState();
   const ro = readOnly();
-  $('btnAddPositioningIcp').hidden = ro;
+  $('btnAddPositioningIcp').hidden = true;
   $('btnAddPositioningCategory').hidden = ro;
 
   renderIcpTable(p, ro);
