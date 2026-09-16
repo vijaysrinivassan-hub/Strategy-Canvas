@@ -37,7 +37,9 @@ assert(html.includes("arrow.className = 'industry-model-choice-arrow'"));
 assert(html.includes("source.textContent = 'Example: ' + model.exampleLabel"));
 assert(html.includes("exampleLabel:'CRM, payroll and ERP software'"));
 assert(/\.industry-model-source\{color:#737a73; font-size:9px;/.test(html));
-assert(/\.industry-fit\{display:grid; grid-template-columns:minmax\(360px,\.82fr\) minmax\(500px,1\.18fr\);/.test(html));
+assert(/\.industry-fit\{display:grid; grid-template-columns:minmax\(330px,\.88fr\) minmax\(480px,1\.12fr\);/.test(html));
+assert(/\.industry-fit-axis-row\{display:grid; grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/.test(html));
+assert(/\.industry-fit-shared-pages\{display:grid; grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/.test(html));
 assert(html.includes('@media(max-width:1050px)'));
 assert(html.includes("marketLabel:'B2B SaaS market'"));
 assert(html.includes("marketLabel:'Consumer SaaS market'"));
@@ -53,7 +55,7 @@ assert(html.includes('choice.append(sourceParcel, arrow, targetParcel)'));
 assert(html.includes('const pagesByAxis = Object.fromEntries'));
 assert(html.includes("sharedPages.className = 'industry-fit-shared-pages'"));
 assert(html.includes("sharedPagesLabel.textContent = 'Pages to create'"));
-assert(/\.industry-fit-axis-row button\{[^}]*min-height:38px;[^}]*font-size:11px;[^}]*white-space:normal;[^}]*overflow-wrap:anywhere/.test(html));
+assert(/\.industry-fit-axis-row button\{[^}]*min-height:38px;[^}]*font-size:11px;[^}]*white-space:nowrap;[^}]*overflow-wrap:normal/.test(html));
 assert(html.includes("previewRight.append(buyingHeading, previewAxis, axisRow(activeTargetAxis, 'target'), sharedPages)"));
 assert(!html.includes("pages.className = 'industry-model-pages'"));
 assert(html.includes("option.onclick = selectModel"));
@@ -62,7 +64,7 @@ assert(!html.includes("className = 'industry-model-choice-block industry-model-n
 assert(html.includes('host.append(preview, modelGrid)'));
 assert(!html.includes("headerTitle.textContent = 'Industry fit'"));
 assert(html.includes('renderIndustryFit(ro);'));
-assert(/\.icp-list\{[^}]*width:min\(820px,100%\)/.test(cards));
+assert(/\.icp-list\{[^}]*width:min\(920px,100%\)/.test(cards));
 assert(!table.includes('.positioning>.pos-section:first-child{width:100%'));
 
 const scripts=[...html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/g)]
