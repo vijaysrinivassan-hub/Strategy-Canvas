@@ -14,6 +14,23 @@ const IcpTable = {
     else{row.dimensions ||= {};row.dimensions[key] ||= {};row.dimensions[key][column]=value;}
   }
 };
+function closeIcpColumnMenus(except, restoreFocus=false){
+  document.querySelectorAll('#positioningIcps details[open]').forEach(menu=>{
+    if(menu===except)return;
+    menu.open=false;
+    if(restoreFocus)menu.querySelector('summary')?.focus();
+  });
+}
+document.addEventListener('pointerdown',event=>{
+  const menu=event.target.closest?.('#positioningIcps details');
+  closeIcpColumnMenus(menu);
+},true);
+document.addEventListener('focusin',event=>{
+  closeIcpColumnMenus(event.target.closest?.('#positioningIcps details'));
+});
+document.addEventListener('keydown',event=>{
+  if(event.key==='Escape')closeIcpColumnMenus(null,true);
+});
 function renderIcpTable(p,ro){
   const host=$('positioningIcps');host.replaceChildren();host.className='icp-table-scroll';
   const table=document.createElement('table');table.className='icp-positioning-table';
@@ -32,6 +49,12 @@ function renderIcpTable(p,ro){
     const selected=IcpTable.columns(p,key),th=el('th');th.colSpan=selected.length;th.scope='colgroup';
     th.className='icp-table-group';
     const menu=el('details'),summary=el('summary',label+' ▾');menu.append(summary);
+    summary.onclick=event=>{
+      event.preventDefault();
+      const open=!menu.open;
+      closeIcpColumnMenus(menu);
+      menu.open=open;
+    };
     const panel=el('div');panel.className='icp-column-menu';
     panel.append(el('strong','Visible subcolumns'));
     const options=[...IcpTable.options,...(p.icpCustomColumns?.[key]||[]).map(c=>[c.id,c.name])];

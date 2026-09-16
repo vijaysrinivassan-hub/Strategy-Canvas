@@ -7,12 +7,14 @@ class Element{
  append(...items){this.children.push(...items);}
  replaceChildren(...items){this.children=items;}
  setAttribute(k,v){this.attrs[k]=v;}
- querySelector(){return null;}
+ querySelector(tag){return this.children.find(n=>n.tag===tag)||null;}
+ focus(){this.focused=true;}
 }
 const all=n=>n.children.flatMap(c=>[c,...all(c)]);
 const host=new Element('div');let readonly=false,dirty=0,id=0,opened=null;
 const p={selectedIcp:'a',icps:[{id:'a',name:'Small',buyingTrigger:'Hiring',rows:[{id:'r1',people:'One HR',process:'Manual',technology:'Excel',input:'20 employees'},{id:'r2',technology:'Email'}]},{id:'b',name:'Large',rows:[{id:'r3',people:'HR team'}]}]};
-const ctx=vm.createContext({document:{createElement:t=>new Element(t)},$:()=>host,readOnly:()=>readonly,markDirty:()=>dirty++,uid:()=>String(++id),confirm:()=>true,
+const listeners={};
+const ctx=vm.createContext({document:{createElement:t=>new Element(t),addEventListener:(type,fn)=>{listeners[type]=fn;},querySelectorAll:()=>all(host).filter(n=>n.tag==='details'&&n.open)},$:()=>host,readOnly:()=>readonly,markDirty:()=>dirty++,uid:()=>String(++id),confirm:()=>true,
  renderPositioning:()=>ctx.renderIcpTable(p,readonly),selectPositioningIcp:id=>{p.selectedIcp=id;ctx.renderIcpTable(p,readonly)},openIcpWorkflowPage:icp=>opened=icp});
 vm.runInContext(html.slice(html.indexOf('function newPositioningIcp(){'),html.indexOf('function newPositioningCategory(){')),ctx);
 vm.runInContext(html.slice(html.indexOf('function positioningTextarea('),html.indexOf('function renderIcpDetails(')),ctx);
@@ -24,6 +26,22 @@ const bodies=()=>host.children[0].children.filter(n=>n.tag==='tbody');
 assert.equal(bodies()[0].children[0].children[0].rowSpan,2);
 assert.ok(bodies()[0].className.includes('selected'));
 const menu=key=>all(host).find(n=>n.dataset.group===key);
+menu('people').children[0].onclick({preventDefault(){}});
+assert.equal(menu('people').open,true);
+listeners.pointerdown({target:{closest:()=>menu('people')}});
+assert.equal(menu('people').open,true);
+menu('process').children[0].onclick({preventDefault(){}});
+assert.equal(menu('people').open,false);
+assert.equal(menu('process').open,true);
+listeners.pointerdown({target:{closest:()=>null}});
+assert.equal(menu('process').open,false);
+menu('people').children[0].onclick({preventDefault(){}});
+listeners.keydown({key:'Escape'});
+assert.equal(menu('people').open,false);
+assert.equal(menu('people').children[0].focused,true);
+menu('people').children[0].onclick({preventDefault(){}});
+listeners.focusin({target:{closest:()=>null}});
+assert.equal(menu('people').open,false);
 function check(key,label,checked){
  const line=all(menu(key)).find(n=>n.tag==='label'&&n.children[1]?.textContent===label);
  line.children[0].checked=checked;line.children[0].onchange();
