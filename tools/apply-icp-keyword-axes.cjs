@@ -8,7 +8,7 @@ const columns=[
  {name:'Industry',axis:'process',instruction:'Fit for an industry whose operating process changes the use of the product.'},
  {name:'Country',axis:'process',instruction:'Fit for a country, jurisdiction, language, coverage or regulatory process.'},
  {name:'Use Case',axis:'process',instruction:'Fit for a specific job, workflow or operating situation; distinguish the process from its benefit.'},
- {name:'Company Size',axis:'input',instruction:'Fit by employee count, workload, data volume or organizational scale.'}
+ {name:'Company Size',axis:'process',instruction:'Fit by employee count, workload, data volume or organizational scale.'}
 ];
 const stableId=(group,name)=>'icp-axis-'+crypto.createHash('sha256').update(group+'|'+name).digest('hex').slice(0,16);
 const populated=cell=>!!cell&&(String(cell.v||'').trim()||String(cell.url||'').trim()||(cell.kws||[]).length||cell.on||cell.st||cell.type||cell.aw||cell.by);
@@ -30,7 +30,7 @@ function configure(config){
   });
  }
  const marker='\n\nICP KEYWORD AXES\n';
- const rule='Use four grouped axes in every ICP table. People: Role / Team. Technology: Technology. Process: Industry, Country, Use Case. Input: Company Size. Do not create or route content to Maturity Stage. Choose the axis first and the specific column second.';
+ const rule='Use four grouped axes in every ICP table. People: Role / Team. Technology: Technology. Process: Industry, Country, Use Case, Company Size. Input: workload, volume or other input-scale columns. Do not create or route content to Maturity Stage. Choose the axis first and the specific column second.';
  config.routingInstruction=(config.routingInstruction||K.strategyPrompt).split(marker)[0]+marker+rule;
  return config;
 }

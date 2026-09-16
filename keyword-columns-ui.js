@@ -3,6 +3,15 @@ let keywordSettingsRecord=null, keywordSettings=null;
 function readKeywordSettings(records){
  keywordSettingsRecord=records.find(r=>r.owner_id===state.user?.id && (()=>{try{return JSON.parse(r.body).kind===KeywordColumns.KIND;}catch{return false;}})())||null;
  keywordSettings=keywordSettingsRecord?JSON.parse(keywordSettingsRecord.body):null;
+ if(keywordSettings){
+  KeywordColumns.ensurePageViews(keywordSettings);
+  for(const defs of Object.values(keywordSettings.pageViews?.icp||{})){
+   for(const column of defs)if(String(column.name||'').trim().toLowerCase()==='company size')column.axis='process';
+  }
+  for(const column of keywordSettings.views?.icp||[]){
+   if(String(column.name||'').trim().toLowerCase()==='company size')column.axis='process';
+  }
+ }
 }
 function isKeywordSettingsRecord(r){try{return JSON.parse(r.body).kind===KeywordColumns.KIND;}catch{return false;}}
 function activeUniversalColumns(){

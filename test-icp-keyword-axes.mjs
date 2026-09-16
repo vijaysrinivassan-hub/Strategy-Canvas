@@ -19,13 +19,14 @@ A.configure(config);
 const result=A.migrateRoot(root,config);
 const page=K.pageView(root.views.icp,'informational');
 assert.deepEqual(config.pageViews.icp.informational.map(d=>[d.axis,d.name]),[
- ['people','Role / Team'],['technology','Technology'],['process','Industry'],['process','Country'],['process','Use Case'],['input','Company Size']
+ ['people','Role / Team'],['technology','Technology'],['process','Industry'],['process','Country'],['process','Use Case'],['process','Company Size']
 ]);
 assert(result.removed>=1);
 assert.equal(page.columns.some(c=>c.name==='Maturity Stage'),false);
 assert.equal(page.columns.find(c=>c.name==='Segment-Specific Problems').axis,'process');
 assert.equal(root.views.icp.rows[0].cells['old-problem'],cell);
-assert.deepEqual(K.sortIcpColumns(page.columns).map(c=>c.axis||K.inferIcpAxis(c.name)),['people','technology','process','process','process','process','input']);
+assert.deepEqual(K.sortIcpColumns(page.columns).map(c=>c.axis||K.inferIcpAxis(c.name)),['people','technology','process','process','process','process','process']);
+assert.equal(K.inferIcpAxis('Company Size'),'process');
 assert(K.strategyPrompt.includes('ICP AXES'));
 const html=(await import('node:fs')).default.readFileSync(new URL('./index.html',import.meta.url),'utf8');
 assert(html.includes("const activeIcpAxis = state.contentView === 'icp' ? activeBuyingIndustryAxis() : '';"));
