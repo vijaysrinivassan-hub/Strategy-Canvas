@@ -1,0 +1,27 @@
+import fs from 'node:fs';
+import vm from 'node:vm';
+import assert from 'node:assert/strict';
+import {createRequire} from 'node:module';
+const require=createRequire(import.meta.url);
+class Element{constructor(tag){this.tag=tag;this.children=[];this.attrs={};}append(...x){this.children.push(...x)}replaceChildren(...x){this.children=x}setAttribute(k,v){this.attrs[k]=v}}
+const all=n=>n.children.flatMap(c=>[c,...all(c)]);
+const host=new Element('div');let dirty=0,rendered=0,opened='';
+const p={selectedIcp:'a',icps:[{id:'a',name:'Small',buyingTrigger:'Manual work',industries:'Retail',useCases:'Reporting',rows:[{id:'r1',people:'Founder',process:'Manual',technology:'Sheets',input:'Orders'},{id:'r2',process:'Forecasting'}]},{id:'b',name:'Large',buyingTrigger:'',industries:'',useCases:'',rows:[{id:'r3',people:'Analyst'}]}]};
+const input=(tag,value,onInput)=>{const e=new Element(tag);e.value=value;e.oninput=()=>onInput(e.value);return e;};
+const ctx=vm.createContext({document:{createElement:t=>new Element(t)},$:()=>host,positioningInput:(v,p,r,f)=>input('input',v,f),positioningTextarea:(v,p,r,f)=>input('textarea',v,f),selectPositioningIcp:id=>opened=id,newPositioningIcpRow:()=>({id:'new',people:'',process:'',technology:'',input:'',dimensions:{}}),newPositioningIcp:()=>({id:'new-icp',name:'',rows:[]}),syncLegacyIcpFields:icp=>{for(const k of ['people','process','technology','input'])icp[k]=icp.rows[0]?.[k]||''},markDirty:()=>dirty++,renderPositioning:()=>rendered++,confirm:()=>true});
+vm.runInContext(fs.readFileSync('icp-cards.js','utf8')+'\nglobalThis.renderCards=renderIcpCards;',ctx);
+ctx.renderCards(p,false);
+assert.equal(host.className,'icp-list');assert.equal(host.children.length,2);
+assert.ok(host.children[0].className.includes('on'));
+assert.equal(all(host.children[0]).filter(x=>x.className==='icp-row').length,2);
+assert.equal(all(host.children[0]).filter(x=>x.className==='icp-detail-field').length,3);
+assert.equal(all(host.children[1]).filter(x=>x.className==='icp-detail-field').length,0);
+host.children[1].onclick({target:{closest:()=>null}});assert.equal(opened,'b');
+const add=all(host.children[0]).find(x=>x.className==='icp-add-row');add.onclick({stopPropagation(){}});assert.equal(p.icps[0].rows.length,3);assert.equal(dirty,1);assert.equal(rendered,1);
+host.replaceChildren();ctx.renderCards(p,true);assert.equal(all(host).some(x=>x.className==='icp-add-row'),false);
+const m=require('./tools/restore-legacy-icp-cards.cjs'),TAB=m.TAB,PRODUCT=m.PRODUCT,archived={icps:[{id:'old1',name:'One',buyingTrigger:'Trigger',rows:[{id:'row1',people:'P',process:'R',technology:'T',input:'I'}]},{id:'old2',name:'Two',rows:[{id:'row2',people:'',process:'',technology:'',input:''}]}],selectedIcp:'old1',icpTableColumns:{people:['roles']}};
+const current={icps:[{id:'composed',name:'Selected ICP',rows:[]}],selectedIcp:'composed',icpChoices:{columns:{x:[]}},categories:[{id:'category'}]};
+const b={client:'AI Data Platform',workspaceProductId:PRODUCT,tabs:{[TAB]:{positioning:current,independentIcpArchive:{positioningIcp:archived},aiPrompt:'New instructions\n\nCategories: Preserve category instructions\n\nICP CELL CANVASES\nRemove this'}},productWorkspaces:{[PRODUCT]:{tabs:{}}}};
+assert.deepEqual(m.migrate(b),{changed:true,icps:2,rows:2,selected:'old1'});
+assert.equal(m.migrate(b).changed,false);assert.equal(current.icpChoices,undefined);assert.equal(current.categories[0].id,'category');assert.equal(current.icps[0].industries,'');assert.equal(b.tabs[TAB].legacyIcpCardRestoreArchive.current.icps[0].id,'composed');assert.match(b.tabs[TAB].aiPrompt,/ICP CARD MODEL/);assert.match(b.tabs[TAB].aiPrompt,/Preserve category instructions/);assert.doesNotMatch(b.tabs[TAB].aiPrompt,/ICP CELL CANVASES/);assert.deepEqual(b.tabs[TAB],b.productWorkspaces[PRODUCT].tabs[TAB]);
+console.log('PASS: September 15 card layout, sparse rows, selection, selected-card details, add/read-only controls, archived restore and positioning isolation.');
