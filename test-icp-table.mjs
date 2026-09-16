@@ -14,12 +14,15 @@ const all=n=>n.children.flatMap(c=>[c,...all(c)]);
 const host=new Element('div');let readonly=false,dirty=0,id=0,opened=null;
 const p={selectedIcp:'a',icps:[{id:'a',name:'Small',buyingTrigger:'Hiring',rows:[{id:'r1',people:'One HR',process:'Manual',technology:'Excel',input:'20 employees'},{id:'r2',technology:'Email'}]},{id:'b',name:'Large',rows:[{id:'r3',people:'HR team'}]}]};
 const listeners={};
+globalThis.icpKeywordControlCount=0;
 const ctx=vm.createContext({document:{createElement:t=>new Element(t),addEventListener:(type,fn)=>{listeners[type]=fn;},querySelectorAll:()=>all(host).filter(n=>n.tag==='details'&&n.open)},$:()=>host,readOnly:()=>readonly,markDirty:()=>dirty++,uid:()=>String(++id),confirm:()=>true,
  renderPositioning:()=>ctx.renderIcpTable(p,readonly),selectPositioningIcp:id=>{p.selectedIcp=id;ctx.renderIcpTable(p,readonly)},openIcpWorkflowPage:icp=>opened=icp});
 vm.runInContext(html.slice(html.indexOf('function newPositioningIcp(){'),html.indexOf('function newPositioningCategory(){')),ctx);
 vm.runInContext(html.slice(html.indexOf('function positioningTextarea('),html.indexOf('function renderIcpDetails(')),ctx);
+ctx.appendIcpKeywordControl=()=>{globalThis.icpKeywordControlCount++;};
 vm.runInContext(fs.readFileSync(new URL('./icp-table.js',import.meta.url),'utf8'),ctx);
 ctx.renderIcpTable(p,false);
+assert.equal(globalThis.icpKeywordControlCount,16);
 assert.equal(host.children[0].tag,'table');
 assert.equal(host.children[0].children.filter(n=>n.tag==='tbody').length,2);
 const bodies=()=>host.children[0].children.filter(n=>n.tag==='tbody');

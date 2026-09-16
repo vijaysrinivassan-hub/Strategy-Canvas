@@ -152,6 +152,7 @@ function renderIcpTable(p,ro){
         name.append(el('small','ICP '+(index+1)));
         const title=positioningTextarea(icp.name,'ICP name / maturity stage',ro,v=>{icp.name=v;});title.setAttribute('aria-label','ICP '+(index+1)+' name');
         name.append(title);
+        appendIcpKeywordControl(name,{icpId:icp.id,axis:'name',label:'ICP '+(index+1)+' name'},()=>icp.name,ro);
         const select=button(p.selectedIcp===icp.id?'Selected ICP':'Select ICP',()=>selectPositioningIcp(icp.id));
         select.setAttribute('aria-pressed',String(p.selectedIcp===icp.id));name.append(select);
         if(p.selectedIcp===icp.id){
@@ -169,6 +170,7 @@ function renderIcpTable(p,ro){
         const trigger=el('td');trigger.rowSpan=icp.rows.length;trigger.className='icp-table-trigger';
         const text=positioningTextarea(icp.buyingTrigger,'What triggers a purchase?',ro,v=>{icp.buyingTrigger=v;});
         text.setAttribute('aria-label','ICP '+(index+1)+' buying trigger');trigger.append(text);tr.append(name);triggerCell=trigger;
+        appendIcpKeywordControl(trigger,{icpId:icp.id,axis:'trigger',label:'ICP '+(index+1)+' buying trigger'},()=>icp.buyingTrigger,ro);
       }
       IcpTable.groups.forEach(([key,label])=>{
         const options=[...IcpTable.options,...(p.icpCustomColumns?.[key]||[]).map(c=>[c.id,c.name])];
@@ -178,7 +180,9 @@ function renderIcpTable(p,ro){
             IcpTable.set(row,key,id,value);if(rowIndex===0&&id==='maturity')syncLegacyIcpFields(icp);
           });
           input.setAttribute('aria-label','ICP '+(index+1)+', row '+(rowIndex+1)+', '+label+', '+columnName);
-          td.append(input);tr.append(td);
+          td.append(input);
+          appendIcpKeywordControl(td,{icpId:icp.id,rowId:row.id,axis:key,column:id,label:icp.name+' / '+label+(columnName?' / '+columnName:'')},()=>IcpTable.value(row,key,id),ro);
+          tr.append(td);
         });
       });
       const controls=el('td');controls.className='icp-table-row-tools';controls.append(el('small',String(rowIndex+1)));
