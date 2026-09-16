@@ -1452,27 +1452,25 @@
                   text-transform:uppercase}
   .icp-list{display:flex; flex-direction:column; gap:14px; width:min(820px,100%); margin:0 auto}
   .industry-fit{width:min(820px,100%); margin:0 auto 18px}
-  .industry-fit-preview{display:grid; grid-template-columns:minmax(180px,1fr) 140px minmax(180px,1fr);
-                        align-items:center; margin-bottom:14px}
+  .industry-fit-preview{display:flex; align-items:center; justify-content:center; margin-bottom:16px}
   .industry-fit-preview-piece{position:relative; z-index:1; display:flex; align-items:center;
-                              min-height:58px; padding:12px 20px; border:1px solid #bfc4bf;
+                              justify-content:center; width:156px; aspect-ratio:1; padding:18px;
+                              border:1px solid #bfc4bf;
                               background:#fff; color:#222722; font-size:12px; font-weight:800;
-                              letter-spacing:.04em; text-transform:uppercase}
-  .industry-fit-preview-name{justify-content:flex-start; border-radius:6px 0 0 6px}
+                              letter-spacing:.04em; text-align:center; text-transform:uppercase}
+  .industry-fit-preview-name{flex-direction:column; gap:12px; border-radius:6px 0 0 6px}
+  .industry-fit-preview-name-text{line-height:1.45}
+  .industry-fit-preview-influence{color:#697069; font-size:8px; font-weight:850;
+                                  letter-spacing:.09em; line-height:1.45}
   .industry-fit-preview-name::after{content:''; position:absolute; z-index:2; right:-16px; top:50%;
                                     width:30px; height:30px; transform:translateY(-50%);
                                     border:1px solid #bfc4bf; border-left:0; border-radius:0 50% 50% 0;
                                     background:#fff}
-  .industry-fit-preview-axis{justify-content:center; border-radius:0 6px 6px 0; color:#216c3d}
+  .industry-fit-preview-axis{border-radius:0 6px 6px 0; color:#216c3d}
   .industry-fit-preview-axis::before{content:''; position:absolute; z-index:2; left:-1px; top:50%;
                                     width:16px; height:34px; transform:translateY(-50%);
                                     border:1px solid #bfc4bf; border-left:0; border-radius:0 50% 50% 0;
-                                    background:#f3f5f2}
-  .industry-fit-preview-flow{display:flex; flex-direction:column; align-items:center;
-                             justify-content:center; gap:3px; height:58px; padding:0 14px;
-                             background:#f3f5f2; color:#6b716b; font-size:8px; font-weight:850;
-                             letter-spacing:.08em; text-align:center; text-transform:uppercase}
-  .industry-fit-preview-flow b{color:#3f463f; font-size:16px; font-weight:500; line-height:1}
+                                    background:#fbfbfa}
   .industry-models{display:flex; flex-direction:column; gap:10px}
   .industry-model{
     display:grid; grid-template-columns:22px minmax(0,1fr); column-gap:12px; row-gap:10px;
@@ -1496,8 +1494,10 @@
                        font-size:8px; font-weight:850; letter-spacing:.08em;
                        text-transform:uppercase}
   .industry-model-pages{grid-column:2; display:flex; align-items:center; flex-wrap:wrap;
-                        gap:6px; padding-top:10px; border-top:1px solid #e4e6e2}
-  .industry-model-pages-label{margin-right:3px; color:#686e68; font-size:8px; font-weight:850;
+                        justify-content:flex-end; gap:6px; padding-top:10px;
+                        border-top:1px solid #e4e6e2; text-align:right}
+  .industry-model-pages-label{margin-left:auto; margin-right:3px; color:#686e68;
+                              font-size:8px; font-weight:850;
                               letter-spacing:.1em; text-transform:uppercase}
   .industry-model-page{padding:4px 7px; border:1px solid #d9ddd8; border-radius:3px;
                        background:#f7f8f6; color:#535953; font-size:9px; font-weight:650}
@@ -1615,7 +1615,7 @@
     .cat-status{position:absolute; right:12px; top:10px}.cat-competitor{grid-template-columns:1fr}
     .competitive-card{grid-template-columns:64px 1fr}.competitive-status{position:absolute; right:12px; top:10px}
     .competitive-controls{grid-column:1/-1}.value-row-grid{grid-template-columns:1fr 1fr}
-    .industry-fit-preview{grid-template-columns:minmax(120px,1fr) 104px minmax(120px,1fr)}
+    .industry-fit-preview-piece{width:min(42vw,156px)}
   }
   .pe-empty-source{color:#858680; font-size:10.5px; line-height:1.4}
   @media(max-width:780px){
@@ -2557,7 +2557,7 @@ const SUPABASE_URL = 'https://cskamgfvebryahkljlll.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_MdkD-TxMCIwlu69seSHA3Q_A39GADsK';
 const CLIENT_ID    = '1059013355751-6g50dsgm7df37htl2fdqrtlkh5hmrc0c.apps.googleusercontent.com';
 const ALLOWED      = ['vijaysrinivassan@gmail.com'];
-const BUILD        = 'v8.05';
+const BUILD        = 'v8.06';
 
 const STRATEGY_ONE_TAB = 'Strategy 1 — Brand Strategy';
 const PRODUCT_EVOLUTION_TAB = 'Strategy 1 — Product Evolution';
@@ -8621,12 +8621,14 @@ function renderIndustryFit(ro){
   const selectedModel = models.find(model => buying.industryModel === model.id);
   const preview = document.createElement('div'); preview.className = 'industry-fit-preview';
   const previewName = document.createElement('span'); previewName.className = 'industry-fit-preview-piece industry-fit-preview-name';
-  previewName.textContent = selectedModel ? selectedModel.name : 'Select an industry type';
-  const previewFlow = document.createElement('span'); previewFlow.className = 'industry-fit-preview-flow';
-  previewFlow.append(document.createTextNode('Technology influences'), Object.assign(document.createElement('b'), {textContent:'\u2192'}));
+  const previewNameText = document.createElement('span'); previewNameText.className = 'industry-fit-preview-name-text';
+  previewNameText.textContent = selectedModel ? selectedModel.name : 'Select an industry type';
+  const previewInfluence = document.createElement('span'); previewInfluence.className = 'industry-fit-preview-influence';
+  previewInfluence.textContent = 'Technology influences \u2192';
+  previewName.append(previewNameText, previewInfluence);
   const previewAxis = document.createElement('span'); previewAxis.className = 'industry-fit-preview-piece industry-fit-preview-axis';
   previewAxis.textContent = selectedModel ? selectedModel.axisLabel : 'Brand Radar axis';
-  preview.append(previewName, previewFlow, previewAxis);
+  preview.append(previewName, previewAxis);
   const modelGrid = document.createElement('div'); modelGrid.className = 'industry-models';
   models.forEach(model => {
     const option = document.createElement('button');
