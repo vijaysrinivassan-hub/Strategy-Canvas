@@ -1,0 +1,26 @@
+.icp-workflow-page{padding:28px;overflow:auto;height:100%;box-sizing:border-box;background:#f7f8f5;color:#26352b}
+.icp-workflow-header{display:flex;align-items:center;gap:24px}.icp-workflow-header h2{font-size:20px}
+.icp-workflow-help{color:#657269;line-height:1.6;max-width:900px}
+.icp-workflow-field{display:flex;flex-direction:column;gap:7px;margin:12px 0;min-width:220px}
+.icp-workflow-field>span{font-size:11px;font-weight:700;color:#46644e}
+.icp-workflow-page input,.icp-workflow-page textarea,.icp-workflow-page select{font:inherit;font-size:12px;padding:9px;border:1px solid #d1dbd3;background:white;color:#26352b;border-radius:0;box-sizing:border-box}
+.icp-workflow-page textarea{min-height:70px;resize:vertical;width:100%}
+.icp-workflow-page button{border-radius:0;padding:8px 12px}
+.icp-workflow-page button.on{background:#e2f4e7;border-color:#71bf88;color:#225f35}
+.icp-workflow-controls{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:12px 0}
+.icp-workflow-controls>input:not([type=range]){min-width:240px;flex:1}.icp-workflow-controls small{color:#758178}
+.icp-workflow-row{background:#fff;border:1px solid #d6dfd8;padding:16px;margin-top:20px}
+.icp-workflow-empty{padding:40px;border:1px dashed #bdcfc0;text-align:center}
+.icp-flow-scroll{overflow:auto;border:1px solid #dce3dd;background:#fbfcfa}
+.icp-flow-canvas{position:relative;background-image:radial-gradient(#d8dfd9 1px,transparent 1px);background-size:18px 18px}
+.icp-flow-node{position:absolute;width:190px;min-height:90px;background:white;border:1px solid #9cbda4;box-sizing:border-box}
+.icp-flow-node>input{width:100%;border:0;border-bottom:1px solid #edf1ed}
+.icp-flow-drag{padding:7px 9px;cursor:grab;background:#eff8f1;color:#76857a;font-size:10px;touch-action:none}
+.icp-flow-actions{display:flex;justify-content:space-between}.icp-flow-actions button{border:0;font-size:10px;padding:5px 8px}
+.icp-flow-edges{position:absolute;inset:0;overflow:visible}
+.icp-flow-edges path{fill:none;stroke:#77a687;stroke-width:3;stroke-opacity:.8;cursor:pointer;pointer-events:stroke}
+.icp-flow-edges path.selected{stroke:#237c43;stroke-opacity:1}
+.icp-flow-edges path.arrow{stroke-width:2;pointer-events:none}
+.icp-flow-edges text{font-size:12px;fill:#2f6040;paint-order:stroke;stroke:#fbfcfa;stroke-width:5px;pointer-events:none}
+.icp-workflow-size{display:flex;gap:12px;align-items:center;font-size:11px;color:#63796a;margin-top:12px}
+.icp-workflow-legacy{padding:12px;border:1px solid #dae3dc;margin:15px 0}
