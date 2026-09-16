@@ -2566,7 +2566,7 @@ const SUPABASE_URL = 'https://cskamgfvebryahkljlll.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_MdkD-TxMCIwlu69seSHA3Q_A39GADsK';
 const CLIENT_ID    = '1059013355751-6g50dsgm7df37htl2fdqrtlkh5hmrc0c.apps.googleusercontent.com';
 const ALLOWED      = ['vijaysrinivassan@gmail.com'];
-const BUILD        = 'v8.08';
+const BUILD        = 'v8.09';
 
 const STRATEGY_ONE_TAB = 'Strategy 1 — Brand Strategy';
 const PRODUCT_EVOLUTION_TAB = 'Strategy 1 — Product Evolution';
@@ -2696,6 +2696,52 @@ const state = {
 };
 let sb = null;
 let spaceHeld = false;
+
+const LOCATION_MEMORY_KEY = 'sb-last-location-v1';
+function rememberedLocation(){
+  try {
+    const value = JSON.parse(localStorage.getItem(LOCATION_MEMORY_KEY) || 'null');
+    return value && typeof value === 'object' ? value : null;
+  } catch (e){ return null; }
+}
+function rememberLocation(){
+  if (!state.boardId) return;
+  try {
+    localStorage.setItem(LOCATION_MEMORY_KEY, JSON.stringify({
+      boardId: state.boardId,
+      screen: state.screen,
+      tab: state.tab,
+      contentView: state.contentView,
+      frameIndex: state.frameIndex,
+      settingsPart: state.settingsPart || ''
+    }));
+  } catch (e) {}
+}
+function restoreLocation(location){
+  if (!location || location.boardId !== state.boardId) return false;
+  const knownTab = typeof location.tab === 'string' &&
+    (Object.prototype.hasOwnProperty.call(state.tabs, location.tab) || state.extra.indexOf(location.tab) !== -1);
+  if (knownTab) state.tab = location.tab;
+  if (CONTENT_VIEWS.some(view => view.id === location.contentView)) state.contentView = location.contentView;
+  const frameIndex = Number(location.frameIndex);
+  if (state.tab === FRAME_TAB && Number.isInteger(frameIndex) && state.frames[frameIndex]){
+    state.frameIndex = frameIndex;
+    const frame = state.frames[frameIndex];
+    state.tabs[FRAME_TAB] = state.frameEdits[frame.name] || pristineFrame(frame);
+  } else {
+    state.frameIndex = -1;
+  }
+  state.screen = location.screen === 'settings' && !clientView() ? 'settings' : 'board';
+  state.settingsPart = typeof location.settingsPart === 'string' ? location.settingsPart : '';
+  if (clientView() && (state.tab === KEYWORDS_TAB || state.tab === FRAME_TAB)) state.tab = TABS[0];
+  if (state.screen === 'board'){
+    if ([STRATEGY_ONE_TAB, PRODUCT_ARCHITECTURE_TAB, POSITIONING_TAB,
+         POSITIONING_DOCUMENT_TAB, BRAND_RADAR_TAB, CHANNELS_TAB].indexOf(state.tab) !== -1) openNav('strategy1');
+    else if (state.tab === CONTENT_TAB) openNav('content');
+    else if (state.tab === FRAME_TAB) openNav('frames');
+  }
+  return true;
+}
 
 /* The canvas re-renders on every press, which replaces the element under the
    pointer — and a browser will not synthesise click or dblclick once the
@@ -3238,12 +3284,14 @@ function goScreen(id){
   captureFrame();
   /* Clients, Article Types and MCP are one page now; an old id scrolls to its part */
   state.screen = 'settings';
+  state.settingsPart = id;
   applyTabMode();
   renderTabs();
   const part = { clients: 'setClients', atypes: 'setTypes', mcp: 'setMcp' }[id];
   const el = part ? $(part) : null;
   if (el) el.scrollIntoView({ block: 'start' });
   else $('settingsPane').scrollTop = 0;
+  rememberLocation();
 }
 
 function renderMcp(){
@@ -3652,6 +3700,8 @@ function switchTab(name){
   clearSel();
   render();
   applyTabMode();
+  state.settingsPart = '';
+  rememberLocation();
   /* applyTabMode is deliberately not called from render() — render runs on
      every drag frame, and refreshing the file list that often would hammer
      storage. Only tab and board changes need it. */
@@ -4492,7 +4542,7 @@ async function refreshBoards(){
 }
 
 let boardOpenRequest = 0;
-async function openBoard(id){
+async function openBoard(id, location){
   const request = ++boardOpenRequest;
   const { data, error } = await sb.from('reports').select('id,title,body,owner_id,updated_at').eq('id', id).single();
   if (request !== boardOpenRequest) return;
@@ -4510,6 +4560,8 @@ async function openBoard(id){
   renderAccount();
   hydrate(data.body || '');
   state.tab = TABS[0];
+  state.screen = 'board';
+  restoreLocation(location);
   clearSel();
   state.dirty = false;
   $('saveState').textContent = 'Saved';
@@ -4518,7 +4570,16 @@ async function openBoard(id){
   if (cachedBoard) Object.assign(cachedBoard, data);
   render();
   applyTabMode();
-  if (state.tab !== DOCS_TAB) zoomToFit();
+  renderTabs();
+  if (state.screen === 'settings' && state.settingsPart){
+    requestAnimationFrame(() => {
+      const part = { clients: 'setClients', atypes: 'setTypes', mcp: 'setMcp' }[state.settingsPart];
+      const element = part ? $(part) : null;
+      if (element) element.scrollIntoView({ block: 'start' });
+    });
+  }
+  rememberLocation();
+  if (state.screen === 'board' && state.tab !== DOCS_TAB) zoomToFit();
 }
 
 let boardSaveInFlight = false;
@@ -6940,6 +7001,7 @@ function switchContentView(id){
   state.screen = 'board';
   renderTabs();
   applyTabMode();
+  rememberLocation();
 }
 
 function addCompetitor(){
@@ -9066,6 +9128,7 @@ function openFrame(i){
   render();
   applyTabMode();
   renderTabs();
+  rememberLocation();
   if (f.kind === 'canvas') zoomToFit();
 }
 
@@ -9278,12 +9341,15 @@ function roleForBoard(row){
 
 function openClients(){   /* kept for callers that open the list directly */
   state.screen = 'settings';
+  state.settingsPart = 'clients';
   applyTabMode();
   renderTabs();
+  rememberLocation();
 }
 function openBoardScreen(){
   state.screen = 'board';
   applyTabMode();
+  rememberLocation();
 }
 
 function boardPresentation(board){
@@ -11200,13 +11266,18 @@ async function enterApp(user){
   renderAccount();
 
   await refreshBoards();
-  if (state.boards.length > 1){
-    openClients();
-    await openBoard(state.boards[0].id);
-    state.screen = 'settings';
-    applyTabMode();
-  } else if (state.boards.length){
-    await openBoard(state.boards[0].id);
+  const location = rememberedLocation();
+  if (state.boards.length){
+    const rememberedBoard = location && state.boards.find(board => board.id === location.boardId);
+    const board = rememberedBoard || state.boards[0];
+    await openBoard(board.id, rememberedBoard ? location : null);
+    if (!rememberedBoard && state.boards.length > 1){
+      state.screen = 'settings';
+      state.settingsPart = 'clients';
+      applyTabMode();
+      renderTabs();
+      rememberLocation();
+    }
   } else {
     state.tabs = blankTabs();
     render();
@@ -11339,7 +11410,10 @@ window.addEventListener('resize', () => {
   drawChannelWires();
   drawEvolutionWires();
 });
-window.addEventListener('beforeunload', e => { if (state.dirty){ e.preventDefault(); e.returnValue = ''; } });
+window.addEventListener('beforeunload', e => {
+  rememberLocation();
+  if (state.dirty){ e.preventDefault(); e.returnValue = ''; }
+});
 
 /* ===================================================================
    BOOT
