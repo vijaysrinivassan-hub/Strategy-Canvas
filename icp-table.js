@@ -56,7 +56,7 @@ function renderIcpTable(p,ro){
   const hasSub=IcpTable.groups.some(([key])=>IcpTable.columns(p,key).length);
   const hasNested=IcpTable.groups.some(([key])=>IcpTable.columns(p,key).some(id=>IcpTable.children(p,key,id).length));
   const depth=hasNested?3:hasSub?2:1;
-  for(const title of ['ICP Name','Buying Trigger']){
+  for(const title of ['ICP Name']){
     const th=el('th',title);th.rowSpan=depth;th.scope='col';th.className=title==='ICP Name'?'icp-table-name':'icp-table-trigger';groups.append(th);
   }
   IcpTable.groups.forEach(([key,label])=>{
@@ -139,12 +139,14 @@ function renderIcpTable(p,ro){
     });
   });
   const actions=el('th','Rows');actions.rowSpan=depth;actions.scope='col';groups.append(actions);
+  const triggerHeader=el('th','Buying Trigger');triggerHeader.rowSpan=depth;triggerHeader.scope='col';triggerHeader.className='icp-table-trigger';groups.append(triggerHeader);
   head.append(groups);if(hasSub)head.append(sub);if(hasNested)head.append(nested);table.append(head);
   p.icps.forEach((icp,index)=>{
     const body=el('tbody');body.className='icp-table-block'+(p.selectedIcp===icp.id?' selected':'');
     body.setAttribute('aria-label','ICP '+(index+1));
     icp.rows.forEach((row,rowIndex)=>{
       const tr=el('tr');
+      let triggerCell=null;
       if(rowIndex===0){
         const name=el('th');name.scope='rowgroup';name.rowSpan=icp.rows.length;name.className='icp-table-name';
         name.append(el('small','ICP '+(index+1)));
@@ -166,7 +168,7 @@ function renderIcpTable(p,ro){
         }
         const trigger=el('td');trigger.rowSpan=icp.rows.length;trigger.className='icp-table-trigger';
         const text=positioningTextarea(icp.buyingTrigger,'What triggers a purchase?',ro,v=>{icp.buyingTrigger=v;});
-        text.setAttribute('aria-label','ICP '+(index+1)+' buying trigger');trigger.append(text);tr.append(name,trigger);
+        text.setAttribute('aria-label','ICP '+(index+1)+' buying trigger');trigger.append(text);tr.append(name);triggerCell=trigger;
       }
       IcpTable.groups.forEach(([key,label])=>{
         const options=[...IcpTable.options,...(p.icpCustomColumns?.[key]||[]).map(c=>[c.id,c.name])];
@@ -185,7 +187,7 @@ function renderIcpTable(p,ro){
         if(icp.rows.length===1)icp.rows[0]=newPositioningIcpRow();else icp.rows.splice(rowIndex,1);
         syncLegacyIcpFields(icp);save();
       }));
-      tr.append(controls);body.append(tr);
+      tr.append(controls);if(triggerCell)tr.append(triggerCell);body.append(tr);
     });
     table.append(body);
   });
