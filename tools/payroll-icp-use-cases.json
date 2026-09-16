@@ -1,0 +1,212 @@
+[
+  {
+    "name": "Micro employer — first repeatable payroll",
+    "size": "Payroll software for micro businesses / startups\nIllustrative: 1–20 employees; usually one employing entity.",
+    "readiness": "Salary agreements, bank details and leave records may be incomplete or arrive by message. First use case: create a checked employee master before calculating pay.",
+    "complexity": "Mostly fixed monthly salaries, occasional joiners/leavers and reimbursements. A shift-heavy small employer can need a different process despite the same size.",
+    "people": [
+      "Founder or office administrator; often no dedicated HR/payroll role. Need guided setup and a repeatable monthly checklist.",
+      "Founder/accountant reviews totals and authorises payment; the accountant may advise without owning the software.",
+      "A team lead supplies approved changes where needed; a formal multi-level hierarchy is not assumed."
+    ],
+    "industries": [
+      "Startup payroll: salary changes and joiner proration → reviewed monthly pay → payslips.",
+      "",
+      "Small retail payroll: agreed attendance and paid days → salary calculation → proprietor approval.",
+      "",
+      "Small agency payroll: employee salaries and approved reimbursements → payroll. Keep contractor invoices separate."
+    ],
+    "departments": [
+      "Collect employee changes and leave; maintain one current employee list.",
+      "Review pay totals, authorise bank payment and record the payroll expense.",
+      ""
+    ],
+    "technology": [
+      "Spreadsheet or basic employee list: require a checked initial import, not a full HRIS integration by default.",
+      "Leave register or simple attendance export: reconcile only the inputs that affect pay.",
+      "Accountant's ledger and bank portal: require consistent journals and payment files; no native connector assumed.",
+      "Excel/paper to payroll: validate employee details, opening balances and a sample pay run before migration."
+    ],
+    "trigger": "First recurring employees, founder spending too long on payroll, or an accountant requesting consistent monthly inputs."
+  },
+  {
+    "name": "Growing small business — HR-led payroll",
+    "size": "Payroll software for small businesses\nIllustrative: 21–75 employees; one entity with a growing team.",
+    "readiness": "HR maintains records but managers send attendance, reimbursements and changes separately. Use case: agree owners and cut-off dates before importing.",
+    "complexity": "Joiners/leavers, leave adjustments and occasional variable pay; headcount alone does not establish complicated payroll.",
+    "people": [
+      "An HR generalist or administrator owns preparation; one payroll-responsible person may share other HR duties.",
+      "Owner or finance lead checks the register and funding before release; external adviser may review exceptions.",
+      "Department heads approve their team's attendance and one-off pay inputs, not separate payroll engines."
+    ],
+    "industries": [
+      "SaaS/IT payroll: maintain salary revisions, joiner/leaver dates and approved incentives → calculate monthly payroll.",
+      "Small workshop payroll: approved shifts and overtime → reviewed payable earnings. Only relevant where time-based pay exists.",
+      "Retail payroll: store attendance and approved incentive totals → consolidate → pay.",
+      "Small clinic payroll: approved employee rosters and allowances → payroll; visiting consultants may be outside employee payroll.",
+      "Agency payroll: employee pay and approved bonus/reimbursement inputs → calculate and review."
+    ],
+    "departments": [
+      "HR changes and leave → payroll preparation → employee payslip access.",
+      "Payroll register → owner/finance approval → bank file and accounting entry.",
+      "Where commissions exist: sales manager approves the incentive total → payroll imports it; payroll need not calculate sales performance."
+    ],
+    "technology": [
+      "Basic HRMS employee master: check employee IDs, dates and pay fields at import.",
+      "Separate attendance/leave application: require approved period totals and traceable corrections.",
+      "Accounting package and bank portal: export approved liabilities, journals and payment instructions.",
+      "Spreadsheet interfaces: standardise templates and reconcile employee and pay totals during rollout."
+    ],
+    "trigger": "Hiring the first HR generalist, repeated input chasing at month-end, or moving away from an accountant-managed spreadsheet."
+  },
+  {
+    "name": "Established SMB — coordinated HR and payroll",
+    "size": "Payroll software for SMBs\nIllustrative: 76–200 employees; departmental handoffs are becoming material.",
+    "readiness": "Employee, attendance and expense data come from several owners. Reconcile missing records, duplicates and late approvals before payroll.",
+    "complexity": "Several pay components and departments; one or a few sites. Workforce mix and pay policies matter more than the size label.",
+    "people": [
+      "Illustrative small HR team with an HR manager and payroll/operations owner; a dedicated specialist is optional.",
+      "Finance reviewer owns funding and posting; separate preparation from final authorisation where required.",
+      "Managers approve time, leave and variable-pay inputs; HR resolves missing or conflicting approvals."
+    ],
+    "industries": [
+      "IT/services payroll: revised salaries, leave, reimbursements and approved incentives → validated gross-to-net run.",
+      "Manufacturing payroll: shift attendance, approved overtime and absences → time-linked earnings → review.",
+      "Retail/e-commerce payroll: store or warehouse attendance and approved incentives → location-wise validation → payroll.",
+      "Healthcare payroll: employee rosters and approved shift/on-call allowances → checked pay components.",
+      "Professional-services payroll: approved employee pay changes and cost-centre assignments → payroll and costing outputs; not client billing."
+    ],
+    "departments": [
+      "HR/payroll collects lifecycle and absence changes, resolves exceptions and publishes payslips.",
+      "Finance reviews variances, approves payment and reconciles accounting outputs.",
+      "Sales operations supplies approved commissions; payroll checks the approved amount and period before payment."
+    ],
+    "technology": [
+      "HRIS data: map salary-effective dates and lifecycle changes into payroll.",
+      "Attendance/leave exports or interfaces: reconcile employee IDs, period boundaries and loss-of-pay inputs.",
+      "Accounting/ERP interface: map cost centres and ledger codes; confirm actual import/export support.",
+      "Legacy payroll migration: reconcile year-to-date values, salary structures and a parallel sample run; avoid assuming a native migration tool."
+    ],
+    "trigger": "More payroll corrections, fragmented attendance/HR tools, an HR team reorganisation, or a decision to bring payroll operations in-house."
+  },
+  {
+    "name": "Mid-market employer — controlled payroll close",
+    "size": "Payroll software for mid-market companies\nIllustrative: 201–500 employees; size can overlap with other operating contexts.",
+    "readiness": "Multiple administrators submit changes and adjustments. Use case: validated cut-off snapshots, named exception owners and reviewable changes.",
+    "complexity": "Multiple salary structures, sites or pay groups; monthly payroll may include arrears and final settlements. Multiple entities are possible, not required.",
+    "people": [
+      "Payroll specialist plus HR operations contributors; HR manager owns policy and exceptions. Actual staffing depends on automation and scope.",
+      "Finance controller/approver checks variances, funding and posting; responsibilities should be separated from preparation.",
+      "Managers own source approvals; local HR reviews site inputs before central payroll accepts them."
+    ],
+    "industries": [
+      "SaaS/IT payroll: salary revisions and approved variable pay → variance review → controlled release.",
+      "Manufacturing payroll: time-pay adjustments and approved allowances → exception review before release.",
+      "Retail/e-commerce payroll: consolidate location inputs and employee transfers → reconcile → release.",
+      "Healthcare payroll: approved roster and allowance changes → exception handling → payroll close.",
+      "Professional-services payroll: pay changes, bonuses and cost allocations → review and reconcile, separate from billing or revenue recognition."
+    ],
+    "departments": [
+      "HR operations and payroll: source changes → exceptions → reviewed run → employee queries.",
+      "Finance: variance review → approval → payment and journal reconciliation.",
+      "Sales/compensation owners: approve incentive inputs and corrections → hand off to payroll with traceability."
+    ],
+    "technology": [
+      "Core HR integration requirement: controlled effective-dated employee and salary changes.",
+      "Attendance/leave interface requirement: approved snapshots, failed-import visibility and adjustment traceability.",
+      "ERP/accounting requirement: cost-centre mapping and reconciliation of journals against the approved register.",
+      "Payroll replacement: parallel calculations and opening-balance checks; validate exports/APIs before promising connectors."
+    ],
+    "trigger": "Payroll close relies on too many spreadsheets or private messages, recurring audit/reconciliation effort, or replacing a fragmented HR/payroll setup."
+  },
+  {
+    "name": "Attendance-heavy multi-site employer",
+    "size": "Payroll software for multi-site and frontline workforces\nIllustrative: 201–1,500 employees; can also fit smaller shift-heavy employers.",
+    "readiness": "Site devices, rosters and local approvers create late or inconsistent time inputs. Use case: reconcile approved attendance before it changes pay.",
+    "complexity": "Sites, shifts, overtime rules and frequent workforce changes drive complexity. Separate employees from contractor/vendor billing; labels alone do not determine legal status.",
+    "people": [
+      "Central payroll owner and local HR/time administrators; staffing follows sites and input workload rather than a fixed employee ratio.",
+      "Central finance reviews site totals, pay variances and bank release.",
+      "Site supervisors approve time and overtime; central payroll resolves unmatched IDs, missing approvals and corrections."
+    ],
+    "industries": [
+      "IT/BPO operations with shifts: approved shift/attendance changes → payroll adjustments; not every software company needs this.",
+      "Manufacturing/mining payroll: site attendance and approved time/allowances → local validation → central payroll. Validate site policies separately.",
+      "Retail/e-commerce payroll: store, warehouse and field attendance → transfers and variable inputs → consolidated payroll.",
+      "Hospital payroll: employee rosters and approved duty allowances → checked time-linked earnings.",
+      "Field-service payroll: approved employee time/allowances by site → pay and cost allocation; supplier charges remain separate."
+    ],
+    "departments": [
+      "HR/site operations → reviewed attendance and employee changes → payroll exceptions.",
+      "Finance → reconcile site/pay-group totals → approve release → cost-centre posting.",
+      "Sales/store managers → approved incentive totals → payroll; not an assumed sales-commission calculation module."
+    ],
+    "technology": [
+      "Employee master must consistently identify location, employing entity and effective transfers.",
+      "Time/roster or biometric-system feeds: require mapping, cut-offs and correction handling; device/vendor support must be verified.",
+      "Accounting output needs site/cost-centre mappings and reconciliation to payroll totals.",
+      "Mixed site spreadsheets/legacy tools: staged migration with site-by-site input validation and parallel pay checks."
+    ],
+    "trigger": "New sites or shift patterns, recurring attendance-related pay disputes, late site submissions, or a need to centralise payroll without losing local approvals."
+  },
+  {
+    "name": "Enterprise — specialist teams and shared services",
+    "size": "Payroll software for enterprises\nIllustrative: 1,000–5,000 employees; overlaps are intentional, not a strict maturity boundary.",
+    "readiness": "Several source systems and approval owners require controlled interfaces, complete period inputs and audit-ready change history.",
+    "complexity": "Pay groups, business units, locations and exceptions create reconciliation work. Scale alone does not prove every employee has complex pay.",
+    "people": [
+      "Payroll manager and payroll specialists with HR shared-services contributors; staffing and segregation follow workload and risk.",
+      "Controller/treasury and accounting reviewers separate funding, authorisation and reconciliation responsibilities.",
+      "Business-unit/site approvers provide certified inputs; shared services handles employee payroll questions."
+    ],
+    "industries": [
+      "IT/services enterprise payroll: governed salary/variable-pay changes across business units → reviewed payroll close.",
+      "Manufacturing/mining enterprise payroll: site-specific time/pay inputs → policy validation → central oversight.",
+      "Retail/e-commerce enterprise payroll: workforce movements and location inputs → exception ownership → coordinated release.",
+      "Healthcare group payroll: approved employee rosters/allowances across facilities → shared payroll controls.",
+      "Professional-services enterprise payroll: employee compensation and cost allocations → entity/unit review → reporting; client project revenue is separate."
+    ],
+    "departments": [
+      "Shared HR/payroll operations: standard intake → owned exceptions → maker/checker review → employee service.",
+      "Finance/treasury: pay-group and unit reconciliation → funding/approval → payment/ledger close.",
+      "Compensation/sales operations: certify variable-pay inputs and adjustments → payroll with an approval trail."
+    ],
+    "technology": [
+      "Enterprise HRIS requirement: authoritative master data, effective dating and access-controlled changes.",
+      "Workforce-management feeds: approved snapshots and visibility into failed or late inputs.",
+      "ERP requirement: controlled journal formats, cost allocation and reconciliation; named ERP compatibility requires verification.",
+      "Legacy replacement: phased parallel runs, historical balance reconciliation, permissions and support handover."
+    ],
+    "trigger": "Shared-services rollout, system replacement, growing close-control requirements, or too much reconciliation across payroll and finance."
+  },
+  {
+    "name": "Corporate group — multi-entity payroll governance",
+    "size": "Payroll software for large groups and multi-entity employers\nIllustrative: 5,000+ employees; multi-entity needs may arise much earlier.",
+    "readiness": "Different entities/source owners require consistent identifiers and reconciliation without erasing local rules or data ownership.",
+    "complexity": "Entity, location and pay-group differences matter. India is the current market; international entities require separately verified country coverage, not an assumed global payroll feature.",
+    "people": [
+      "Group payroll lead and entity payroll teams/shared services; local subject-matter reviewers where needed.",
+      "Entity finance plus group treasury/consolidation; approve entity runs before group-level reporting.",
+      "Entity/site approvers own local inputs; group governance defines controls and escalation."
+    ],
+    "industries": [
+      "IT group payroll: approved compensation changes by employing entity → entity runs → group cost reporting.",
+      "Industrial group payroll: plant/mining-site inputs and local approved policies → entity payroll → central oversight.",
+      "Retail/e-commerce group payroll: legal-entity and location mappings → approved pay runs → consolidated reporting.",
+      "Healthcare group payroll: facility inputs and entity ownership → governed payroll release and consolidation.",
+      "Professional-services group payroll: compensation and allocation changes by entity → local review → group reporting."
+    ],
+    "departments": [
+      "Group HR/payroll: common intake controls with entity-specific rules and exception ownership.",
+      "Entity finance/group treasury: approved payroll results → funding and reconciliation → consolidated cost view.",
+      "Compensation/sales teams: approved incentive allocations across employing entities → relevant payroll run."
+    ],
+    "technology": [
+      "One or several HRIS sources: identify the source of truth per entity and govern employee transfers.",
+      "Multiple workforce systems: standardise interface contracts while keeping relevant local pay inputs.",
+      "Multiple accounting/ERP ledgers: entity-level journals and cross-system reconciliation; no claim of universal ERP compatibility.",
+      "Acquisition/legacy consolidation: staged cutovers, retained history and reconciled balances; country packs are a separate validation gate."
+    ],
+    "trigger": "Acquisitions, group-wide payroll consolidation, divergent entity processes, or a need for central visibility with local accountability."
+  }
+]
