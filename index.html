@@ -2586,7 +2586,7 @@ const SUPABASE_URL = 'https://cskamgfvebryahkljlll.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_MdkD-TxMCIwlu69seSHA3Q_A39GADsK';
 const CLIENT_ID    = '1059013355751-6g50dsgm7df37htl2fdqrtlkh5hmrc0c.apps.googleusercontent.com';
 const ALLOWED      = ['vijaysrinivassan@gmail.com'];
-const BUILD        = 'v8.18';
+const BUILD        = 'v8.19';
 
 const STRATEGY_ONE_TAB = 'Strategy 1 — Brand Strategy';
 const PRODUCT_EVOLUTION_TAB = 'Strategy 1 — Product Evolution';
@@ -8718,16 +8718,20 @@ function renderIndustryFit(ro){
   const buying = brandRadarState();
   const models = [
     {id:'b2b-saas',name:'B2B SaaS',axis:'process',axisLabel:'Process',
-     example:'Example: CRM or payroll software sold to businesses',
+     exampleLabel:'CRM, payroll and ERP software',
+     marketLabel:'B2B SaaS market',
      pages:['Use case','Country','Industry','Company size']},
     {id:'b2c-saas',name:'Consumer SaaS',axis:'people',axisLabel:'People',
-     example:'Example: design or productivity software used by individuals',
+     exampleLabel:'Personal design and productivity apps',
+     marketLabel:'Consumer SaaS market',
      pages:['Person or role','Identity','Cognitive jobs']},
     {id:'technical-infrastructure',name:'Technical infrastructure providers',axis:'technology',axisLabel:'Technology',
-     example:'Example: cloud, API, database or developer infrastructure',
+     exampleLabel:'Cloud, API and database infrastructure',
+     marketLabel:'Technical infrastructure providers market',
      pages:['Technology environment','Stack','Infrastructure architecture','Quality']},
     {id:'data-providers',name:'Data / raw-material providers',axis:'input',axisLabel:'Input',
-     example:'Example: market, identity or operational data feeds',
+     exampleLabel:'Market, identity and operational data feeds',
+     marketLabel:'Data material providers market',
      pages:['Input type','Quality','Characteristics']}
   ];
   const selectedModel = models.find(model => buying.industryModel === model.id);
@@ -8806,13 +8810,13 @@ function renderIndustryFit(ro){
     option.setAttribute('aria-pressed', cardActive ? 'true' : 'false');
     const choice = document.createElement('span'); choice.className = 'industry-model-choice';
     const sourceParcel = document.createElement('span'); sourceParcel.className = 'industry-model-parcel';
-    const source = document.createElement('span'); source.className = 'industry-model-source'; source.textContent = axisLabel(sellingAxis) || 'Choose axis';
-    const example = document.createElement('span'); example.className = 'industry-model-example'; example.textContent = model.example;
-    sourceParcel.append(source, example);
+    const source = document.createElement('span'); source.className = 'industry-model-source'; source.textContent = model.exampleLabel;
+    const sourceMarket = document.createElement('span'); sourceMarket.className = 'industry-model-market'; sourceMarket.textContent = model.marketLabel;
+    sourceParcel.append(source, sourceMarket);
     const arrow = document.createElement('span'); arrow.className = 'industry-model-choice-arrow'; arrow.textContent = '\u2192';
     const targetParcel = document.createElement('span'); targetParcel.className = 'industry-model-parcel';
     const axis = document.createElement('span'); axis.className = 'industry-model-axis'; axis.textContent = model.axisLabel;
-    const market = document.createElement('span'); market.className = 'industry-model-market'; market.textContent = model.name + ' market';
+    const market = document.createElement('span'); market.className = 'industry-model-market'; market.textContent = model.marketLabel;
     targetParcel.append(axis, market);
     choice.append(sourceParcel, arrow, targetParcel);
     option.append(choice);
