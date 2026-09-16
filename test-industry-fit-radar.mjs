@@ -19,6 +19,10 @@ assert(html.includes("previewAxis.textContent = selectedModel ? selectedModel.ax
 assert(html.includes("previewInfluence.textContent = 'Technology influences \\u2192'"));
 assert(html.includes('preview.append(previewName, previewAxis)'));
 assert(!html.includes("preview.append(previewName, previewFlow, previewAxis)"));
+assert(html.includes("const option = document.createElement('article')"));
+assert(html.includes("arrow.className = 'industry-model-choice-arrow'"));
+assert(html.includes("option.onclick = selectModel"));
+assert(!html.includes("check.className = 'industry-model-check'"));
 assert(html.includes('host.append(preview, modelGrid)'));
 assert(!html.includes("headerTitle.textContent = 'Industry fit'"));
 assert(html.includes('renderIndustryFit(ro);'));
