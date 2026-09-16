@@ -27,4 +27,9 @@ assert.equal(page.columns.find(c=>c.name==='Segment-Specific Problems').axis,'pr
 assert.equal(root.views.icp.rows[0].cells['old-problem'],cell);
 assert.deepEqual(K.sortIcpColumns(page.columns).map(c=>c.axis||K.inferIcpAxis(c.name)),['people','technology','process','process','process','process','input']);
 assert(K.strategyPrompt.includes('ICP AXES'));
+const html=(await import('node:fs')).default.readFileSync(new URL('./index.html',import.meta.url),'utf8');
+assert(html.includes("const activeIcpAxis = state.contentView === 'icp' ? activeBuyingIndustryAxis() : '';"));
+assert(html.includes("sortedColumns.filter(col => (col.axis || KeywordColumns.inferIcpAxis(col.name)) === activeIcpAxis)"));
+assert(html.includes('td.colSpan = columns.length + 1;'));
+assert(html.includes("{axis:activeBuyingIndustryAxis() || 'process'}"));
 console.log('PASS: ICP keyword axes, shared columns, non-destructive legacy preservation, maturity removal, and stable cell data.');

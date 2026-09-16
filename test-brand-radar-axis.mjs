@@ -15,7 +15,7 @@ assert(html.includes('renderPositioning();\n    renderEvolution();\n    renderBr
 
 const render=html.slice(html.indexOf('function renderBrandRadar()'),html.indexOf("$('btnOpenProductEvolution')"));
 assert(render.includes('const radar = brandRadarState()'));
-assert(render.includes("radar.axis = radar.buyingAxis || '';"));
+assert(render.includes('radar.axis = activeBuyingIndustryAxis();'));
 assert(render.includes("radar.axis || 'technology'"));
 const evolution=html.slice(html.indexOf('function renderEvolution('),html.indexOf("$('btnEvoChange')"));
 assert(evolution.includes('renderPositioning();'));
