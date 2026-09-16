@@ -1453,28 +1453,30 @@
   .icp-list{display:flex; flex-direction:column; gap:14px; width:min(820px,100%); margin:0 auto}
   .industry-fit{width:min(820px,100%); margin:0 auto 18px}
   .industry-fit-preview{display:flex; align-items:flex-start; justify-content:space-between;
-                        gap:84px; width:min(620px,100%); margin:0 auto 18px}
+                        gap:110px; width:min(740px,100%); margin:0 auto 20px}
   .industry-fit-preview-side{display:flex; flex-direction:column; align-items:center; gap:10px}
+  .industry-fit-preview-heading{color:#555b55; font-size:9px; font-weight:800;
+                                letter-spacing:.1em; text-transform:uppercase}
   .industry-fit-preview-piece{position:relative; z-index:1; display:flex; align-items:center;
-                              justify-content:center; width:188px; aspect-ratio:1; padding:22px;
+                              justify-content:center; width:220px; aspect-ratio:1; padding:26px;
                               border:1px solid #bfc4bf;
                               background:#fff; color:#222722; font-size:12px; font-weight:800;
                               letter-spacing:.04em; text-align:center; text-transform:uppercase}
   .industry-fit-preview-name{flex-direction:column; gap:12px; border-radius:6px}
   .industry-fit-preview-name-text{line-height:1.45}
-  .industry-fit-preview-influence{color:#697069; font-size:8px; font-weight:850;
+  .industry-fit-preview-influence{color:#697069; font-size:8px; font-weight:500;
                                   letter-spacing:.09em; line-height:1.45}
-  .industry-fit-preview-name::after{content:''; position:absolute; z-index:2; right:-23px; top:50%;
-                                    width:44px; height:44px; transform:translateY(-50%);
+  .industry-fit-preview-name::after{content:''; position:absolute; z-index:2; right:-29px; top:50%;
+                                    width:56px; height:56px; transform:translateY(-50%);
                                     border:1px solid #bfc4bf; border-left:0; border-radius:50%;
                                     background:#fff}
   .industry-fit-preview-axis{border-radius:6px; color:#216c3d}
-  .industry-fit-preview-axis::before{content:''; position:absolute; z-index:2; left:-23px; top:50%;
-                                    width:44px; height:44px; transform:translateY(-50%);
+  .industry-fit-preview-axis::before{content:''; position:absolute; z-index:2; left:-29px; top:50%;
+                                    width:56px; height:56px; transform:translateY(-50%);
                                     border:1px solid #bfc4bf; border-radius:50%;
                                     background:#fbfbfa}
   .industry-fit-axis-row{display:grid; grid-template-columns:repeat(4,1fr); gap:4px;
-                         width:188px}
+                         width:220px}
   .industry-fit-axis-row span{padding:5px 3px; border:1px solid #d8dcd7; border-radius:3px;
                               background:#fff; color:#777d77; font-size:7px; font-weight:800;
                               letter-spacing:.055em; text-align:center; text-transform:uppercase}
@@ -1491,18 +1493,22 @@
   .industry-model.on{border-color:#57c982; background:#edf9f1;
                      box-shadow:0 0 0 1px rgba(87,201,130,.13)}
   .industry-model-choice{display:grid; grid-template-columns:minmax(0,1fr) 64px minmax(0,1fr);
-                         gap:18px; align-items:center; min-width:0}
-  .industry-model-name{display:flex; align-items:center; min-width:0; min-height:38px;
-                       color:#252925; font-size:10.5px; font-weight:800;
-                       letter-spacing:.035em; text-transform:uppercase}
+                         gap:18px; align-items:center; min-width:0; padding:2px 0 12px}
+  .industry-model-source{display:flex; align-items:center; min-height:34px;
+                         color:#3f443f; font-size:10.5px; font-weight:500}
   .industry-model-axis{display:flex; align-items:center; justify-content:flex-end; min-height:38px;
                        color:#2d7144; font-size:9px; font-weight:850;
                        letter-spacing:.08em; text-transform:uppercase}
   .industry-model-choice-arrow{display:grid; place-items:center; color:#7d837d;
                                font-size:19px; line-height:1}
+  .industry-model-details{display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr);
+                          gap:20px; align-items:start; padding-top:11px;
+                          border-top:1px solid #e4e6e2}
+  .industry-model-name{display:flex; align-items:center; min-width:0; min-height:28px;
+                       color:#252925; font-size:10.5px; font-weight:800;
+                       letter-spacing:.035em; text-transform:uppercase}
   .industry-model-pages{display:flex; align-items:center; flex-wrap:wrap;
-                        justify-content:flex-end; gap:6px; padding-top:10px;
-                        margin-top:10px; border-top:1px solid #e4e6e2; text-align:right}
+                        justify-content:flex-end; gap:6px; text-align:right}
   .industry-model-pages-label{margin-left:auto; margin-right:3px; color:#686e68;
                               font-size:8px; font-weight:850;
                               letter-spacing:.1em; text-transform:uppercase}
@@ -1622,9 +1628,10 @@
     .cat-status{position:absolute; right:12px; top:10px}.cat-competitor{grid-template-columns:1fr}
     .competitive-card{grid-template-columns:64px 1fr}.competitive-status{position:absolute; right:12px; top:10px}
     .competitive-controls{grid-column:1/-1}.value-row-grid{grid-template-columns:1fr 1fr}
-    .industry-fit-preview{gap:36px}.industry-fit-preview-piece{width:min(38vw,188px)}
-    .industry-fit-axis-row{width:min(38vw,188px)}
+    .industry-fit-preview{gap:44px}.industry-fit-preview-piece{width:min(38vw,220px)}
+    .industry-fit-axis-row{width:min(38vw,220px)}
     .industry-model-choice{grid-template-columns:minmax(0,1fr) 42px minmax(0,1fr); gap:10px}
+    .industry-model-details{grid-template-columns:minmax(120px,.7fr) minmax(0,1.3fr); gap:12px}
   }
   .pe-empty-source{color:#858680; font-size:10.5px; line-height:1.4}
   @media(max-width:780px){
@@ -2566,7 +2573,7 @@ const SUPABASE_URL = 'https://cskamgfvebryahkljlll.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_MdkD-TxMCIwlu69seSHA3Q_A39GADsK';
 const CLIENT_ID    = '1059013355751-6g50dsgm7df37htl2fdqrtlkh5hmrc0c.apps.googleusercontent.com';
 const ALLOWED      = ['vijaysrinivassan@gmail.com'];
-const BUILD        = 'v8.09';
+const BUILD        = 'v8.10';
 
 const STRATEGY_ONE_TAB = 'Strategy 1 — Brand Strategy';
 const PRODUCT_EVOLUTION_TAB = 'Strategy 1 — Product Evolution';
@@ -8709,9 +8716,11 @@ function renderIndustryFit(ro){
     return row;
   }
   const previewLeft = document.createElement('span'); previewLeft.className = 'industry-fit-preview-side';
-  previewLeft.append(previewName, axisRow('technology'));
+  const sellingHeading = document.createElement('span'); sellingHeading.className = 'industry-fit-preview-heading'; sellingHeading.textContent = 'Selling Industry';
+  previewLeft.append(sellingHeading, previewName, axisRow('technology'));
   const previewRight = document.createElement('span'); previewRight.className = 'industry-fit-preview-side';
-  previewRight.append(previewAxis, axisRow(selectedModel ? selectedModel.axis : ''));
+  const buyingHeading = document.createElement('span'); buyingHeading.className = 'industry-fit-preview-heading'; buyingHeading.textContent = 'Buying Industry';
+  previewRight.append(buyingHeading, previewAxis, axisRow(selectedModel ? selectedModel.axis : ''));
   preview.append(previewLeft, previewRight);
   const modelGrid = document.createElement('div'); modelGrid.className = 'industry-models';
   models.forEach(model => {
@@ -8721,10 +8730,12 @@ function renderIndustryFit(ro){
     option.setAttribute('aria-disabled', ro ? 'true' : 'false');
     option.setAttribute('aria-pressed', buying.industryModel === model.id ? 'true' : 'false');
     const choice = document.createElement('span'); choice.className = 'industry-model-choice';
-    const name = document.createElement('span'); name.className = 'industry-model-name'; name.textContent = model.name;
+    const source = document.createElement('span'); source.className = 'industry-model-source'; source.textContent = 'Technology';
     const arrow = document.createElement('span'); arrow.className = 'industry-model-choice-arrow'; arrow.textContent = '\u2192';
     const axis = document.createElement('span'); axis.className = 'industry-model-axis'; axis.textContent = model.axisLabel;
-    choice.append(name, arrow, axis);
+    choice.append(source, arrow, axis);
+    const details = document.createElement('span'); details.className = 'industry-model-details';
+    const name = document.createElement('span'); name.className = 'industry-model-name'; name.textContent = model.name;
     const pages = document.createElement('span'); pages.className = 'industry-model-pages';
     const pagesLabel = document.createElement('span'); pagesLabel.className = 'industry-model-pages-label'; pagesLabel.textContent = 'Pages to create';
     pages.append(pagesLabel);
@@ -8732,7 +8743,8 @@ function renderIndustryFit(ro){
       const chip = document.createElement('span'); chip.className = 'industry-model-page'; chip.textContent = page;
       pages.append(chip);
     });
-    option.append(choice, pages);
+    details.append(name, pages);
+    option.append(choice, details);
     const selectModel = () => {
       if (readOnly()) return;
       buying.industryModel = model.id;
