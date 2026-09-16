@@ -1516,7 +1516,8 @@
   .industry-model-parcel{display:flex; flex-direction:column; align-items:center;
                          justify-content:center; min-height:96px; padding:14px 16px;
                          border:1px solid #d2d5d0; border-radius:6px; background:#fff}
-  .industry-model-source{color:#2d7144; font-size:15px; font-weight:600; text-align:center}
+  .industry-model-source{color:#737a73; font-size:9px; font-weight:600;
+                         line-height:1.45; text-align:center}
   .industry-model-axis{color:#2d7144; font-size:15px; font-weight:600;
                        letter-spacing:.08em; text-transform:uppercase}
   .industry-model-choice-arrow{display:grid; place-items:center; color:#7d837d;
@@ -2586,7 +2587,7 @@ const SUPABASE_URL = 'https://cskamgfvebryahkljlll.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_MdkD-TxMCIwlu69seSHA3Q_A39GADsK';
 const CLIENT_ID    = '1059013355751-6g50dsgm7df37htl2fdqrtlkh5hmrc0c.apps.googleusercontent.com';
 const ALLOWED      = ['vijaysrinivassan@gmail.com'];
-const BUILD        = 'v8.19';
+const BUILD        = 'v8.20';
 
 const STRATEGY_ONE_TAB = 'Strategy 1 — Brand Strategy';
 const PRODUCT_EVOLUTION_TAB = 'Strategy 1 — Product Evolution';
@@ -8810,7 +8811,7 @@ function renderIndustryFit(ro){
     option.setAttribute('aria-pressed', cardActive ? 'true' : 'false');
     const choice = document.createElement('span'); choice.className = 'industry-model-choice';
     const sourceParcel = document.createElement('span'); sourceParcel.className = 'industry-model-parcel';
-    const source = document.createElement('span'); source.className = 'industry-model-source'; source.textContent = model.exampleLabel;
+    const source = document.createElement('span'); source.className = 'industry-model-source'; source.textContent = 'Example: ' + model.exampleLabel;
     const sourceMarket = document.createElement('span'); sourceMarket.className = 'industry-model-market'; sourceMarket.textContent = model.marketLabel;
     sourceParcel.append(source, sourceMarket);
     const arrow = document.createElement('span'); arrow.className = 'industry-model-choice-arrow'; arrow.textContent = '\u2192';
