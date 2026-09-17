@@ -51,6 +51,80 @@ function competitorClipboardText(m){
  }
  return rows.flat().map(clipboardField).join(',');
 }
+
+/* Build the page export from saved model data rather than the visible DOM. This
+   keeps lazy/off-screen cells in the workbook and avoids exporting blank rows. */
+function exportStatusName(id){
+ const item=(typeof STATUS!=='undefined'?STATUS:[]).find(value=>value.id===id);
+ return item?item.label:'';
+}
+function exportArticleTypeName(id){
+ const item=(typeof articleTypes==='function'?articleTypes():[]).find(value=>value.id===id);
+ return item?item.name:'';
+}
+function exportWrittenByName(value){
+ return value==='old'?'Old':value==='new'?'New':'';
+}
+function exportKeywordValues(rows){
+ const unique=[],seen=new Set();let volume=0;
+ for(const row of rows||[]){
+  const value=String(row.keyword||'').trim(),key=value.toLowerCase();
+  if(value&&!seen.has(key)){seen.add(key);unique.push(value);}
+  const amount=Number(row.volume);if(Number.isFinite(amount))volume+=amount;
+ }
+ return {keywords:unique.join(', '),volume};
+}
+function exportCellRow(first,title,tableName,cell,keywordRows){
+ const values=exportKeywordValues(keywordRows);
+ return [first,title,values.keywords,values.volume,(cell.mode||'aeo').toUpperCase(),
+  exportStatusName(cell.st),cell.on?'Yes':'No',tableName,exportArticleTypeName(cell.type),
+  cell.aw||'',exportWrittenByName(cell.writtenBy),cell.url||''];
+}
+function competitorExportData(m){
+ const companies=(m.rows||[]).filter(company=>company.role!=='others'&&String(company.name||'').trim().toLowerCase()!=='others'&&String(company.name||'').trim());
+ const main=[];
+ for(const company of companies)for(const type of m.types||[]){
+  const key=company.id+'|'+type.id,raw=m.cells?.[key];
+  const cell=cellState(m,key,typeof defaultsFor==='function'?defaultsFor(type):{});
+  const keywords=matrixCellKeywords(company,type,cell.v||cell.url,cell.kws);
+  if(!raw&&!keywords.length)continue;
+  const title=String(cell.v||'').trim()||String(company.name||'').trim()+' '+String(type.name||'').trim();
+  main.push(exportCellRow(String(company.name||'').trim(),title,String(type.name||'').trim(),cell,keywords));
+ }
+ const comparisons=[];
+ for(let i=0;i<companies.length;i++)for(let j=i+1;j<companies.length;j++){
+  const a=companies[i],b=companies[j],key=comparisonKey(a.id,b.id),raw=m.comparisonCells?.[key]||{};
+  const fallback=b.name+' vs '+a.name;
+  const cell=cellState({cells:m.comparisonCells||{}},key,{mode:'aeo'});
+  const title=String(raw.v===undefined?fallback:cell.v).trim()||fallback;
+  let keywords=gridCellKeywords(title,cell.kws);
+  if(raw.v===undefined)keywords=keywords.concat(gridCellKeywords(a.name+' vs '+b.name,cell.kws));
+  const uniqueIds=new Set();keywords=keywords.filter(row=>{const id=row.id==null?String(row.keyword||'').toLowerCase():String(row.id);if(uniqueIds.has(id))return false;uniqueIds.add(id);return true;});
+  comparisons.push(exportCellRow(fallback,title,'Competitor vs. Competitor',cell,keywords));
+ }
+ for(const [id] of Object.entries(m.comparisonOthers||{})){
+  const cell=cellState({cells:m.comparisonOthers},id,{mode:'aeo'}),title=String(cell.v||'').trim();
+  if(!title&&!cell.kws.length)continue;
+  comparisons.push(exportCellRow('Others',title,'Competitor vs. Competitor',cell,gridCellKeywords(title,cell.kws)));
+ }
+ return {main,comparisons};
+}
+function safeWorkbookName(value){
+ return String(value||'').trim().replace(/[\\/:*?"<>|]+/g,'-').replace(/\s+/g,' ').slice(0,80)||'Competitor';
+}
+function downloadCompetitorWorkbook(m,meta){
+ if(typeof XLSX==='undefined')throw new Error('Excel library did not load');
+ const data=competitorExportData(m),headers=['Competitor Name','Title','Keywords','Search Volume','SEO/AEO','Status','Selected','Table','Type','Awareness Stage','Written By','Slug'];
+ const comparisonHeaders=headers.slice();comparisonHeaders[0]='Comparison';
+ const rows=[['Competitor'],headers,...data.main,[],['Competitor vs. Competitor'],comparisonHeaders,...data.comparisons];
+ const sheet=XLSX.utils.aoa_to_sheet(rows);
+ sheet['!cols']=[{wch:24},{wch:38},{wch:70},{wch:15},{wch:12},{wch:20},{wch:12},{wch:28},{wch:20},{wch:22},{wch:14},{wch:36}];
+ sheet['!autofilter']={ref:'A2:L'+Math.max(2,2+data.main.length)};
+ const workbook=XLSX.utils.book_new();XLSX.utils.book_append_sheet(workbook,sheet,'Competitor');
+ const prefix=[meta?.client,meta?.product,'competitor-keywords'].filter(Boolean).join('-');
+ XLSX.writeFile(workbook,safeWorkbookName(prefix)+'.xlsx',{compression:true});
+ return {mainRows:data.main.length,comparisonRows:data.comparisons.length};
+}
 // Export from model data, including cells that have not been scrolled into view.
 function comparisonClipboardText(m){
  const companies=m.rows.filter(c=>c.role!=='others'&&String(c.name||'').trim().toLowerCase()!=='others'&&(c.name||'').trim()), rows=[];

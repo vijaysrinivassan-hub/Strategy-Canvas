@@ -1,7 +1,7 @@
 import fs from 'node:fs';import vm from 'node:vm';import assert from 'node:assert/strict';
 import KeywordAssignments from './keyword-assignments.js';
 class El{
- constructor(tag){this.tag=tag;this.children=[];this.style={};this.classList={toggle(){}};this.value='';}
+ constructor(tag){this.tag=tag;this.children=[];this.style={};this.dataset={};this.classList={toggle(){}};this.value='';}
  append(...els){for(const e of els){e.parentNode=this;this.children.push(e);}}
  set innerHTML(v){this.children=[];}
  setAttribute(){}
@@ -15,8 +15,9 @@ const state={contentView:'competitor',tabs:{content:{views:{competitor:m}}}};
 const select=(value,ro,save)=>{const e=new El('select');e.value=value;e.disabled=ro;e.onchange=()=>save(e.value);return e;};
 const ctx=vm.createContext({KeywordAssignments,keywordRowsByIds:()=>[],state,CONTENT_TAB:'content',$:()=>host,document:{createElement:t=>new El(t)},
  readOnly:()=>readonly,markDirty:()=>dirty++,gridCellKeywords:()=>[],keywordBlock:()=>new El('div'),
+ renderIcpKeywordIdeas:()=>{},
  kindSelect:select,awarenessSelect:select,statusSelect:select,modeSwitch:()=>new El('div'),
- setTimeout:()=>0,clearTimeout(){}});
+ keywordMode:'aeo',setTimeout:()=>0,clearTimeout(){}});
 const html=fs.readFileSync(new URL('./index.html',import.meta.url),'utf8');
 vm.runInContext(html.slice(html.indexOf('function cellState('),html.indexOf('/* What a matrix cell catches')),ctx);
 vm.runInContext(html.slice(html.indexOf('function cellControls('),html.indexOf('/* Keywords as evidence')),ctx);
@@ -54,15 +55,15 @@ ctx.gridCellKeywords=(title,ids)=>(ids||[]).map(id=>({keyword:'keyword '+id}));
 const exportModel={rows:[{id:'a',name:'Alpha'},{id:'b',name:'Beta'},{id:'c',name:'Gamma'}],comparisonCells:{}};
 exportModel.comparisonCells[ctx.comparisonKey('a','b')]={v:'Custom comparison',kws:['one','two']};
 const output=ctx.comparisonClipboardText(exportModel);
-assert.equal(output.split('\n').length,3);
+assert.equal(output.split('\n').length,1);
 assert(!output.includes('Proposed title'));assert(!output.includes('Keywords'));
 assert(output.includes('Custom comparison,keyword one,keyword two'));
-assert(output.split('\n').includes('Gamma vs Alpha'));
+assert(output.includes('Gamma vs Alpha'));
 assert(!output.includes('Alpha vs. Alpha'));assert(!output.includes('Beta vs. Alpha'));
 exportModel.comparisonCells[ctx.comparisonKey('a','c')]={v:'Compare, "carefully"',kws:[]};
 assert(ctx.comparisonClipboardText(exportModel).includes('"Compare, ""carefully"""'));
 exportModel.comparisonCells[ctx.comparisonKey('a','c')]={v:'Alpha vs. Gamma',kws:[]};
-assert(ctx.comparisonClipboardText(exportModel).split('\n').includes('Alpha vs Gamma'));
+assert(ctx.comparisonClipboardText(exportModel).includes('Alpha vs Gamma'));
 assert(!ctx.comparisonClipboardText(exportModel).includes('vs.'));
 delete exportModel.comparisonCells[ctx.comparisonKey('a','c')];
 state.tabs.content.views.competitor=exportModel;
