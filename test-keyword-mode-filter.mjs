@@ -17,6 +17,8 @@ vm.runInContext(html.slice(html.indexOf('function cellOf('),html.indexOf('functi
 const row={cells:{old:{v:'Keep',mode:'aeo'},legacy:'Legacy'}};
 assert.equal(ctx.cellOf(row,'old',{mode:'seo'}).mode,'aeo');
 assert.equal(ctx.cellOf(row,'legacy',{mode:'seo'}).mode,'aeo');
+assert.equal(ctx.cellOf(row,'old',{mode:'seo',forceMode:true}).mode,'seo');
+assert.equal(ctx.cellOf(row,'legacy',{mode:'seo',forceMode:true}).mode,'seo');
 ctx.setCellIn(row,'new',{v:'SEO article'},{mode:'seo'});
 assert.equal(row.cells.new.mode,'seo');
 assert.equal(row.cells.old.v,'Keep');
@@ -30,6 +32,8 @@ assert.ok(controls.includes("td.removeAttribute('aria-label')"));
 assert.ok(!controls.includes('gr-channel-placeholder'));
 assert.ok(!controls.includes("'View ' + otherMode"));
 assert.ok(!html.includes('.gr-channel-placeholder{'));
+assert.ok(html.includes('forceMode: !!configuredDefaults.mode'));
+assert.ok(html.includes('Object.assign({mode:keywordMode}, defaultsFor(ty))'));
 ctx.state.contentView='competitor';ctx.renderKeywordModeFilter();
 assert.equal(nodes.keywordModeFilter.hidden,true);
 assert.equal(nodes.keywordModeFilter.children.length,0);

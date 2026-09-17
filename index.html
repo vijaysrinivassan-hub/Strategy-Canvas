@@ -2600,7 +2600,7 @@ const SUPABASE_URL = 'https://cskamgfvebryahkljlll.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_MdkD-TxMCIwlu69seSHA3Q_A39GADsK';
 const CLIENT_ID    = '1059013355751-6g50dsgm7df37htl2fdqrtlkh5hmrc0c.apps.googleusercontent.com';
 const ALLOWED      = ['vijaysrinivassan@gmail.com'];
-const BUILD        = 'v8.28';
+const BUILD        = 'v8.29';
 
 const STRATEGY_ONE_TAB = 'Strategy 1 — Brand Strategy';
 const PRODUCT_EVOLUTION_TAB = 'Strategy 1 — Product Evolution';
@@ -6420,9 +6420,10 @@ function openColumnGuide(col, label, rerender){
 function cellOf(row, colId, defaults){
   const c = row.cells[colId];
   const d = defaults || {};
-  if (typeof c === 'string') return { v: c, mode: 'aeo', type: d.type || '', on: false, aw: d.aw || '', st: '', cfg:false, kws: [] };
+  if (typeof c === 'string') return { v: c, mode: d.forceMode ? d.mode : 'aeo', type: d.type || '', on: false, aw: d.aw || '', st: '', cfg:false, kws: [] };
   if (c && typeof c === 'object'){
-    return { v: c.v || '', mode: c.mode === 'seo' ? 'seo' : 'aeo', type: c.type || '',
+    const mode = d.forceMode ? d.mode : (c.mode === 'seo' ? 'seo' : c.mode === 'aeo' ? 'aeo' : (d.mode || 'aeo'));
+    return { v: c.v || '', mode: mode, type: c.type || '',
              on: !!c.on, aw: c.aw || '', st: c.st || '', url: c.url || '', writtenBy: c.writtenBy || '', cfg:!!c.cfg,
              keywordIdeas: Array.isArray(c.keywordIdeas) ? c.keywordIdeas : [], icpSource:c.icpSource || null,
              kws: Array.isArray(c.kws) ? c.kws.filter(Boolean) : [] };
@@ -6440,7 +6441,8 @@ function cellQuiet(c, keywordCount){
 function setCellIn(row, colId, patch, defaults){
   const c = Object.assign(cellOf(row, colId, defaults), patch);
   const kws = Array.isArray(c.kws) ? c.kws.filter(Boolean) : [];
-  if (!c.url && !c.writtenBy && !c.cfg && !c.v && !c.type && c.mode === 'aeo' && !c.on && !c.aw && !c.st && !kws.length && !c.keywordIdeas?.length && !c.icpSource) delete row.cells[colId];
+  const defaultMode = (defaults && defaults.mode) || 'aeo';
+  if (!c.url && !c.writtenBy && !c.cfg && !c.v && !c.type && c.mode === defaultMode && !c.on && !c.aw && !c.st && !kws.length && !c.keywordIdeas?.length && !c.icpSource) delete row.cells[colId];
   else row.cells[colId] = { v: c.v, mode: c.mode, type: c.type, on: c.on, aw: c.aw, st: c.st, url: c.url || '', writtenBy: c.writtenBy || '', cfg:!!c.cfg, kws: kws,
     ...(c.keywordIdeas?.length ? {keywordIdeas:c.keywordIdeas} : {}), ...(c.icpSource ? {icpSource:c.icpSource} : {}) };
 }
@@ -6741,7 +6743,7 @@ function renderMatrix(){
     m.types.forEach(function(ty, ti){
       const td = document.createElement('td');
       const cellKey = comp.id + '|' + ty.id;
-      const defaults = Object.assign({}, defaultsFor(ty), {mode:keywordMode});
+      const defaults = Object.assign({mode:keywordMode}, defaultsFor(ty));
       const st = cellState(m, cellKey, defaults);
       const rows = matrixCellKeywords(comp, ty, st.v || st.url, st.kws);
       const untouched = !m.cells[cellKey];
@@ -6950,7 +6952,11 @@ function renderGridTable(v, group, table){
     tr.append(num);
 
     columns.forEach(function(col, ci){
-      const defaults = Object.assign({}, defaultsFor(col), {mode:keywordMode});
+      const configuredDefaults = Object.assign({}, defaultsFor(col));
+      const defaults = Object.assign({}, configuredDefaults, {
+        mode: configuredDefaults.mode || keywordMode,
+        forceMode: !!configuredDefaults.mode
+      });
       if (!defaults.type) defaults.type = articleTypes().find(t => t.name.toLowerCase() === group.type.toLowerCase())?.id || '';
       const cell = cellOf(row, col.id, defaults);
       const kws = gridCellKeywords(cell.v || cell.url, cell.kws);
