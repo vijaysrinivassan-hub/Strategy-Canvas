@@ -2599,7 +2599,7 @@ const SUPABASE_URL = 'https://cskamgfvebryahkljlll.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_MdkD-TxMCIwlu69seSHA3Q_A39GADsK';
 const CLIENT_ID    = '1059013355751-6g50dsgm7df37htl2fdqrtlkh5hmrc0c.apps.googleusercontent.com';
 const ALLOWED      = ['vijaysrinivassan@gmail.com'];
-const BUILD        = 'v8.26';
+const BUILD        = 'v8.27';
 
 const STRATEGY_ONE_TAB = 'Strategy 1 — Brand Strategy';
 const PRODUCT_EVOLUTION_TAB = 'Strategy 1 — Product Evolution';
@@ -6098,7 +6098,7 @@ function statusSelect(current, disabled, onPick){
    and `set` writes a patch to it, so the two views cannot drift apart. */
 function cellControls(td, o){
   const cell = o.get();
-  if ((cell.mode || 'aeo') !== keywordMode){
+  if (!o.inlineMode && (cell.mode || 'aeo') !== keywordMode){
     td.replaceChildren();
     td.classList.add('empty');
     td.removeAttribute('aria-label');
@@ -6130,6 +6130,14 @@ function cellControls(td, o){
 
   const foot = document.createElement('div');
   foot.className = 'gr-foot';
+  if (o.inlineMode){
+    foot.append(modeSwitch(cell.mode || 'aeo', o.ro, function(mode){
+      o.set({ mode: mode });
+      o.refreshEmpty();
+      markDirty();
+      redraw();
+    }));
+  }
   /* an article already written is past ticking */
   if (cell.st !== 'written'){
     const tick = document.createElement('input');
@@ -6556,7 +6564,7 @@ function renderKeywordModeFilter(){
     host.setAttribute('role', 'group'); host.setAttribute('aria-label', 'Keyword channel');
     $('productSwitcher').after(host);
   }
-  host.hidden = state.tab !== CONTENT_TAB || ['settings','clients','atypes','mcp'].includes(state.screen);
+  host.hidden = state.tab !== CONTENT_TAB || state.contentView === 'competitor' || ['settings','clients','atypes','mcp'].includes(state.screen);
   host.replaceChildren();
   if (host.hidden) return;
   [['aeo','AEO'],['seo','SEO']].forEach(([mode,label]) => {
@@ -6754,6 +6762,7 @@ function renderMatrix(){
 
       cellControls(td, {
         ro: ro,
+        inlineMode: true,
         get: function(){ return cellState(m, cellKey, defaults); },
         set: function(patch){ setCellState(m, cellKey, Object.assign(cellState(m, cellKey, defaults), patch, { cfg:true })); },
         seed: function(){

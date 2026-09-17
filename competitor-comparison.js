@@ -137,7 +137,7 @@ function renderCompetitorComparison(m){
     timer=setTimeout(()=>{if(valid()&&input.parentNode===td)refreshKeywords();},250);
    };
    cellControls(td,{
-    ro:readOnly(),get,set,seed:()=>get().v||title,comparisonOtherId:entry.other?key:null,
+    ro:readOnly(),inlineMode:true,get,set,seed:()=>get().v||title,comparisonOtherId:entry.other?key:null,
     refreshEmpty:updateFlags,
     rerender:()=>{paint(entry);for(const other of mirrors.get(key)||[])if(other!==entry&&other.hydrated)paint(other);}
    });
@@ -149,7 +149,7 @@ function renderCompetitorComparison(m){
     if(key===null){td.className='comparison-null';td.textContent='—';td.title='Not applicable: same company';td.setAttribute('aria-label',a.name+' vs. itself: not applicable');tr.append(td);continue;}
     if(companies.indexOf(b)>companies.indexOf(a)){td.className='comparison-null';td.textContent='';td.setAttribute('aria-label','Repeated pair omitted');tr.append(td);continue;}
     const entry={td,key,title:a.name+' vs '+b.name,hydrated:false};
-    td.className='comparison-pending';td.textContent=((m.comparisonCells[key]?.mode||defaults.mode)===keywordMode)?entry.title:'';
+    td.className='comparison-pending';td.textContent=entry.title;
     if(!mirrors.has(key))mirrors.set(key,[]);mirrors.get(key).push(entry);
     pending.set(td,entry);tr.append(td);
    }
