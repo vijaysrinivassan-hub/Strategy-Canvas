@@ -12,6 +12,10 @@
     if (/listicle|list item/.test(name)) return 'listicle';
     return fallback;
   }
+  function visibleGroups(view,mode){
+    if(view!=='icp') return groups;
+    return groups.filter(group=>mode==='seo' ? group.id==='informational' : group.id!=='informational');
+  }
   function split(view,types,uid){
     let changed=false;
     const rows=[];
@@ -41,7 +45,7 @@
     if(changed) view.rows=rows;
     return changed;
   }
-  const api={groups,groupFor,split};
+  const api={groups,groupFor,visibleGroups,split};
   if(typeof module!=='undefined') module.exports=api;
   root.KeywordPageTables=api;
 })(typeof globalThis!=='undefined'?globalThis:this);
