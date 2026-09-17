@@ -2045,6 +2045,8 @@
   .gr-url input[type=text]{min-width:0;flex:1;font-weight:400;padding:4px 2px}
   .gr-foot2 .gr-author{flex:1 1 0;min-width:0}
   .comparison-toolbar{display:flex;align-items:center;gap:12px;padding:0 16px 12px}
+  #competitorTableToolbar{padding:12px 16px;border-bottom:1px solid #dce4df;background:#fff}
+  #competitorTableToolbar h3{margin:0;flex:1}
   #competitorComparison .comparison-toolbar h3{margin:0;flex:1}
   .comparison-toolbar button{flex:none}
   .comparison-copy-status{font-size:12px;color:var(--muted)}
@@ -2605,7 +2607,7 @@ const SUPABASE_URL = 'https://cskamgfvebryahkljlll.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_MdkD-TxMCIwlu69seSHA3Q_A39GADsK';
 const CLIENT_ID    = '1059013355751-6g50dsgm7df37htl2fdqrtlkh5hmrc0c.apps.googleusercontent.com';
 const ALLOWED      = ['vijaysrinivassan@gmail.com'];
-const BUILD        = 'v8.24';
+const BUILD        = 'v8.25';
 
 const STRATEGY_ONE_TAB = 'Strategy 1 — Brand Strategy';
 const PRODUCT_EVOLUTION_TAB = 'Strategy 1 — Product Evolution';
@@ -6596,6 +6598,27 @@ function renderMatrix(){
   const table = $('mxTable');
   const setup = $('mxSetup');
   table.innerHTML = '';
+
+  let copyToolbar = $('competitorTableToolbar');
+  if (!copyToolbar){
+    copyToolbar = document.createElement('div');
+    copyToolbar.id = 'competitorTableToolbar';
+    copyToolbar.className = 'comparison-toolbar';
+    table.before(copyToolbar);
+  }
+  copyToolbar.replaceChildren();
+  const copyHeading = document.createElement('h3'); copyHeading.textContent = 'Competitor';
+  const copyStatus = document.createElement('span'); copyStatus.className = 'comparison-copy-status'; copyStatus.setAttribute('role','status');
+  const copyButton = document.createElement('button'); copyButton.type = 'button'; copyButton.textContent = 'Copy';
+  copyButton.setAttribute('aria-label','Copy competitor article titles and keywords');
+  copyButton.disabled = !m.rows.some(row=>row.role!=='others'&&String(row.name||'').trim().toLowerCase()!=='others'&&String(row.name||'').trim());
+  copyButton.onclick = async function(){
+    copyButton.disabled = true;
+    try { await navigator.clipboard.writeText(competitorClipboardText(m)); copyStatus.textContent = 'Copied'; }
+    catch { copyStatus.textContent = 'Could not copy. Allow clipboard access and try again.'; }
+    finally { copyButton.disabled = false; }
+  };
+  copyToolbar.append(copyHeading, copyStatus, copyButton);
 
   const namedRows = m.rows.filter(function(r){ return (r.name || '').trim(); }).length;
   setup.hidden = true;   /* only a real error from refreshMatrix uses this box now */

@@ -1,5 +1,56 @@
 /* Pairwise articles share data by stable competitor IDs. Editors load on demand. */
 function comparisonKey(a,b){return a===b?null:JSON.stringify([a,b].sort());}
+function uniqueClipboardValues(values){
+ const seen=new Set();
+ return values.filter(value=>{
+  const clean=String(value??'').trim();if(!clean)return false;
+  const key=clean.toLowerCase();if(seen.has(key))return false;
+  seen.add(key);return true;
+ });
+}
+function competitorNameVariants(name){
+ const clean=String(name||'').trim().replace(/\s+/g,' ');if(!clean)return [];
+ const known={
+  'darwinbox':['DarwinBox','Darwin Box'],'darwin box':['DarwinBox','Darwin Box'],
+  'sap successfactors':['SAP SuccessFactors','SAP Success Factors'],
+  'sap success factors':['SAP SuccessFactors','SAP Success Factors']
+ };
+ const split=clean.replace(/([a-z0-9])([A-Z])/g,'$1 $2').replace(/\s+/g,' ');
+ return uniqueClipboardValues([clean,...(known[clean.toLowerCase()]||[]),split]);
+}
+function escapeClipboardPattern(value){return String(value).replace(/[.*+?^$}(){|[\]\\]/g,'\\$&');}
+function competitorPhraseVariants(value,companies){
+ let phrases=[String(value??'').trim().replace(/\b(vs|versus)\.(?=\s|$)/gi,'$1')];
+ for(const company of companies||[]){
+  const aliases=competitorNameVariants(company.name);if(aliases.length<2)continue;
+  const pattern=new RegExp('(^|[^A-Za-z0-9])('+aliases.slice().sort((a,b)=>b.length-a.length).map(escapeClipboardPattern).join('|')+')(?=$|[^A-Za-z0-9])','gi');
+  const expanded=[];
+  for(const phrase of phrases){
+   if(!pattern.test(phrase)){pattern.lastIndex=0;expanded.push(phrase);continue;}
+   pattern.lastIndex=0;
+   for(const alias of aliases)expanded.push(phrase.replace(pattern,(match,prefix)=>prefix+alias));
+  }
+  phrases=uniqueClipboardValues(expanded);
+ }
+ return uniqueClipboardValues(phrases);
+}
+function clipboardField(value){const s=String(value??'');return /[,\t\r\n"]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s;}
+function competitorClipboardText(m){
+ const companies=m.rows.filter(c=>c.role!=='others'&&String(c.name||'').trim().toLowerCase()!=='others'&&String(c.name||'').trim());
+ const rows=[];
+ for(const company of companies){
+  const values=[];
+  for(const type of m.types||[]){
+   const cell=m.cells?.[company.id+'|'+type.id]||{};
+   const generated=competitorNameVariants(company.name).map(name=>(name+' '+String(type.name||'').trim()).trim());
+   const title=String(cell.v||'').trim();
+   values.push(...(title?competitorPhraseVariants(title,companies):generated));
+   for(const keyword of gridCellKeywords(title,cell.kws).map(row=>row.keyword))values.push(...competitorPhraseVariants(keyword,companies));
+  }
+  const unique=uniqueClipboardValues(values);if(unique.length)rows.push(unique.map(clipboardField).join(','));
+ }
+ return rows.flat().map(clipboardField).join(',');
+}
 // Export from model data, including cells that have not been scrolled into view.
 function comparisonClipboardText(m){
  const companies=m.rows.filter(c=>c.role!=='others'&&String(c.name||'').trim().toLowerCase()!=='others'&&(c.name||'').trim()), rows=[];
@@ -9,11 +60,10 @@ function comparisonClipboardText(m){
   const title=cell.v===undefined?pair:cell.v;
   const keywords=gridCellKeywords(title,cell.kws).map(r=>r.keyword);
   if(cell.v===undefined)keywords.push(...gridCellKeywords(a.name+' vs '+b.name,cell.kws).map(r=>r.keyword));
-  rows.push([...new Set([title,...keywords].filter(value=>String(value??'').trim()).map(value=>String(value).replace(/\b(vs|versus)\.(?=\s|$)/gi,'$1')))]);
+  rows.push(uniqueClipboardValues([title,...keywords].flatMap(value=>competitorPhraseVariants(value,companies))));
  }
- for(const cell of Object.values(m.comparisonOthers||{})){const keywords=gridCellKeywords(cell.v,cell.kws).map(k=>k.keyword);rows.push([...new Set([cell.v,...keywords].filter(Boolean))]);}
- const field=value=>{const s=String(value??'');return /[,\t\r\n"]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s;};
- return rows.filter(row=>row.length).map(row=>row.map(field).join(',')).join('\n');
+ for(const cell of Object.values(m.comparisonOthers||{})){const keywords=gridCellKeywords(cell.v,cell.kws).map(k=>k.keyword);rows.push(uniqueClipboardValues([cell.v,...keywords].flatMap(value=>competitorPhraseVariants(value,companies))));}
+ return rows.flat().map(clipboardField).join(',');
 }
 let comparisonObserver=null, comparisonCellObserver=null, comparisonRender=0;
 function renderCompetitorComparison(m){
