@@ -84,7 +84,7 @@ export function registerBoardTools(server: McpServer) {
               sample: architecture.sample || "blank",
               systems: systems.map((system: any) => ({
                 name: system.name || "",
-                kind: system.kind || "pillar",
+                row: Number.isInteger(system.row) ? system.row : 0,
                 nodes: nodes.filter((node: any) => node.systemId === system.id).length
               })),
               nodes: nodes.length,
