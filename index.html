@@ -1307,7 +1307,18 @@
   .arch-edge-label input{width:max(90px,12ch); min-width:90px; max-width:240px; padding:3px 5px;
                          border:1px solid #67bd81; border-radius:2px; outline:none; background:#fff;
                          color:#343733; font:inherit; font-size:9px}
-  .arch-flow-systems{position:relative; display:flex; flex-direction:row; align-items:flex-start; gap:18px}
+  .arch-flow-systems{position:relative; display:flex; flex-direction:column; align-items:flex-start; gap:24px;
+                     width:max-content; min-width:100%}
+  .arch-process-layer{position:relative; width:max-content; min-width:100%}
+  .arch-process-layer-head{position:sticky; z-index:9; left:0; display:flex; align-items:center; gap:9px;
+                           width:1060px; margin:0 0 8px; padding:0 2px}
+  .arch-process-layer-head b{color:#383b36; font-size:10px; font-weight:850; letter-spacing:.08em;
+                             text-transform:uppercase}
+  .arch-process-layer-head span{color:#858982; font-size:9px}
+  .arch-process-layer-track{display:flex; flex-direction:row; align-items:flex-start; gap:18px}
+  .arch-process-layer-empty{box-sizing:border-box; display:flex; align-items:center; justify-content:center;
+                            width:1060px; min-height:76px; border:1px dashed #d4d8d2;
+                            background:rgba(251,252,249,.6); color:#858982; font-size:10px}
   .arch-flow-system{position:relative; flex:0 0 1060px; width:1060px; min-height:230px; overflow:hidden; border:1px solid #cfd2cc;
                     background-color:rgba(251,252,249,.84);
                     background-image:radial-gradient(circle at 1px 1px,#d4d8d2 1px,transparent 1.1px);
@@ -1321,6 +1332,9 @@
   .arch-flow-system-head input:focus{border-bottom-color:#73c68c}
   .arch-flow-system-head .system-index{color:#7d817a; font-size:8px; font-weight:850;
                                        letter-spacing:.09em; text-transform:uppercase}
+  .arch-flow-system-head .system-kind{max-width:132px; height:27px; padding:0 22px 0 7px;
+                                      border:1px solid #d8dcd6; background:#fff; color:#55705d;
+                                      font-size:8px; font-weight:800; text-transform:uppercase}
   .arch-flow-system-head button{padding:4px 7px; background:#fff; color:#686b65; font-size:9px}
   .arch-flow-system-head .system-remove{border-color:transparent; background:transparent; color:#9a6c68}
   .arch-node-group{position:absolute; z-index:3; border:1px dashed #91b49a; background:rgba(222,242,228,.22);
@@ -1360,6 +1374,7 @@
   .arch-flow-empty{padding:76px 20px 30px; color:#858780; font-size:10.5px; text-align:center}
   @media(max-width:900px){
     .arch-v2-meta{grid-template-columns:1fr}.architecture{overflow:auto}.arch-flow-board{min-width:920px}
+    .arch-process-layer-head,.arch-process-layer-empty{width:920px}
     .arch-flow-system{flex-basis:920px; width:920px}
   }
 
@@ -2331,7 +2346,9 @@
             </select>
             <button id="btnArchLoadSample" type="button">Load sample</button>
             <button id="btnArchPrompts" type="button">AI Prompts</button>
-            <button class="primary" id="btnArchAddDomain" type="button">+ Create system</button>
+            <button id="btnArchAddEarlier" type="button">+ Earlier process</button>
+            <button id="btnArchAddSupporting" type="button">+ Supporting process</button>
+            <button class="primary" id="btnArchAddDomain" type="button">+ Pillar process</button>
           </div>
         </div>
 
@@ -2601,7 +2618,7 @@ const SUPABASE_URL = 'https://cskamgfvebryahkljlll.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_MdkD-TxMCIwlu69seSHA3Q_A39GADsK';
 const CLIENT_ID    = '1059013355751-6g50dsgm7df37htl2fdqrtlkh5hmrc0c.apps.googleusercontent.com';
 const ALLOWED      = ['vijaysrinivassan@gmail.com'];
-const BUILD        = 'v8.31';
+const BUILD        = 'v8.32';
 
 const STRATEGY_ONE_TAB = 'Strategy 1 — Brand Strategy';
 const PRODUCT_EVOLUTION_TAB = 'Strategy 1 — Product Evolution';
@@ -7901,8 +7918,9 @@ let architectureConnection = null;
 let architectureSelection = new Set();
 let architectureSelectedEdge = '';
 
-function archFlowSystem(name, height){
-  return { id: uid(), name: name || 'New system', height: Math.max(230, Number(height) || 300) };
+function archFlowSystem(name, height, kind){
+  return { id: uid(), name: name || 'New process', height: Math.max(230, Number(height) || 300),
+    kind: ['earlier','supporting','pillar'].includes(kind) ? kind : 'pillar' };
 }
 function archFlowNode(systemId, label, type, x, y){
   return { id: uid(), systemId, label: label || 'New node', type: type || 'technology',
@@ -8009,6 +8027,7 @@ productArchitectureState = function(){
     if (!system.id) system.id = uid();
     if (typeof system.name !== 'string') system.name = 'Untitled system';
     system.height = Math.max(230, Number(system.height) || 300);
+    if (!['earlier','supporting','pillar'].includes(system.kind)) system.kind = 'pillar';
   });
   architecture.nodes = architecture.nodes.filter(node => architecture.systems.some(system => system.id === node.systemId));
   architecture.nodes.forEach(node => {
@@ -8443,24 +8462,34 @@ function addArchitectureNode(architecture, system){
   architecture.nodes.push(node); architecture.sample = 'blank'; markDirty(); renderProductArchitecture();
 }
 
-function renderArchitectureSystem(system, index, architecture){
+function renderArchitectureSystem(system, index, architecture, siblings){
   const row = document.createElement('section');
   row.className = 'arch-flow-system'; row.dataset.systemId = system.id; row.style.height = system.height + 'px';
   const head = document.createElement('div'); head.className = 'arch-flow-system-head';
-  const number = document.createElement('span'); number.className = 'system-index'; number.textContent = 'System ' + (index + 1);
+  const labels = {earlier:'Earlier',supporting:'Supporting',pillar:'Pillar'};
+  const number = document.createElement('span'); number.className = 'system-index'; number.textContent = labels[system.kind] + ' ' + (index + 1);
   const name = document.createElement('input'); name.value = system.name; name.placeholder = 'Name this workflow';
   name.readOnly = readOnly(); name.oninput = () => { system.name = name.value; markDirty(); };
-  head.append(number, name);
+  head.append(number);
+  const kind = document.createElement('select'); kind.className = 'system-kind'; kind.disabled = readOnly();
+  [['earlier','Earlier process'],['supporting','Supporting process'],['pillar','Pillar process']].forEach(option => {
+    const item = document.createElement('option'); item.value = option[0]; item.textContent = option[1]; kind.append(item);
+  });
+  kind.value = system.kind; kind.onchange = () => {
+    system.kind = kind.value; markDirty(); renderProductArchitecture();
+  };
+  head.append(kind, name);
   if (!readOnly()){
     const add = document.createElement('button'); add.type = 'button'; add.textContent = '+ Node';
     add.onclick = () => addArchitectureNode(architecture, system); head.append(add);
     ['←','→'].forEach((label, direction) => {
       const move = document.createElement('button'); move.type = 'button'; move.textContent = label;
       move.title = direction ? 'Move system right' : 'Move system left';
-      move.disabled = direction ? index === architecture.systems.length - 1 : index === 0;
+      move.disabled = direction ? index === siblings.length - 1 : index === 0;
       move.onclick = () => {
-        const next = index + (direction ? 1 : -1);
-        const item = architecture.systems.splice(index, 1)[0]; architecture.systems.splice(next, 0, item);
+        const other = siblings[index + (direction ? 1 : -1)];
+        const from = architecture.systems.indexOf(system), to = architecture.systems.indexOf(other);
+        architecture.systems[from] = other; architecture.systems[to] = system;
         markDirty(); renderProductArchitecture();
       }; head.append(move);
     });
@@ -8546,11 +8575,28 @@ function renderArchitectureSystem(system, index, architecture){
   return row;
 }
 
+function renderArchitectureLayer(host, architecture, definition){
+  const layer = document.createElement('section'); layer.className = 'arch-process-layer'; layer.dataset.processKind = definition.kind;
+  const heading = document.createElement('div'); heading.className = 'arch-process-layer-head';
+  const title = document.createElement('b'); title.textContent = definition.title;
+  const note = document.createElement('span'); note.textContent = definition.note;
+  heading.append(title, note); layer.append(heading);
+  const track = document.createElement('div'); track.className = 'arch-process-layer-track';
+  const systems = architecture.systems.filter(system => system.kind === definition.kind);
+  systems.forEach((system, index) => track.append(renderArchitectureSystem(system, index, architecture, systems)));
+  if (!systems.length){
+    const empty = document.createElement('div'); empty.className = 'arch-process-layer-empty';
+    empty.textContent = definition.empty; track.append(empty);
+  }
+  layer.append(track); host.append(layer);
+}
+
 renderProductArchitecture = function(){
   const architecture = productArchitectureState();
   const ro = readOnly();
   $('archSample').value = architecture.sample || 'blank'; $('archSample').disabled = ro;
   $('btnArchLoadSample').hidden = ro; $('btnArchAddDomain').hidden = ro;
+  $('btnArchAddEarlier').hidden = ro; $('btnArchAddSupporting').hidden = ro;
   const name = $('archProductName'); name.value = architecture.name || ''; name.readOnly = ro;
   name.oninput = () => { architecture.name = name.value; markDirty(); };
   const summary = $('archProductSummary'); summary.value = architecture.summary || ''; summary.readOnly = ro;
@@ -8558,22 +8604,41 @@ renderProductArchitecture = function(){
   renderArchitectureSelectionTools(architecture);
   enableArchitectureBoardMarquee(architecture);
   const systems = $('archSystems'); systems.innerHTML = '';
-  architecture.systems.forEach((system, index) => systems.append(renderArchitectureSystem(system, index, architecture)));
-  if (!architecture.systems.length){
-    const empty = document.createElement('div'); empty.className = 'arch-flow-empty';
-    empty.textContent = ro ? 'No systems have been mapped.' : 'Create the first system to begin the product architecture.';
-    systems.append(empty);
-  }
+  [
+    {kind:'earlier',title:'Earlier process',note:'How the work happened before the current technology',
+      empty:ro?'No earlier process mapped.':'Add an earlier process to map the previous way of working.'},
+    {kind:'supporting',title:'Supporting processes',note:'Processes that enable or strengthen the core workflow',
+      empty:ro?'No supporting processes mapped.':'Add supporting processes when they enable the pillar workflow.'},
+    {kind:'pillar',title:'Pillar processes',note:'The current core product workflows',
+      empty:ro?'No pillar processes mapped.':'Create the first pillar process to begin the current architecture.'}
+  ].forEach(definition => renderArchitectureLayer(systems, architecture, definition));
   requestAnimationFrame(() => drawArchitectureWires(architecture));
 };
 
-$('btnArchAddDomain').onclick = () => {
+function addArchitectureProcess(kind){
   if (readOnly()) return;
   const architecture = productArchitectureState();
-  architecture.systems.push(archFlowSystem('System ' + (architecture.systems.length + 1), 300));
+  const count = architecture.systems.filter(system => system.kind === kind).length + 1;
+  const names = {earlier:'Earlier process ',supporting:'Supporting process ',pillar:'Pillar process '};
+  const system = archFlowSystem(names[kind] + count, kind === 'earlier' ? 260 : 300, kind);
+  architecture.systems.push(system);
+  if (kind === 'earlier'){
+    const definitions = [
+      ['Operator','people',34],['Spreadsheet / legacy tool','technology',258],
+      ['Reviewer','people',482],['Handoff owner','people',706]
+    ];
+    const nodes = definitions.map(item => archFlowNode(system.id, item[0], item[1], item[2], 104));
+    architecture.nodes.push(...nodes);
+    for (let index = 0; index < nodes.length - 1; index++){
+      architecture.edges.push(archFlowEdge(nodes[index].id, nodes[index + 1].id, ''));
+    }
+  }
   architectureSelection.clear();
   architecture.sample = 'blank'; markDirty(); renderProductArchitecture();
-};
+}
+$('btnArchAddEarlier').onclick = () => addArchitectureProcess('earlier');
+$('btnArchAddSupporting').onclick = () => addArchitectureProcess('supporting');
+$('btnArchAddDomain').onclick = () => addArchitectureProcess('pillar');
 
 $('btnArchLoadSample').onclick = () => {
   if (readOnly()) return;

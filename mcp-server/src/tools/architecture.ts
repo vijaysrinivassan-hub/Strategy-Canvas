@@ -14,7 +14,7 @@ export async function architecturePrompts(body?: {tabs: Record<string, any>}, se
 }
 const architectureSchema = z.object({
   name: z.string().min(1), summary: z.string(),
-  systems: z.array(z.object({id:z.string().min(1),name:z.string().min(1),height:z.number().min(230)})),
+  systems: z.array(z.object({id:z.string().min(1),name:z.string().min(1),height:z.number().min(230),kind:z.enum(['earlier','supporting','pillar']).optional()})),
   nodes: z.array(z.object({id:z.string().min(1),systemId:z.string(),label:z.string().min(1),type:z.enum(['technology','people']),x:z.number().min(10),y:z.number().min(54)})),
   edges: z.array(z.object({id:z.string().min(1),from:z.string(),to:z.string(),label:z.string().min(1)})),
   groups: z.array(z.object({id:z.string().min(1),systemId:z.string(),name:z.string().min(1),nodeIds:z.array(z.string()).min(2)}))
@@ -42,7 +42,7 @@ export function registerArchitectureTools(server:McpServer) {
   });
   server.registerTool('product_architecture_set', {
     title:'Save product architecture workflows',
-    description:'Save the complete workflow architecture to Strategy Product Architecture. Read first, preserve existing work unless replacement was requested, and supply its revision. Rows are workflows; nodes are Technology or People; edge labels are outputs. Keep 154px-wide nodes and groups inside row bounds with space between labels. Omitted prior nodes are removed.',
+    description:'Save the complete workflow architecture to Strategy Product Architecture. Read first, preserve existing work unless replacement was requested, and supply its revision. Classify workflows as earlier, supporting or pillar; omitted kind defaults to pillar. Nodes are Technology or People; edge labels are outputs. Keep 154px-wide nodes and groups inside workflow bounds with space between labels. Omitted prior nodes are removed.',
     inputSchema:{board_id:z.string(),revision:z.string(),architecture:architectureSchema},
     annotations:{readOnlyHint:false,destructiveHint:true,idempotentHint:false}
   }, async({board_id,revision,architecture})=>{
