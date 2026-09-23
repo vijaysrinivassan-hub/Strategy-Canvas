@@ -2042,15 +2042,24 @@
   .col-lock{display:inline-flex;color:#68776d;padding:3px}
   .gr-url{display:flex;align-items:center;gap:6px;padding:0 6px 5px;color:#748177;font-size:10px}
   .gr-url input[type=text]{min-width:0;flex:1;font-weight:400;padding:4px 2px}
-  .gr-actor{display:grid;grid-template-columns:minmax(92px,.8fr) minmax(150px,1.3fr);gap:5px;padding:0 6px 7px}
-  .gr-actor select,.gr-actor input{min-width:0;height:28px;border:1px solid #cfd9d1;background:#fff;color:#344339;font-size:10.5px;padding:4px 6px}
-  .gr-actor input{font-weight:500 !important}
-  .gr-actor select.set,.gr-actor input:not(:placeholder-shown){border-color:#b9d6c1;background:#f2faf4;color:#2f6f45}
-  .icp-matrix-row{min-width:170px;background:#f4f7f4 !important;position:sticky;left:0;z-index:1}
-  .icp-matrix-row input{width:100%;border:0;border-bottom:1px solid #cdd7cf;background:transparent;font-weight:800;color:#24352b;padding:3px 0}
-  .icp-matrix-row small{display:block;margin-top:6px;color:#77847a;font-weight:500;line-height:1.35}
-  .icp-matrix-row .icp-keyword-ideas{margin:8px 0 0;padding:7px;background:#fff}
-  .icp-column-keywords{display:block;margin-top:4px;color:#b7c8bc;font-size:9px;font-weight:500;line-height:1.35;text-transform:none;letter-spacing:0}
+  .gr-actor{display:flex;gap:4px;padding:0 6px 7px}
+  .gr-actor .gr-entity-type{flex:.85 1 0;min-width:0;height:22px;padding:0 4px;border-radius:2px}
+  .gr-actor .gr-entity-detail{flex:1.35 1 0;min-width:0;height:22px;border:1px solid #cfd9d1;border-radius:2px;background:#fff;color:#344339;font-size:10px;font-weight:400 !important;padding:0 5px}
+  .gr-actor .gr-entity-detail:focus{border-color:#57c982;outline:0;box-shadow:inset 0 -1px 0 #57c982}
+  .icp-matrix-row{min-width:220px;background:#171b19 !important;color:#fff !important;position:sticky;left:0;z-index:2;padding:14px 12px !important;vertical-align:top}
+  .icp-matrix-row input{width:100%;border:0;border-bottom:1px solid #536259;background:transparent;font-weight:800;color:#fff !important;-webkit-text-fill-color:#fff;padding:3px 0}
+  .icp-matrix-row small{display:block;margin-top:7px;color:#b9c5bd;font-weight:500;line-height:1.35}
+  .icp-matrix-row .icp-keyword-ideas{margin:9px 0 0;padding:8px 0 0;border-top:1px solid #39443d;background:transparent;color:#d4ddd7;font-size:9px;line-height:1.4}
+  .icp-matrix-corner{min-width:220px !important;background:#171b19 !important;color:#fff !important}
+  .icp-matrix-corner::after{display:none}
+  .icp-matrix-corner .matrix-corner-label{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:8px 28px;color:#d7e1da;font-size:9px;font-weight:800;line-height:1.45;letter-spacing:.1em;text-align:center;text-transform:uppercase;white-space:pre-line}
+  .icp-matrix-corner .corner-add-col{top:3px;right:4px}.icp-matrix-corner .corner-add-row{left:auto;right:4px;bottom:3px}
+  .mx-table thead .icp-matrix-axis{text-align:center;padding:9px 12px;color:#fff;font-size:10px;letter-spacing:.13em;border-right:1px solid #455149;box-shadow:inset 0 3px var(--axis-color),inset 0 -1px rgba(255,255,255,.12)}
+  .mx-table thead .icp-matrix-column{background:#171b19 !important;box-shadow:inset 0 3px var(--axis-color);vertical-align:middle}
+  .mx-table thead .icp-matrix-column .mx-lab{height:auto;min-height:70px;align-items:center;justify-content:center;padding-top:8px;padding-bottom:8px;text-align:center}
+  .mx-table thead .icp-matrix-column .mx-lab b{width:100%;text-align:center}
+  .icp-matrix-ind{--axis-color:#64c886}.icp-matrix-ctry{--axis-color:#65a8d8}.icp-matrix-tech{--axis-color:#d9a85c}
+  .icp-column-keywords{display:block;margin:5px auto 0;max-width:245px;color:#b7c8bc;font-size:9px;font-weight:500;line-height:1.35;text-align:center;text-transform:none;letter-spacing:0}
   .gr-foot2 .gr-author{flex:1 1 0;min-width:0}
   .comparison-toolbar{display:flex;align-items:center;gap:12px;padding:0 16px 12px}
   #competitorTableToolbar{padding:12px 16px;border-bottom:1px solid #dce4df;background:#fff}
@@ -2617,7 +2626,7 @@ const SUPABASE_URL = 'https://cskamgfvebryahkljlll.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_MdkD-TxMCIwlu69seSHA3Q_A39GADsK';
 const CLIENT_ID    = '1059013355751-6g50dsgm7df37htl2fdqrtlkh5hmrc0c.apps.googleusercontent.com';
 const ALLOWED      = ['vijaysrinivassan@gmail.com'];
-const BUILD        = 'v8.36';
+const BUILD        = 'v8.37';
 
 const STRATEGY_ONE_TAB = 'Strategy 1 — Brand Strategy';
 const PRODUCT_EVOLUTION_TAB = 'Strategy 1 — Product Evolution';
@@ -6154,14 +6163,15 @@ function cellControls(td, o){
   }
   if (state.contentView === 'icp' && keywordMode === 'aeo' && !td.querySelector(':scope > .gr-actor')){
     const actorRow=document.createElement('div');actorRow.className='gr-actor';
-    const actorType=document.createElement('select');actorType.disabled=o.ro;actorType.setAttribute('aria-label','Technology, product, or analyst');
+    const actorType=document.createElement('select');actorType.className='gr-kind gr-entity-type';actorType.disabled=o.ro;actorType.setAttribute('aria-label','Technology, product, or analyst');
     [['','Entity type…'],['technology','Technology'],['product','Product'],['person','Person / analyst'],['technology_or_person','Technology or person']].forEach(pair=>{const option=document.createElement('option');option.value=pair[0];option.textContent=pair[1];actorType.append(option);});
     actorType.value=cell.actorType||'';actorType.classList.toggle('set',!!actorType.value);
     actorType.onchange=function(){o.set({actorType:actorType.value});actorType.classList.toggle('set',!!actorType.value);o.refreshEmpty();markDirty();};
-    const actor=document.createElement('input');actor.type='text';actor.placeholder='Product, tool, or analyst';actor.value=cell.actor||'';actor.disabled=o.ro;actor.setAttribute('aria-label','Product, tool, or analyst');
+    const actor=document.createElement('input');actor.className='gr-entity-detail';actor.type='text';actor.placeholder='Product, tool, or analyst';actor.value=cell.actor||'';actor.disabled=o.ro;actor.setAttribute('aria-label','Product, tool, or analyst');
     actor.oninput=function(){o.set({actor:actor.value});o.refreshEmpty();markDirty();};
-    actorRow.append(actorType,actor);td.insertBefore(actorRow,td.querySelector(':scope > .gr-kws'));
+    actorRow.append(actorType,actor);td.append(actorRow);
   }
+  if (state.contentView === 'icp' && keywordMode === 'aeo'){const actorRow=td.querySelector(':scope > .gr-actor');if(actorRow)td.append(actorRow);}
   const ctl = document.createElement('div');
   ctl.className = 'gr-ctl';
 
@@ -6912,7 +6922,7 @@ function renderGridTable(v, group, table){
   const columns = activeIcpAxis
     ? sortedColumns.filter(col => (col.axis || KeywordColumns.inferIcpAxis(col.name)) === activeIcpAxis)
     : sortedColumns;
-  const NUM_W = 46, COL_W = 310;
+  const NUM_W = isIcpMatrix ? 220 : 46, COL_W = 310;
   table.style.width = '100%';
   table.style.minWidth = (NUM_W + COL_W * columns.length) + 'px';
 
@@ -6932,12 +6942,14 @@ function renderGridTable(v, group, table){
     const axisRow = document.createElement('tr');
     axisRow.className = 'icp-axis-row';
     const corner = matrixCornerActions(() => addGridColumn(group.id), () => addGridRow(group.id), 'Add column', 'Add row');
-    corner.rowSpan = 2; corner.classList.add('icp-axis-corner'); axisRow.append(corner);
+    corner.rowSpan = 2; corner.classList.add('icp-axis-corner');
+    if(isIcpMatrix){corner.classList.add('icp-matrix-corner');const label=document.createElement('span');label.className='matrix-corner-label';label.textContent='Process ↓\nDimension →';corner.append(label);}
+    axisRow.append(corner);
     const axes = isIcpMatrix ? [['ind','Industry'],['ctry','Country'],['tech','Technology']] : KeywordColumns.ICP_AXIS_ORDER.map(axis=>[axis,KeywordColumns.ICP_AXIS_LABELS[axis]]);
     for (const [axis, label] of axes){
       const count = columns.filter(col => isIcpMatrix ? col.matrixGroup === axis : (col.axis || KeywordColumns.inferIcpAxis(col.name)) === axis).length;
       if (!count) continue;
-      const th = document.createElement('th'); th.className = 'icp-axis-head'; th.colSpan = count;
+      const th = document.createElement('th'); th.className = 'icp-axis-head' + (isIcpMatrix ? ' icp-matrix-axis icp-matrix-' + axis : ''); th.colSpan = count;
       th.textContent = label; axisRow.append(th);
     }
     thead.append(axisRow);
@@ -6948,6 +6960,7 @@ function renderGridTable(v, group, table){
 
   columns.forEach(function(col){
     const th = document.createElement('th');
+    if(isIcpMatrix) th.classList.add('icp-matrix-column','icp-matrix-'+col.matrixGroup);
     const lab = document.createElement('div');
     lab.className = 'mx-lab';
     const b = document.createElement('b');

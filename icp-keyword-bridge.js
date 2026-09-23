@@ -87,8 +87,8 @@ function renderIcpKeywordIdeas(td,cell){
  }
  if(!cell.keywordIdeas?.length)return;
  const box=document.createElement('div');box.className='icp-keyword-ideas';
- const label=document.createElement('small');label.textContent='Suggested keywords · unresearched';
  const words=document.createElement('div');words.textContent=cell.keywordIdeas.join(', ');
- box.append(label,words);td.append(box);
+ if(cell.icpSource?.kind==='sample-matrix'){box.classList.add('matrix-keywords');box.append(words);}else{const label=document.createElement('small');label.textContent='Keywords';box.append(label,words);}
+ td.append(box);
  if(cell.icpSource)td.dataset.icpKeywordKey=encodeURIComponent(cell.icpSource.key);
 }
