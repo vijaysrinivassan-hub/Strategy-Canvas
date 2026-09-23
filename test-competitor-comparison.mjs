@@ -80,5 +80,6 @@ assert(all().some(e=>e.tag==='th'&&e.textContent==='Others'));
 const otherEditor=all().find(e=>e.options?.comparisonOtherId==='triple');assert(otherEditor);
 otherEditor.options.set({st:'selected'});assert.equal(exportModel.comparisonOthers.triple.st,'selected');
 assert(ctx.comparisonClipboardText(exportModel).includes('Alpha vs Beta vs Gamma,keyword three'));
+assert.ok(html.includes('const NUM_W = 46, RH_W = 310, COL_W = 310;'));
 console.log('PASS: clipboard export includes unique pairs, custom/default titles and keywords; read-only copying and permission errors handled.');
 console.log('PASS: full shared cell fields, generated/editable titles, Slug, mirrored edits, disabled diagonal, reload persistence, read-only guard and product isolation.');
