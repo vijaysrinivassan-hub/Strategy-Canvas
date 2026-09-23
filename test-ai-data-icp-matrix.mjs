@@ -30,10 +30,10 @@ assert.equal(Pages.split(splitView,[],()=> 'new'),false);
 assert.equal(splitView.rows[0].pageGroup,'matrix');
 
 const html=fs.readFileSync(new URL('./index.html',import.meta.url),'utf8');
-for(const marker of ['ICP matrix','Entity type…','Product, tool, or analyst','actorType','matrixGroup','icp-matrix-corner','isIcpMatrix ? 220 : 46','renderMatrixTopicCell','matrixTopicCell','icp-matrix-row-topic'])assert.ok(html.includes(marker),marker);
+for(const marker of ['ICP matrix','Entity type…','Product, tool, or analyst','actorType','matrixGroup','icp-matrix-corner','isIcpMatrix ? 310 : 46','renderMatrixTopicCell','matrixTopicCell','icp-matrix-row-topic'])assert.ok(html.includes(marker),marker);
 assert.ok(!html.includes('.icp-matrix-row-topic{min-width:220px;position:sticky'));
-assert.ok(html.includes('tbody th.icp-matrix-row-topic{min-width:220px;position:relative;left:auto'));
-assert.ok(html.includes('thead th.icp-matrix-corner{min-width:220px !important;position:relative;top:auto;left:auto'));
+assert.ok(html.includes('tbody th.icp-matrix-row-topic{min-width:310px;position:relative;left:auto'));
+assert.ok(html.includes('thead th.icp-matrix-corner{min-width:310px !important;position:relative;top:auto;left:auto'));
 assert.ok(html.includes('th.icp-matrix-column-topic.icp-matrix-ind{background:#edf8f1'));
 assert.ok(html.includes('thead th.icp-matrix-column-topic{position:relative;top:auto'));
 assert.ok(html.includes('<script src="ai-data-icp-matrix.js"></script>'));
