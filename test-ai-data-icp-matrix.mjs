@@ -3,12 +3,12 @@ import fs from 'node:fs';
 import Matrix from './ai-data-icp-matrix.js';
 import Pages from './keyword-page-tables.js';
 
-assert.equal(Matrix.data.columns.length, 12);
+assert.equal(Matrix.data.columns.length, 16);
 assert.deepEqual(Matrix.data.columns.map(column => column.matrixGroup), [
-  'ind','ind','ind','ind','ctry','ctry','ctry','ctry','tech','tech','tech','tech'
+  'use','use','use','use','ind','ind','ind','ind','ctry','ctry','ctry','ctry','tech','tech','tech','tech'
 ]);
 assert.deepEqual(Matrix.data.rows.map(row => row.name), ['Cohort','Funnel','Attribution','Retention','Segmentation']);
-assert.equal(Matrix.data.rows.flatMap(row => row.cells).length, 60);
+assert.equal(Matrix.data.rows.flatMap(row => row.cells).length, 80);
 assert.ok(Matrix.data.rows.flatMap(row => row.cells).every(cell => cell.title && cell.actorType && cell.actor && cell.keywordIdeas.length === 3));
 
 const prior={id:'prior',pageGroup:'listicle',cells:{old:{v:'keep in archive'}}};
@@ -16,7 +16,7 @@ const informational={id:'seo',pageGroup:'informational',cells:{guide:{v:'keep ac
 const content={views:{icp:{columns:[],rows:[prior,informational],pageColumns:{listicle:[{id:'old'}],landing:[{id:'service'}],informational:[{id:'guide'}]},pageOrders:{}}}};
 assert.equal(Matrix.ensure(content,'AI Data Platform','0jgsw8bx554d'),true);
 const view=content.views.icp;
-assert.equal(view.pageColumns.matrix.length,12);
+assert.equal(view.pageColumns.matrix.length,16);
 assert.equal(view.rows.filter(row=>row.pageGroup==='matrix').length,5);
 assert.equal(view.rows.find(row=>row.id==='seo'),informational);
 assert.equal(view.icpMatrixArchive.at(-1).rows[0].id,'prior');
@@ -34,10 +34,22 @@ for(const marker of ['ICP matrix','Entity type…','Product, tool, or analyst','
 assert.ok(!html.includes('.icp-matrix-row-topic{min-width:220px;position:sticky'));
 assert.ok(html.includes('tbody th.icp-matrix-row-topic{min-width:310px;position:relative;left:auto'));
 assert.ok(html.includes('thead th.icp-matrix-corner{min-width:310px !important;position:relative;top:auto;left:auto'));
+assert.ok(html.includes('th.icp-matrix-column-topic.icp-matrix-use{background:#f4effb'));
+assert.ok(html.includes("[['use','Use Cases/Processes'],['ind','Industry']"));
 assert.ok(html.includes('th.icp-matrix-column-topic.icp-matrix-ind{background:#edf8f1'));
 assert.ok(html.includes('thead th.icp-matrix-column-topic{position:relative;top:auto'));
 assert.ok(html.includes('<script src="ai-data-icp-matrix.js"></script>'));
 const bridge=fs.readFileSync(new URL('./icp-keyword-bridge.js',import.meta.url),'utf8');
 assert.ok(bridge.includes("startsWith('sample-matrix')"));
 assert.ok(!bridge.includes('Suggested keywords · unresearched'));
-console.log('PASS: supplied ICP matrix imports 12 columns, 5 processes and 60 editable AEO cells; prior AEO tables archive, SEO remains active, and migration is idempotent.');
+const legacyColumns=Matrix.data.columns.slice(4).map(column=>structuredClone(column));
+legacyColumns[0].topicCell={v:'Edited E-commerce',cfg:true};
+const legacyRows=Matrix.data.rows.map(row=>({id:row.id,pageGroup:'matrix',name:row.name,cells:Object.fromEntries(Matrix.data.columns.slice(4).map((column,index)=>[column.id,{v:row.cells[index+4].title,cfg:true}]))}));
+legacyRows[0].cells[legacyColumns[0].id].v='Preserved custom cell';
+const migrated={views:{icp:{icpMatrixRevision:'ai-data-icp-matrix-v1',pageColumns:{matrix:legacyColumns,informational:[]},pageOrders:{},rows:legacyRows}}};
+assert.equal(Matrix.ensure(migrated,'AI Data Platform','0jgsw8bx554d'),true);
+assert.deepEqual(migrated.views.icp.pageColumns.matrix.slice(0,4).map(column=>column.name),['Marketing','Product','Sales','Finance']);
+assert.equal(migrated.views.icp.pageColumns.matrix[4].topicCell.v,'Edited E-commerce');
+assert.equal(migrated.views.icp.rows[0].cells[legacyColumns[0].id].v,'Preserved custom cell');
+assert.equal(Object.keys(migrated.views.icp.rows[0].cells).length,16);
+console.log('PASS: supplied ICP matrix imports Use Cases/Processes before Industry with 16 columns, 5 processes and 80 editable AEO cells; v1 edits survive and migration is idempotent.');

@@ -1,10 +1,42 @@
-/* Generated from the supplied ICP matrix. Re-run tools/extract-ai-data-icp-matrix.cjs to refresh. */
+/* Generated from the supplied ICP matrix and Processes > Analysis matrix. */
 (function(root,factory){const api=factory();if(typeof module==='object')module.exports=api;else root.AiDataIcpMatrix=api;})(globalThis,function(){
 const data={
-  "revision": "ai-data-icp-matrix-v1",
+  "revision": "ai-data-icp-matrix-v2",
   "client": "AI Data Platform",
   "productId": "0jgsw8bx554d",
   "columns": [
+    {
+      "id": "ai-icp-use-marketing",
+      "name": "Marketing",
+      "matrixGroup": "use",
+      "keywordIdeas": [
+        "marketing analytics"
+      ]
+    },
+    {
+      "id": "ai-icp-use-product",
+      "name": "Product",
+      "matrixGroup": "use",
+      "keywordIdeas": [
+        "product analytics"
+      ]
+    },
+    {
+      "id": "ai-icp-use-sales",
+      "name": "Sales",
+      "matrixGroup": "use",
+      "keywordIdeas": [
+        "sales analytics"
+      ]
+    },
+    {
+      "id": "ai-icp-use-finance",
+      "name": "Finance",
+      "matrixGroup": "use",
+      "keywordIdeas": [
+        "financial analytics"
+      ]
+    },
     {
       "id": "ai-icp-ind-e-commerce",
       "name": "E-commerce",
@@ -138,6 +170,46 @@ const data={
       ],
       "cells": [
         {
+          "title": "Acquisition cohort analysis",
+          "actorType": "technology_or_person",
+          "actor": "GA4 / Amplitude · · Growth analyst",
+          "keywordIdeas": [
+            "cohort analysis",
+            "acquisition cohort analysis",
+            "marketing cohort analysis"
+          ]
+        },
+        {
+          "title": "Activation cohort analysis",
+          "actorType": "technology_or_person",
+          "actor": "Amplitude / Mixpanel · · Product analyst",
+          "keywordIdeas": [
+            "user cohort analysis",
+            "activation cohort analysis",
+            "product cohort analysis"
+          ]
+        },
+        {
+          "title": "Deal-vintage cohort analysis",
+          "actorType": "technology_or_person",
+          "actor": "Salesforce reports · · RevOps",
+          "keywordIdeas": [
+            "sales cohort analysis",
+            "deal cohort analysis",
+            "bookings cohort analysis"
+          ]
+        },
+        {
+          "title": "Revenue cohort analysis",
+          "actorType": "technology_or_person",
+          "actor": "BI (Looker / Tableau) · · FP&A analyst",
+          "keywordIdeas": [
+            "revenue cohort analysis",
+            "cohort ltv",
+            "cohort ltv analysis"
+          ]
+        },
+        {
           "title": "First-purchase cohorts",
           "actorType": "technology_or_person",
           "actor": "GA4 / Shopify · · Analyst",
@@ -270,6 +342,46 @@ const data={
       ],
       "cells": [
         {
+          "title": "Demand-gen funnel analysis",
+          "actorType": "technology_or_person",
+          "actor": "GA4 / HubSpot funnels · · Marketing analyst",
+          "keywordIdeas": [
+            "funnel analysis",
+            "marketing funnel analysis",
+            "demand generation funnel"
+          ]
+        },
+        {
+          "title": "Activation funnel analysis",
+          "actorType": "technology_or_person",
+          "actor": "Amplitude / Mixpanel · · Product analyst",
+          "keywordIdeas": [
+            "activation funnel",
+            "onboarding funnel analysis",
+            "product funnel analysis"
+          ]
+        },
+        {
+          "title": "Pipeline conversion analysis",
+          "actorType": "technology_or_person",
+          "actor": "Salesforce pipeline · · RevOps",
+          "keywordIdeas": [
+            "sales funnel analysis",
+            "sales pipeline analysis",
+            "pipeline conversion rate"
+          ]
+        },
+        {
+          "title": "Order-to-cash funnel analysis",
+          "actorType": "technology",
+          "actor": "ERP / billing system",
+          "keywordIdeas": [
+            "order to cash process",
+            "order to cash cycle",
+            "o2c process"
+          ]
+        },
+        {
           "title": "Checkout funnel",
           "actorType": "technology_or_person",
           "actor": "GA4 · · Analyst",
@@ -401,6 +513,46 @@ const data={
         "marketing attribution"
       ],
       "cells": [
+        {
+          "title": "Multi-touch attribution",
+          "actorType": "technology_or_person",
+          "actor": "Attribution platform · · Marketing scientist",
+          "keywordIdeas": [
+            "multi touch attribution",
+            "marketing attribution",
+            "attribution modeling"
+          ]
+        },
+        {
+          "title": "Feature-impact attribution",
+          "actorType": "technology_or_person",
+          "actor": "Experimentation platform · · Data scientist",
+          "keywordIdeas": [
+            "feature adoption analysis",
+            "product analytics",
+            "feature impact analysis"
+          ]
+        },
+        {
+          "title": "Lead-source attribution",
+          "actorType": "technology_or_person",
+          "actor": "CRM source fields · · RevOps",
+          "keywordIdeas": [
+            "lead source attribution",
+            "lead attribution",
+            "sales attribution"
+          ]
+        },
+        {
+          "title": "Profitability attribution",
+          "actorType": "technology_or_person",
+          "actor": "BI + GL mapping · · FP&A analyst",
+          "keywordIdeas": [
+            "customer profitability analysis",
+            "profitability analysis",
+            "contribution margin analysis"
+          ]
+        },
         {
           "title": "Channel attribution",
           "actorType": "technology_or_person",
@@ -536,6 +688,46 @@ const data={
         {
           "title": "Repeat-purchase retention",
           "actorType": "technology_or_person",
+          "actor": "CRM / lifecycle tool · · Lifecycle analyst",
+          "keywordIdeas": [
+            "repeat purchase rate",
+            "customer retention analysis",
+            "repeat purchase analysis"
+          ]
+        },
+        {
+          "title": "Retention-curve analysis",
+          "actorType": "technology",
+          "actor": "Amplitude / Mixpanel",
+          "keywordIdeas": [
+            "retention curve",
+            "user retention analysis",
+            "retention rate analysis"
+          ]
+        },
+        {
+          "title": "Net revenue retention",
+          "actorType": "technology_or_person",
+          "actor": "CRM + BI · · RevOps",
+          "keywordIdeas": [
+            "net revenue retention",
+            "nrr",
+            "revenue retention"
+          ]
+        },
+        {
+          "title": "Revenue-retention & churn",
+          "actorType": "technology_or_person",
+          "actor": "BI dashboards · · FP&A analyst",
+          "keywordIdeas": [
+            "revenue churn",
+            "churn analysis",
+            "gross revenue retention"
+          ]
+        },
+        {
+          "title": "Repeat-purchase retention",
+          "actorType": "technology_or_person",
           "actor": "Analytics · · Analyst",
           "keywordIdeas": [
             "ecommerce retention",
@@ -666,6 +858,46 @@ const data={
       ],
       "cells": [
         {
+          "title": "RFM / behavioral segmentation",
+          "actorType": "technology_or_person",
+          "actor": "CDP (Segment) · · Marketing analyst",
+          "keywordIdeas": [
+            "customer segmentation",
+            "rfm analysis",
+            "rfm segmentation"
+          ]
+        },
+        {
+          "title": "Usage-based segmentation",
+          "actorType": "technology_or_person",
+          "actor": "Product analytics · · Product analyst",
+          "keywordIdeas": [
+            "user segmentation",
+            "behavioral segmentation",
+            "usage based segmentation"
+          ]
+        },
+        {
+          "title": "ICP / account segmentation",
+          "actorType": "technology_or_person",
+          "actor": "CRM + enrichment · · RevOps",
+          "keywordIdeas": [
+            "account segmentation",
+            "ideal customer profile",
+            "icp analysis"
+          ]
+        },
+        {
+          "title": "Profitability segmentation",
+          "actorType": "technology_or_person",
+          "actor": "BI tool · · FP&A analyst",
+          "keywordIdeas": [
+            "customer profitability segmentation",
+            "profitability segmentation",
+            "customer value segmentation"
+          ]
+        },
+        {
           "title": "RFM segmentation",
           "actorType": "technology_or_person",
           "actor": "CDP · · Analyst",
@@ -790,19 +1022,22 @@ const data={
   ]
 };
 const copy=value=>JSON.parse(JSON.stringify(value));
+const blankCell=(sourceRow,sourceCell,column)=>({v:sourceCell.title,url:'',mode:'aeo',type:'',on:false,aw:'',st:'',writtenBy:'',cfg:true,kws:[],keywordIdeas:copy(sourceCell.keywordIdeas),actorType:sourceCell.actorType,actor:sourceCell.actor,icpSource:{kind:'sample-matrix',row:sourceRow.name,column:column.name}});
 function ensure(content,client,productId){
  if(String(client||'').trim().toLowerCase()!==data.client.toLowerCase()||String(productId||'')!==data.productId)return false;
  const view=content?.views?.icp;if(!view||view.icpMatrixRevision===data.revision)return false;
- view.pageColumns ||= {};view.pageOrders ||= {};
- view.icpMatrixArchive ||= [];
- view.icpMatrixArchive.push({revision:data.revision,at:new Date().toISOString(),pageColumns:{listicle:copy(view.pageColumns.listicle||[]),landing:copy(view.pageColumns.landing||[])},rows:copy((view.rows||[]).filter(row=>row.pageGroup!=='informational'))});
- view.pageColumns.matrix=data.columns.map(column=>({...copy(column),local:true,defaults:{mode:'aeo',type:'',aw:''}}));
+ view.pageColumns ||= {};view.pageOrders ||= {};view.icpMatrixArchive ||= [];
+ const existingColumns=Array.isArray(view.pageColumns.matrix)?view.pageColumns.matrix:[];
+ const existingRows=(view.rows||[]).filter(row=>row.pageGroup==='matrix');
+ view.icpMatrixArchive.push({revision:data.revision,previousRevision:view.icpMatrixRevision||'',at:new Date().toISOString(),pageColumns:{matrix:copy(existingColumns),listicle:copy(view.pageColumns.listicle||[]),landing:copy(view.pageColumns.landing||[])},rows:copy(existingRows.length?existingRows:(view.rows||[]).filter(row=>row.pageGroup!=='informational'))});
+ const seededIds=new Set(data.columns.map(column=>column.id));
+ const existingById=new Map(existingColumns.map(column=>[column.id,column]));
+ view.pageColumns.matrix=[...data.columns.map(column=>existingById.get(column.id)||({...copy(column),local:true,defaults:{mode:'aeo',type:'',aw:''}})),...existingColumns.filter(column=>!seededIds.has(column.id))];
  view.pageOrders.matrix=view.pageColumns.matrix.map(column=>column.id);
- view.rows=(view.rows||[]).filter(row=>row.pageGroup==='informational');
- for(const sourceRow of data.rows){
-  const cells={};sourceRow.cells.forEach((sourceCell,index)=>{const column=data.columns[index];cells[column.id]={v:sourceCell.title,url:'',mode:'aeo',type:'',on:false,aw:'',st:'',writtenBy:'',cfg:true,kws:[],keywordIdeas:copy(sourceCell.keywordIdeas),actorType:sourceCell.actorType,actor:sourceCell.actor,icpSource:{kind:'sample-matrix',row:sourceRow.name,column:column.name}};});
-  view.rows.push({id:sourceRow.id,pageGroup:'matrix',name:sourceRow.name,description:sourceRow.description,keywordIdeas:copy(sourceRow.keywordIdeas),cells});
- }
+ const rowsById=new Map(existingRows.map(row=>[row.id,row]));
+ const seededRowIds=new Set(data.rows.map(row=>row.id));
+ const mergedRows=data.rows.map(sourceRow=>{const row=rowsById.get(sourceRow.id)||{id:sourceRow.id,pageGroup:'matrix',name:sourceRow.name,description:sourceRow.description,keywordIdeas:copy(sourceRow.keywordIdeas),cells:{}};row.pageGroup='matrix';row.cells ||= {};sourceRow.cells.forEach((sourceCell,index)=>{const column=data.columns[index];if(!row.cells[column.id])row.cells[column.id]=blankCell(sourceRow,sourceCell,column);});return row;});
+ view.rows=[...(view.rows||[]).filter(row=>row.pageGroup==='informational'),...mergedRows,...existingRows.filter(row=>!seededRowIds.has(row.id))];
  view.icpMatrixRevision=data.revision;return true;
 }
 return {data,ensure};
