@@ -13,6 +13,10 @@ for (const field of ['processRole', 'pillarState', 'actorType', 'nodalBenefit', 
 assert.match(html, /data-process-role="supporting"/);
 assert.match(html, /data-pillar-state="inherited"/);
 assert.match(html, /data-pillar-state="current"/);
+assert.match(html, /maturity-row-check/);
+assert.match(html, /maturity-replace-check/);
+assert.match(html, /node\.replacementSelected = replaceCheckbox\.checked/);
+assert.match(html, /if \(!system\.selected\).*replacementSelected = false/s);
 assert.match(html, /state\.tab === MATURITY_ACCESS_TAB \? 'maturity_axis'/);
 
 assert.ok(prompts.maturity_axis?.prompt);
@@ -22,5 +26,7 @@ for (const phrase of ['PILLAR PROCESS', 'SUPPORTING PROCESS', 'Nodal benefits', 
 assert.match(tools, /registerTool\('maturity_axis_get'/);
 assert.match(tools, /registerTool\('maturity_axis_set'/);
 assert.match(tools, /current\.length!==1/);
+assert.match(tools, /replacementSelected:z\.boolean\(\)\.optional\(\)/);
+assert.match(tools, /A replacement process can only be selected inside a selected maturity row/);
 assert.match(tools, /section === 'maturity_axis' \? MATURITY_TAB/);
 console.log('maturity axis tests passed');

@@ -1358,6 +1358,12 @@
   .arch-flow-node .node-remove{margin-left:auto; padding:0 3px; border:0; background:transparent;
                                color:#a0a29d; font-size:12px; box-shadow:none}
   .arch-flow-node.maturity-node{width:176px; min-height:184px; padding:9px 10px 10px; background:#fff}
+  .arch-flow-system[data-maturity-selected="true"]{box-shadow:inset 4px 0 0 #5791d0}
+  .maturity-row-check{display:flex; align-items:center; justify-content:center; width:18px; height:22px; flex:none}
+  .maturity-row-check input,.maturity-replace-check input{width:12px; height:12px; margin:0; accent-color:#3f83c5; cursor:pointer}
+  .maturity-replace-check{position:absolute; z-index:8; top:7px; right:7px; display:flex; align-items:center;
+                           justify-content:center; width:15px; height:15px; padding:0; background:rgba(255,255,255,.88)}
+  .maturity-node.has-replace-check > input:first-of-type{width:calc(100% - 20px)}
   .arch-flow-node.maturity-node[data-process-role="supporting"]{border-color:#b9beb9; background:#f1f2ef}
   .arch-flow-node.maturity-node[data-process-role="pillar"][data-pillar-state="inherited"]{border-color:#d8bd50; background:#fff8d9}
   .arch-flow-node.maturity-node[data-process-role="pillar"][data-pillar-state="current"]{border-color:#5791d0; background:#eaf4ff}
@@ -2654,7 +2660,7 @@ const SUPABASE_URL = 'https://cskamgfvebryahkljlll.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_MdkD-TxMCIwlu69seSHA3Q_A39GADsK';
 const CLIENT_ID    = '1059013355751-6g50dsgm7df37htl2fdqrtlkh5hmrc0c.apps.googleusercontent.com';
 const ALLOWED      = ['vijaysrinivassan@gmail.com'];
-const BUILD        = 'v8.45';
+const BUILD        = 'v8.46';
 
 const STRATEGY_ONE_TAB = 'Strategy 1 — Brand Strategy';
 const PRODUCT_EVOLUTION_TAB = 'Strategy 1 — Product Evolution';
@@ -8208,6 +8214,7 @@ productArchitectureState = function(){
     system.height = Math.max(230, Number(system.height) || 300);
     system.width = Math.max(640, Number(system.width) || 1060);
     system.row = Math.max(0, Math.floor(Number(system.row) || 0));
+    if (tabKey === MATURITY_ACCESS_TAB) system.selected = system.selected === true;
   });
   architecture.nodes = architecture.nodes.filter(node => architecture.systems.some(system => system.id === node.systemId));
   architecture.nodes.forEach(node => {
@@ -8224,6 +8231,7 @@ productArchitectureState = function(){
       if (typeof node.nodalBenefit !== 'string') node.nodalBenefit = '';
       if (!Array.isArray(node.capabilities)) node.capabilities = [];
       node.capabilities = node.capabilities.map(value => String(value).trim()).filter(Boolean);
+      node.replacementSelected = node.replacementSelected === true;
     }
   });
   architecture.edges = architecture.edges.filter(edge =>
@@ -8660,11 +8668,26 @@ function renderArchitectureSystem(system, index, architecture, siblings){
   const row = document.createElement('section');
   row.className = 'arch-flow-system'; row.dataset.systemId = system.id;
   row.style.height = system.height + 'px'; row.style.width = system.width + 'px'; row.style.flexBasis = system.width + 'px';
+  if (state.tab === MATURITY_ACCESS_TAB) row.dataset.maturitySelected = system.selected ? 'true' : 'false';
   const head = document.createElement('div'); head.className = 'arch-flow-system-head';
   const number = document.createElement('span'); number.className = 'system-index';
   number.textContent = state.tab === MATURITY_ACCESS_TAB ? 'Maturity ' + (system.row + 1) : 'System ' + (index + 1);
   const name = document.createElement('input'); name.value = system.name; name.placeholder = 'Name this workflow';
   name.readOnly = readOnly(); name.oninput = () => { system.name = name.value; markDirty(); };
+  if (state.tab === MATURITY_ACCESS_TAB){
+    const choice = document.createElement('label'); choice.className = 'maturity-row-check';
+    choice.title = 'Choose this maturity level';
+    const checkbox = document.createElement('input'); checkbox.type = 'checkbox';
+    checkbox.checked = system.selected === true; checkbox.disabled = readOnly();
+    checkbox.setAttribute('aria-label','Choose ' + system.name);
+    checkbox.onchange = () => {
+      system.selected = checkbox.checked;
+      if (!system.selected) architecture.nodes.filter(node => node.systemId === system.id)
+        .forEach(node => { node.replacementSelected = false; });
+      markDirty(); renderProductArchitecture();
+    };
+    choice.append(checkbox); head.append(choice);
+  }
   head.append(number, name);
   if (!readOnly()){
     const add = document.createElement('button'); add.type = 'button'; add.textContent = '+ Node';
@@ -8710,11 +8733,21 @@ function renderArchitectureSystem(system, index, architecture, siblings){
     if (maturityNode){
       card.dataset.processRole = node.processRole;
       card.dataset.pillarState = node.pillarState || '';
+      if (system.selected) card.classList.add('has-replace-check');
     }
     const input = document.createElement('input'); input.value = node.label; input.placeholder = 'Describe this node';
     input.readOnly = readOnly(); input.oninput = () => { node.label = input.value; markDirty(); };
     card.append(input);
     if (maturityNode){
+      if (system.selected){
+        const replace = document.createElement('label'); replace.className = 'maturity-replace-check';
+        replace.title = 'Mark this process as being replaced';
+        const replaceCheckbox = document.createElement('input'); replaceCheckbox.type = 'checkbox';
+        replaceCheckbox.checked = node.replacementSelected === true; replaceCheckbox.disabled = readOnly();
+        replaceCheckbox.setAttribute('aria-label','Replace ' + node.label);
+        replaceCheckbox.onchange = () => { node.replacementSelected = replaceCheckbox.checked; markDirty(); };
+        replace.append(replaceCheckbox); card.append(replace);
+      }
       const badges = document.createElement('div'); badges.className = 'maturity-node-badges';
       const role = document.createElement('select'); role.disabled = readOnly(); role.setAttribute('aria-label','Process role');
       [['supporting','Supporting process'],['pillar','Pillar process']].forEach(definition => {

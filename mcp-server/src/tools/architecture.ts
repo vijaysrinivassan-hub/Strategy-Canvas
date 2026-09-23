@@ -19,12 +19,12 @@ export async function architecturePrompts(body?: {tabs: Record<string, any>}, se
 }
 const architectureSchema = z.object({
   name: z.string().min(1), summary: z.string(),
-  systems: z.array(z.object({id:z.string().min(1),name:z.string().min(1),height:z.number().min(230),width:z.number().min(640).optional(),row:z.number().int().min(0).optional()})),
+  systems: z.array(z.object({id:z.string().min(1),name:z.string().min(1),height:z.number().min(230),width:z.number().min(640).optional(),row:z.number().int().min(0).optional(),selected:z.boolean().optional()})),
   nodes: z.array(z.object({
     id:z.string().min(1),systemId:z.string(),label:z.string().min(1),type:z.enum(['technology','people']),x:z.number().min(10),y:z.number().min(54),
     processRole:z.enum(['supporting','pillar']).optional(),pillarState:z.enum(['current','inherited']).or(z.literal('')).optional(),
     actorType:z.enum(['technology','people','technology_or_people']).optional(),actor:z.string().optional(),
-    nodalBenefit:z.string().optional(),capabilities:z.array(z.string()).optional()
+    nodalBenefit:z.string().optional(),capabilities:z.array(z.string()).optional(),replacementSelected:z.boolean().optional()
   })),
   edges: z.array(z.object({id:z.string().min(1),from:z.string(),to:z.string(),label:z.string().min(1)})),
   groups: z.array(z.object({id:z.string().min(1),systemId:z.string(),name:z.string().min(1),nodeIds:z.array(z.string()).min(2)}))
@@ -101,6 +101,8 @@ export function registerArchitectureTools(server:McpServer) {
     for(const system of architecture.systems){
       const current=architecture.nodes.filter(n=>n.systemId===system.id&&n.processRole==='pillar'&&n.pillarState==='current');
       if(current.length!==1)throw new ToolError('Each maturity row must have exactly one current pillar.');
+      if(!system.selected&&architecture.nodes.some(n=>n.systemId===system.id&&n.replacementSelected))
+        throw new ToolError('A replacement process can only be selected inside a selected maturity row.');
     }
     for(const e of architecture.edges)if(!nodes.has(e.from)||!nodes.has(e.to)||e.from===e.to)throw new ToolError('Invalid connector endpoints.');
     for(const g of architecture.groups)if(new Set(g.nodeIds).size!==g.nodeIds.length||g.nodeIds.some(id=>!nodes.has(id)||nodes.get(id)!.systemId!==g.systemId))throw new ToolError('Group members must belong to the same maturity row.');
