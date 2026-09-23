@@ -30,5 +30,5 @@ const html=fs.readFileSync(new URL('./index.html',import.meta.url),'utf8');
 assert.ok(html.includes('for (const group of KeywordPageTables.visibleGroups(state.contentView, keywordMode))'));
 assert.ok(html.includes('onTypeChange: renderGrid'));
 assert.ok(html.includes('addGridRow(group.id)'));
-assert.ok(html.includes("v.rows.splice(v.rows.indexOf(row), 1)"));
+assert.match(html, /v\.rows\.splice\(v\.rows\.indexOf\(row\),\s*1\)/);
 console.log('PASS: shared page groups, ICP AEO matrix handoff, SEO informational view, split stability, metadata preservation and per-table controls.');

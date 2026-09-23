@@ -30,9 +30,9 @@ assert.equal(Pages.split(splitView,[],()=> 'new'),false);
 assert.equal(splitView.rows[0].pageGroup,'matrix');
 
 const html=fs.readFileSync(new URL('./index.html',import.meta.url),'utf8');
-for(const marker of ['ICP matrix','Entity type…','Product, tool, or analyst','actorType','matrixGroup','icp-matrix-corner','isIcpMatrix ? 220 : 46'])assert.ok(html.includes(marker),marker);
+for(const marker of ['ICP matrix','Entity type…','Product, tool, or analyst','actorType','matrixGroup','icp-matrix-corner','isIcpMatrix ? 220 : 46','renderMatrixTopicCell','matrixTopicCell','icp-matrix-row-topic'])assert.ok(html.includes(marker),marker);
 assert.ok(html.includes('<script src="ai-data-icp-matrix.js"></script>'));
 const bridge=fs.readFileSync(new URL('./icp-keyword-bridge.js',import.meta.url),'utf8');
-assert.ok(bridge.includes("cell.icpSource?.kind==='sample-matrix'"));
+assert.ok(bridge.includes("startsWith('sample-matrix')"));
 assert.ok(!bridge.includes('Suggested keywords · unresearched'));
 console.log('PASS: supplied ICP matrix imports 12 columns, 5 processes and 60 editable AEO cells; prior AEO tables archive, SEO remains active, and migration is idempotent.');
