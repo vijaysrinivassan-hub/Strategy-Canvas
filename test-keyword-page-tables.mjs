@@ -23,7 +23,7 @@ v.rows.push({id:'empty',pageGroup:'informational',cells:{}});
 P.split(v,types,uid);assert.equal(v.rows.find(r=>r.id==='empty').pageGroup,'informational');
 assert.equal(P.groupFor('unknown',types),'listicle');
 assert.equal(P.groupFor('Feature page',types),'landing');
-assert.deepEqual(P.visibleGroups('icp','aeo').map(group=>group.id),['listicle','landing']);
+assert.deepEqual(P.visibleGroups('icp','aeo').map(group=>group.id),[]);
 assert.deepEqual(P.visibleGroups('icp','seo').map(group=>group.id),['informational']);
 assert.deepEqual(P.visibleGroups('category','seo').map(group=>group.id),['listicle','informational','landing']);
 const html=fs.readFileSync(new URL('./index.html',import.meta.url),'utf8');
@@ -31,4 +31,4 @@ assert.ok(html.includes('for (const group of KeywordPageTables.visibleGroups(sta
 assert.ok(html.includes('onTypeChange: renderGrid'));
 assert.ok(html.includes('addGridRow(group.id)'));
 assert.ok(html.includes("v.rows.splice(v.rows.indexOf(row), 1)"));
-console.log('PASS: three groups, mixed-row split, all cell metadata preserved, stable reload, type changes, blank rows, legacy data and per-table controls.');
+console.log('PASS: shared page groups, ICP AEO matrix handoff, SEO informational view, split stability, metadata preservation and per-table controls.');

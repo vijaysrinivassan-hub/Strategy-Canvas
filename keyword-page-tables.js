@@ -14,12 +14,13 @@
   }
   function visibleGroups(view,mode){
     if(view!=='icp') return groups;
-    return groups.filter(group=>mode==='seo' ? group.id==='informational' : group.id!=='informational');
+    return groups.filter(group=>mode==='seo' ? group.id==='informational' : false);
   }
   function split(view,types,uid){
     let changed=false;
     const rows=[];
     for(const row of view.rows){
+      if(row.pageGroup==='matrix'){rows.push(row);continue;}
       const fallback=groups.some(g=>g.id===row.pageGroup)?row.pageGroup:'listicle';
       const buckets=new Map();
       for(const [column,cell] of Object.entries(row.cells || {})){

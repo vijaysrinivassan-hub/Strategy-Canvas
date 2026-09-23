@@ -2042,6 +2042,15 @@
   .col-lock{display:inline-flex;color:#68776d;padding:3px}
   .gr-url{display:flex;align-items:center;gap:6px;padding:0 6px 5px;color:#748177;font-size:10px}
   .gr-url input[type=text]{min-width:0;flex:1;font-weight:400;padding:4px 2px}
+  .gr-actor{display:grid;grid-template-columns:minmax(92px,.8fr) minmax(150px,1.3fr);gap:5px;padding:0 6px 7px}
+  .gr-actor select,.gr-actor input{min-width:0;height:28px;border:1px solid #cfd9d1;background:#fff;color:#344339;font-size:10.5px;padding:4px 6px}
+  .gr-actor input{font-weight:500 !important}
+  .gr-actor select.set,.gr-actor input:not(:placeholder-shown){border-color:#b9d6c1;background:#f2faf4;color:#2f6f45}
+  .icp-matrix-row{min-width:170px;background:#f4f7f4 !important;position:sticky;left:0;z-index:1}
+  .icp-matrix-row input{width:100%;border:0;border-bottom:1px solid #cdd7cf;background:transparent;font-weight:800;color:#24352b;padding:3px 0}
+  .icp-matrix-row small{display:block;margin-top:6px;color:#77847a;font-weight:500;line-height:1.35}
+  .icp-matrix-row .icp-keyword-ideas{margin:8px 0 0;padding:7px;background:#fff}
+  .icp-column-keywords{display:block;margin-top:4px;color:#b7c8bc;font-size:9px;font-weight:500;line-height:1.35;text-transform:none;letter-spacing:0}
   .gr-foot2 .gr-author{flex:1 1 0;min-width:0}
   .comparison-toolbar{display:flex;align-items:center;gap:12px;padding:0 16px 12px}
   #competitorTableToolbar{padding:12px 16px;border-bottom:1px solid #dce4df;background:#fff}
@@ -2586,6 +2595,7 @@
 <script src="keyword-assignments.js"></script>
 <script src="keyword-page-tables.js"></script>
 <script src="keyword-columns.js"></script>
+<script src="ai-data-icp-matrix.js"></script>
 <script src="keyword-columns-ui.js"></script>
 <script src="competitor-comparison.js"></script>
 <link rel="stylesheet" href="icp-workflows.css">
@@ -2607,7 +2617,7 @@ const SUPABASE_URL = 'https://cskamgfvebryahkljlll.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_MdkD-TxMCIwlu69seSHA3Q_A39GADsK';
 const CLIENT_ID    = '1059013355751-6g50dsgm7df37htl2fdqrtlkh5hmrc0c.apps.googleusercontent.com';
 const ALLOWED      = ['vijaysrinivassan@gmail.com'];
-const BUILD        = 'v8.35';
+const BUILD        = 'v8.36';
 
 const STRATEGY_ONE_TAB = 'Strategy 1 — Brand Strategy';
 const PRODUCT_EVOLUTION_TAB = 'Strategy 1 — Product Evolution';
@@ -5938,6 +5948,7 @@ function contentRoot(){
     while (cur.rows.length < GRID_ROWS) cur.rows.push({ id: uid(), cells: {} });
   });
   KeywordColumns.sync(t, activeUniversalColumns());
+  if (globalThis.AiDataIcpMatrix?.ensure(t, state.client, state.workspaceProductId) && !readOnly()) setTimeout(markDirty, 0);
   for (const v of Object.values(t.views)) if(v.kind === 'grid' && v.columnOrder){
     const order = KeywordColumns.order(v); v.columns.sort((a,b) => order.indexOf(a.id)-order.indexOf(b.id));
   }
@@ -6140,6 +6151,16 @@ function cellControls(td, o){
     };
     urlRow.append(url);
     td.insertBefore(urlRow, td.querySelector(':scope > .gr-kws'));
+  }
+  if (state.contentView === 'icp' && keywordMode === 'aeo' && !td.querySelector(':scope > .gr-actor')){
+    const actorRow=document.createElement('div');actorRow.className='gr-actor';
+    const actorType=document.createElement('select');actorType.disabled=o.ro;actorType.setAttribute('aria-label','Technology, product, or analyst');
+    [['','Entity type…'],['technology','Technology'],['product','Product'],['person','Person / analyst'],['technology_or_person','Technology or person']].forEach(pair=>{const option=document.createElement('option');option.value=pair[0];option.textContent=pair[1];actorType.append(option);});
+    actorType.value=cell.actorType||'';actorType.classList.toggle('set',!!actorType.value);
+    actorType.onchange=function(){o.set({actorType:actorType.value});actorType.classList.toggle('set',!!actorType.value);o.refreshEmpty();markDirty();};
+    const actor=document.createElement('input');actor.type='text';actor.placeholder='Product, tool, or analyst';actor.value=cell.actor||'';actor.disabled=o.ro;actor.setAttribute('aria-label','Product, tool, or analyst');
+    actor.oninput=function(){o.set({actor:actor.value});o.refreshEmpty();markDirty();};
+    actorRow.append(actorType,actor);td.insertBefore(actorRow,td.querySelector(':scope > .gr-kws'));
   }
   const ctl = document.createElement('div');
   ctl.className = 'gr-ctl';
@@ -6449,6 +6470,7 @@ function cellOf(row, colId, defaults){
     const mode = d.forceMode ? d.mode : (c.mode === 'seo' ? 'seo' : c.mode === 'aeo' ? 'aeo' : (d.mode || 'aeo'));
     return { v: c.v || '', mode: mode, type: c.type || '',
              on: !!c.on, aw: c.aw || '', st: c.st || '', url: c.url || '', writtenBy: c.writtenBy || '', cfg:!!c.cfg,
+             actorType: c.actorType || '', actor: c.actor || '',
              keywordIdeas: Array.isArray(c.keywordIdeas) ? c.keywordIdeas : [], icpSource:c.icpSource || null,
              kws: Array.isArray(c.kws) ? c.kws.filter(Boolean) : [] };
   }
@@ -6457,7 +6479,7 @@ function cellOf(row, colId, defaults){
 
 /* A cell with nothing chosen and nothing caught keeps its controls quiet. */
 function cellQuiet(c, keywordCount){
-  return !c.url && !c.writtenBy && !c.v && !c.on && !keywordCount && !c.type && !c.aw && !c.st;
+  return !c.url && !c.writtenBy && !c.actorType && !c.actor && !c.v && !c.on && !keywordCount && !c.type && !c.aw && !c.st;
 }
 
 /* An empty cell is left out of the record entirely, so a blank table saves as
@@ -6466,8 +6488,9 @@ function setCellIn(row, colId, patch, defaults){
   const c = Object.assign(cellOf(row, colId, defaults), patch);
   const kws = Array.isArray(c.kws) ? c.kws.filter(Boolean) : [];
   const defaultMode = (defaults && defaults.mode) || 'aeo';
-  if (!c.url && !c.writtenBy && !c.cfg && !c.v && !c.type && c.mode === defaultMode && !c.on && !c.aw && !c.st && !kws.length && !c.keywordIdeas?.length && !c.icpSource) delete row.cells[colId];
+  if (!c.url && !c.writtenBy && !c.actorType && !c.actor && !c.cfg && !c.v && !c.type && c.mode === defaultMode && !c.on && !c.aw && !c.st && !kws.length && !c.keywordIdeas?.length && !c.icpSource) delete row.cells[colId];
   else row.cells[colId] = { v: c.v, mode: c.mode, type: c.type, on: c.on, aw: c.aw, st: c.st, url: c.url || '', writtenBy: c.writtenBy || '', cfg:!!c.cfg, kws: kws,
+    ...(c.actorType ? {actorType:c.actorType} : {}), ...(c.actor ? {actor:c.actor} : {}),
     ...(c.keywordIdeas?.length ? {keywordIdeas:c.keywordIdeas} : {}), ...(c.icpSource ? {icpSource:c.icpSource} : {}) };
 }
 
@@ -6852,6 +6875,14 @@ function renderGrid(){
     legacy.after(host);
   }
   host.hidden = false; host.innerHTML = '';
+  if (state.contentView === 'icp' && keywordMode === 'aeo'){
+    const group = {id:'matrix', label:'ICP matrix', type:''};
+    const section = document.createElement('section');section.className = 'keyword-page-section';
+    const title = document.createElement('h3');title.textContent = group.label;
+    const table = document.createElement('table');table.className = 'mx-table';
+    section.append(title, table);host.append(section);
+    renderGridTable(KeywordColumns.pageView(v, group.id), group, table);return;
+  }
   for (const group of KeywordPageTables.visibleGroups(state.contentView, keywordMode)){
     const section = document.createElement('section');
     section.className = 'keyword-page-section';
@@ -6875,8 +6906,9 @@ function renderGridTable(v, group, table){
   $('btnAddType').textContent = '+ Column';
   $('btnAddType').hidden = ro;
 
-  const sortedColumns = state.contentView === 'icp' ? KeywordColumns.sortIcpColumns(v.columns) : v.columns;
-  const activeIcpAxis = state.contentView === 'icp' ? activeBuyingIndustryAxis() : '';
+  const isIcpMatrix = state.contentView === 'icp' && group.id === 'matrix';
+  const sortedColumns = state.contentView === 'icp' && !isIcpMatrix ? KeywordColumns.sortIcpColumns(v.columns) : v.columns;
+  const activeIcpAxis = state.contentView === 'icp' && !isIcpMatrix ? activeBuyingIndustryAxis() : '';
   const columns = activeIcpAxis
     ? sortedColumns.filter(col => (col.axis || KeywordColumns.inferIcpAxis(col.name)) === activeIcpAxis)
     : sortedColumns;
@@ -6901,11 +6933,12 @@ function renderGridTable(v, group, table){
     axisRow.className = 'icp-axis-row';
     const corner = matrixCornerActions(() => addGridColumn(group.id), () => addGridRow(group.id), 'Add column', 'Add row');
     corner.rowSpan = 2; corner.classList.add('icp-axis-corner'); axisRow.append(corner);
-    for (const axis of KeywordColumns.ICP_AXIS_ORDER){
-      const count = columns.filter(col => (col.axis || KeywordColumns.inferIcpAxis(col.name)) === axis).length;
+    const axes = isIcpMatrix ? [['ind','Industry'],['ctry','Country'],['tech','Technology']] : KeywordColumns.ICP_AXIS_ORDER.map(axis=>[axis,KeywordColumns.ICP_AXIS_LABELS[axis]]);
+    for (const [axis, label] of axes){
+      const count = columns.filter(col => isIcpMatrix ? col.matrixGroup === axis : (col.axis || KeywordColumns.inferIcpAxis(col.name)) === axis).length;
       if (!count) continue;
       const th = document.createElement('th'); th.className = 'icp-axis-head'; th.colSpan = count;
-      th.textContent = KeywordColumns.ICP_AXIS_LABELS[axis]; axisRow.append(th);
+      th.textContent = label; axisRow.append(th);
     }
     thead.append(axisRow);
   }
@@ -6919,6 +6952,7 @@ function renderGridTable(v, group, table){
     lab.className = 'mx-lab';
     const b = document.createElement('b');
     b.textContent = col.name;
+    if (isIcpMatrix && col.keywordIdeas?.length){const words=document.createElement('small');words.className='icp-column-keywords';words.textContent=col.keywordIdeas.join(' · ');b.append(words);}
     b.title = col.universalId ? 'Universal column — edit in Settings' : 'Double-click to rename';
     b.ondblclick = function(){
       if (readOnly() || col.universalId) return;
@@ -6954,11 +6988,16 @@ function renderGridTable(v, group, table){
     const tr = document.createElement('tr');
 
     const num = document.createElement('th');
-    num.className = 'gr-num';
+    num.className = 'gr-num' + (isIcpMatrix ? ' icp-matrix-row' : '');
     const wrap = document.createElement('div');
     wrap.className = 'gr-numwrap';
     const idx = document.createElement('span');
-    idx.textContent = String(i + 1);
+    if (isIcpMatrix){
+      const rowName=document.createElement('input');rowName.value=row.name||'';rowName.placeholder='Process';rowName.disabled=ro;
+      rowName.oninput=function(){row.name=rowName.value;markDirty();};idx.replaceChildren(rowName);
+      if(row.description){const description=document.createElement('small');description.textContent=row.description;idx.append(description);}
+      if(row.keywordIdeas?.length){const ideas=document.createElement('div');ideas.className='icp-keyword-ideas';ideas.textContent=row.keywordIdeas.join(' · ');idx.append(ideas);}
+    }else idx.textContent = String(i + 1);
     wrap.append(idx);
     if (!ro){
       const del = document.createElement('button');
@@ -6981,7 +7020,7 @@ function renderGridTable(v, group, table){
         mode: configuredDefaults.mode || keywordMode,
         forceMode: !!configuredDefaults.mode
       });
-      if (!defaults.type) defaults.type = articleTypes().find(t => t.name.toLowerCase() === group.type.toLowerCase())?.id || '';
+      if (!defaults.type && group.type) defaults.type = articleTypes().find(t => t.name.toLowerCase() === group.type.toLowerCase())?.id || '';
       const cell = cellOf(row, col.id, defaults);
       const kws = gridCellKeywords(cell.v || cell.url, cell.kws);
       const td = document.createElement('td');
@@ -7054,7 +7093,7 @@ function renderGridTable(v, group, table){
 function addGridRow(pageGroup = 'listicle'){
   if (readOnly()) return;
   const v = matrixState();
-  v.rows.push({ id: uid(), pageGroup, cells: {} });
+  v.rows.push({ id: uid(), pageGroup, ...(pageGroup === 'matrix' ? {name:'New process',description:'',keywordIdeas:[]} : {}), cells: {} });
   markDirty();
   renderGrid();
 }
@@ -7065,7 +7104,7 @@ function addGridColumn(pageGroup = 'listicle'){
   const name = prompt('Column name');
   if (name === null) return;
   v.columns.push({ id: uid(), name: name.trim() || 'Column', local: true,
-                   ...(state.contentView === 'icp' ? {axis:activeBuyingIndustryAxis() || 'process'} : {}) });
+                   ...(state.contentView === 'icp' ? (pageGroup === 'matrix' ? {matrixGroup:'ind',keywordIdeas:[]} : {axis:activeBuyingIndustryAxis() || 'process'}) : {}) });
   markDirty();
   renderGrid();
 }

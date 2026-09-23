@@ -29,7 +29,7 @@ assert.deepEqual(K.sortIcpColumns(page.columns).map(c=>c.axis||K.inferIcpAxis(c.
 assert.equal(K.inferIcpAxis('Company Size'),'process');
 assert(K.strategyPrompt.includes('ICP AXES'));
 const html=(await import('node:fs')).default.readFileSync(new URL('./index.html',import.meta.url),'utf8');
-assert(html.includes("const activeIcpAxis = state.contentView === 'icp' ? activeBuyingIndustryAxis() : '';"));
+assert(html.includes("const activeIcpAxis = state.contentView === 'icp' && !isIcpMatrix ? activeBuyingIndustryAxis() : '';"));
 assert(html.includes("sortedColumns.filter(col => (col.axis || KeywordColumns.inferIcpAxis(col.name)) === activeIcpAxis)"));
 assert(html.includes('td.colSpan = columns.length + 1;'));
 assert(html.includes("{axis:activeBuyingIndustryAxis() || 'process'}"));
