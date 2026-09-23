@@ -1314,7 +1314,7 @@
   .arch-add-process{align-self:stretch; display:grid; place-items:center; flex:0 0 116px; min-height:230px;
                     border:1px dashed #bdc5bd; background:rgba(255,255,255,.68); color:#337548;
                     font-size:10px; font-weight:750}
-  .arch-flow-system{position:relative; flex:0 0 1060px; width:1060px; min-height:230px; overflow:hidden; border:1px solid #cfd2cc;
+  .arch-flow-system{position:relative; flex:0 0 1060px; width:1060px; min-width:640px; min-height:230px; overflow:hidden; border:1px solid #cfd2cc;
                     background-color:rgba(251,252,249,.84);
                     background-image:radial-gradient(circle at 1px 1px,#d4d8d2 1px,transparent 1.1px);
                     background-size:20px 20px}
@@ -1380,6 +1380,10 @@
   .arch-flow-resize{position:absolute; z-index:7; left:0; right:0; bottom:0; height:9px; cursor:ns-resize}
   .arch-flow-resize::after{content:''; position:absolute; left:50%; bottom:2px; width:42px; height:2px;
                            transform:translateX(-50%); background:#c3c6c0}
+  .arch-flow-resize-x{position:absolute; z-index:8; top:44px; right:0; bottom:9px; width:11px; cursor:ew-resize}
+  .arch-flow-resize-x::after{content:''; position:absolute; top:50%; right:3px; width:2px; height:42px;
+                             transform:translateY(-50%); background:#9db0a1}
+  .arch-flow-resize-x:hover::after{width:3px; background:#4ba96a}
   .arch-flow-empty{padding:76px 20px 30px; color:#858780; font-size:10.5px; text-align:center}
   @media(max-width:900px){
     .arch-v2-meta{grid-template-columns:1fr}.architecture{overflow:auto}.arch-flow-board{min-width:920px}
@@ -2650,7 +2654,7 @@ const SUPABASE_URL = 'https://cskamgfvebryahkljlll.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_MdkD-TxMCIwlu69seSHA3Q_A39GADsK';
 const CLIENT_ID    = '1059013355751-6g50dsgm7df37htl2fdqrtlkh5hmrc0c.apps.googleusercontent.com';
 const ALLOWED      = ['vijaysrinivassan@gmail.com'];
-const BUILD        = 'v8.44';
+const BUILD        = 'v8.45';
 
 const STRATEGY_ONE_TAB = 'Strategy 1 — Brand Strategy';
 const PRODUCT_EVOLUTION_TAB = 'Strategy 1 — Product Evolution';
@@ -8009,9 +8013,9 @@ let architectureConnection = null;
 let architectureSelection = new Set();
 let architectureSelectedEdge = '';
 
-function archFlowSystem(name, height, row){
+function archFlowSystem(name, height, row, width){
   return { id: uid(), name: name || 'New system', height: Math.max(230, Number(height) || 300),
-    row: Math.max(0, Math.floor(Number(row) || 0)) };
+    row: Math.max(0, Math.floor(Number(row) || 0)), width: Math.max(640, Number(width) || 1060) };
 }
 function archFlowNode(systemId, label, type, x, y, details){
   return Object.assign({ id: uid(), systemId, label: label || 'New node', type: type || 'technology',
@@ -8202,6 +8206,7 @@ productArchitectureState = function(){
     if (!system.id) system.id = uid();
     if (typeof system.name !== 'string') system.name = 'Untitled system';
     system.height = Math.max(230, Number(system.height) || 300);
+    system.width = Math.max(640, Number(system.width) || 1060);
     system.row = Math.max(0, Math.floor(Number(system.row) || 0));
   });
   architecture.nodes = architecture.nodes.filter(node => architecture.systems.some(system => system.id === node.systemId));
@@ -8538,7 +8543,7 @@ function startArchitectureMarquee(row, system, architecture, event){
 
 function enableArchitectureMarquee(row, system, architecture){
   row.addEventListener('pointerdown', event => {
-    if (event.target.closest('.arch-flow-system-head,.arch-flow-node,.arch-node-group,.arch-flow-resize,.arch-flow-port')) return;
+    if (event.target.closest('.arch-flow-system-head,.arch-flow-node,.arch-node-group,.arch-flow-resize,.arch-flow-resize-x,.arch-flow-port')) return;
     event.stopPropagation();
     startArchitectureMarquee(row, system, architecture, event);
   });
@@ -8549,7 +8554,7 @@ function enableArchitectureBoardMarquee(architecture){
   board.onpointerdown = event => {
     const target = event.target;
     if (!target || !target.closest) return;
-    if (target.closest('.arch-flow-wire-hit,.arch-edge-label,.arch-flow-system-head,.arch-flow-node,.arch-node-group,.arch-flow-resize,.arch-flow-port')) return;
+    if (target.closest('.arch-flow-wire-hit,.arch-edge-label,.arch-flow-system-head,.arch-flow-node,.arch-node-group,.arch-flow-resize,.arch-flow-resize-x,.arch-flow-port')) return;
     const row = document.elementsFromPoint(event.clientX, event.clientY)
       .find(element => element.classList && element.classList.contains('arch-flow-system'));
     if (!row) return;
@@ -8653,7 +8658,8 @@ function addArchitectureNode(architecture, system){
 
 function renderArchitectureSystem(system, index, architecture, siblings){
   const row = document.createElement('section');
-  row.className = 'arch-flow-system'; row.dataset.systemId = system.id; row.style.height = system.height + 'px';
+  row.className = 'arch-flow-system'; row.dataset.systemId = system.id;
+  row.style.height = system.height + 'px'; row.style.width = system.width + 'px'; row.style.flexBasis = system.width + 'px';
   const head = document.createElement('div'); head.className = 'arch-flow-system-head';
   const number = document.createElement('span'); number.className = 'system-index';
   number.textContent = state.tab === MATURITY_ACCESS_TAB ? 'Maturity ' + (system.row + 1) : 'System ' + (index + 1);
@@ -8793,6 +8799,24 @@ function renderArchitectureSystem(system, index, architecture, siblings){
     row.append(card); enableArchitectureNodeDrag(card, node, system, architecture);
   });
   if (!readOnly()){
+    const resizeX = document.createElement('div'); resizeX.className = 'arch-flow-resize-x';
+    resizeX.title = 'Drag to make this canvas wider or narrower';
+    resizeX.onpointerdown = event => {
+      event.preventDefault(); event.stopPropagation();
+      const startX = event.clientX, startWidth = system.width;
+      const minNodeWidth = Math.max(640, ...nodes.map(node =>
+        node.x + (state.tab === MATURITY_ACCESS_TAB ? 200 : 176)));
+      const move = moveEvent => {
+        system.width = Math.max(minNodeWidth, startWidth + moveEvent.clientX - startX);
+        row.style.width = system.width + 'px'; row.style.flexBasis = system.width + 'px';
+        positionArchitectureGroups(architecture); drawArchitectureWires(architecture);
+      };
+      const up = () => {
+        document.removeEventListener('pointermove', move); document.removeEventListener('pointerup', up); markDirty();
+      };
+      document.addEventListener('pointermove', move); document.addEventListener('pointerup', up);
+    };
+    row.append(resizeX);
     const resize = document.createElement('div'); resize.className = 'arch-flow-resize'; resize.title = 'Drag to resize this system';
     resize.onpointerdown = event => {
       event.preventDefault(); const startY = event.clientY, startHeight = system.height;

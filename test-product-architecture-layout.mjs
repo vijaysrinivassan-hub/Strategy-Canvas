@@ -7,6 +7,10 @@ assert(html.includes('.arch-flow-systems{position:relative; display:flex; flex-d
 assert(html.includes('.arch-system-row{position:relative; display:flex; flex-direction:row; align-items:flex-start; gap:18px;'));
 assert(html.includes('.arch-flow-system{position:relative; flex:0 0 1060px; width:1060px'));
 assert(html.includes('.arch-flow-system{flex-basis:920px; width:920px}'));
+assert(html.includes('.arch-flow-resize-x{position:absolute;'));
+assert(html.includes("row.style.width = system.width + 'px'; row.style.flexBasis = system.width + 'px'"));
+assert(html.includes("resizeX.title = 'Drag to make this canvas wider or narrower'"));
+assert(html.includes('system.width = Math.max(640, Number(system.width) || 1060)'));
 assert(html.includes("['←','→'].forEach((label, direction) => {"));
 assert(html.includes("direction ? 'Move system right' : 'Move system left'"));
 assert(html.includes("add.textContent = '+ Add process'"));
@@ -24,4 +28,6 @@ assert(!html.includes('Pillar processes'));
 
 const mcp=fs.readFileSync(new URL('./mcp-server/src/tools/architecture.ts',import.meta.url),'utf8');
 assert(mcp.includes('row:z.number().int().min(0).optional()'));
+assert(mcp.includes('width:z.number().min(640).optional()'));
+assert(mcp.includes('(system.width||1060)'));
 console.log('PASS: Product Architecture canvases form horizontal process rows and additional rows stack vertically.');

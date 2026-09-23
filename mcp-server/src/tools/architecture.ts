@@ -19,7 +19,7 @@ export async function architecturePrompts(body?: {tabs: Record<string, any>}, se
 }
 const architectureSchema = z.object({
   name: z.string().min(1), summary: z.string(),
-  systems: z.array(z.object({id:z.string().min(1),name:z.string().min(1),height:z.number().min(230),row:z.number().int().min(0).optional()})),
+  systems: z.array(z.object({id:z.string().min(1),name:z.string().min(1),height:z.number().min(230),width:z.number().min(640).optional(),row:z.number().int().min(0).optional()})),
   nodes: z.array(z.object({
     id:z.string().min(1),systemId:z.string(),label:z.string().min(1),type:z.enum(['technology','people']),x:z.number().min(10),y:z.number().min(54),
     processRole:z.enum(['supporting','pillar']).optional(),pillarState:z.enum(['current','inherited']).or(z.literal('')).optional(),
@@ -70,7 +70,7 @@ export function registerArchitectureTools(server:McpServer) {
     const nodes=new Map(architecture.nodes.map(n=>[n.id,n]));
     for(const n of architecture.nodes){
       const system=architecture.systems.find(s=>s.id===n.systemId);
-      if(!system || n.y+96>system.height || n.x+176>1060)throw new ToolError('Node falls outside its workflow row.');
+      if(!system || n.y+96>system.height || n.x+176>(system.width||1060))throw new ToolError('Node falls outside its workflow row.');
     }
     for(const e of architecture.edges)if(!nodes.has(e.from)||!nodes.has(e.to)||e.from===e.to)throw new ToolError('Invalid connector endpoints.');
     for(const g of architecture.groups)if(new Set(g.nodeIds).size!==g.nodeIds.length||g.nodeIds.some(id=>!nodes.has(id)||nodes.get(id)!.systemId!==g.systemId))throw new ToolError('Group members must belong to the same workflow.');
@@ -94,7 +94,7 @@ export function registerArchitectureTools(server:McpServer) {
     const nodes=new Map(architecture.nodes.map(n=>[n.id,n]));
     for(const n of architecture.nodes){
       const system=architecture.systems.find(s=>s.id===n.systemId);
-      if(!system || n.y+220>system.height || n.x+190>1060)throw new ToolError('Maturity node falls outside its row.');
+      if(!system || n.y+220>system.height || n.x+190>(system.width||1060))throw new ToolError('Maturity node falls outside its row.');
       if(!n.processRole||!n.actorType)throw new ToolError('Every maturity node needs processRole and actorType.');
       if(n.processRole==='pillar'&&!n.pillarState)throw new ToolError('Every pillar needs current or inherited state.');
     }
