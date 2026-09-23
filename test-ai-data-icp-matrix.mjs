@@ -31,6 +31,10 @@ assert.equal(splitView.rows[0].pageGroup,'matrix');
 
 const html=fs.readFileSync(new URL('./index.html',import.meta.url),'utf8');
 for(const marker of ['ICP matrix','Entity type…','Product, tool, or analyst','actorType','matrixGroup','icp-matrix-corner','isIcpMatrix ? 220 : 46','renderMatrixTopicCell','matrixTopicCell','icp-matrix-row-topic'])assert.ok(html.includes(marker),marker);
+assert.ok(!html.includes('.icp-matrix-row-topic{min-width:220px;position:sticky'));
+assert.ok(html.includes('.icp-matrix-row-topic{min-width:220px;background:#eef6f0'));
+assert.ok(html.includes('th.icp-matrix-column-topic.icp-matrix-ind{background:#edf8f1'));
+assert.ok(html.includes('thead th.icp-matrix-column-topic{position:relative;top:auto'));
 assert.ok(html.includes('<script src="ai-data-icp-matrix.js"></script>'));
 const bridge=fs.readFileSync(new URL('./icp-keyword-bridge.js',import.meta.url),'utf8');
 assert.ok(bridge.includes("startsWith('sample-matrix')"));
