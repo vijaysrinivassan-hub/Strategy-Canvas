@@ -72,7 +72,7 @@ export function registerBoardTools(server: McpServer) {
               value_positioning: slot.fields?.value_positioning || ""
             }
           };
-        } else if (tab === "Strategy 1 — Product Architecture" || tab === "Strategy 1 — Maturity Access") {
+        } else if (tab === "Strategy 1 — Product Architecture" || tab === "Strategy 1 — Maturity Axis") {
           const architecture = slot.architecture;
           if (!architecture) {
             summary[tab] = { empty: true };

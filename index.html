@@ -2607,12 +2607,13 @@ const SUPABASE_URL = 'https://cskamgfvebryahkljlll.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_MdkD-TxMCIwlu69seSHA3Q_A39GADsK';
 const CLIENT_ID    = '1059013355751-6g50dsgm7df37htl2fdqrtlkh5hmrc0c.apps.googleusercontent.com';
 const ALLOWED      = ['vijaysrinivassan@gmail.com'];
-const BUILD        = 'v8.34';
+const BUILD        = 'v8.35';
 
 const STRATEGY_ONE_TAB = 'Strategy 1 — Brand Strategy';
 const PRODUCT_EVOLUTION_TAB = 'Strategy 1 — Product Evolution';
 const PRODUCT_ARCHITECTURE_TAB = 'Strategy 1 — Product Architecture';
-const MATURITY_ACCESS_TAB = 'Strategy 1 — Maturity Access';
+const MATURITY_ACCESS_TAB = 'Strategy 1 — Maturity Axis';
+const LEGACY_MATURITY_ACCESS_TAB = 'Strategy 1 — Maturity Access';
 const POSITIONING_TAB = 'Strategy 1 — Positioning Canvas';
 const POSITIONING_DOCUMENT_TAB = 'Strategy 1 — Positioning Document';
 const BRAND_RADAR_TAB = 'Strategy 1 — Brand Radar';
@@ -2665,7 +2666,7 @@ function moveCanvas(from, to, after){
   markDirty();
   renderTabs();
 }
-const LEGACY_HIDDEN_TABS = [PRODUCT_EVOLUTION_TAB];
+const LEGACY_HIDDEN_TABS = [PRODUCT_EVOLUTION_TAB, LEGACY_MATURITY_ACCESS_TAB];
 const isBrandTab = name => brandTabs().indexOf(name) > -1;
 const NAV = [
   { kind: 'label',  text: 'Strategy' },
@@ -3041,7 +3042,7 @@ const TAB_ICONS = {
   'Strategy 1 — Brand Strategy': '<path d="M4 5h16v14H4z"/><path d="M8 9h8M8 13h5M8 17h3"/>',
   'Strategy 1 — Product Evolution': '<path d="M4 12h16M12 4v16"/><circle cx="12" cy="12" r="3"/>',
   'Strategy 1 — Product Architecture': '<path d="M3 7h7v5H3zM14 3h7v5h-7zM14 16h7v5h-7z"/><path d="M10 9.5h2a2 2 0 0 0 2-2V6M10 9.5h2a2 2 0 0 1 2 2v7"/>',
-  'Strategy 1 — Maturity Access': '<path d="M4 5h16v5H4zM4 14h7v5H4zM15 14h5v5h-5z"/><path d="M12 7.5v9M11 16.5h4"/>',
+  'Strategy 1 — Maturity Axis': '<path d="M4 5h16v5H4zM4 14h7v5H4zM15 14h5v5h-5z"/><path d="M12 7.5v9M11 16.5h4"/>',
   'Strategy 1 — Positioning Canvas': '<circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="8"/><path d="M12 1v3M12 20v3M1 12h3M20 12h3"/>',
   'Strategy 1 — Positioning Document': '<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 12h6M9 16h6"/>',
   'Strategy 1 — Brand Radar': '<circle cx="12" cy="12" r="8"/><path d="M12 1v22M1 12h22"/><circle cx="12" cy="12" r="3"/>',
@@ -3149,7 +3150,7 @@ function renderTabs(){
     if (item.kind === 'strategy1-tabs'){
       box.append(tabButton(STRATEGY_ONE_TAB, 'GTM Strategy'));
       box.append(tabButton(PRODUCT_ARCHITECTURE_TAB, 'Product Architecture'));
-      box.append(tabButton(MATURITY_ACCESS_TAB, 'Maturity Access'));
+      box.append(tabButton(MATURITY_ACCESS_TAB, 'Maturity Axis'));
       box.append(tabButton(POSITIONING_TAB, 'Positioning Canvas'));
       box.append(tabButton(POSITIONING_DOCUMENT_TAB, 'Positioning Document'));
       return;
@@ -3318,7 +3319,7 @@ function renderTabs(){
     $('tabTitle').textContent = state.tab === CONTENT_TAB ? viewDef(state.contentView).label
       : state.tab === STRATEGY_ONE_TAB || state.tab === CHANNELS_TAB ? 'GTM Strategy'
       : state.tab === PRODUCT_ARCHITECTURE_TAB ? 'Product Architecture'
-      : state.tab === MATURITY_ACCESS_TAB ? 'Maturity Access'
+      : state.tab === MATURITY_ACCESS_TAB ? 'Maturity Axis'
       : state.tab === POSITIONING_TAB ? 'Positioning Canvas'
       : state.tab === POSITIONING_DOCUMENT_TAB ? 'Positioning Document'
       : state.tab === BRAND_RADAR_TAB ? 'Brand Radar' : state.tab;
@@ -4525,6 +4526,12 @@ function hydrate(text){
   try { d = JSON.parse(text); } catch (e) {}
   state.tabs = blankTabs();
   state.productWorkspaces = d && d.productWorkspaces && typeof d.productWorkspaces === 'object' ? d.productWorkspaces : {};
+  Object.values(state.productWorkspaces).forEach(workspace => {
+    const tabs = workspace && typeof workspace === 'object' ? workspace.tabs : null;
+    if (!tabs || typeof tabs !== 'object' || !tabs[LEGACY_MATURITY_ACCESS_TAB]) return;
+    if (!tabs[MATURITY_ACCESS_TAB]) tabs[MATURITY_ACCESS_TAB] = tabs[LEGACY_MATURITY_ACCESS_TAB];
+    delete tabs[LEGACY_MATURITY_ACCESS_TAB];
+  });
   state.workspaceProductId = d && typeof d.workspaceProductId === 'string' ? d.workspaceProductId : '';
   state.extra = [];
   state.frameEdits = (d && d.frameEdits && typeof d.frameEdits === 'object') ? d.frameEdits : {};
@@ -4532,6 +4539,10 @@ function hydrate(text){
     ? d.brandOrder.filter(x => typeof x === 'string') : [];
   state.frameIndex = -1;
   if (d && d.tabs){
+    if (d.tabs[LEGACY_MATURITY_ACCESS_TAB]){
+      if (!d.tabs[MATURITY_ACCESS_TAB]) d.tabs[MATURITY_ACCESS_TAB] = d.tabs[LEGACY_MATURITY_ACCESS_TAB];
+      delete d.tabs[LEGACY_MATURITY_ACCESS_TAB];
+    }
     /* This tab has been called Document Gallery and then Repo. A board saved
        under either name keeps its rows and its filing; the old key has to go,
        or it would come back as a stray canvas. */
@@ -7898,7 +7909,7 @@ async function openAiPrompt(tabKey, promptKey, label){
 function isArchitectureTab(tab){ return tab === PRODUCT_ARCHITECTURE_TAB || tab === MATURITY_ACCESS_TAB; }
 function activeArchitectureTab(){ return state.tab === MATURITY_ACCESS_TAB ? MATURITY_ACCESS_TAB : PRODUCT_ARCHITECTURE_TAB; }
 $('btnArchPrompts').onclick = () => {
-  const label = state.tab === MATURITY_ACCESS_TAB ? 'Maturity Access' : 'Product Architecture';
+  const label = state.tab === MATURITY_ACCESS_TAB ? 'Maturity Axis' : 'Product Architecture';
   openAiPrompt(activeArchitectureTab(), 'product_architecture', label);
 };
 $('btnPositioningPrompts').onclick = () => openAiPrompt(POSITIONING_TAB, 'positioning_canvas', 'Positioning Canvas');
@@ -8018,8 +8029,8 @@ productArchitectureState = function(){
       (architecture.edges || []).forEach(edge => { if (typeof edge.label !== 'string') edge.label = ''; });
     } else if (tabKey === MATURITY_ACCESS_TAB){
       architecture = blankArchitecture();
-      architecture.name = 'Maturity Access';
-      architecture.summary = 'Map maturity processes in horizontal canvases, adding further rows as the model expands.';
+      architecture.name = 'Maturity Axis';
+      architecture.summary = 'Map maturity processes along an axis using horizontal canvases, adding further rows as the model expands.';
     } else architecture = architectureSeedForClient();
     tab.architecture = architecture;
     if (!readOnly()) setTimeout(markDirty, 0);
@@ -8583,7 +8594,7 @@ renderProductArchitecture = function(){
   const architecture = productArchitectureState();
   const ro = readOnly();
   const maturity = state.tab === MATURITY_ACCESS_TAB;
-  $('archPaneTitle').textContent = maturity ? 'Maturity Access' : 'Product Architecture';
+  $('archPaneTitle').textContent = maturity ? 'Maturity Axis' : 'Product Architecture';
   $('archSample').value = architecture.sample || 'blank'; $('archSample').disabled = ro;
   $('btnArchLoadSample').hidden = ro; $('btnArchAddDomain').hidden = ro;
   const name = $('archProductName'); name.value = architecture.name || ''; name.readOnly = ro;
@@ -8632,7 +8643,7 @@ $('btnArchLoadSample').onclick = () => {
   const tabKey = activeArchitectureTab();
   state.tabs[tabKey].architecture = sample === 'data' ? dataPlatformArchitecture() :
     sample === 'soc' ? socProductArchitecture() : blankArchitecture();
-  if (tabKey === MATURITY_ACCESS_TAB && sample === 'blank') state.tabs[tabKey].architecture.name = 'Maturity Access';
+  if (tabKey === MATURITY_ACCESS_TAB && sample === 'blank') state.tabs[tabKey].architecture.name = 'Maturity Axis';
   architectureSelection.clear();
   markDirty(); renderProductArchitecture();
 };

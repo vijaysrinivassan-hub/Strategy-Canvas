@@ -3,7 +3,7 @@ import vm from 'node:vm';
 import assert from 'node:assert/strict';
 const html=fs.readFileSync(new URL('./index.html',import.meta.url),'utf8');
 for(const m of html.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/g))new vm.Script(m[1]);
-const names={PRODUCT_ARCHITECTURE_TAB:'architecture',MATURITY_ACCESS_TAB:'maturity',POSITIONING_TAB:'positioning',POSITIONING_DOCUMENT_TAB:'document',BRAND_RADAR_TAB:'radar',CONTENT_TAB:'keywords',STRATEGY_ONE_TAB:'gtm',PRODUCT_EVOLUTION_TAB:'legacy',FRAME_TAB:'frame',DOCS_TAB:'evidence'};
+const names={PRODUCT_ARCHITECTURE_TAB:'architecture',MATURITY_ACCESS_TAB:'maturity',LEGACY_MATURITY_ACCESS_TAB:'legacy-maturity',POSITIONING_TAB:'positioning',POSITIONING_DOCUMENT_TAB:'document',BRAND_RADAR_TAB:'radar',CONTENT_TAB:'keywords',STRATEGY_ONE_TAB:'gtm',PRODUCT_EVOLUTION_TAB:'legacy',FRAME_TAB:'frame',DOCS_TAB:'evidence'};
 const scoped=['architecture','maturity','positioning','document','radar','keywords'];
 const state={client:'Client A',clientProduct:'Payroll',tabs:{gtm:{channels:{products:[{id:'p1',name:'Payroll'},{id:'p2',name:'Recruiting'},{id:'p3',name:'Time'}],activeProductId:'p1'}},evidence:{files:['source']}}};
 scoped.forEach(key=>state.tabs[key]={nodes:[],edges:[],marker:'payroll-'+key});

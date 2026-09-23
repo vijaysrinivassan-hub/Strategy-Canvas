@@ -99,7 +99,7 @@ export const TABS = [
   "Growth Strategy",
   "Strategy 1 — Brand Strategy",
   "Strategy 1 — Product Architecture",
-  "Strategy 1 — Maturity Access",
+  "Strategy 1 — Maturity Axis",
   "Strategy 1 — Positioning Document",
   "Content Strategy",
   "Keyword Repo",
@@ -121,7 +121,7 @@ export const CANVAS_TABS = [
 export const PANEL_TABS = [
   "Strategy 1 — Brand Strategy",
   "Strategy 1 — Product Architecture",
-  "Strategy 1 — Maturity Access",
+  "Strategy 1 — Maturity Axis",
   "Strategy 1 — Positioning Document",
   "Content Strategy",
   "Keyword Repo",
