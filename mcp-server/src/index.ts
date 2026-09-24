@@ -10,6 +10,7 @@ import { registerContentTools } from "./tools/content.js";
 import { registerFrameTools } from "./tools/frames.js";
 import { registerPositioningDocumentTools } from "./tools/positioning-document.js";
 import { registerArchitectureTools } from "./tools/architecture.js";
+import { registerCompetitiveIntelligenceTools } from "./tools/competitive-intelligence.js";
 
 import { registerKeywordAssignmentTools } from './tools/keyword-assignments.js';
 
@@ -27,6 +28,7 @@ registerContentTools(server);
 registerFrameTools(server);
 registerPositioningDocumentTools(server);
 registerArchitectureTools(server);
+registerCompetitiveIntelligenceTools(server);
 
 async function main() {
   const transport = new StdioServerTransport();

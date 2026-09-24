@@ -23,6 +23,6 @@ assert(html.includes("model.perceptions.push(newCommunicationPerception('New Bra
 assert(html.includes("model.factors.push(newCommunicationFactor())"));
 assert(html.includes("stage.querySelectorAll('[data-comm-perception]')"));
 assert(html.includes("stage.querySelectorAll('[data-comm-factor]')"));
-assert(html.includes('COMMUNICATION_STRATEGY_TAB, BRAND_RADAR_TAB].indexOf(state.tab) === -1'));
+assert(/COMMUNICATION_STRATEGY_TAB,[\s\S]{0,120}BRAND_RADAR_TAB\]\.indexOf\(state\.tab\) === -1/.test(html));
 
 console.log('PASS: product-scoped Communication Strategy canvas, linked sources, four awareness messages, editable factors, wires and configurable 3D perception stumps.');

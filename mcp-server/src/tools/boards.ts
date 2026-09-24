@@ -111,6 +111,13 @@ export function registerBoardTools(server: McpServer) {
           );
         } else if (tab === "Grounded Evidences") {
           summary[tab] = { rows: (slot.sections || []).map((c: any) => c.name) };
+        } else if (tab === "Competitive Intelligence") {
+          summary[tab] = {
+            competitors: (slot.competitors || []).map((item:any) => ({
+              name:item.name,domain:item.domain || "",sitemaps:(item.sitemaps || []).length,
+              urls:(item.urls || []).length,status:item.status || "empty"
+            }))
+          };
         } else {
           summary[tab] = {
             cards: (slot.nodes || []).filter((n: any) => n.type !== "group").length,

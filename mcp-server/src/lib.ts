@@ -102,6 +102,7 @@ export const TABS = [
   "Strategy 1 — Maturity Axis",
   "Strategy 1 — Positioning Document",
   "Content Strategy",
+  "Competitive Intelligence",
   "Keyword Repo",
   "Grounded Evidences"
 ] as const;
@@ -124,6 +125,7 @@ export const PANEL_TABS = [
   "Strategy 1 — Maturity Axis",
   "Strategy 1 — Positioning Document",
   "Content Strategy",
+  "Competitive Intelligence",
   "Keyword Repo",
   "Grounded Evidences"
 ] as const;

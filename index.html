@@ -2743,6 +2743,20 @@
         <div class="kw-table-wrap"><table class="kw-table" id="kwRepoTable"></table></div>
       </section>
     </div>
+
+    <div class="ci" id="ciPane" hidden>
+      <div class="ci-shell">
+        <div class="ci-head">
+          <div>
+            <span class="ci-kicker">Research system</span>
+            <h3>Competitive Intelligence</h3>
+            <p>Open a competitor to inspect its sitemap sources and complete discovered URL inventory.</p>
+          </div>
+          <div class="ci-head-actions"><button id="btnCiAddCompetitor" type="button">+ Competitor</button></div>
+        </div>
+        <div id="ciHost"></div>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -2757,6 +2771,9 @@
 <script src="ai-data-icp-matrix.js"></script>
 <script src="keyword-columns-ui.js"></script>
 <script src="competitor-comparison.js"></script>
+<link rel="stylesheet" href="competitive-intelligence.css">
+<script src="competitive-intelligence-seed.js"></script>
+<script src="competitive-intelligence.js"></script>
 <link rel="stylesheet" href="icp-workflows.css">
 <script src="icp-workflows.js"></script>
 <link rel="stylesheet" href="icp-table.css">
@@ -2776,7 +2793,7 @@ const SUPABASE_URL = 'https://cskamgfvebryahkljlll.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_MdkD-TxMCIwlu69seSHA3Q_A39GADsK';
 const CLIENT_ID    = '1059013355751-6g50dsgm7df37htl2fdqrtlkh5hmrc0c.apps.googleusercontent.com';
 const ALLOWED      = ['vijaysrinivassan@gmail.com'];
-const BUILD        = 'v8.47';
+const BUILD        = 'v8.48';
 
 const STRATEGY_ONE_TAB = 'Strategy 1 — Brand Strategy';
 const PRODUCT_EVOLUTION_TAB = 'Strategy 1 — Product Evolution';
@@ -2787,6 +2804,8 @@ const POSITIONING_TAB = 'Strategy 1 — Positioning Canvas';
 const POSITIONING_DOCUMENT_TAB = 'Strategy 1 — Positioning Document';
 const COMMUNICATION_STRATEGY_TAB = 'Strategy 1 — Communication Strategy';
 const BRAND_RADAR_TAB = 'Strategy 1 — Brand Radar';
+
+const COMPETITIVE_INTELLIGENCE_TAB = 'Competitive Intelligence';
 
 const TABS = [
   'Product Architecture',
@@ -2802,6 +2821,7 @@ const TABS = [
   COMMUNICATION_STRATEGY_TAB,
   'Channel Strategy',
   'Content Strategy',
+  COMPETITIVE_INTELLIGENCE_TAB,
   'Keyword Repo',
   'Grounded Evidences'
 ];
@@ -2847,6 +2867,7 @@ const NAV = [
   { kind: 'label',  text: 'Keywords' },
   { kind: 'keywords-tabs' },
   { kind: 'label',  text: 'Research' },
+  { kind: 'tab',    name: COMPETITIVE_INTELLIGENCE_TAB },
   { kind: 'tab',    name: 'Keyword Repo' },
   { kind: 'tab',    name: 'Grounded Evidences' },
   { kind: 'group',  id: 'frames',   label: 'Frames' },
@@ -3208,6 +3229,7 @@ const TAB_ICONS = {
   'Competitor': '<circle cx="8" cy="9" r="3"/><circle cx="16" cy="9" r="3"/><path d="M3 19c.5-3 2.2-5 5-5s4.5 2 5 5M11 19c.5-3 2.2-5 5-5s4.5 2 5 5"/>',
   'ICP': '<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/><path d="M12 1v3M12 20v3M1 12h3M20 12h3"/>',
   'Value': '<path d="M12 3l8 7-8 11-8-11z"/><path d="M4 10h16"/>',
+  'Competitive Intelligence': '<circle cx="10" cy="10" r="6"/><path d="M14.5 14.5L21 21M4 20h7M16 4h4v4"/>',
   'Keyword Repo': '<circle cx="8.5" cy="8.5" r="4.5"/><path d="M12 12l7 7"/><path d="M17 17l2-2"/>',
   'Grounded Evidences': '<path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>',
   'Strategy 1 — Brand Strategy': '<path d="M4 5h16v14H4z"/><path d="M8 9h8M8 13h5M8 17h3"/>',
@@ -3253,7 +3275,8 @@ function renderTabs(){
     const isPanel = [DOCS_TAB, CHANNELS_TAB, KEYWORDS_TAB, CONTENT_TAB,
                      STRATEGY_ONE_TAB, PRODUCT_ARCHITECTURE_TAB,
                      MATURITY_ACCESS_TAB,
-                     POSITIONING_TAB, POSITIONING_DOCUMENT_TAB, COMMUNICATION_STRATEGY_TAB, BRAND_RADAR_TAB].indexOf(name) > -1;
+                     POSITIONING_TAB, POSITIONING_DOCUMENT_TAB, COMMUNICATION_STRATEGY_TAB,
+                     COMPETITIVE_INTELLIGENCE_TAB, BRAND_RADAR_TAB].indexOf(name) > -1;
     if (!isPanel){
       const c = document.createElement('span');
       c.className = 'n';
@@ -4562,7 +4585,8 @@ window.addEventListener('blur', () => { spaceHeld = false; });
 /* Product workspace projection: tabs always contains the active product's data.
    Inactive products live in snapshots; older clients and MCP tools can still use tabs. */
 function productScopedTabs(){
-  return [PRODUCT_ARCHITECTURE_TAB, MATURITY_ACCESS_TAB, POSITIONING_TAB, POSITIONING_DOCUMENT_TAB, COMMUNICATION_STRATEGY_TAB, BRAND_RADAR_TAB, CONTENT_TAB];
+  return [PRODUCT_ARCHITECTURE_TAB, MATURITY_ACCESS_TAB, POSITIONING_TAB, POSITIONING_DOCUMENT_TAB,
+          COMMUNICATION_STRATEGY_TAB, BRAND_RADAR_TAB, CONTENT_TAB, COMPETITIVE_INTELLIGENCE_TAB];
 }
 function ensureProductWorkspace(){
   const catalog = channelState();
@@ -5396,6 +5420,7 @@ function applyTabMode(){
     $('positioningPane').hidden = true;
     $('positioningDocumentPane').hidden = true;
     $('communicationPane').hidden = true;
+    $('ciPane').hidden = true;
     $('brandRadarPane').hidden = true;
     $('framePane').hidden = true; $('roFrame').hidden = true;
     $('btnFrameExport').hidden = true;
@@ -5427,9 +5452,11 @@ function applyTabMode(){
   const isPositioning = state.tab === POSITIONING_TAB;
   const isPositioningDocument = state.tab === POSITIONING_DOCUMENT_TAB;
   const isCommunication = state.tab === COMMUNICATION_STRATEGY_TAB;
+  const isCompetitiveIntelligence = state.tab === COMPETITIVE_INTELLIGENCE_TAB;
   const isRadar = false;
   const isCanvas = !isDocs && !isChan && !isKw && !isMx && !isGuide && !isEvo &&
-    !isArchitecture && !isPositioning && !isPositioningDocument && !isCommunication && !isRadar && !isNote;
+    !isArchitecture && !isPositioning && !isPositioningDocument && !isCommunication &&
+    !isCompetitiveIntelligence && !isRadar && !isNote;
 
   if (frame){
     $('tabTitle').textContent = frame.name;
@@ -5450,6 +5477,7 @@ function applyTabMode(){
   $('positioningPane').hidden = !isPositioning;
   $('positioningDocumentPane').hidden = !isPositioningDocument;
   $('communicationPane').hidden = !isCommunication;
+  $('ciPane').hidden = !isCompetitiveIntelligence;
   $('brandRadarPane').hidden = true;
   $('btnFit').hidden = !isCanvas;
   /* a frame can be used as a template on a real canvas, but not inside a frame */
@@ -5470,6 +5498,7 @@ function applyTabMode(){
   }
   if (isPositioningDocument) renderPositioningDocument();
   if (isCommunication) renderCommunicationStrategy();
+  if (isCompetitiveIntelligence) renderCompetitiveIntelligence();
   if (isArchitecture) renderProductArchitecture();
   renderCrumb();
   applyRole();
@@ -9920,6 +9949,36 @@ function renderCommunicationStrategy(){
     drawCommunicationWires();
   });
 }
+
+function renderCompetitiveIntelligence(){
+  const model = state.tabs[COMPETITIVE_INTELLIGENCE_TAB] ||
+    (state.tabs[COMPETITIVE_INTELLIGENCE_TAB] = { nodes: [], edges: [] });
+  if (!window.CompetitiveIntelligence){
+    $('ciHost').textContent = 'Competitive Intelligence could not be loaded.';
+    return;
+  }
+  const seeded = window.CompetitiveIntelligence.ensure(model, state.client, state.clientProduct);
+  if (seeded && !readOnly()) markDirty();
+  window.CompetitiveIntelligence.render($('ciHost'), model, {
+    readOnly: readOnly(),
+    onChange: markDirty,
+    toast: toast
+  });
+  const add = $('btnCiAddCompetitor');
+  add.hidden = readOnly();
+  add.onclick = () => {
+    if (readOnly()) return;
+    const name = (prompt('Competitor name') || '').trim();
+    if (!name) return;
+    const item = {
+      id: uid(), name: name, domain: '', aliases: [], sitemaps: [], urls: [],
+      source: 'Manual', fetchedAt: new Date().toISOString(), status: 'domain_required'
+    };
+    model.competitors.push(item); model.activeCompetitorId = item.id;
+    markDirty(); renderCompetitiveIntelligence();
+  };
+}
+
 window.addEventListener('resize', () => {
   if (state.tab === COMMUNICATION_STRATEGY_TAB) requestAnimationFrame(drawCommunicationWires);
 });
@@ -9991,7 +10050,8 @@ function isCanvasTab(){
   return [DOCS_TAB, CHANNELS_TAB, KEYWORDS_TAB, CONTENT_TAB,
           STRATEGY_ONE_TAB, PRODUCT_ARCHITECTURE_TAB,
           MATURITY_ACCESS_TAB,
-          POSITIONING_TAB, POSITIONING_DOCUMENT_TAB, COMMUNICATION_STRATEGY_TAB, BRAND_RADAR_TAB].indexOf(state.tab) === -1;
+          POSITIONING_TAB, POSITIONING_DOCUMENT_TAB, COMMUNICATION_STRATEGY_TAB,
+          COMPETITIVE_INTELLIGENCE_TAB, BRAND_RADAR_TAB].indexOf(state.tab) === -1;
 }
 const openFrameDef = () => (inFrame() ? state.frames[state.frameIndex] : null);
 
@@ -10473,7 +10533,7 @@ function renderCrumb(){
             POSITIONING_TAB, POSITIONING_DOCUMENT_TAB, COMMUNICATION_STRATEGY_TAB, BRAND_RADAR_TAB, CHANNELS_TAB].indexOf(state.tab) !== -1) c = 'Strategy';
   else if (isBrandTab(state.tab)) c = 'Canvas';
   else if (state.tab === CONTENT_TAB) c = 'Keywords';
-  else if (state.tab === KEYWORDS_TAB || state.tab === DOCS_TAB) c = 'Research';
+  else if (state.tab === KEYWORDS_TAB || state.tab === DOCS_TAB || state.tab === COMPETITIVE_INTELLIGENCE_TAB) c = 'Research';
   el.textContent = c;
 }
 
@@ -10481,7 +10541,7 @@ function renderCrumb(){
 function applyRole(){
   const ro = readOnly();
   ['btnAddColumn','btnAddChannel','dropzone',
-   'btnAddCompetitor','btnAddType','btnKwAdd','btnKwPaste']  /* dropzone = the + tile */
+   'btnAddCompetitor','btnAddType','btnKwAdd','btnKwPaste','btnCiAddCompetitor']  /* dropzone = the + tile */
     .forEach(id => { const el = $(id); if (el) el.hidden = ro; });
 
   const note = $('roNote');
