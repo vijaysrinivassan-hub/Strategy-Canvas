@@ -1554,6 +1554,14 @@
   .comm-canvas-node::before{left:-5px}.comm-canvas-node::after{right:-5px}
   .comm-wire{stroke:#a4aaa5; stroke-width:1.35}
 
+  .comm-canvas-node::before,.comm-canvas-node::after{display:none}
+  .comm-wires{pointer-events:auto}
+  .comm-wire,.comm-wire.factor{stroke:#a4aaa5; stroke-width:1.35; stroke-dasharray:none; pointer-events:stroke; cursor:pointer}
+  .comm-wire.selected{stroke:#202320; stroke-width:3}
+  .comm-canvas-framework .comm-framework{display:block; width:100%; min-height:72px; box-sizing:border-box; white-space:normal}
+  .comm-canvas-framework .comm-framework strong{display:block; overflow-wrap:anywhere}
+  .comm-canvas-factors{flex-wrap:wrap; width:790px}
+
   /* ================= brand radar ================= */
   .radar{flex:1; min-height:0; overflow:auto; padding:30px;
          background-color:#f8f9f6;
@@ -2533,7 +2541,7 @@
             <p>Turn positioning into a deliberate message system, then define the perception signals those messages must establish.</p>
           </div>
           <div class="comm-head-actions">
-            <button id="btnCommAddFactor" type="button">+ Messaging factor</button>
+            <button id="btnCommAddFactor" type="button">+ Node</button>
             <button id="btnCommAddPerception" type="button">+ Perception goal</button>
           </div>
         </div>
@@ -2856,7 +2864,7 @@ const SUPABASE_URL = 'https://cskamgfvebryahkljlll.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_MdkD-TxMCIwlu69seSHA3Q_A39GADsK';
 const CLIENT_ID    = '1059013355751-6g50dsgm7df37htl2fdqrtlkh5hmrc0c.apps.googleusercontent.com';
 const ALLOWED      = ['vijaysrinivassan@gmail.com'];
-const BUILD        = 'v8.52';
+const BUILD        = 'v8.53';
 
 const STRATEGY_ONE_TAB = 'Strategy 1 — Brand Strategy';
 const PRODUCT_EVOLUTION_TAB = 'Strategy 1 — Product Evolution';
@@ -9829,6 +9837,7 @@ function communicationState(){
     };
   }
   const model = tab.communication;
+  if (!Array.isArray(model.deletedConnectors)) model.deletedConnectors = [];
   if (!Array.isArray(model.factors)) model.factors = [];
   model.factors = model.factors.map(factor => ({
     id: factor && factor.id || uid(),
@@ -9897,6 +9906,59 @@ function drawCommunicationWires(){
     else add(messages,perception,'','right','left');
   });
 }
+let selectedCommunicationConnector = '';
+function drawCommunicationWires(){
+  if (state.tab !== COMMUNICATION_STRATEGY_TAB || $('communicationPane').hidden) return;
+  const stage = $('commStage'), svg = $('commWires');
+  if (!stage || !svg) return;
+  const model = communicationState(), deleted = new Set(model.deletedConnectors || []);
+  const rect = stage.getBoundingClientRect();
+  const width = Math.max(stage.clientWidth,stage.scrollWidth), height = Math.max(stage.clientHeight,stage.scrollHeight);
+  svg.setAttribute('viewBox','0 0 ' + width + ' ' + height); svg.setAttribute('width',width); svg.setAttribute('height',height);
+  svg.innerHTML = '<defs><marker id="commArrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="#a4aaa5"/></marker></defs>';
+  const add = (fromElement,toElement,fromSide,toSide,key) => {
+    if (!fromElement || !toElement || !key || deleted.has(key)) return;
+    const path = document.createElementNS('http://www.w3.org/2000/svg','path');
+    path.setAttribute('class','comm-wire' + (selectedCommunicationConnector === key ? ' selected' : ''));
+    path.setAttribute('marker-end','url(#commArrow)'); path.dataset.connectorId = key;
+    path.setAttribute('d',communicationPath(
+      communicationPoint(fromElement,fromSide || 'right',rect),
+      communicationPoint(toElement,toSide || 'left',rect)));
+    path.onclick = event => {
+      event.preventDefault(); event.stopPropagation(); selectedCommunicationConnector = key; drawCommunicationWires();
+    };
+    svg.append(path);
+  };
+  const positioning = stage.querySelector('[data-comm-node="positioning"]');
+  const framework = stage.querySelector('[data-comm-node="framework"]');
+  const messages = stage.querySelector('[data-comm-node="messages"]');
+  const fragments = stage.querySelectorAll('[data-comm-positioning-fragment]');
+  const messageNodes = stage.querySelectorAll('[data-comm-message]');
+  fragments.forEach(fragment => add(fragment,positioning,'right','left',
+    'positioning:' + fragment.dataset.commPositioningFragment + '>document'));
+  add(positioning,framework,'right','left','document>framework');
+  if (messageNodes.length){
+    messageNodes.forEach(message => add(framework,message,'right','left','framework>message:' + message.dataset.commMessage));
+  } else add(framework,messages,'right','left','framework>messages');
+  stage.querySelectorAll('[data-comm-factor]').forEach(factor => add(factor,framework,'top','bottom',
+    'factor:' + factor.dataset.commFactor + '>framework'));
+  stage.querySelectorAll('[data-comm-perception]').forEach(perception => {
+    if (messageNodes.length) messageNodes.forEach(message => add(message,perception,'right','left',
+      'message:' + message.dataset.commMessage + '>perception:' + perception.dataset.commPerception));
+    else add(messages,perception,'right','left','messages>perception:' + perception.dataset.commPerception);
+  });
+}
+document.addEventListener('keydown',event => {
+  if (state.tab !== COMMUNICATION_STRATEGY_TAB || !selectedCommunicationConnector || readOnly()) return;
+  if (event.key !== 'Backspace' && event.key !== 'Delete') return;
+  const tag = String(document.activeElement && document.activeElement.tagName || '').toLowerCase();
+  if (tag === 'input' || tag === 'textarea' || tag === 'select' || document.activeElement?.isContentEditable) return;
+  event.preventDefault(); event.stopImmediatePropagation();
+  const model = communicationState();
+  if (!model.deletedConnectors.includes(selectedCommunicationConnector)) model.deletedConnectors.push(selectedCommunicationConnector);
+  selectedCommunicationConnector = ''; markDirty(); drawCommunicationWires();
+},true);
+
 function renderCommunicationStrategy(){
   const model = communicationState(), ro = readOnly(), flow = $('commFlow');
   flow.innerHTML = '';
@@ -10068,6 +10130,11 @@ function makeCommunicationNodeDraggable(element,key,model){
 function renderCommunicationStrategyCanvas(){
   const model = communicationState(), fields = positioningDocumentState(), ro = readOnly(), flow = $('commFlow');
   flow.innerHTML = '';
+  $('commWires').onclick = event => {
+    if (event.target.closest('.comm-wire')) return;
+    if (!selectedCommunicationConnector) return;
+    selectedCommunicationConnector = ''; drawCommunicationWires();
+  };
 
   let seededFactors = false;
   if (!model.canvasLayoutSeeded){
@@ -10128,13 +10195,6 @@ function renderCommunicationStrategyCanvas(){
     }
     makeCommunicationNodeDraggable(card,'factor:' + factor.id,model); factorList.append(card);
   });
-  if (!ro){
-    const addFactor = document.createElement('button'); addFactor.type = 'button'; addFactor.className = 'comm-add-small';
-    addFactor.textContent = '+ Factor'; addFactor.onclick = () => {
-      model.factors.push(newCommunicationFactor()); markDirty(); renderCommunicationStrategyCanvas();
-    }; factorList.append(addFactor);
-  }
-
   const messageHub = document.createElement('section'); messageHub.className = 'comm-canvas-messages';
   messageHub.dataset.commNode = 'messages';
   const messageTitle = document.createElement('div'); messageTitle.className = 'comm-message-title';
@@ -10191,7 +10251,9 @@ function renderCommunicationStrategyCanvas(){
   flow.append(sources,documentNote,frameworkWrap,factorList,messageHub,perceptions);
   $('btnCommAddFactor').hidden = ro;
   $('btnCommAddFactor').onclick = () => {
-    model.factors.push(newCommunicationFactor()); markDirty(); renderCommunicationStrategyCanvas();
+    const label = String(prompt('Node name','New node') || '').trim();
+    if (!label) return;
+    model.factors.push(newCommunicationFactor(label)); markDirty(); renderCommunicationStrategyCanvas();
   };
   $('btnCommAddPerception').hidden = true;
   requestAnimationFrame(drawCommunicationWires);

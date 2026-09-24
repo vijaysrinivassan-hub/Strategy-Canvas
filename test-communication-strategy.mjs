@@ -37,8 +37,19 @@ assert(html.includes("makeCommunicationNodeDraggable(panel,'perception:' + perce
 assert(html.includes('drawCommunicationWires();'));
 assert(html.includes("model.perceptions.push(newCommunicationPerception('New Brand Perception'))"));
 assert(html.includes("model.factors.push(newCommunicationFactor())"));
+assert(html.includes(".comm-canvas-node::before,.comm-canvas-node::after{display:none}"));
+assert(html.includes("stroke-dasharray:none; pointer-events:stroke; cursor:pointer"));
+assert(html.includes(".comm-wire.selected{stroke:#202320; stroke-width:3}"));
+assert(html.includes("let selectedCommunicationConnector = ''"));
+assert(html.includes("if (!Array.isArray(model.deletedConnectors)) model.deletedConnectors = []"));
+assert(html.includes("if (event.key !== 'Backspace' && event.key !== 'Delete') return"));
+assert(html.includes("model.deletedConnectors.push(selectedCommunicationConnector)"));
+assert(html.includes("btnCommAddFactor\" type=\"button\">+ Node"));
+assert(html.includes("prompt('Node name','New node')"));
+assert(html.includes("newCommunicationFactor(label)"));
+assert(html.includes(".comm-canvas-framework .comm-framework{display:block; width:100%; min-height:72px"));
 assert(html.includes("stage.querySelectorAll('[data-comm-perception]')"));
 assert(html.includes("stage.querySelectorAll('[data-comm-factor]')"));
 assert(/COMMUNICATION_STRATEGY_TAB,[\s\S]{0,120}BRAND_RADAR_TAB\]\.indexOf\(state\.tab\) === -1/.test(html));
 
-console.log('PASS: scrollable Obsidian-style Communication Strategy canvas, ordered positioning notes, editable factors, four awareness notes, independent wires and a simple perception axis.');
+console.log('PASS: movable Communication Strategy canvas with clean notes, contained labels, addable nodes, solid selectable wires and Backspace deletion.');
