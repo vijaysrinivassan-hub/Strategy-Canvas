@@ -7,7 +7,7 @@ assert(html.includes("const COMMUNICATION_STRATEGY_TAB = 'Strategy 1 — Communi
 assert(html.includes("tabButton(COMMUNICATION_STRATEGY_TAB, 'Communication Strategy')"));
 assert(html.includes('COMMUNICATION_STRATEGY_TAB, BRAND_RADAR_TAB, CONTENT_TAB'));
 assert(html.includes("const isCommunication = state.tab === COMMUNICATION_STRATEGY_TAB"));
-assert(html.includes("if (isCommunication) renderCommunicationStrategy()"));
+assert(html.includes("if (isCommunication) renderCommunicationStrategyCanvas()"));
 assert(html.includes("source.onclick = () => switchTab(POSITIONING_DOCUMENT_TAB)"));
 assert(html.includes("framework.onclick = () => switchTab('Messaging Framework')"));
 
@@ -20,10 +20,19 @@ assert(html.includes('.comm-stump{position:absolute; left:50%; bottom:0; width:1
 assert(html.includes('.comm-wicket::after'));
 assert(html.includes('.comm-wicket-stage{height:220px; margin-top:10px; perspective:none}'));
 assert(html.includes("add.textContent = '+ Add signal'"));
+assert(html.includes('function renderCommunicationStrategyCanvas()'));
+assert(html.includes("['competitive_positioning','Competitive Positioning']"));
+assert(html.includes("['value_positioning','Value Positioning']"));
+assert(html.includes("['category_positioning','Category Positioning']"));
+assert(html.includes("['icp_positioning','ICP Positioning']"));
+assert(html.includes("['Problem-aware','Solution-aware','Category-aware','Competitor-aware']"));
+assert(html.includes('.comm-stage{width:1800px; min-height:860px; margin:0; overflow:visible}'));
+assert(html.includes('.comm-positioning-sources{position:absolute;'));
+assert(html.includes('positioningFragments.forEach(fragment => add(fragment,positioning'));
 assert(html.includes("model.perceptions.push(newCommunicationPerception('New Brand Perception'))"));
 assert(html.includes("model.factors.push(newCommunicationFactor())"));
 assert(html.includes("stage.querySelectorAll('[data-comm-perception]')"));
 assert(html.includes("stage.querySelectorAll('[data-comm-factor]')"));
 assert(/COMMUNICATION_STRATEGY_TAB,[\s\S]{0,120}BRAND_RADAR_TAB\]\.indexOf\(state\.tab\) === -1/.test(html));
 
-console.log('PASS: product-scoped Communication Strategy canvas, linked sources, four awareness messages, editable factors, wires and a simple configurable perception axis.');
+console.log('PASS: scrollable Obsidian-style Communication Strategy canvas, ordered positioning notes, editable factors, four awareness notes, independent wires and a simple perception axis.');
