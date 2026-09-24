@@ -2864,7 +2864,7 @@ const SUPABASE_URL = 'https://cskamgfvebryahkljlll.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_MdkD-TxMCIwlu69seSHA3Q_A39GADsK';
 const CLIENT_ID    = '1059013355751-6g50dsgm7df37htl2fdqrtlkh5hmrc0c.apps.googleusercontent.com';
 const ALLOWED      = ['vijaysrinivassan@gmail.com'];
-const BUILD        = 'v8.53';
+const BUILD        = 'v8.54';
 
 const STRATEGY_ONE_TAB = 'Strategy 1 — Brand Strategy';
 const PRODUCT_EVOLUTION_TAB = 'Strategy 1 — Product Evolution';
@@ -9868,10 +9868,18 @@ function communicationPoint(element, side, stageRect){
   if (side === 'left') return {x:rect.left - stageRect.left,y:rect.top + rect.height / 2 - stageRect.top};
   return {x:rect.right - stageRect.left,y:rect.top + rect.height / 2 - stageRect.top};
 }
-function communicationPath(from, to){
-  const bend = Math.max(34, Math.abs(to.x - from.x) * .43);
-  return 'M ' + from.x + ' ' + from.y + ' C ' + (from.x + bend) + ' ' + from.y + ', ' +
-    (to.x - bend) + ' ' + to.y + ', ' + to.x + ' ' + to.y;
+function communicationPath(from, to, fromSide = 'right', toSide = 'left'){
+  const vectors = {
+    left:{x:-1,y:0}, right:{x:1,y:0}, top:{x:0,y:-1}, bottom:{x:0,y:1}
+  };
+  const startVector = vectors[fromSide] || vectors.right;
+  const endVector = vectors[toSide] || vectors.left;
+  const distance = Math.hypot(to.x - from.x,to.y - from.y);
+  const bend = Math.max(42,Math.min(180,distance * .38));
+  const c1 = {x:from.x + startVector.x * bend,y:from.y + startVector.y * bend};
+  const c2 = {x:to.x + endVector.x * bend,y:to.y + endVector.y * bend};
+  return 'M ' + from.x + ' ' + from.y + ' C ' + c1.x + ' ' + c1.y + ', ' +
+    c2.x + ' ' + c2.y + ', ' + to.x + ' ' + to.y;
 }
 function drawCommunicationWires(){
   if (state.tab !== COMMUNICATION_STRATEGY_TAB || $('communicationPane').hidden) return;
@@ -9888,7 +9896,8 @@ function drawCommunicationWires(){
     path.setAttribute('class','comm-wire' + (kind ? ' ' + kind : ''));
     path.setAttribute('d',communicationPath(
       communicationPoint(fromElement,fromSide || 'right',rect),
-      communicationPoint(toElement,toSide || 'left',rect)));
+      communicationPoint(toElement,toSide || 'left',rect),
+      fromSide || 'right',toSide || 'left'));
     svg.append(path);
   };
   const positioning = stage.querySelector('[data-comm-node="positioning"]');
@@ -9923,7 +9932,8 @@ function drawCommunicationWires(){
     path.setAttribute('marker-end','url(#commArrow)'); path.dataset.connectorId = key;
     path.setAttribute('d',communicationPath(
       communicationPoint(fromElement,fromSide || 'right',rect),
-      communicationPoint(toElement,toSide || 'left',rect)));
+      communicationPoint(toElement,toSide || 'left',rect),
+      fromSide || 'right',toSide || 'left'));
     path.onclick = event => {
       event.preventDefault(); event.stopPropagation(); selectedCommunicationConnector = key; drawCommunicationWires();
     };
@@ -10212,8 +10222,14 @@ function renderCommunicationStrategyCanvas(){
   messageHub.append(messageTitle,messageGrid);
 
   const perceptions = document.createElement('div'); perceptions.className = 'comm-perceptions comm-canvas-perceptions';
+  const perceptionWidth = Math.max(340,...model.perceptions.map(perception =>
+    56 + Math.max(1,perception.axes.length) * 92));
+  perceptions.style.width = perceptionWidth + 'px';
+  perceptions.style.minWidth = perceptionWidth + 'px';
   model.perceptions.forEach(perception => {
     const panel = document.createElement('section'); panel.className = 'comm-perception'; panel.dataset.commPerception = perception.id;
+    panel.style.width = Math.max(340,56 + Math.max(1,perception.axes.length) * 92) + 'px';
+    panel.style.boxSizing = 'border-box';
     const head = document.createElement('div'); head.className = 'comm-perception-title';
     const titleWrap = document.createElement('div');
     const kicker = document.createElement('span'); kicker.className = 'comm-card-kicker'; kicker.textContent = 'Intended customer feeling';
