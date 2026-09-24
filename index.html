@@ -1491,6 +1491,32 @@
   .comm-empty{padding:70px 20px; color:#788078; text-align:center}
   @media(max-width:1050px){.communication{padding:18px}.comm-head{width:980px}}
 
+  /* Flat communication canvas and a simple brand-perception axis. */
+  .comm-stage{border:1px solid #cfd3cf; border-radius:0; background-color:#fff;
+              background-image:radial-gradient(circle at 1px 1px,#d8dcd8 1px,transparent 1.1px);
+              background-size:20px 20px; box-shadow:none}
+  .comm-stage::before,.comm-stage::after{display:none}
+  .comm-card{border-color:#cfd3cf; border-radius:3px; background:#fff; box-shadow:none}
+  .comm-source:hover,.comm-framework:hover{transform:none; border-color:#202320; box-shadow:none}
+  .comm-framework{border-color:#aeb4af; background:#fff}.comm-framework strong,.comm-message b{color:#202320}
+  .comm-perception{min-height:320px; border:1px solid #bfc4bf; border-radius:3px; background:#fff; box-shadow:none}
+  .comm-perception-title input{border-bottom-color:#c9cdc9; color:#202320}
+  .comm-wicket-stage{height:220px; margin-top:10px; perspective:none}
+  .comm-wicket-stage::before{display:none}
+  .comm-wicket{inset:4px 8px 0; align-items:flex-end; justify-content:space-evenly; gap:20px;
+               padding:0 12px 46px; transform:none; transform-style:flat}
+  .comm-wicket::after{content:''; position:absolute; left:8px; right:8px; bottom:46px; height:1px; background:#202320}
+  .comm-axis{z-index:1; flex:0 0 72px; width:72px; height:158px}
+  .comm-stump{position:absolute; left:50%; bottom:0; width:1px; height:118px; border:0; border-radius:0;
+              background:#202320; box-shadow:none; transform:none}
+  .comm-stump::before,.comm-stump::after{display:none}
+  .comm-axis-name{top:0; width:72px; padding:3px 2px 5px; border-bottom:1px solid #c9cdc9;
+                  color:#202320; font-size:8px; font-weight:700}
+  .comm-axis-remove{top:-7px; right:-6px; width:16px; height:16px; border-radius:0;
+                    background:#fff; color:#777; box-shadow:none}
+  .comm-bails{display:none}
+  .comm-perception-actions{margin-top:-2px}.comm-perception-actions button{background:#fff; color:#202320}
+
   /* ================= brand radar ================= */
   .radar{flex:1; min-height:0; overflow:auto; padding:30px;
          background-color:#f8f9f6;
@@ -2793,7 +2819,7 @@ const SUPABASE_URL = 'https://cskamgfvebryahkljlll.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_MdkD-TxMCIwlu69seSHA3Q_A39GADsK';
 const CLIENT_ID    = '1059013355751-6g50dsgm7df37htl2fdqrtlkh5hmrc0c.apps.googleusercontent.com';
 const ALLOWED      = ['vijaysrinivassan@gmail.com'];
-const BUILD        = 'v8.49';
+const BUILD        = 'v8.50';
 
 const STRATEGY_ONE_TAB = 'Strategy 1 — Brand Strategy';
 const PRODUCT_EVOLUTION_TAB = 'Strategy 1 — Product Evolution';
@@ -9892,7 +9918,7 @@ function renderCommunicationStrategy(){
     const kicker = document.createElement('span'); kicker.className = 'comm-card-kicker'; kicker.textContent = 'Intended customer feeling';
     const title = document.createElement('input'); title.value = perception.name; title.placeholder = 'Brand perception';
     title.readOnly = ro; title.oninput = () => { perception.name = title.value; markDirty(); };
-    const hint = document.createElement('small'); hint.textContent = 'Each stump is one perception axis.';
+    const hint = document.createElement('small'); hint.textContent = 'Each vertical line is one perception signal.';
     titleWrap.append(kicker,title,hint); head.append(titleWrap);
     if (!ro && model.perceptions.length > 1){
       const remove = document.createElement('button'); remove.type = 'button'; remove.textContent = 'Remove';
@@ -9914,11 +9940,13 @@ function renderCommunicationStrategy(){
       axisHost.append(stump,axisName);
       if (!ro && perception.axes.length > 1){
         const remove = document.createElement('button'); remove.type = 'button'; remove.className = 'comm-axis-remove';
+        remove.title = 'Remove signal';
         remove.textContent = '×'; remove.title = 'Remove stump';
         remove.onclick = () => {
           perception.axes = perception.axes.filter(item => item.id !== axis.id);
           markDirty(); renderCommunicationStrategy();
         };
+        remove.title = 'Remove signal';
         axisHost.append(remove);
       }
       wicket.append(axisHost);
@@ -9926,7 +9954,7 @@ function renderCommunicationStrategy(){
     wicketStage.append(wicket);
     const actions = document.createElement('div'); actions.className = 'comm-perception-actions';
     if (!ro){
-      const add = document.createElement('button'); add.type = 'button'; add.textContent = '+ Add stump';
+      const add = document.createElement('button'); add.type = 'button'; add.textContent = '+ Add signal';
       add.onclick = () => { perception.axes.push(newCommunicationAxis()); markDirty(); renderCommunicationStrategy(); };
       actions.append(add);
     }

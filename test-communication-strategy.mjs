@@ -16,13 +16,14 @@ for (const awareness of ['Competitor-aware','Category-aware','Solution-aware','P
 for (const signal of ['Trust','Accuracy','Reliability'])
   assert(html.includes("newCommunicationAxis('" + signal + "')"), 'missing default signal ' + signal);
 
-assert(html.includes('.comm-stump{position:relative;'));
-assert(html.includes('perspective:800px'));
-assert(html.includes("add.textContent = '+ Add stump'"));
+assert(html.includes('.comm-stump{position:absolute; left:50%; bottom:0; width:1px;'));
+assert(html.includes('.comm-wicket::after'));
+assert(html.includes('.comm-wicket-stage{height:220px; margin-top:10px; perspective:none}'));
+assert(html.includes("add.textContent = '+ Add signal'"));
 assert(html.includes("model.perceptions.push(newCommunicationPerception('New Brand Perception'))"));
 assert(html.includes("model.factors.push(newCommunicationFactor())"));
 assert(html.includes("stage.querySelectorAll('[data-comm-perception]')"));
 assert(html.includes("stage.querySelectorAll('[data-comm-factor]')"));
 assert(/COMMUNICATION_STRATEGY_TAB,[\s\S]{0,120}BRAND_RADAR_TAB\]\.indexOf\(state\.tab\) === -1/.test(html));
 
-console.log('PASS: product-scoped Communication Strategy canvas, linked sources, four awareness messages, editable factors, wires and configurable 3D perception stumps.');
+console.log('PASS: product-scoped Communication Strategy canvas, linked sources, four awareness messages, editable factors, wires and a simple configurable perception axis.');
