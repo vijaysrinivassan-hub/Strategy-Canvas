@@ -29,8 +29,11 @@ assert(seed.competitors.reduce((sum,item)=>sum+item.urls.length,0)>=2000);
 const tab={nodes:[],edges:[]};
 assert.equal(context.window.CompetitiveIntelligence.ensure(tab,'US AUAEO','Answer Engine Optimization Agency'),true);
 assert.equal(tab.competitors.length,6);
+const renamedBoard={nodes:[],edges:[]};
+assert.equal(context.window.CompetitiveIntelligence.ensure(renamedBoard,'AEO Agency','Answer Engine Optimization Agency'),true);
+assert.equal(renamedBoard.competitors.length,6);
 const isolated={nodes:[],edges:[]};
-assert.equal(context.window.CompetitiveIntelligence.ensure(isolated,'Another client','Answer Engine Optimization Agency'),false);
+assert.equal(context.window.CompetitiveIntelligence.ensure(isolated,'Another client','Different product'),false);
 assert.equal(isolated.competitors.length,0);
 
 assert(html.includes("const COMPETITIVE_INTELLIGENCE_TAB = 'Competitive Intelligence'"));

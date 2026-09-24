@@ -26,8 +26,7 @@
   function ensure(tab, client, product){
     normalize(tab);
     const seed = global.CompetitiveIntelligenceSeed;
-    const matches = seed && String(client || '').trim().toLowerCase() === seed.client.toLowerCase() &&
-      String(product || '').trim().toLowerCase() === seed.product.toLowerCase();
+    const matches = seed && String(product || '').trim().toLowerCase() === seed.product.toLowerCase();
     if (!tab.competitors.length && matches){
       tab.competitors = clone(seed.competitors);
       tab.activeCompetitorId = tab.competitors[0]?.id || '';
