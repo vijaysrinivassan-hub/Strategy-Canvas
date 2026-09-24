@@ -2864,7 +2864,7 @@ const SUPABASE_URL = 'https://cskamgfvebryahkljlll.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_MdkD-TxMCIwlu69seSHA3Q_A39GADsK';
 const CLIENT_ID    = '1059013355751-6g50dsgm7df37htl2fdqrtlkh5hmrc0c.apps.googleusercontent.com';
 const ALLOWED      = ['vijaysrinivassan@gmail.com'];
-const BUILD        = 'v8.54';
+const BUILD        = 'v8.55';
 
 const STRATEGY_ONE_TAB = 'Strategy 1 — Brand Strategy';
 const PRODUCT_EVOLUTION_TAB = 'Strategy 1 — Product Evolution';
@@ -9194,6 +9194,83 @@ function newPositioningCategory(){
 function newCompetitiveStage(){
   return { id: uid(), competitors: '', architecture: '' };
 }
+function seedAeoAgencyPositioning(p){
+  if (p.aeoAgencyPositioningSeeded ||
+      String(state.client || '').trim().toLowerCase() !== 'aeo agency' ||
+      String(state.clientProduct || '').trim().toLowerCase() !== 'answer engine optimization agency') return false;
+  const hasIcp = p.icps.some(icp => String(icp.name || '').trim() ||
+    (icp.rows || []).some(row => ['people','process','technology','input'].some(key => String(row[key] || '').trim())));
+  const hasCategory = p.categories.some(category => String(category.name || '').trim() || String(category.maturity || '').trim());
+  const hasCompetitive = p.competitive && (p.competitive.stages || []).some(stage =>
+    String(stage.competitors || '').trim() || String(stage.architecture || '').trim());
+  if (hasIcp || hasCategory || hasCompetitive) return false;
+  p.icps = [
+    {
+      id:'aeo-icp-evolving-b2b', name:'B2B marketing leaders evolving SEO into AI search',
+      buyingTrigger:'AI answers are changing discovery, existing SEO growth is flattening, or leadership needs a defensible AI-visibility roadmap.',
+      industries:'B2B SaaS and complex B2B software, including fintech, cybersecurity, data, HCM and infrastructure.',
+      useCases:'GEO audit; AI visibility roadmap; citation and source engineering; entity and technical optimization; content and digital PR execution.',
+      rows:[newPositioningIcpRow({id:'aeo-icp-evolving-b2b-row',
+        people:'CMO, VP Marketing, Director of SEO, organic growth and content leaders',
+        process:'Established SEO/content program expanding into AI discovery, citations and third-party authority',
+        technology:'CMS, analytics, Search Console, SEO research tools and LLM visibility monitoring',
+        input:'Buyer questions, product expertise, owned content, entity signals and third-party brand evidence'})]
+    },
+    {
+      id:'aeo-icp-foundation', name:'B2B teams building an organic growth system',
+      buyingTrigger:'The company has product-market traction but no repeatable organic acquisition program or clear content roadmap.',
+      industries:'Early and growth-stage B2B software companies.',
+      useCases:'Organic growth strategy; technical foundation; buyer-led content roadmap; measurement and attribution.',
+      rows:[newPositioningIcpRow({id:'aeo-icp-foundation-row',
+        people:'Founder-led marketing team, first marketing leader, small content or SEO team',
+        process:'Ad-hoc publishing and isolated SEO tasks without an integrated operating system',
+        technology:'Basic CMS, analytics and lightweight SEO tooling',
+        input:'Product knowledge, initial customer conversations, small content library and emerging search demand'})]
+    },
+    {
+      id:'aeo-icp-influence', name:'Mature B2B organic teams seeking category influence',
+      buyingTrigger:'Rankings and production are established, but the brand is inconsistently cited, described or recommended across search, LLMs and third-party surfaces.',
+      industries:'Established B2B software and technology brands in competitive categories.',
+      useCases:'Proprietary research; category narrative; digital PR; surround-sound presence; cross-model visibility and sentiment optimization.',
+      rows:[newPositioningIcpRow({id:'aeo-icp-influence-row',
+        people:'CMO, brand and product marketing, SEO, content, communications and analytics leaders',
+        process:'Cross-functional authority, narrative and market-influence program',
+        technology:'Enterprise analytics, CRM, SEO platforms, LLM visibility tools and digital PR systems',
+        input:'Large content footprint, customer evidence, proprietary data, earned mentions and category narratives'})]
+    }
+  ];
+  p.categories = [
+    {id:'aeo-cat-seo-execution',name:'SEO and content execution agencies',maturity:'Keyword research, technical/on-page SEO, content production and link acquisition focused primarily on rankings and traffic.',competitors:[]},
+    {id:'aeo-cat-organic-growth',name:'Revenue-aligned organic growth agencies',maturity:'Buyer, product and channel research connected to content, conversion, pipeline and revenue measurement.',competitors:[
+      {id:'aeo-comp-first-page-sage',name:'First Page Sage'},
+      {id:'aeo-comp-triple-dot',name:'Triple Dot'}
+    ]},
+    {id:'aeo-cat-geo',name:'GEO / AEO agencies',maturity:'Prompt and citation research, source-worthy content, technical/entity optimization and LLM visibility monitoring layered onto search foundations.',competitors:[
+      {id:'aeo-comp-graphite',name:'Graphite'},
+      {id:'aeo-comp-optimization-agency',name:'The Optimization Agency'},
+      {id:'aeo-comp-omnious',name:'Omnious'}
+    ]},
+    {id:'aeo-cat-integrated',name:'Integrated organic growth and AI influence partners',maturity:'Owned content, technical SEO, entity signals, original research, digital PR, third-party authority and adaptive search/LLM measurement operate as one system.',competitors:[
+      {id:'aeo-comp-omniscient',name:'Omniscient'}
+    ]}
+  ];
+  p.competitive = {selectedStage:'',stages:[
+    {id:'aeo-stage-seo',competitors:'Traditional SEO and content agencies',architecture:'Search demand → technical/on-page optimization → content and links → ranking and traffic reports.'},
+    {id:'aeo-stage-revenue',competitors:'Omniscient, First Page Sage, Graphite and revenue-focused organic agencies',architecture:'Buyer/product/channel research → commercial-intent roadmap → content, technical SEO and CRO → pipeline attribution.'},
+    {id:'aeo-stage-geo',competitors:'GEO/AEO specialists and SEO agencies adding AI-search services',architecture:'SEO foundation → prompt/citation audit → citable content and entity markup → LLM visibility monitoring.'},
+    {id:'aeo-stage-influence',competitors:'Proposed position for the AEO Agency',architecture:'Brand evidence and proprietary research → owned content, entities and technical access → digital PR and third-party authority → cross-model monitoring and adaptive influence.'}
+  ]};
+  p.selectedIcp = '';
+  p.selectedCategory = '';
+  p.aeoAgencyPositioningSeeded = true;
+  const tab = state.tabs[POSITIONING_TAB];
+  if (!tab.evolution || typeof tab.evolution !== 'object') tab.evolution = {axis:'',paths:{},positions:{}};
+  tab.evolution.axis = 'process';
+  if (!tab.radar || typeof tab.radar !== 'object') tab.radar = {};
+  Object.assign(tab.radar,{axis:'process',sourceAxis:'process',buyingAxis:'process',
+    industrySelectionMode:'axes',industryModel:''});
+  return true;
+}
 const VALUE_POSITIONING_FIELDS = [
   ['functional', 'Functional value', 'What can we do for them, functionally?'],
   ['benefit', 'Core benefit', 'What are the benefits they get?'],
@@ -9217,6 +9294,7 @@ function positioningState(){
     const oldValues = p.values && typeof p.values === 'object' ? p.values : {};
     p.valueRows = [newValuePositioningRow(oldValues)];
   }
+  const seededAeoAgency = seedAeoAgencyPositioning(p);
   if (!p.icps.length) p.icps.push(newPositioningIcp());
   if (!p.categories.length) p.categories.push(newPositioningCategory());
   while (p.competitive.stages.length < 3) p.competitive.stages.push(newCompetitiveStage());
@@ -9250,6 +9328,7 @@ function positioningState(){
   if (!p.icps.some(x => x.id === p.selectedIcp)) p.selectedIcp = '';
   if (!p.categories.some(x => x.id === p.selectedCategory)) p.selectedCategory = '';
   if (!p.competitive.stages.some(x => x.id === p.competitive.selectedStage)) p.competitive.selectedStage = '';
+  if (seededAeoAgency && !readOnly()) setTimeout(markDirty, 0);
   return p;
 }
 
