@@ -1,6 +1,6 @@
 /* Owner-wide Keyword column definitions use an internal, RLS-protected settings record. */
 let keywordSettingsRecord=null, keywordSettings=null;
-function readKeywordSettings(records){
+async function readKeywordSettings(records){
  keywordSettingsRecord=records.find(r=>r.owner_id===state.user?.id && (()=>{try{return JSON.parse(r.body).kind===KeywordColumns.KIND;}catch{return false;}})())||null;
  keywordSettings=keywordSettingsRecord?JSON.parse(keywordSettingsRecord.body):null;
  if(keywordSettings){
@@ -10,6 +10,12 @@ function readKeywordSettings(records){
   }
   for(const column of keywordSettings.views?.icp||[]){
    if(String(column.name||'').trim().toLowerCase()==='company size')column.axis='process';
+  }
+  if(keywordSettings.promptRevision!==KeywordColumns.PROMPT_REVISION){
+   const draft=JSON.parse(JSON.stringify(keywordSettings));
+   draft.promptRevision=KeywordColumns.PROMPT_REVISION;
+   draft.routingInstruction=KeywordColumns.strategyPrompt+'\n\n'+KeywordColumns.comparisonRouting;
+   await saveUniversalColumns(draft,keywordSettingsRecord);
   }
  }
 }

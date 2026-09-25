@@ -4865,7 +4865,7 @@ async function refreshBoards(){
   const settings = await sb.from('reports').select('id,title,updated_at,owner_id,body')
     .eq('title', '[Internal] Universal keyword columns').eq('owner_id', state.user.id);
   if (settings.error){ toast('Could not load column settings: ' + settings.error.message, true); return; }
-  readKeywordSettings(settings.data || []);
+  await readKeywordSettings(settings.data || []);
   state.boards = (data || []).filter(r => r.title !== '[Internal] Universal keyword columns');
   /* boards are chosen on the Clients screen now, so nothing to fill here */
 }

@@ -1,6 +1,7 @@
 /* Shared by the browser and MCP. Column IDs, never headings, own cell data. */
 (function(root, factory){ const api=factory(); if(typeof module==='object') module.exports=api; else root.KeywordColumns=api; })(globalThis, function(){
 const KIND='strategy-keyword-column-settings-v1';
+const PROMPT_REVISION='keyword-taxonomy-v3';
 const names={category:['Category name','Category synonyms','Feature pages','Integration pages','Reviews','Pricing'],competitor:['Alternatives','Pricing','Reviews','Features'],icp:['Industry','Country','Company size','Role / Team','Technology'],value:['Processes / Use cases','Nodal benefits','Capabilities','Problems','Outcomes']};
 const ICP_AXIS_ORDER=['people','technology','process','input'];
 const ICP_AXIS_LABELS={people:'People',technology:'Technology',process:'Process',input:'Input'};
@@ -22,7 +23,7 @@ const strategyPrompt="Read this before creating or reorganizing keyword content.
 const icpAxisPrompt="ICP AXES\nICP contains only audience-fit dimensions: Industry and Country under Process, Role / Team under People, Technology under Technology, and Company Size under Input. Processes and use cases belong to Value. Do not create or route content to Maturity Stage.";
 const copy=x=>JSON.parse(JSON.stringify(x));
 function seed(root){
- const out={kind:KIND,views:{}};
+ const out={kind:KIND,promptRevision:PROMPT_REVISION,views:{}};
  for(const view of Object.keys(names)){
   const v=root?.views?.[view], cols=v?.columns || v?.types;
   out.views[view]=(cols?.filter(c=>c.name?.trim()).length ? cols.filter(c=>c.name?.trim()) : names[view].map(name=>({name})))
@@ -97,5 +98,5 @@ function order(v){
  return [...new Set([...(v.columnOrder||[]).filter(id=>ids.includes(id)),...ids])];
 }
 function move(v,id,delta){const ids=order(v),i=ids.indexOf(id),j=i+delta;if(i<0||j<0||j>=ids.length)return false;[ids[i],ids[j]]=[ids[j],ids[i]];v.columnOrder=ids;if(v.kind!=='matrix')v.columns.sort((a,b)=>ids.indexOf(a.id)-ids.indexOf(b.id));return true;}
-return {KIND,names,seed,sync,order,move,comparisonRouting,strategyPrompt:strategyPrompt+'\n\n'+icpAxisPrompt,ensurePageViews,pageView,ICP_AXIS_ORDER,ICP_AXIS_LABELS,inferIcpAxis,sortIcpColumns};
+return {KIND,PROMPT_REVISION,names,seed,sync,order,move,comparisonRouting,strategyPrompt:strategyPrompt+'\n\n'+icpAxisPrompt,ensurePageViews,pageView,ICP_AXIS_ORDER,ICP_AXIS_LABELS,inferIcpAxis,sortIcpColumns};
 });
