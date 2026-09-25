@@ -8,8 +8,9 @@ assert(html.includes('function rememberLocation()'));
 assert(html.includes('function restoreLocation(location)'));
 assert(html.includes('async function openBoard(id, location)'));
 assert(html.includes('restoreLocation(location);'));
-assert(html.includes('const location = rememberedLocation();'));
-assert(html.includes('await openBoard(board.id, rememberedBoard ? location : null);'));
+assert(html.includes('const savedLocation = rememberedLocation();'));
+assert(html.includes("new URLSearchParams(window.location.search).get('board')"));
+assert(html.includes('await openBoard(board.id, linkedBoard ? null : rememberedBoard ? savedLocation : null);'));
 assert(html.includes('CONTENT_VIEWS.some(view => view.id === location.contentView)'));
 assert(html.includes("window.addEventListener('beforeunload', e => {\n  rememberLocation();"));
 

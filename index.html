@@ -4893,6 +4893,8 @@ async function openBoard(id, location){
   restoreLocation(location);
   clearSel();
   state.dirty = false;
+  const migratedOnOpen = globalThis.AiDataIcpMatrix?.ensure(state.tabs[CONTENT_TAB] || (state.tabs[CONTENT_TAB] = {}), state.client, state.workspaceProductId);
+  if (migratedOnOpen && !readOnly()){ markDirty(); await saveBoard(true); }
   $('saveState').textContent = 'Saved';
   $('saveState').className = 'save-line';
   const cachedBoard = state.boards.find(b => b.id === data.id);
@@ -12594,12 +12596,14 @@ async function enterApp(user){
   renderAccount();
 
   await refreshBoards();
-  const location = rememberedLocation();
+  const savedLocation = rememberedLocation();
+  let linkedBoard = null;
+  try { const linkedId = new URLSearchParams(window.location.search).get('board'); linkedBoard = linkedId && state.boards.find(board => board.id === linkedId); } catch (e) {}
   if (state.boards.length){
-    const rememberedBoard = location && state.boards.find(board => board.id === location.boardId);
-    const board = rememberedBoard || state.boards[0];
-    await openBoard(board.id, rememberedBoard ? location : null);
-    if (!rememberedBoard && state.boards.length > 1){
+    const rememberedBoard = savedLocation && state.boards.find(board => board.id === savedLocation.boardId);
+    const board = linkedBoard || rememberedBoard || state.boards[0];
+    await openBoard(board.id, linkedBoard ? null : rememberedBoard ? savedLocation : null);
+    if (!linkedBoard && !rememberedBoard && state.boards.length > 1){
       state.screen = 'settings';
       state.settingsPart = 'clients';
       applyTabMode();
