@@ -1,7 +1,7 @@
 /* Generated from the supplied ICP matrix and Processes > Analysis matrix. */
 (function(root,factory){const api=factory();if(typeof module==='object')module.exports=api;else root.AiDataIcpMatrix=api;})(globalThis,function(){
 const data={
-  "revision": "ai-data-icp-matrix-v2",
+  "revision": "ai-data-positioning-matrices-v3",
   "client": "AI Data Platform",
   "productId": "0jgsw8bx554d",
   "columns": [
@@ -1022,23 +1022,51 @@ const data={
   ]
 };
 const copy=value=>JSON.parse(JSON.stringify(value));
-const blankCell=(sourceRow,sourceCell,column)=>({v:sourceCell.title,url:'',mode:'aeo',type:'',on:false,aw:'',st:'',writtenBy:'',cfg:true,kws:[],keywordIdeas:copy(sourceCell.keywordIdeas),actorType:sourceCell.actorType,actor:sourceCell.actor,icpSource:{kind:'sample-matrix',row:sourceRow.name,column:column.name}});
+const ICP_PROMPT='Classify only audience-fit positioning: this product is for this industry, country, company size, role/team or installed technology. Do not place a process, use case, benefit, capability or problem here; route those to Value. Keep named competitors in Competitor and category names/features/integrations in Category.';
+const VALUE_PROMPT='Classify what the product helps someone do or obtain. Processes and use cases name the work or data transformation. Nodal benefits state the direct benefit produced by a specific process node. Capabilities state what the product, technology or person can actually do. Keep audience-fit dimensions in ICP, category names/features/integrations in Category, and named competitors in Competitor.';
+const ROUTING_PROMPT='Competitor: any keyword containing a named competitor, including alternatives, reviews, pricing, features, two-way comparisons and three-way comparisons. ICP: product fit by industry, country, company size, role/team or installed technology. Value: processes/use cases, nodal benefits, capabilities, problems and outcomes. Category: category names/synonyms, category definitions, feature pages and integration pages. Preserve SEO while reorganizing AEO.';
+const benefits={
+ Cohort:['Understand how groups behave over time',['cohort reporting','cohort comparison','lifecycle diagnosis']],
+ Funnel:['See where people or records drop between stages',['funnel reporting','drop-off diagnosis','conversion-path analysis']],
+ Attribution:['Assign outcomes to the factors that influenced them',['multi-touch attribution','source contribution','incrementality analysis']],
+ Retention:['Identify why customers stay, leave or return',['retention reporting','churn diagnosis','retention prediction']],
+ Segmentation:['Turn a mixed audience into actionable groups',['rule-based segmentation','behavioral segmentation','predictive clustering']]
+};
+data.icpColumns=data.columns.filter(column=>column.matrixGroup!=='use');
+data.valueColumns=[...data.columns.filter(column=>column.matrixGroup==='use'),
+ {id:'ai-value-nodal-benefit',name:'Nodal benefits',matrixGroup:'benefit',keywordIdeas:['process benefit','operational benefit','business outcome']},
+ {id:'ai-value-capabilities',name:'Capabilities',matrixGroup:'cap',keywordIdeas:['analytics capabilities','platform capabilities','data capabilities']}];
+data.icpRows=data.rows.map(row=>({...copy(row),cells:row.cells.slice(4)}));
+data.valueRows=data.rows.map(row=>{const pair=benefits[row.name]||['Direct process benefit',['platform capability']];return {...copy(row),cells:[...row.cells.slice(0,4),
+ {title:pair[0],actorType:'product',actor:'AI data platform',keywordIdeas:[row.name.toLowerCase()+' benefits','benefits of '+row.name.toLowerCase(),row.name.toLowerCase()+' outcomes']},
+ {title:pair[1].join(', '),actorType:'technology',actor:'AI data platform',keywordIdeas:copy(pair[1])}]};});
+data.icpPrompt=ICP_PROMPT;data.valuePrompt=VALUE_PROMPT;data.routingPrompt=ROUTING_PROMPT;
+const blankCell=(sourceRow,sourceCell,column,kind)=>({v:sourceCell.title,url:'',mode:'aeo',type:'',on:false,aw:'',st:'',writtenBy:'',cfg:true,kws:[],keywordIdeas:copy(sourceCell.keywordIdeas),actorType:sourceCell.actorType,actor:sourceCell.actor,icpSource:{kind:kind||'sample-matrix',row:sourceRow.name,column:column.name}});
+const matrixRows=view=>(view.rows||[]).filter(row=>row.pageGroup==='matrix');
+const mergeColumns=(seed,existing)=>{const ids=new Set(seed.map(column=>column.id)),byId=new Map(existing.map(column=>[column.id,column]));return [...seed.map(column=>byId.get(column.id)||({...copy(column),local:true,defaults:{mode:'aeo',type:'',aw:''}})),...existing.filter(column=>!ids.has(column.id)&&column.matrixGroup!=='use')];};
 function ensure(content,client,productId){
  if(String(client||'').trim().toLowerCase()!==data.client.toLowerCase()||String(productId||'')!==data.productId)return false;
- const view=content?.views?.icp;if(!view||view.icpMatrixRevision===data.revision)return false;
- view.pageColumns ||= {};view.pageOrders ||= {};view.icpMatrixArchive ||= [];
- const existingColumns=Array.isArray(view.pageColumns.matrix)?view.pageColumns.matrix:[];
- const existingRows=(view.rows||[]).filter(row=>row.pageGroup==='matrix');
- view.icpMatrixArchive.push({revision:data.revision,previousRevision:view.icpMatrixRevision||'',at:new Date().toISOString(),pageColumns:{matrix:copy(existingColumns),listicle:copy(view.pageColumns.listicle||[]),landing:copy(view.pageColumns.landing||[])},rows:copy(existingRows.length?existingRows:(view.rows||[]).filter(row=>row.pageGroup!=='informational'))});
- const seededIds=new Set(data.columns.map(column=>column.id));
- const existingById=new Map(existingColumns.map(column=>[column.id,column]));
- view.pageColumns.matrix=[...data.columns.map(column=>existingById.get(column.id)||({...copy(column),local:true,defaults:{mode:'aeo',type:'',aw:''}})),...existingColumns.filter(column=>!seededIds.has(column.id))];
- view.pageOrders.matrix=view.pageColumns.matrix.map(column=>column.id);
- const rowsById=new Map(existingRows.map(row=>[row.id,row]));
- const seededRowIds=new Set(data.rows.map(row=>row.id));
- const mergedRows=data.rows.map(sourceRow=>{const row=rowsById.get(sourceRow.id)||{id:sourceRow.id,pageGroup:'matrix',name:sourceRow.name,description:sourceRow.description,keywordIdeas:copy(sourceRow.keywordIdeas),cells:{}};row.pageGroup='matrix';row.cells ||= {};sourceRow.cells.forEach((sourceCell,index)=>{const column=data.columns[index];if(!row.cells[column.id])row.cells[column.id]=blankCell(sourceRow,sourceCell,column);});return row;});
- view.rows=[...(view.rows||[]).filter(row=>row.pageGroup==='informational'),...mergedRows,...existingRows.filter(row=>!seededRowIds.has(row.id))];
- view.icpMatrixRevision=data.revision;return true;
+ content.views ||= {};const icp=content.views.icp;if(!icp)return false;const value=content.views.value ||= {kind:'grid',columns:[],rows:[],pageColumns:{},pageOrders:{}};
+ if(icp.icpMatrixRevision===data.revision&&value.valueMatrixRevision===data.revision)return false;
+ content.routingInstruction=ROUTING_PROMPT;icp.pageColumns ||= {};icp.pageOrders ||= {};value.pageColumns ||= {};value.pageOrders ||= {};
+ icp.icpMatrixArchive ||= [];value.valueMatrixArchive ||= [];
+ const oldIcpColumns=Array.isArray(icp.pageColumns.matrix)?icp.pageColumns.matrix:[];const oldIcpRows=matrixRows(icp);
+ const oldValueColumns=Array.isArray(value.pageColumns.matrix)?value.pageColumns.matrix:[];const oldValueRows=matrixRows(value);
+ icp.icpMatrixArchive.push({revision:data.revision,previousRevision:icp.icpMatrixRevision||'',at:new Date().toISOString(),pageColumns:copy(oldIcpColumns),rows:copy(oldIcpRows)});
+ const clearedAeo=[];
+ for(const row of (value.rows||[]).filter(row=>row.pageGroup!=='matrix'))for(const [id,cell] of Object.entries(row.cells||{})){const mode=typeof cell==='object'?cell.mode||'aeo':'aeo';if(mode!=='seo'){clearedAeo.push({rowId:row.id,columnId:id,cell:copy(cell)});delete row.cells[id];}}
+ value.valueMatrixArchive.push({revision:data.revision,previousRevision:value.valueMatrixRevision||'',at:new Date().toISOString(),pageColumns:copy(oldValueColumns),rows:copy(oldValueRows),clearedAeo});
+ icp.pageColumns.matrix=mergeColumns(data.icpColumns,oldIcpColumns.filter(column=>column.matrixGroup!=='use'));icp.pageOrders.matrix=icp.pageColumns.matrix.map(column=>column.id);icp.matrixAiPrompt=ICP_PROMPT;
+ value.pageColumns.matrix=mergeColumns(data.valueColumns,oldValueColumns);value.pageOrders.matrix=value.pageColumns.matrix.map(column=>column.id);value.matrixAiPrompt=VALUE_PROMPT;
+ const oldIcpById=new Map(oldIcpRows.map(row=>[row.id,row])),oldValueById=new Map(oldValueRows.map(row=>[row.id,row]));
+ const buildRows=(sourceRows,columns,targetOld,kind)=>sourceRows.map(sourceRow=>{const oldTarget=targetOld.get(sourceRow.id);const oldSource=oldIcpById.get(sourceRow.id);const row=oldTarget||{id:sourceRow.id,pageGroup:'matrix',name:sourceRow.name,description:sourceRow.description,keywordIdeas:copy(sourceRow.keywordIdeas),cells:{}};row.pageGroup='matrix';row.cells ||= {};const next={};sourceRow.cells.forEach((sourceCell,index)=>{const column=columns[index];next[column.id]=row.cells[column.id]||oldSource?.cells?.[column.id]||blankCell(sourceRow,sourceCell,column,kind);});row.cells=next;return row;});
+ const icpIds=new Set(data.icpRows.map(row=>row.id)),valueIds=new Set(data.valueRows.map(row=>row.id));
+ const valueSeed=buildRows(data.valueRows,data.valueColumns,oldValueById,'sample-matrix-value');
+ const icpSeed=buildRows(data.icpRows,data.icpColumns,oldIcpById,'sample-matrix-icp');
+ icp.rows=[...(icp.rows||[]).filter(row=>row.pageGroup!=='matrix'),...icpSeed,...oldIcpRows.filter(row=>!icpIds.has(row.id)).map(row=>({...row,cells:Object.fromEntries(Object.entries(row.cells||{}).filter(([id])=>data.icpColumns.some(column=>column.id===id)))}))];
+ value.rows=[...(value.rows||[]).filter(row=>row.pageGroup!=='matrix'),...valueSeed,...oldValueRows.filter(row=>!valueIds.has(row.id))];
+ const category=content.views.category;if(category){category.pageColumns ||= {};category.pageOrders ||= {};category.pageColumns.landing ||= copy(category.columns||[]);if(!category.pageColumns.landing.some(column=>/integration/i.test(column.name||'')))category.pageColumns.landing.push({id:'ai-category-integration-pages',name:'Integration pages',instruction:'Category landing pages that explain how this category connects to another product, platform or data source. Exclude generic how-to guides and named-competitor comparisons.',local:true,defaults:{mode:'aeo',type:'',aw:''}});category.pageOrders.landing=category.pageColumns.landing.map(column=>column.id);}
+ icp.icpMatrixRevision=data.revision;value.valueMatrixRevision=data.revision;return true;
 }
 return {data,ensure};
 });
