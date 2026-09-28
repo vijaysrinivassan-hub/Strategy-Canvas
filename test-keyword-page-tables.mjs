@@ -27,6 +27,8 @@ assert.deepEqual(P.visibleGroups('icp','aeo').map(group=>group.id),[]);
 assert.deepEqual(P.visibleGroups('icp','seo').map(group=>group.id),['informational']);
 assert.deepEqual(P.visibleGroups('category','aeo').map(group=>group.id),['listicle','landing']);
 assert.deepEqual(P.visibleGroups('category','seo').map(group=>group.id),['informational']);
+assert.deepEqual(P.visibleGroups('value','aeo').map(group=>group.id),['listicle','landing']);
+assert.deepEqual(P.visibleGroups('value','seo').map(group=>group.id),['informational']);
 const html=fs.readFileSync(new URL('./index.html',import.meta.url),'utf8');
 assert.ok(html.includes('for (const group of KeywordPageTables.visibleGroups(state.contentView, keywordMode))'));
 assert.ok(html.includes('onTypeChange: renderGrid'));

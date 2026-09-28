@@ -2907,6 +2907,8 @@
 <link rel="stylesheet" href="competitive-intelligence.css">
 <script src="competitive-intelligence-seed.js"></script>
 <script src="competitive-intelligence.js"></script>
+<link rel="stylesheet" href="shared-url-repository.css">
+<script src="shared-url-repository.js"></script>
 <link rel="stylesheet" href="icp-workflows.css">
 <script src="icp-workflows.js"></script>
 <link rel="stylesheet" href="icp-table.css">
@@ -6213,7 +6215,8 @@ const CONTENT_VIEWS = [
   { id: 'icp', label: 'ICP', noun: 'ICP', kind: 'grid',
     columns: ['ICP', 'Synonyms', 'Pains', 'Use cases', 'Content angles'] },
   { id: 'value', label: 'Value', noun: 'value', kind: 'grid',
-    columns: ['Value proposition', 'Synonyms', 'Proof points', 'Objections', 'Content angles'] }
+    columns: ['Value proposition', 'Synonyms', 'Proof points', 'Objections', 'Content angles'] },
+  { id: 'nonseo', label: 'Corporate & Non-SEO', noun: 'URL', kind: 'shared' }
 ];
 const viewDef = function(id){
   return CONTENT_VIEWS.filter(function(v){ return v.id === id; })[0] || CONTENT_VIEWS[1];
@@ -6254,6 +6257,8 @@ function contentRoot(){
   CONTENT_VIEWS.forEach(function(v){
     const cur = t.views[v.id] || (t.views[v.id] = {});
     cur.kind = v.kind;
+
+    if (v.kind === 'shared') return;
 
     if (v.kind === 'matrix'){
       if (!Array.isArray(cur.rows)) cur.rows = [];
@@ -7025,7 +7030,7 @@ function renderKeywordModeFilter(){
     host.setAttribute('role', 'group'); host.setAttribute('aria-label', 'Keyword channel');
     $('productSwitcher').after(host);
   }
-  host.hidden = state.tab !== CONTENT_TAB || state.contentView === 'competitor' || ['settings','clients','atypes','mcp'].includes(state.screen);
+  host.hidden = state.tab !== CONTENT_TAB || ['competitor','nonseo'].includes(state.contentView) || ['settings','clients','atypes','mcp'].includes(state.screen);
   host.replaceChildren();
   if (host.hidden) return;
   [['aeo','AEO'],['seo','SEO']].forEach(([mode,label]) => {
@@ -7286,6 +7291,8 @@ function renderGrid(){
     legacy.after(host);
   }
   host.hidden = false; host.innerHTML = '';
+  const sharedUrls = document.createElement('div'); sharedUrls.className = 'shared-keyword-urls'; host.append(sharedUrls);
+  window.SharedUrlRepository?.render(sharedUrls, {view:state.contentView,mode:keywordMode,product:state.clientProduct});
   if (['icp','value'].includes(state.contentView) && keywordMode === 'aeo'){
     const group = {id:'matrix', label:state.contentView === 'icp' ? 'ICP matrix' : 'Value matrix', type:''};
     const section = document.createElement('section');section.className = 'keyword-page-section';
@@ -7535,7 +7542,8 @@ function addGridColumn(pageGroup = 'listicle'){
 /* One entry point; the view decides which shape it is. */
 function renderContent(){
   const vd = viewDef(state.contentView);
-  if (vd.kind === 'grid') renderGrid(); else renderMatrix();
+  if (vd.kind === 'shared') renderSharedUrlView();
+  else if (vd.kind === 'grid') renderGrid(); else renderMatrix();
 }
 
 /* Every content view reads the keyword repo now: the matrix matches on
@@ -7559,7 +7567,20 @@ async function refreshMatrix(){
   }
 }
 function renderContentView(){
-  if (viewDef(state.contentView).kind === 'grid') renderGrid(); else renderMatrix();
+  const kind = viewDef(state.contentView).kind;
+  if (kind === 'shared') renderSharedUrlView();
+  else if (kind === 'grid') renderGrid(); else renderMatrix();
+}
+
+function renderSharedUrlView(){
+  renderKeywordModeFilter();
+  $('mxTable').hidden = true; $('competitorComparison').hidden = true;
+  $('mxPane').querySelector('.mx-head').hidden = true; $('mxSetup').hidden = true;
+  let host = $('keywordPageTables');
+  if (!host){ host = document.createElement('div'); host.id = 'keywordPageTables'; $('mxTable').after(host); }
+  host.hidden = false; host.replaceChildren();
+  const sharedUrls = document.createElement('div'); host.append(sharedUrls);
+  window.SharedUrlRepository?.render(sharedUrls, {view:'nonseo',mode:'nonseo',product:state.clientProduct});
 }
 
 /* Keep both keyword views in step when one of them changes a row. */
