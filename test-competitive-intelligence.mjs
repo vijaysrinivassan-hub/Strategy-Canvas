@@ -34,10 +34,13 @@ assert.equal(context.window.CompetitiveIntelligence.classificationOf('https://ww
 
 const tab={nodes:[],edges:[]};
 assert.equal(context.window.CompetitiveIntelligence.ensure(tab,'US AUAEO','Answer Engine Optimization Agency'),true);
-assert.equal(tab.competitors.length,6);
+assert.equal(tab.competitors.length,14);
+assert.equal(tab.competitors.reduce((sum,item)=>sum+item.urls.length,0),7880);
+assert.equal(tab.competitors.find(item=>item.name==='Graphite').sitemaps.length,1);
 const renamedBoard={nodes:[],edges:[]};
-assert.equal(context.window.CompetitiveIntelligence.ensure(renamedBoard,'AEO Agency','Answer Engine Optimization Agency'),true);
-assert.equal(renamedBoard.competitors.length,6);
+assert.equal(context.window.CompetitiveIntelligence.ensure(renamedBoard,'AEO Agency','AEO Agency'),true);
+assert.equal(renamedBoard.competitors.length,14);
+assert.equal(renamedBoard.competitors.find(item=>item.name==='Omniscient').urls.length,737);
 const isolated={nodes:[],edges:[]};
 assert.equal(context.window.CompetitiveIntelligence.ensure(isolated,'Another client','Different product'),false);
 assert.equal(isolated.competitors.length,0);

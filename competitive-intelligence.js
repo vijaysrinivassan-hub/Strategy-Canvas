@@ -43,9 +43,30 @@
   function ensure(tab, client, product){
     normalize(tab);
     const seed = global.CompetitiveIntelligenceSeed;
-    const matches = seed && String(product || '').trim().toLowerCase() === seed.product.toLowerCase();
+    const productName = String(product || '').trim().toLowerCase();
+    const matches = seed && [seed.product.toLowerCase(), 'aeo agency'].includes(productName);
     if (!tab.competitors.length && matches){
-      tab.competitors = clone(seed.competitors);
+      const profiles = global.CompetitiveIntelligenceClassifications?.profiles;
+      if (Array.isArray(profiles) && profiles.length){
+        const priorByDomain = new Map(seed.competitors
+          .filter(item => item.domain)
+          .map(item => [String(item.domain).replace(/\/$/,'').toLowerCase(),item]));
+        tab.competitors = profiles.map(profile => {
+          const prior = priorByDomain.get(String(profile.domain || '').replace(/\/$/,'').toLowerCase());
+          const urls = [...new Set(profile.urls || [])];
+          return {
+            ...(prior ? clone(prior) : {}), ...clone(profile),
+            aliases: [...new Set([...(prior?.aliases || []),...(profile.aliases || [])])],
+            sitemaps: [...new Set([...(prior?.sitemaps || []),...(profile.sitemaps || [])])],
+            urls,
+            source: profile.source || prior?.source || 'Imported URL classification workbook',
+            fetchedAt: profile.fetchedAt || prior?.fetchedAt || global.CompetitiveIntelligenceClassifications.classifiedAt || '',
+            status: profile.status || (urls.length ? 'complete' : prior?.status || 'empty')
+          };
+        });
+      } else {
+        tab.competitors = clone(seed.competitors);
+      }
       tab.activeCompetitorId = tab.competitors[0]?.id || '';
       tab.seedId = seed.id; tab.seededAt = seed.fetchedAt;
       return true;
