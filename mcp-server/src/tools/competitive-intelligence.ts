@@ -20,7 +20,7 @@ const uid = () => Math.random().toString(36).slice(2,10) + Date.now().toString(3
 export function registerCompetitiveIntelligenceTools(server:McpServer){
   server.registerTool('competitive_intelligence_get', {
     title:'Read competitive intelligence',
-    description:'Read competitor sitemap sources and discovered URLs for the active product. Omit competitor to list every profile; supply a name for one exhaustive inventory. Keep revision before writing.',
+    description:'Read company-level competitor sitemap sources and discovered URLs shared across every product on this client board. Omit competitor to list every profile; supply a name for one exhaustive inventory. Keep revision before writing.',
     inputSchema:{board_id:z.string(),competitor:z.string().optional()},
     annotations:{readOnlyHint:true,destructiveHint:false,idempotentHint:true}
   }, async({board_id,competitor})=>{
@@ -30,12 +30,12 @@ export function registerCompetitiveIntelligenceTools(server:McpServer){
       ? items.filter((item:any)=>String(item.name||'').toLowerCase()===competitor.toLowerCase() ||
           (item.aliases||[]).some((alias:string)=>alias.toLowerCase()===competitor.toLowerCase()))
       : items;
-    return ok({client:body.client,product:body.clientProduct||'',revision:row.updated_at,competitors:selected});
+    return ok({client:body.client,scope:'company',revision:row.updated_at,competitors:selected});
   });
 
   server.registerTool('competitive_intelligence_set', {
     title:'Save one competitor URL inventory',
-    description:'Create or update one active-product competitor profile with sitemap URLs and an exhaustive discovered URL list. Read first and supply revision. replace=true replaces its URL inventory; false merges and deduplicates.',
+    description:'Create or update one company-level competitor profile shared across every product on this client board. Read first and supply revision. replace=true replaces its URL inventory; false merges and deduplicates.',
     inputSchema:{board_id:z.string(),revision:z.string(),competitor:competitorSchema,replace:z.boolean().default(true)},
     annotations:{readOnlyHint:false,destructiveHint:false,idempotentHint:true}
   }, async({board_id,revision,competitor,replace})=>{

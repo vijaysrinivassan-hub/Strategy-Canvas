@@ -132,7 +132,7 @@ export function registerBoardTools(server: McpServer) {
         client: body.client,
         products: body.tabs['Strategy 1 — Brand Strategy']?.channels?.products || [],
         active_product_id: body.workspaceProductId || body.tabs['Strategy 1 — Brand Strategy']?.channels?.activeProductId || null,
-        product_scope: 'Architecture, positioning, radar and the four Keywords views in tabs belong to the active product. Inactive product data is preserved separately.',
+        product_scope: 'Architecture, positioning, radar and the four Keywords views belong to the active product. Competitive Intelligence and its shared URL inventory belong to the company and remain available across products.',
         ai_prompts: { product_architecture: await architecturePrompts(body), maturity_axis: await architecturePrompts(body, 'maturity_axis'), positioning_canvas: await architecturePrompts(body, 'positioning_canvas'), positioning_document: await architecturePrompts(body, 'positioning_document') },
         client_details: {
           goal: body.clientGoal || "Customer Acquisition",

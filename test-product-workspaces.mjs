@@ -4,9 +4,10 @@ import assert from 'node:assert/strict';
 const html=fs.readFileSync(new URL('./index.html',import.meta.url),'utf8');
 for(const m of html.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/g))new vm.Script(m[1]);
 const names={PRODUCT_ARCHITECTURE_TAB:'architecture',MATURITY_ACCESS_TAB:'maturity',LEGACY_MATURITY_ACCESS_TAB:'legacy-maturity',POSITIONING_TAB:'positioning',POSITIONING_DOCUMENT_TAB:'document',COMMUNICATION_STRATEGY_TAB:'communication',COMPETITIVE_INTELLIGENCE_TAB:'competitive-intelligence',BRAND_RADAR_TAB:'radar',CONTENT_TAB:'keywords',STRATEGY_ONE_TAB:'gtm',PRODUCT_EVOLUTION_TAB:'legacy',FRAME_TAB:'frame',DOCS_TAB:'evidence'};
-const scoped=['architecture','maturity','positioning','document','communication','competitive-intelligence','radar','keywords'];
+const scoped=['architecture','maturity','positioning','document','communication','radar','keywords'];
 const state={client:'Client A',clientProduct:'Payroll',tabs:{gtm:{channels:{products:[{id:'p1',name:'Payroll'},{id:'p2',name:'Recruiting'},{id:'p3',name:'Time'}],activeProductId:'p1'}},evidence:{files:['source']}}};
 scoped.forEach(key=>state.tabs[key]={nodes:[],edges:[],marker:'payroll-'+key});
+state.tabs['competitive-intelligence']={nodes:[],edges:[],marker:'company-intelligence',competitors:[{id:'shared',name:'Shared competitor',urls:['https://example.com']} ]};
 state.tabs.architecture.aiPrompt='Payroll prompt';
 let dirty=0,readonly=false;
 const el={open:false,close(){this.open=false},replaceChildren(){},append(){}};
@@ -14,15 +15,18 @@ const context=vm.createContext({...names,state,document:{activeElement:{blur(){}
   channelState:()=>state.tabs.gtm.channels,activeGtmProduct:t=>t.products.find(p=>p.id===t.activeProductId)||t.products[0],blankArchitecture:()=>({version:3,nodes:[],edges:[],systems:[],groups:[]}),markDirty:()=>dirty++,readOnly:()=>readonly,
   captureFrame(){},renderBrand(){},blankTabs:()=>({}),CLIENT_TYPES:[],TABS:Object.values(names),LEGACY_HIDDEN_TABS:['legacy'],toast(){},evolutionState(){},problemEvidenceState(){}});
 vm.runInContext(html.slice(html.indexOf('function productScopedTabs()'),html.indexOf('async function refreshBoards()')),context);
-context.ensureProductWorkspace();assert.equal(state.workspaceProductId,'p1');
+context.ensureProductWorkspace();assert.equal(state.workspaceProductId,'p1');assert.equal(state.companyUrlWorkspaceMigrated,true);
 context.activateProduct('p2');scoped.forEach(key=>assert.equal(state.tabs[key].marker,undefined));
+assert.equal(state.tabs['competitive-intelligence'].marker,'company-intelligence');
 assert.equal(state.tabs.architecture.architecture.name,'Recruiting');
 scoped.forEach(key=>state.tabs[key].marker='recruiting-'+key);state.tabs.architecture.aiPrompt='Recruiting prompt';
 context.activateProduct('p3');scoped.forEach(key=>assert.equal(state.tabs[key].marker,undefined));
+assert.equal(state.tabs['competitive-intelligence'].competitors[0].name,'Shared competitor');
 context.activateProduct('p1');scoped.forEach(key=>assert.equal(state.tabs[key].marker,'payroll-'+key));
+assert.equal(state.tabs['competitive-intelligence'].marker,'company-intelligence');
 assert.equal(state.tabs.architecture.aiPrompt,'Payroll prompt');assert.equal(state.tabs.evidence.files[0],'source');
 state.tabs.document.fields={positioning_statement:'Written by MCP'};
-const saved=context.serialize();context.hydrate(saved);context.ensureProductWorkspace();
+const saved=context.serialize();context.hydrate(saved);context.ensureProductWorkspace();assert.equal(state.companyUrlWorkspaceMigrated,true);
 context.activateProduct('p2');scoped.forEach(key=>assert.equal(state.tabs[key].marker,'recruiting-'+key));
 assert.equal(state.tabs.architecture.aiPrompt,'Recruiting prompt');
 context.activateProduct('p1');assert.equal(state.tabs.document.fields.positioning_statement,'Written by MCP');
@@ -32,4 +36,4 @@ readonly=true;const before=dirty;context.activateProduct('p2');assert.equal(dirt
 context.hydrate(JSON.stringify({client:'Client B',clientProduct:'Other',tabs:{gtm:{channels:{products:[{id:'other',name:'Other'}],activeProductId:'other'}},architecture:{nodes:[],edges:[],marker:'other'}}}));
 context.ensureProductWorkspace();assert.equal(state.workspaceProductId,'other');
 assert.equal(Object.keys(state.productWorkspaces).length,0);assert.equal(state.tabs.architecture.marker,'other');
-console.log('PASS: legacy migration, three-product isolation, prompts, shared evidence, save/reload, MCP writes, rename, read-only switching and cross-client isolation.');
+console.log('PASS: product workspace isolation, company-level Competitive Intelligence URLs, prompts, shared evidence, save/reload, MCP writes, rename, read-only switching and cross-client isolation.');

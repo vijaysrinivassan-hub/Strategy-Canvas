@@ -3068,6 +3068,7 @@ const state = {
   boardId: null,               /* uuid of the Supabase row, null = unsaved */
   client: 'XYZ',
   clientProduct: '',
+  companyUrlWorkspaceMigrated: false,
   clientType: '',
   clientGoal: 'Customer Acquisition',
   clientMarketType: '',
@@ -4750,11 +4751,43 @@ window.addEventListener('blur', () => { spaceHeld = false; });
    Inactive products live in snapshots; older clients and MCP tools can still use tabs. */
 function productScopedTabs(){
   return [PRODUCT_ARCHITECTURE_TAB, MATURITY_ACCESS_TAB, POSITIONING_TAB, POSITIONING_DOCUMENT_TAB,
-          COMMUNICATION_STRATEGY_TAB, BRAND_RADAR_TAB, CONTENT_TAB, COMPETITIVE_INTELLIGENCE_TAB];
+          COMMUNICATION_STRATEGY_TAB, BRAND_RADAR_TAB, CONTENT_TAB];
+}
+function migrateCompanyUrlWorkspace(){
+  if (state.companyUrlWorkspaceMigrated) return false;
+  const companyTab = state.tabs[COMPETITIVE_INTELLIGENCE_TAB] ||
+    (state.tabs[COMPETITIVE_INTELLIGENCE_TAB] = {nodes:[],edges:[],competitors:[]});
+  if (!Array.isArray(companyTab.competitors)) companyTab.competitors = [];
+  const profiles = new Map();
+  const mergeProfile = function(item){
+    if (!item || typeof item !== 'object') return;
+    const key = String(item.domain || item.id || item.name || '').replace(/\/$/,'').toLowerCase();
+    if (!key) return;
+    const previous = profiles.get(key) || {};
+    profiles.set(key, {
+      ...previous, ...JSON.parse(JSON.stringify(item)),
+      aliases:[...new Set([...(previous.aliases || []),...(item.aliases || [])])],
+      sitemaps:[...new Set([...(previous.sitemaps || []),...(item.sitemaps || [])])],
+      urls:[...new Set([...(previous.urls || []),...(item.urls || [])])]
+    });
+  };
+  companyTab.competitors.forEach(mergeProfile);
+  Object.values(state.productWorkspaces || {}).forEach(workspace => {
+    const candidate = workspace?.tabs?.[COMPETITIVE_INTELLIGENCE_TAB];
+    if (Array.isArray(candidate?.competitors)) candidate.competitors.forEach(mergeProfile);
+  });
+  companyTab.competitors = Array.from(profiles.values());
+  if (!companyTab.competitors.some(item => item.id === companyTab.activeCompetitorId)){
+    companyTab.activeCompetitorId = companyTab.competitors[0]?.id || '';
+  }
+  state.companyUrlWorkspaceMigrated = true;
+  return true;
 }
 function ensureProductWorkspace(){
   const catalog = channelState();
   if (!state.productWorkspaces || typeof state.productWorkspaces !== 'object') state.productWorkspaces = {};
+  const migratedCompanyUrls = migrateCompanyUrlWorkspace();
+  if (migratedCompanyUrls && state.boardId && !readOnly()) markDirty();
   if (!state.workspaceProductId){
     const target = catalog.products.find(p => p.name === state.clientProduct) || activeGtmProduct(catalog);
     state.workspaceProductId = target.id;
@@ -4881,6 +4914,7 @@ function serialize(){
                           clientIcp1: state.clientIcp1 || 'New Entrants', logo: state.logo || '',
                           extra: state.extra, brandOrder: state.brandOrder,
                           frameEdits: state.frameEdits, productWorkspaces: state.productWorkspaces,
+                          companyUrlWorkspaceMigrated: !!state.companyUrlWorkspaceMigrated,
                           workspaceProductId: state.workspaceProductId, tabs: tabs });
 }
 function hydrate(text){
@@ -4888,6 +4922,7 @@ function hydrate(text){
   try { d = JSON.parse(text); } catch (e) {}
   state.tabs = blankTabs();
   state.productWorkspaces = d && d.productWorkspaces && typeof d.productWorkspaces === 'object' ? d.productWorkspaces : {};
+  state.companyUrlWorkspaceMigrated = !!(d && d.companyUrlWorkspaceMigrated);
   Object.values(state.productWorkspaces).forEach(workspace => {
     const tabs = workspace && typeof workspace === 'object' ? workspace.tabs : null;
     if (!tabs || typeof tabs !== 'object' || !tabs[LEGACY_MATURITY_ACCESS_TAB]) return;
@@ -7406,11 +7441,11 @@ function renderMatrix(){
 /* ---- plain tables (Category, ICP, Value) ---------------------------- */
 let sharedUrlMappingPending = null;
 let sharedUrlRepositoryReadyFor = '';
-function sharedUrlBoardContext(){ return [state.clientProduct,state.client].filter(Boolean).join(' | '); }
+function sharedUrlBoardContext(){ return String(state.client || '').trim(); }
 function ensureSharedUrlCellMappings(){
   const repositoryContext = sharedUrlBoardContext();
   if (!window.SharedUrlRepository?.productMatches(repositoryContext)) return;
-  const mappingKey = [state.boardId,repositoryContext].join('|');
+  const mappingKey = [state.boardId,state.workspaceProductId,repositoryContext].join('|');
   if (sharedUrlMappingPending || sharedUrlRepositoryReadyFor === mappingKey) return;
   sharedUrlMappingPending = window.SharedUrlRepository.load().then(function(){
     const board = state.boardId, changed = window.SharedUrlRepository.installMappings(contentRoot(), articleTypes(), {product:repositoryContext,uid});

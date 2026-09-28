@@ -44,7 +44,9 @@
     normalize(tab);
     const seed = global.CompetitiveIntelligenceSeed;
     const productName = String(product || '').trim().toLowerCase();
-    const matches = seed && [seed.product.toLowerCase(), 'aeo agency'].includes(productName);
+    const clientName = String(client || '').trim().toLowerCase();
+    const matches = seed && (clientName === 'aeo agency' ||
+      [seed.product.toLowerCase(), 'aeo agency'].includes(productName));
     if (!tab.competitors.length && matches){
       const profiles = global.CompetitiveIntelligenceClassifications?.profiles;
       if (Array.isArray(profiles) && profiles.length){
