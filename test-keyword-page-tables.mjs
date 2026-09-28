@@ -48,5 +48,6 @@ assert.ok(html.includes('contentSlots - columns.length'));
 assert.ok(html.includes("className='keyword-grid-spacer'"));
 assert.ok(html.includes("fitsViewport ? '100%' : gridWidth + 'px'"));
 assert.ok(html.includes('No rows match the selected statuses.'));
+assert.match(html,/\.mx-table thead th\.mx-corner-num\{position:relative !important;top:auto !important;left:auto !important/);
 assert.match(html, /v\.rows\.splice\(v\.rows\.indexOf\(row\),\s*1\)/);
 console.log('PASS: shared page groups, ICP AEO matrix handoff, SEO informational view, split stability, metadata preservation and per-table controls.');
