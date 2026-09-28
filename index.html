@@ -637,6 +637,7 @@
     border-right:1px solid var(--line); border-bottom:1px solid var(--line);
     background:#fff;
   }
+  .mx-table .keyword-grid-spacer{background:#fff !important;color:transparent !important}
 
   /* header band */
   .mx-table thead th{
@@ -7201,9 +7202,11 @@ function renderMatrix(){
   const ro = readOnly();
   $('mxPane').querySelector('.mx-head').hidden = true;
 
-  /* Up to five content columns share the viewport. A sixth starts a horizontal canvas. */
+  /* Five major visual slots stay present. The row-name column occupies one slot. */
   const NUM_W = 46, RH_W = 310, COL_W = 310;
-  const fitsViewport = m.types.length <= 5;
+  const contentSlots = 4;
+  const fitsViewport = m.types.length <= contentSlots;
+  const spacerCount = fitsViewport ? contentSlots - m.types.length : 0;
   const matrixWidth = NUM_W + RH_W + COL_W * m.types.length;
   const cg = document.createElement('colgroup');
   const cn = document.createElement('col');
@@ -7214,9 +7217,10 @@ function renderMatrix(){
   cg.append(c0);
   m.types.forEach(function(){
     const c = document.createElement('col');
-    c.style.width = fitsViewport ? 'calc((100% - ' + (NUM_W + RH_W) + 'px) / ' + Math.max(1,m.types.length) + ')' : COL_W + 'px';
+    c.style.width = fitsViewport ? 'calc((100% - ' + (NUM_W + RH_W) + 'px) / ' + contentSlots + ')' : COL_W + 'px';
     cg.append(c);
   });
+  for(let i=0;i<spacerCount;i++){const c=document.createElement('col');c.style.width='calc((100% - ' + (NUM_W + RH_W) + 'px) / ' + contentSlots + ')';cg.append(c);}
   table.style.width = fitsViewport ? '100%' : matrixWidth + 'px';
   table.style.minWidth = fitsViewport ? '100%' : matrixWidth + 'px';
   table.append(cg);
@@ -7262,6 +7266,7 @@ function renderMatrix(){
     th.append(lab);
     hr.append(th);
   });
+  for(let i=0;i<spacerCount;i++){const th=document.createElement('th');th.className='keyword-grid-spacer';th.setAttribute('aria-hidden','true');hr.append(th);}
   thead.append(hr);
   table.append(thead);
 
@@ -7368,6 +7373,7 @@ function renderMatrix(){
 
       tr.append(td);
     });
+    for(let i=0;i<spacerCount;i++){const td=document.createElement('td');td.className='keyword-grid-spacer';td.setAttribute('aria-hidden','true');tr.append(td);}
 
     tbody.append(tr);
   });
@@ -7479,7 +7485,9 @@ function renderGridTable(v, group, table){
     ? sortedColumns.filter(col => (col.axis || KeywordColumns.inferIcpAxis(col.name)) === activeIcpAxis || repositoryColumnIds.has(col.id))
     : sortedColumns;
   const NUM_W = isPositioningMatrix ? 310 : 46, COL_W = 310;
-  const fitsViewport = columns.length <= 5;
+  const contentSlots = isPositioningMatrix ? 4 : 5;
+  const fitsViewport = columns.length <= contentSlots;
+  const spacerCount = fitsViewport ? contentSlots - columns.length : 0;
   const gridWidth = NUM_W + COL_W * columns.length;
   table.style.width = fitsViewport ? '100%' : gridWidth + 'px';
   table.style.minWidth = fitsViewport ? '100%' : gridWidth + 'px';
@@ -7490,9 +7498,10 @@ function renderGridTable(v, group, table){
   cg.append(c0);
   columns.forEach(function(){
     const c = document.createElement('col');
-    c.style.width = fitsViewport ? 'calc((100% - ' + NUM_W + 'px) / ' + Math.max(1,columns.length) + ')' : COL_W + 'px';
+    c.style.width = fitsViewport ? 'calc((100% - ' + NUM_W + 'px) / ' + contentSlots + ')' : COL_W + 'px';
     cg.append(c);
   });
+  for(let i=0;i<spacerCount;i++){const c=document.createElement('col');c.style.width='calc((100% - ' + NUM_W + 'px) / ' + contentSlots + ')';cg.append(c);}
   table.append(cg);
 
   const thead = document.createElement('thead');
@@ -7511,6 +7520,7 @@ function renderGridTable(v, group, table){
       const th = document.createElement('th'); th.className = 'icp-axis-head' + (isPositioningMatrix ? ' icp-matrix-axis icp-matrix-' + axis : ''); th.colSpan = count;
       th.textContent = label; axisRow.append(th);
     }
+    if(spacerCount){const spacer=document.createElement('th');spacer.className='keyword-grid-spacer';spacer.colSpan=spacerCount;spacer.setAttribute('aria-hidden','true');axisRow.append(spacer);}
     thead.append(axisRow);
   }
   const hr = document.createElement('tr');
@@ -7554,6 +7564,7 @@ function renderGridTable(v, group, table){
     th.append(lab);
     hr.append(th);
   });
+  for(let i=0;i<spacerCount;i++){const th=document.createElement('th');th.className='keyword-grid-spacer';th.setAttribute('aria-hidden','true');hr.append(th);}
   thead.append(hr);
   table.append(thead);
 
@@ -7648,12 +7659,13 @@ function renderGridTable(v, group, table){
 
       tr.append(td);
     });
+    for(let i=0;i<spacerCount;i++){const td=document.createElement('td');td.className='keyword-grid-spacer';td.setAttribute('aria-hidden','true');tr.append(td);}
 
     tbody.append(tr);
   });
   if (!allGroupRows.length){
     const tr = document.createElement('tr'), td = document.createElement('td');
-    td.colSpan = columns.length + 1;
+    td.colSpan = columns.length + spacerCount + 1;
     td.style.padding = '20px';
     td.textContent = keywordStatusFilter.size ? 'No rows match the selected statuses.' : 'No ' + group.label.toLowerCase() + ' yet.';
     if (!ro && !keywordStatusFilter.size){
