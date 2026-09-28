@@ -51,7 +51,12 @@
   const matrixGroup=(view,axis)=>{
     const name=normalizeName(axis);
     if(view==='value')return /benefit/.test(name)?'benefit':/capabilit/.test(name)?'cap':'use';
-    if(/countr/.test(name))return 'ctry';if(/tech/.test(name))return 'tech';return 'ind';
+    if(/countr/.test(name))return 'ctry';
+    if(/tech/.test(name))return 'tech';
+    if(/company size|size/.test(name))return 'size';
+    if(/role|team|people/.test(name))return 'role';
+    if(/process|use case/.test(name))return 'process';
+    return 'ind';
   };
   const typeId=(types,group)=>{
     const wanted={listicle:/listicle/i,landing:/landing|service page|feature page|use case page/i,informational:/informational|informative/i}[group];
@@ -142,7 +147,6 @@
     })));
     return saved;
   }
-  const ICP_SEO_HIERARCHY_ORDER=['Industry','Country','Company size','Technology','Role / Team','Process / Use case','General ICP'];
   const CATEGORY_DEPARTMENT_ORDER=['Strategy & Research','Account Management','Technical SEO / AEO','Content','Digital PR / Authority','Analytics & Reporting','Client Success'];
   const categoryDepartment=record=>{
     const name=normalizeName(record.hierarchy);
@@ -155,6 +159,49 @@
     return 'Strategy & Research';
   };
   const usesRepositoryAxis=(viewId,group)=>viewId==='category'||(viewId==='icp'&&group==='informational');
+  const ICP_DIMENSION_ORDER=['Industry','Company size','Process / Use case','Country','Technology','Role / Team','General ICP'];
+  const ICP_MATRIX_GROUP_ORDER=['ind','size','process','ctry','tech','role'];
+  const INDUSTRY_ORDER=['B2B SaaS','Fintech & Financial Services','Healthcare & Life Sciences','E-commerce & Retail','Cybersecurity','HR Tech','MarTech & AdTech','Technology & Software','Aerospace & Aviation','Agriculture & AgTech','Automotive','Construction & Home Services','Education & EdTech','Energy, Environment & Utilities','Manufacturing & Industrial','Real Estate & PropTech','Logistics & Transportation','Crypto & Web3','Telecom & IT Services','Media & Entertainment','Professional Services','Consumer','B2B Services','Other Industry'];
+  const industryValue=record=>{
+    const name=normalizeName(record.topic||record.url);
+    if(/fintech|financial service|banking|bank |insurance|wealth|private equity|investment compan|finance industr/.test(name))return 'Fintech & Financial Services';
+    if(/health|medical|medtech|pharma|dental|life science|biotech|biohacking|longevity|hospital|patient|surgeon|dermat|rehab|senior living|nursing home|veterinar|wellness/.test(name))return 'Healthcare & Life Sciences';
+    if(/ecommerce|e commerce|retail|consumer retail|shopify/.test(name))return 'E-commerce & Retail';
+    if(/cyber|security|trust safety/.test(name))return 'Cybersecurity';
+    if(/hr tech|hrtech|recruit|human resource|staffing/.test(name))return 'HR Tech';
+    if(/martech|adtech|advertising/.test(name))return 'MarTech & AdTech';
+    if(/aerospace|aviation|airline/.test(name))return 'Aerospace & Aviation';
+    if(/agtech|agriculture|farming/.test(name))return 'Agriculture & AgTech';
+    if(/automotive|dealership|car dealer/.test(name))return 'Automotive';
+    if(/construction|contractor|home service|home builder|hvac|pest control|electrical contractor|campground|self storage/.test(name))return 'Construction & Home Services';
+    if(/education|edtech|higher ed|college|university|school/.test(name))return 'Education & EdTech';
+    if(/energy|environment|cleantech|solar|oil gas|recycling|waste management|water wastewater|utility/.test(name))return 'Energy, Environment & Utilities';
+    if(/manufactur|industrial|heavy equipment|pcb design|robotic/.test(name))return 'Manufacturing & Industrial';
+    if(/real estate|property management|proptech/.test(name))return 'Real Estate & PropTech';
+    if(/logistics|transportation|trucking|supply chain|marine|maritime|boat|yacht/.test(name))return 'Logistics & Transportation';
+    if(/crypto|web3|blockchain|nft/.test(name))return 'Crypto & Web3';
+    if(/telecom|managed service|msp |hosting compan|it compan/.test(name))return 'Telecom & IT Services';
+    if(/media publisher|entertainment|gaming|video game/.test(name))return 'Media & Entertainment';
+    if(/b2b saas|saas/.test(name))return 'B2B SaaS';
+    if(/software|technology|tech company|ai compan|business intelligence|salestech|crm |erp |developer|cloud|api/.test(name))return 'Technology & Software';
+    if(/legal|law firm|attorney|consulting|professional service|accounting|copywriting|pr agenc/.test(name))return 'Professional Services';
+    if(/beauty|consumer|food|restaurant|hospitality|hotel|travel|fashion|cosmetic brand|luxury brand|pet brand|cbd|cannabis/.test(name))return 'Consumer';
+    if(/b2b/.test(name))return 'B2B Services';
+    return 'Other Industry';
+  };
+  const companySizeValue=record=>{const name=normalizeName(record.topic||record.url);if(/enterprise|large business|large company/.test(name))return 'Enterprise';if(/mid market|midmarket|scaleup|scale up/.test(name))return 'Mid-market';return 'SMB';};
+  const processDepartment=record=>{
+    const name=normalizeName([record.hierarchy,record.topic].join(' '));
+    if(/digital pr|link building|backlink|authority/.test(name))return 'Digital PR / Authority';
+    if(/analytics|measurement|attribution|conversion rate|reporting/.test(name))return 'Analytics & Reporting';
+    if(/content|copywriting|editorial|newsletter|podcast/.test(name))return 'Content';
+    if(/revops|crm|account management/.test(name))return 'Account Management';
+    if(/client success|customer success/.test(name))return 'Client Success';
+    if(/answer engine|aeo|technical seo|programmatic seo|seo tool|chatgpt for seo/.test(name))return 'Technical SEO / AEO';
+    return 'Strategy & Research';
+  };
+  const icpDimensionValue=(record,dimension)=>{const name=normalizeName(dimension);if(/industry/.test(name))return industryValue(record);if(/company size/.test(name))return companySizeValue(record);if(/process|use case/.test(name))return processDepartment(record);return dimension||'General ICP';};
+  const childOrder=(group,value)=>{if(group==='size')return ['SMB','Mid-market','Enterprise'].indexOf(value);if(group==='process')return CATEGORY_DEPARTMENT_ORDER.indexOf(value);if(group==='ind'){const index=INDUSTRY_ORDER.indexOf(value);return index<0?INDUSTRY_ORDER.length:index;}return 0;};
   function mappedRowsFirst(view,viewId){
     const rows=view.rows||[],groups=['listicle','landing','informational','matrix'];
     groups.forEach(group=>{
@@ -163,9 +210,15 @@
         const mapped=Number(!!b.repositoryHierarchy)-Number(!!a.repositoryHierarchy);
         if(mapped)return mapped;
         if(usesRepositoryAxis(viewId,group)&&a.repositoryHierarchy&&b.repositoryHierarchy){
-          const order=viewId==='category'?CATEGORY_DEPARTMENT_ORDER:ICP_SEO_HIERARCHY_ORDER;
-          const ar=order.indexOf(a.repositoryHierarchy),br=order.indexOf(b.repositoryHierarchy);
-          return (ar<0?999:ar)-(br<0?999:br)||Number(a.repositoryRowSlot||0)-Number(b.repositoryRowSlot||0);
+          if(viewId==='category'){
+            const ar=CATEGORY_DEPARTMENT_ORDER.indexOf(a.repositoryHierarchy),br=CATEGORY_DEPARTMENT_ORDER.indexOf(b.repositoryHierarchy);
+            return (ar<0?999:ar)-(br<0?999:br)||Number(a.repositoryRowSlot||0)-Number(b.repositoryRowSlot||0);
+          }
+          const ag=a.repositorySuperHierarchy||a.repositoryHierarchy,bg=b.repositorySuperHierarchy||b.repositoryHierarchy;
+          const ar=ICP_DIMENSION_ORDER.indexOf(ag),br=ICP_DIMENSION_ORDER.indexOf(bg);
+          if(ar!==br)return (ar<0?999:ar)-(br<0?999:br);
+          const groupCode=matrixGroup('icp',ag),ac=childOrder(groupCode,a.repositoryHierarchy),bc=childOrder(groupCode,b.repositoryHierarchy);
+          return ac-bc||String(a.repositoryHierarchy).localeCompare(String(b.repositoryHierarchy))||Number(a.repositoryRowSlot||0)-Number(b.repositoryRowSlot||0);
         }
         return 0;
       });
@@ -186,7 +239,7 @@
       const generated=rows.filter(row=>row.pageGroup===group&&row.repositoryHierarchy);
       if(!generated.length)continue;
       const batches=usesRepositoryAxis(viewId,group)
-        ? [...new Set(generated.map(row=>row.repositoryHierarchy))].map(hierarchy=>generated.filter(row=>row.repositoryHierarchy===hierarchy))
+        ? [...new Set(generated.map(row=>viewId==='icp'?(row.repositorySuperHierarchy||'General ICP')+'|'+row.repositoryHierarchy:row.repositoryHierarchy))].map(key=>generated.filter(row=>(viewId==='icp'?(row.repositorySuperHierarchy||'General ICP')+'|'+row.repositoryHierarchy:row.repositoryHierarchy)===key))
         : [generated];
       const redundant=new Set();
       for(const batch of batches){
@@ -207,32 +260,45 @@
       if(Array.isArray(view.pageOrders?.matrix))view.pageOrders.matrix=view.pageOrders.matrix.filter(id=>view.pageColumns.matrix.some(column=>column.id===id));
     }
   }
-  function ensureRow(view,group,hierarchy,slot,uid){
+  function ensureRow(view,group,hierarchy,slot,uid,superHierarchy){
     view.rows ||= [];
-    let row=view.rows.find(item=>item.pageGroup===group&&item.repositoryHierarchy===hierarchy&&Number(item.repositoryRowSlot||0)===Number(slot||0));
+    let row=view.rows.find(item=>item.pageGroup===group&&item.repositoryHierarchy===hierarchy&&(!superHierarchy||item.repositorySuperHierarchy===superHierarchy)&&Number(item.repositoryRowSlot||0)===Number(slot||0));
     if(!row){
       row=view.rows.find(item=>item.pageGroup===group&&!item.repositoryHierarchy&&group!=='matrix'&&!Object.keys(item.cells||{}).length);
       if(!row){row={id:uid(),pageGroup:group,cells:{}};view.rows.push(row);}
-      row.repositoryHierarchy=hierarchy;row.repositoryRowSlot=Number(slot)||0;if(group==='matrix'&&!row.name)row.name=hierarchy;
+      row.repositoryHierarchy=hierarchy;if(superHierarchy)row.repositorySuperHierarchy=superHierarchy;row.repositoryRowSlot=Number(slot)||0;if(group==='matrix'&&!row.name)row.name=hierarchy;
     }row.cells ||= {};return row;
+  }
+  function sortIcpMatrixColumns(view){
+    const columns=view.pageColumns?.matrix;if(!Array.isArray(columns))return;
+    columns.sort((a,b)=>{const ag=ICP_MATRIX_GROUP_ORDER.indexOf(a.matrixGroup),bg=ICP_MATRIX_GROUP_ORDER.indexOf(b.matrixGroup);if(ag!==bg)return (ag<0?999:ag)-(bg<0?999:bg);const ac=childOrder(a.matrixGroup,a.name),bc=childOrder(b.matrixGroup,b.name);return ac-bc||String(a.name).localeCompare(String(b.name));});
+    view.pageOrders ||= {};view.pageOrders.matrix=columns.map(column=>column.id);
   }
   function installMappings(root,types,options={}){
     if(!root?.views||!productMatches(options.product)||!data())return false;
-    const revision=(data().classifiedAt||'classification')+':category-department-axis-v1';
+    const revision=(data().classifiedAt||'classification')+':icp-enriched-dimensions-v1';
     if(root.sharedUrlRepositoryRevision===revision)return false;
     const preserved=captureRepositoryState(root);
     clearPreviousMappings(root);
     const uid=options.uid||(()=>Math.random().toString(36).slice(2));
     let linked=0;
+    const dimensionValues=new Map();
     records().forEach(record=>{
       if(record.section==='Corporate & Non-SEO')return;
       const match=/^(Category|ICP|Value) (AEO|SEO)$/.exec(record.section);if(!match)return;
       const viewId=match[1].toLowerCase(),mode=match[2].toLowerCase(),format=pageGroup(record.pageType);if(!format)return;
       const view=root.views[viewId];if(!view)return;
       const group=mode==='aeo'&&(viewId==='icp'||viewId==='value')?'matrix':format;
-      const column=ensureColumn(viewId,view,group,record.axis,mode,types);
-      const rowHierarchy=viewId==='category'?categoryDepartment(record):record.hierarchy;
-      const row=ensureRow(view,group,rowHierarchy,record.groupOrder,uid);
+      const sourceDimension=viewId==='icp'?(mode==='aeo'?record.axis:record.hierarchy):'';
+      const dimensionKey=[record.section,record.topicGroup,sourceDimension].join('|');
+      if(viewId==='icp'&&!dimensionValues.has(dimensionKey))dimensionValues.set(dimensionKey,icpDimensionValue(record,sourceDimension));
+      const dimensionValue=viewId==='icp'?dimensionValues.get(dimensionKey):'';
+      const columnName=viewId==='icp'&&mode==='aeo'?dimensionValue:record.axis;
+      const column=ensureColumn(viewId,view,group,columnName,mode,types);
+      if(viewId==='icp'&&group==='matrix'){column.matrixGroup=matrixGroup('icp',sourceDimension);column.repositoryDimension=sourceDimension;}
+      const rowHierarchy=viewId==='category'?categoryDepartment(record):viewId==='icp'&&mode==='seo'?dimensionValue:record.hierarchy;
+      const rowSuperHierarchy=viewId==='icp'&&mode==='seo'?sourceDimension:undefined;
+      const row=ensureRow(view,group,rowHierarchy,record.groupOrder,uid,rowSuperHierarchy);
       const current=row.cells[column.id]&&typeof row.cells[column.id]==='object'?row.cells[column.id]:{};
       const saved=preserved.get(record.topicGroup)||{};
       const spec={section:record.section,pageType:record.pageType,hierarchy:record.hierarchy,axis:record.axis,topicGroup:record.topicGroup};
@@ -245,6 +311,14 @@
     if(categoryView)for(const group of ['listicle','landing','informational']){
       if(!(categoryView.rows||[]).some(row=>row.pageGroup===group&&row.repositoryHierarchy))continue;
       CATEGORY_DEPARTMENT_ORDER.forEach(department=>ensureRow(categoryView,group,department,0,uid));
+    }
+    const icpView=root.views.icp;
+    if(icpView){
+      ['SMB','Mid-market','Enterprise'].forEach(value=>ensureRow(icpView,'informational',value,0,uid,'Company size'));
+      CATEGORY_DEPARTMENT_ORDER.forEach(value=>ensureRow(icpView,'informational',value,0,uid,'Process / Use case'));
+      for(const value of ['SMB','Mid-market','Enterprise']){const column=ensureColumn('icp',icpView,'matrix',value,'aeo',types);column.matrixGroup='size';column.repositoryDimension='Company size';}
+      for(const value of CATEGORY_DEPARTMENT_ORDER){const column=ensureColumn('icp',icpView,'matrix',value,'aeo',types);column.matrixGroup='process';column.repositoryDimension='Process / Use case';}
+      sortIcpMatrixColumns(icpView);
     }
     Object.entries(root.views).forEach(([viewId,view])=>mappedRowsFirst(view,viewId));
     applyRepositoryStatuses(root);
