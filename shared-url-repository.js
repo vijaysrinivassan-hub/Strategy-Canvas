@@ -158,7 +158,7 @@
     if(/client success|customer success/.test(name))return 'Client Success';
     return 'Strategy & Research';
   };
-  const usesRepositoryAxis=(viewId,group)=>viewId==='category'||(viewId==='icp'&&group==='informational');
+  const usesRepositoryAxis=(viewId,group)=>viewId==='category'||(viewId==='icp'&&(group==='informational'||group==='matrix'));
   const ICP_DIMENSION_ORDER=['Industry','Company size','Process / Use case','Country','Technology','Role / Team','General ICP'];
   const ICP_MATRIX_GROUP_ORDER=['ind','size','process','ctry','tech','role'];
   const INDUSTRY_ORDER=['B2B SaaS','Fintech & Financial Services','Healthcare & Life Sciences','E-commerce & Retail','Cybersecurity','HR Tech','MarTech & AdTech','Technology & Software','Aerospace & Aviation','Agriculture & AgTech','Automotive','Construction & Home Services','Education & EdTech','Energy, Environment & Utilities','Manufacturing & Industrial','Real Estate & PropTech','Logistics & Transportation','Crypto & Web3','Telecom & IT Services','Media & Entertainment','Professional Services','Consumer','B2B Services','Other Industry'];
@@ -214,6 +214,7 @@
             const ar=CATEGORY_DEPARTMENT_ORDER.indexOf(a.repositoryHierarchy),br=CATEGORY_DEPARTMENT_ORDER.indexOf(b.repositoryHierarchy);
             return (ar<0?999:ar)-(br<0?999:br)||Number(a.repositoryRowSlot||0)-Number(b.repositoryRowSlot||0);
           }
+          if(group==='matrix'){const ar=CATEGORY_DEPARTMENT_ORDER.indexOf(a.repositoryHierarchy),br=CATEGORY_DEPARTMENT_ORDER.indexOf(b.repositoryHierarchy);return (ar<0?999:ar)-(br<0?999:br)||Number(a.repositoryRowSlot||0)-Number(b.repositoryRowSlot||0);}
           const ag=a.repositorySuperHierarchy||a.repositoryHierarchy,bg=b.repositorySuperHierarchy||b.repositoryHierarchy;
           const ar=ICP_DIMENSION_ORDER.indexOf(ag),br=ICP_DIMENSION_ORDER.indexOf(bg);
           if(ar!==br)return (ar<0?999:ar)-(br<0?999:br);
@@ -276,7 +277,7 @@
   }
   function installMappings(root,types,options={}){
     if(!root?.views||!productMatches(options.product)||!data())return false;
-    const revision=(data().classifiedAt||'classification')+':icp-enriched-dimensions-v1';
+    const revision=(data().classifiedAt||'classification')+':icp-department-row-axis-v1';
     if(root.sharedUrlRepositoryRevision===revision)return false;
     const preserved=captureRepositoryState(root);
     clearPreviousMappings(root);
@@ -296,7 +297,7 @@
       const columnName=viewId==='icp'&&mode==='aeo'?dimensionValue:record.axis;
       const column=ensureColumn(viewId,view,group,columnName,mode,types);
       if(viewId==='icp'&&group==='matrix'){column.matrixGroup=matrixGroup('icp',sourceDimension);column.repositoryDimension=sourceDimension;}
-      const rowHierarchy=viewId==='category'?categoryDepartment(record):viewId==='icp'&&mode==='seo'?dimensionValue:record.hierarchy;
+      const rowHierarchy=viewId==='category'?categoryDepartment(record):viewId==='icp'&&mode==='aeo'?processDepartment(record):viewId==='icp'&&mode==='seo'?dimensionValue:record.hierarchy;
       const rowSuperHierarchy=viewId==='icp'&&mode==='seo'?sourceDimension:undefined;
       const row=ensureRow(view,group,rowHierarchy,record.groupOrder,uid,rowSuperHierarchy);
       const current=row.cells[column.id]&&typeof row.cells[column.id]==='object'?row.cells[column.id]:{};
@@ -316,6 +317,7 @@
     if(icpView){
       ['SMB','Mid-market','Enterprise'].forEach(value=>ensureRow(icpView,'informational',value,0,uid,'Company size'));
       CATEGORY_DEPARTMENT_ORDER.forEach(value=>ensureRow(icpView,'informational',value,0,uid,'Process / Use case'));
+      CATEGORY_DEPARTMENT_ORDER.forEach(value=>ensureRow(icpView,'matrix',value,0,uid));
       for(const value of ['SMB','Mid-market','Enterprise']){const column=ensureColumn('icp',icpView,'matrix',value,'aeo',types);column.matrixGroup='size';column.repositoryDimension='Company size';}
       for(const value of CATEGORY_DEPARTMENT_ORDER){const column=ensureColumn('icp',icpView,'matrix',value,'aeo',types);column.matrixGroup='process';column.repositoryDimension='Process / Use case';}
       sortIcpMatrixColumns(icpView);
