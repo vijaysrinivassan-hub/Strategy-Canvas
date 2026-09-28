@@ -143,6 +143,18 @@
     return saved;
   }
   const ICP_SEO_HIERARCHY_ORDER=['Industry','Country','Company size','Technology','Role / Team','Process / Use case','General ICP'];
+  const CATEGORY_DEPARTMENT_ORDER=['Strategy & Research','Account Management','Technical SEO / AEO','Content','Digital PR / Authority','Analytics & Reporting','Client Success'];
+  const categoryDepartment=record=>{
+    const name=normalizeName(record.hierarchy);
+    if(/digital pr|link building|backlink|authority/.test(name))return 'Digital PR / Authority';
+    if(/analytics|measurement|conversion rate|reporting/.test(name))return 'Analytics & Reporting';
+    if(/content marketing|seo content|copywriting|editorial/.test(name))return 'Content';
+    if(/revops|crm|account management/.test(name))return 'Account Management';
+    if(/answer engine|aeo|technical seo|programmatic seo|seo and aeo tools|search engine optimization/.test(name))return 'Technical SEO / AEO';
+    if(/client success|customer success/.test(name))return 'Client Success';
+    return 'Strategy & Research';
+  };
+  const usesRepositoryAxis=(viewId,group)=>viewId==='category'||(viewId==='icp'&&group==='informational');
   function mappedRowsFirst(view,viewId){
     const rows=view.rows||[],groups=['listicle','landing','informational','matrix'];
     groups.forEach(group=>{
@@ -150,8 +162,9 @@
       const ordered=positions.map(index=>rows[index]).sort((a,b)=>{
         const mapped=Number(!!b.repositoryHierarchy)-Number(!!a.repositoryHierarchy);
         if(mapped)return mapped;
-        if(viewId==='icp'&&group==='informational'&&a.repositoryHierarchy&&b.repositoryHierarchy){
-          const ar=ICP_SEO_HIERARCHY_ORDER.indexOf(a.repositoryHierarchy),br=ICP_SEO_HIERARCHY_ORDER.indexOf(b.repositoryHierarchy);
+        if(usesRepositoryAxis(viewId,group)&&a.repositoryHierarchy&&b.repositoryHierarchy){
+          const order=viewId==='category'?CATEGORY_DEPARTMENT_ORDER:ICP_SEO_HIERARCHY_ORDER;
+          const ar=order.indexOf(a.repositoryHierarchy),br=order.indexOf(b.repositoryHierarchy);
           return (ar<0?999:ar)-(br<0?999:br)||Number(a.repositoryRowSlot||0)-Number(b.repositoryRowSlot||0);
         }
         return 0;
@@ -172,7 +185,7 @@
     for(const group of ['listicle','landing','informational','matrix']){
       const generated=rows.filter(row=>row.pageGroup===group&&row.repositoryHierarchy);
       if(!generated.length)continue;
-      const batches=viewId==='icp'&&group==='informational'
+      const batches=usesRepositoryAxis(viewId,group)
         ? [...new Set(generated.map(row=>row.repositoryHierarchy))].map(hierarchy=>generated.filter(row=>row.repositoryHierarchy===hierarchy))
         : [generated];
       const redundant=new Set();
@@ -205,7 +218,7 @@
   }
   function installMappings(root,types,options={}){
     if(!root?.views||!productMatches(options.product)||!data())return false;
-    const revision=(data().classifiedAt||'classification')+':repository-statuses-v7';
+    const revision=(data().classifiedAt||'classification')+':category-department-axis-v1';
     if(root.sharedUrlRepositoryRevision===revision)return false;
     const preserved=captureRepositoryState(root);
     clearPreviousMappings(root);
@@ -218,7 +231,8 @@
       const view=root.views[viewId];if(!view)return;
       const group=mode==='aeo'&&(viewId==='icp'||viewId==='value')?'matrix':format;
       const column=ensureColumn(viewId,view,group,record.axis,mode,types);
-      const row=ensureRow(view,group,record.hierarchy,record.groupOrder,uid);
+      const rowHierarchy=viewId==='category'?categoryDepartment(record):record.hierarchy;
+      const row=ensureRow(view,group,rowHierarchy,record.groupOrder,uid);
       const current=row.cells[column.id]&&typeof row.cells[column.id]==='object'?row.cells[column.id]:{};
       const saved=preserved.get(record.topicGroup)||{};
       const spec={section:record.section,pageType:record.pageType,hierarchy:record.hierarchy,axis:record.axis,topicGroup:record.topicGroup};
@@ -226,7 +240,13 @@
       if(!queries.some(item=>JSON.stringify(item)===JSON.stringify(spec)))queries.push(spec);
       row.cells[column.id]={...current,...saved,v:saved.v||current.v||record.topic||record.hierarchy,mode,type:saved.type||current.type||typeId(types,format),cfg:true,repositoryQueries:queries};linked++;
     });
-    Object.entries(root.views).forEach(([viewId,view])=>{compactRepositoryCells(view,viewId);mappedRowsFirst(view,viewId);});
+    Object.entries(root.views).forEach(([viewId,view])=>compactRepositoryCells(view,viewId));
+    const categoryView=root.views.category;
+    if(categoryView)for(const group of ['listicle','landing','informational']){
+      if(!(categoryView.rows||[]).some(row=>row.pageGroup===group&&row.repositoryHierarchy))continue;
+      CATEGORY_DEPARTMENT_ORDER.forEach(department=>ensureRow(categoryView,group,department,0,uid));
+    }
+    Object.entries(root.views).forEach(([viewId,view])=>mappedRowsFirst(view,viewId));
     applyRepositoryStatuses(root);
     root.sharedUrlRepositoryRevision=revision;root.sharedUrlLinkedCount=linked;return true;
   }

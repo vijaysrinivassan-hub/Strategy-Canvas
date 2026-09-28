@@ -7546,7 +7546,8 @@ function renderGridTable(v, group, table){
 
   const isPositioningMatrix = ['icp','value'].includes(state.contentView) && group.id === 'matrix';
   const isIcpMatrix = state.contentView === 'icp' && isPositioningMatrix;
-  const isIcpSeoMatrix = state.contentView === 'icp' && keywordMode === 'seo' && group.id === 'informational';
+  const isIcpSeoMatrix = (state.contentView === 'icp' && keywordMode === 'seo' && group.id === 'informational') || state.contentView === 'category';
+  const repositoryAxisFallback = state.contentView === 'category' ? 'Strategy & Research' : 'General ICP';
   const hasRowAxis = isPositioningMatrix || isIcpSeoMatrix;
   const sortedColumns = state.contentView === 'icp' && !isIcpMatrix && !isIcpSeoMatrix ? KeywordColumns.sortIcpColumns(v.columns) : v.columns;
   const activeIcpAxis = state.contentView === 'icp' && !isIcpMatrix && !isIcpSeoMatrix ? activeBuyingIndustryAxis() : '';
@@ -7594,12 +7595,12 @@ function renderGridTable(v, group, table){
     thead.append(axisRow);
   }
   const hr = document.createElement('tr');
-  hr.className = (state.contentView === 'icp' || isPositioningMatrix) ? 'icp-column-row' : '';
+  hr.className = (state.contentView === 'icp' || isPositioningMatrix || isIcpSeoMatrix) ? 'icp-column-row' : '';
   if (!showAxisSuperHeaders){
     const corner = matrixCornerActions(() => addGridColumn(group.id), () => addGridRow(group.id), 'Add column', 'Add row');
     if (isIcpSeoMatrix){
       corner.classList.add('icp-matrix-corner');
-      const label = document.createElement('span'); label.className = 'matrix-corner-label'; label.textContent = 'ICP axis ↓\nContent type →'; corner.append(label);
+      const label = document.createElement('span'); label.className = 'matrix-corner-label'; label.textContent = state.contentView === 'category' ? 'Department ↓\nCategory dimension →' : 'ICP axis ↓\nContent type →'; corner.append(label);
     }
     hr.append(corner);
   }
@@ -7650,7 +7651,7 @@ function renderGridTable(v, group, table){
   let allGroupRows = sourceGroupRows;
   if (keywordStatusFilter.size){
     const hierarchyBatches = isIcpSeoMatrix
-      ? [...new Set(sourceGroupRows.map(row => row.repositoryHierarchy || 'General ICP'))].map(hierarchy => sourceGroupRows.filter(row => (row.repositoryHierarchy || 'General ICP') === hierarchy))
+      ? [...new Set(sourceGroupRows.map(row => row.repositoryHierarchy || repositoryAxisFallback))].map(hierarchy => sourceGroupRows.filter(row => (row.repositoryHierarchy || repositoryAxisFallback) === hierarchy))
       : [sourceGroupRows];
     allGroupRows = hierarchyBatches.flatMap(function(batch, batchIndex){
       const packedByColumn = new Map(columns.map(function(col){
@@ -7670,7 +7671,7 @@ function renderGridTable(v, group, table){
         return {
           id:'status-filter-' + group.id + '-' + batchIndex + '-' + index,
           pageGroup:group.id,
-          repositoryHierarchy:isIcpSeoMatrix ? (statusFilterTopicRow?.repositoryHierarchy || batch[0]?.repositoryHierarchy || 'General ICP') : undefined,
+          repositoryHierarchy:isIcpSeoMatrix ? (statusFilterTopicRow?.repositoryHierarchy || batch[0]?.repositoryHierarchy || repositoryAxisFallback) : undefined,
           cells:{},
           statusFilterSources,
           statusFilterTopicRow
@@ -7694,7 +7695,7 @@ function renderGridTable(v, group, table){
     previous.onclick = function(){ changePage(page - 1); }; next.onclick = function(){ changePage(page + 1); };
     pager.append(range, position, previous, next); table.before(pager);
   }
-  const icpSeoHierarchy = row => String((row.statusFilterTopicRow || row).repositoryHierarchy || 'General ICP');
+  const icpSeoHierarchy = row => String((row.statusFilterTopicRow || row).repositoryHierarchy || repositoryAxisFallback);
   const icpSeoRowSpan = index => {
     if (!isIcpSeoMatrix) return 1;
     const hierarchy = icpSeoHierarchy(groupRows[index]);
