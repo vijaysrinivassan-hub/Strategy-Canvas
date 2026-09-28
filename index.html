@@ -1319,23 +1319,14 @@
                  border-left:3px solid #76c890; background:rgba(247,251,247,.92); color:#62655f;
                  font-size:9.5px; line-height:1.4}
   .arch-v2-guide b{color:#276c3e}.arch-v2-guide .arch-guide-tail{margin-left:auto; color:#898b85}
-  .maturity-departments{margin:0 0 16px; padding:14px; border:1px solid #ccd5ce; background:rgba(255,255,255,.92)}
-  .maturity-departments-head{display:flex; align-items:flex-start; gap:14px; margin-bottom:12px}
-  .maturity-departments-head h4{margin:0 0 3px; font-size:13px}.maturity-departments-head p{margin:0; color:#737972; font-size:9.5px; line-height:1.45}
-  .maturity-departments-head button{margin-left:auto; padding:6px 9px; border:1px solid #bdd3c3; background:#eff9f2; color:#28673d; font-size:9px}
-  .maturity-department-grid{display:grid; grid-template-columns:repeat(3,minmax(320px,1fr)); gap:10px; overflow-x:auto}
-  .maturity-department-map{min-width:320px; padding:11px; border:1px solid #d8ddd8; background:#fafbf9}
-  .maturity-department-title{display:flex; align-items:center; gap:7px}
-  .maturity-department-title input{min-width:0; flex:1; padding:5px 2px; border:0; border-bottom:1px solid #cfd5cf; background:transparent; font:inherit; font-size:12px; font-weight:780}
-  .maturity-department-title button,.maturity-department-step button{border:0; background:transparent; color:#9a6b67}
-  .maturity-department-field{display:block; margin-top:9px}.maturity-department-field span{display:block; margin-bottom:3px; color:#66806d; font-size:7.5px; font-weight:850; letter-spacing:.08em; text-transform:uppercase}
-  .maturity-department-field textarea{box-sizing:border-box; width:100%; min-height:42px; padding:6px; border:1px solid #dde1dc; background:#fff; resize:vertical; color:#555b55; font:inherit; font-size:9px; line-height:1.45}
-  .maturity-department-flow{display:flex; align-items:stretch; gap:15px; margin-top:10px; overflow-x:auto; padding:2px 1px 5px}
-  .maturity-department-step{position:relative; display:flex; flex:0 0 138px; min-height:54px; align-items:center; gap:5px; padding:7px; border:1px solid #bfd5c5; background:#eef8f1}
-  .maturity-department-step:not(:last-of-type)::after{content:'�'; position:absolute; right:-13px; top:50%; transform:translateY(-50%); color:#6c8e76}
-  .maturity-department-step em{display:grid; place-items:center; flex:0 0 17px; height:17px; border:1px solid #91b99d; border-radius:50%; color:#39734a; font-size:7px; font-style:normal}
-  .maturity-department-step input{min-width:0; flex:1; padding:3px 1px; border:0; border-bottom:1px solid #c8d9cc; background:transparent; font:inherit; font-size:9px; font-weight:700}
-  .maturity-add-department{flex:0 0 92px; border:1px dashed #b9c7bc; background:#fff; color:#39734a; font-size:8.5px}
+  .maturity-departments{display:flex; align-items:center; gap:12px; margin:0 0 14px; padding:10px 12px;
+    border:1px solid #d4d9d4; background:rgba(255,255,255,.92)}
+  .maturity-departments h4{flex:none; margin:0; color:#454a45; font-size:10px; font-weight:850;
+    letter-spacing:.08em; text-transform:uppercase}
+  .maturity-department-buttons{display:flex; align-items:center; gap:6px; flex-wrap:wrap}
+  .maturity-department-chip,.maturity-add-department{padding:6px 9px; border:1px solid #c5d8ca;
+    background:#eff8f1; color:#2f6540; font:inherit; font-size:9px; font-weight:700}
+  .maturity-add-department{border-style:dashed; background:#fff; font-weight:600}
   .arch-selection-tools{display:flex; align-items:center; gap:6px; margin-left:auto; padding-left:12px;
                         border-left:1px solid #d9dfd9}
   .arch-selection-tools span{color:#39744d; font-weight:750}
@@ -8723,28 +8714,22 @@ dataPlatformArchitecture = function(){
     ], [['model','agent','Governed business context'],['decisionApi','router','Approved decision']]);
 };
 
-const MATURITY_DEPARTMENT_PROMPT = 'Before the maturity rows, define department maps. Each map must name the product or operating model, the core raw material/input, the major input types, and the ordered departments through which that material flows. Keep departments distinct from maturity levels: departments describe where the material moves; maturity rows describe increasingly advanced transformations within a department. For the supplied examples preserve Platform, Agency and SOC Platform maps unless the user requests different maps.';
-function maturityDepartmentTemplates(){
-  return [
-    {
-      id:'department-map-platform', name:'Platform',
-      rawMaterial:'Business, customer and commerce data that the platform transforms into operational decisions.',
-      inputTypes:['Customer behaviour','Transactions and revenue','Campaign performance','Product and catalogue','Inventory and fulfilment'],
-      departments:['Marketing','Sales / Revenue','Merchandising','Inventory Management','Operations / Fulfilment','Finance','Customer Support']
-    },
-    {
-      id:'department-map-agency', name:'Agency',
-      rawMaterial:'Client context, search demand, website evidence, competitor signals and performance data.',
-      inputTypes:['Client positioning','Search demand','Website and content','Competitor URLs','Rankings, traffic and conversions'],
-      departments:['Strategy & Research','Account Management','Technical SEO / AEO','Content','Digital PR / Authority','Analytics & Reporting','Client Success']
-    },
-    {
-      id:'department-map-soc', name:'SOC Platform',
-      rawMaterial:'Security logs and telemetry that are enriched into detections, investigations, response and governance evidence.',
-      inputTypes:['Endpoint and network logs','Cloud telemetry','Identity events','Email events','Asset and vulnerability data','Threat intelligence'],
-      departments:['Security Operations','Detection Engineering','Threat Intelligence','Incident Response','Vulnerability Management','GRC','Identity & Access Management']
-    }
-  ];
+const MATURITY_DEPARTMENT_PROMPT = 'Above the maturity rows, add a Departments heading and list only the relevant department names as simple buttons. Do not add raw material, input types, descriptions, maps or nested product sections. AI Data Platform, Agency and SOC Platform each use only their own department list.';
+const LEGACY_MATURITY_DEPARTMENT_PROMPT = 'Before the maturity rows, define department maps. Each map must name the product or operating model, the core raw material/input, the major input types, and the ordered departments through which that material flows. Keep departments distinct from maturity levels: departments describe where the material moves; maturity rows describe increasingly advanced transformations within a department. For the supplied examples preserve Platform, Agency and SOC Platform maps unless the user requests different maps.';
+const MATURITY_DEPARTMENT_TEMPLATES = {
+  platform:['Marketing','Sales / Revenue','Merchandising','Inventory Management','Operations / Fulfilment','Finance','Customer Support'],
+  agency:['Strategy & Research','Account Management','Technical SEO / AEO','Content','Digital PR / Authority','Analytics & Reporting','Client Success'],
+  soc:['Security Operations','Detection Engineering','Threat Intelligence','Incident Response','Vulnerability Management','GRC','Identity & Access Management']
+};
+function maturityDepartmentsFor(architecture){
+  const sample = String(architecture.sample || '').toLowerCase();
+  const name = String(architecture.name || '').toLowerCase();
+  const product = String(state.clientProduct || '').toLowerCase();
+  const architectureContext = sample + ' ' + name;
+  if (/soc|cyber|security/.test(architectureContext)) return [...MATURITY_DEPARTMENT_TEMPLATES.soc];
+  if (/data-maturity|data platform|analytics platform/.test(architectureContext)) return [...MATURITY_DEPARTMENT_TEMPLATES.platform];
+  if (/agency/.test(product + ' ' + name)) return [...MATURITY_DEPARTMENT_TEMPLATES.agency];
+  return [...MATURITY_DEPARTMENT_TEMPLATES.platform];
 }
 
 function dataPlatformMaturityArchitecture(){
@@ -8878,24 +8863,19 @@ productArchitectureState = function(){
   if (!Array.isArray(architecture.edges)) architecture.edges = [];
   if (!Array.isArray(architecture.groups)) architecture.groups = [];
   if (tabKey === MATURITY_ACCESS_TAB){
-    if (architecture.departmentMapsVersion !== 1){
-      if (!Array.isArray(architecture.departments)) architecture.departments = maturityDepartmentTemplates();
-      architecture.departmentMapsVersion = 1;
-      if (typeof tab.aiPrompt === 'string' && !tab.aiPrompt.includes('Before the maturity rows, define department maps.')){
-        tab.aiPrompt = tab.aiPrompt.trim() + '\n\n' + MATURITY_DEPARTMENT_PROMPT;
+    const simpleDepartments = Array.isArray(architecture.departments) &&
+      architecture.departments.every(value => typeof value === 'string');
+    if (!simpleDepartments) architecture.departments = maturityDepartmentsFor(architecture);
+    architecture.departments = architecture.departments.map(value => String(value).trim()).filter(Boolean);
+    if (architecture.departmentsVersion !== 2){
+      architecture.departmentsVersion = 2;
+      delete architecture.departmentMapsVersion;
+      if (typeof tab.aiPrompt === 'string'){
+        tab.aiPrompt = tab.aiPrompt.replace(LEGACY_MATURITY_DEPARTMENT_PROMPT,MATURITY_DEPARTMENT_PROMPT);
+        if (!tab.aiPrompt.includes(MATURITY_DEPARTMENT_PROMPT)) tab.aiPrompt = tab.aiPrompt.trim() + '\n\n' + MATURITY_DEPARTMENT_PROMPT;
       }
       if (!readOnly()) setTimeout(markDirty,0);
     }
-    if (!Array.isArray(architecture.departments)) architecture.departments = [];
-    architecture.departments.forEach(map => {
-      if (!map.id) map.id = uid();
-      if (typeof map.name !== 'string') map.name = 'Department map';
-      if (typeof map.rawMaterial !== 'string') map.rawMaterial = '';
-      if (!Array.isArray(map.inputTypes)) map.inputTypes = [];
-      map.inputTypes = map.inputTypes.map(value => String(value).trim()).filter(Boolean);
-      if (!Array.isArray(map.departments)) map.departments = [];
-      map.departments = map.departments.map(value => String(value).trim()).filter(Boolean);
-    });
   }
   architecture.systems.forEach(system => {
     if (!system.id) system.id = uid();
@@ -9569,62 +9549,29 @@ function renderMaturityDepartments(architecture, ro){
   host.hidden = !maturity;
   host.replaceChildren();
   if (!maturity) return;
-  const head = document.createElement('div'); head.className = 'maturity-departments-head';
-  const copy = document.createElement('div');
   const title = document.createElement('h4'); title.textContent = 'Departments';
-  const note = document.createElement('p'); note.textContent = 'Define the raw material or input, its major types, and the departments through which it flows before mapping maturity transformations.';
-  copy.append(title,note); head.append(copy);
-  if (!ro){
-    const addMap = document.createElement('button'); addMap.type = 'button'; addMap.textContent = '+ Department map';
-    addMap.onclick = () => {
-      architecture.departments.push({id:uid(),name:'New map',rawMaterial:'',inputTypes:[],departments:['New department']});
-      markDirty(); renderProductArchitecture();
+  const buttons = document.createElement('div'); buttons.className = 'maturity-department-buttons';
+  (architecture.departments || []).forEach((department, index) => {
+    const button = document.createElement('button'); button.type = 'button'; button.className = 'maturity-department-chip';
+    button.textContent = department; button.disabled = ro; button.title = ro ? department : 'Click to rename department';
+    button.onclick = () => {
+      if (ro) return;
+      const next = String(prompt('Department name',department) || '').trim();
+      if (!next) return;
+      architecture.departments[index] = next; markDirty(); renderProductArchitecture();
     };
-    head.append(addMap);
-  }
-  const grid = document.createElement('div'); grid.className = 'maturity-department-grid';
-  (architecture.departments || []).forEach((map, mapIndex) => {
-    const card = document.createElement('article'); card.className = 'maturity-department-map';
-    const cardHead = document.createElement('div'); cardHead.className = 'maturity-department-title';
-    const name = document.createElement('input'); name.value = map.name; name.readOnly = ro; name.setAttribute('aria-label','Department map name');
-    name.oninput = () => { map.name = name.value; markDirty(); };
-    cardHead.append(name);
-    if (!ro){
-      const removeMap = document.createElement('button'); removeMap.type = 'button'; removeMap.innerHTML = '&times;'; removeMap.title = 'Remove department map';
-      removeMap.onclick = () => { architecture.departments.splice(mapIndex,1); markDirty(); renderProductArchitecture(); };
-      cardHead.append(removeMap);
-    }
-    const rawLabel = document.createElement('label'); rawLabel.className = 'maturity-department-field';
-    const rawTitle = document.createElement('span'); rawTitle.textContent = 'Raw material / input';
-    const raw = document.createElement('textarea'); raw.value = map.rawMaterial; raw.readOnly = ro;
-    raw.oninput = () => { map.rawMaterial = raw.value; markDirty(); }; rawLabel.append(rawTitle,raw);
-    const typesLabel = document.createElement('label'); typesLabel.className = 'maturity-department-field';
-    const typesTitle = document.createElement('span'); typesTitle.textContent = 'Input types';
-    const types = document.createElement('textarea'); types.value = map.inputTypes.join(', '); types.readOnly = ro;
-    types.onchange = () => { map.inputTypes = types.value.split(',').map(value => value.trim()).filter(Boolean); markDirty(); };
-    typesLabel.append(typesTitle,types);
-    const flow = document.createElement('div'); flow.className = 'maturity-department-flow';
-    map.departments.forEach((department, departmentIndex) => {
-      const step = document.createElement('div'); step.className = 'maturity-department-step';
-      const index = document.createElement('em'); index.textContent = departmentIndex + 1;
-      const input = document.createElement('input'); input.value = department; input.readOnly = ro; input.setAttribute('aria-label','Department name');
-      input.oninput = () => { map.departments[departmentIndex] = input.value; markDirty(); };
-      step.append(index,input);
-      if (!ro){
-        const remove = document.createElement('button'); remove.type = 'button'; remove.innerHTML = '&times;'; remove.title = 'Remove department';
-        remove.onclick = () => { map.departments.splice(departmentIndex,1); markDirty(); renderProductArchitecture(); };
-        step.append(remove);
-      }
-      flow.append(step);
-    });
-    if (!ro){
-      const add = document.createElement('button'); add.type = 'button'; add.className = 'maturity-add-department'; add.textContent = '+ Department';
-      add.onclick = () => { map.departments.push('New department'); markDirty(); renderProductArchitecture(); };
-      flow.append(add);
-    }
-    card.append(cardHead,rawLabel,typesLabel,flow); grid.append(card);
+    buttons.append(button);
   });
-  host.append(head,grid);
+  if (!ro){
+    const add = document.createElement('button'); add.type = 'button'; add.className = 'maturity-add-department'; add.textContent = '+ Department';
+    add.onclick = () => {
+      const name = String(prompt('Department name') || '').trim();
+      if (!name) return;
+      architecture.departments.push(name); markDirty(); renderProductArchitecture();
+    };
+    buttons.append(add);
+  }
+  host.append(title,buttons);
 }
 
 renderProductArchitecture = function(){

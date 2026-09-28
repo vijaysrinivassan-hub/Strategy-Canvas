@@ -19,11 +19,8 @@ export async function architecturePrompts(body?: {tabs: Record<string, any>}, se
 }
 const architectureSchema = z.object({
   name: z.string().min(1), summary: z.string(),
-  departmentMapsVersion:z.number().int().optional(),
-  departments:z.array(z.object({
-    id:z.string().min(1),name:z.string().min(1),rawMaterial:z.string(),
-    inputTypes:z.array(z.string()),departments:z.array(z.string())
-  })).optional(),
+  departmentsVersion:z.number().int().optional(),
+  departments:z.array(z.string()).optional(),
   systems: z.array(z.object({id:z.string().min(1),name:z.string().min(1),height:z.number().min(230),width:z.number().min(640).optional(),row:z.number().int().min(0).optional(),selected:z.boolean().optional()})),
   nodes: z.array(z.object({
     id:z.string().min(1),systemId:z.string(),label:z.string().min(1),type:z.enum(['technology','people']),x:z.number().min(10),y:z.number().min(54),
@@ -56,7 +53,7 @@ export function registerArchitectureTools(server:McpServer) {
     return ok({client:body.client,revision:row.updated_at,architecture:body.tabs[TAB]?.architecture||null,ai_prompt:await architecturePrompts(body)});
   });
   server.registerTool('maturity_axis_get', {
-    title:'Read maturity axis', description:'Read the active product’s Maturity Axis, including its raw-material department maps and process-maturity rows, plus its editable AI prompt. Keep revision before writing.',
+    title:'Read maturity axis', description:'Read the active product’s Maturity Axis, including its department-name buttons and process-maturity rows, plus its editable AI prompt. Keep revision before writing.',
     inputSchema:{board_id:z.string()}, annotations:{readOnlyHint:true,destructiveHint:false,idempotentHint:true}
   }, async({board_id})=>{
     const {row,body}=await loadBoard(board_id);
@@ -88,7 +85,7 @@ export function registerArchitectureTools(server:McpServer) {
   });
   server.registerTool('maturity_axis_set', {
     title:'Save maturity axis',
-    description:'Save the complete active-product Maturity Axis. Read first and supply its revision. Preserve and update departments: each department map names a product or operating model, its raw material/input types, and the ordered departments through which that material flows. Each system is one maturity row. Supporting nodes do not directly transform the input. Pillars do; mark the newest pillar current and repeated earlier pillars inherited. Record T/P ownership, actor, nodal benefit and a variable capability list. Omitted prior nodes are removed.',
+    description:'Save the complete active-product Maturity Axis. Read first and supply its revision. Preserve and update departments as a simple list of department names relevant to this product. Do not add raw material, input types, descriptions or nested maps. Each system is one maturity row. Supporting nodes do not directly transform the input. Pillars do; mark the newest pillar current and repeated earlier pillars inherited. Record T/P ownership, actor, nodal benefit and a variable capability list. Omitted prior nodes are removed.',
     inputSchema:{board_id:z.string(),revision:z.string(),architecture:architectureSchema},
     annotations:{readOnlyHint:false,destructiveHint:true,idempotentHint:false}
   }, async({board_id,revision,architecture})=>{
@@ -116,6 +113,6 @@ export function registerArchitectureTools(server:McpServer) {
     const {data,error}=await db().from('reports').update({body:JSON.stringify(body),updated_at:new Date().toISOString()}).eq('id',board_id).eq('updated_at',revision).select('updated_at');
     if(error)throw new ToolError(error.message);
     if(!data?.length)throw new ToolError('Concurrent edit detected; read again.');
-    return ok({saved:true,revision:data[0].updated_at,department_maps:architecture.departments?.length||0,rows:architecture.systems.length,nodes:architecture.nodes.length,connections:architecture.edges.length});
+    return ok({saved:true,revision:data[0].updated_at,departments:architecture.departments?.length||0,rows:architecture.systems.length,nodes:architecture.nodes.length,connections:architecture.edges.length});
   });
 }
