@@ -142,11 +142,20 @@
     })));
     return saved;
   }
-  function mappedRowsFirst(view){
+  const ICP_SEO_HIERARCHY_ORDER=['Industry','Country','Company size','Technology','Role / Team','Process / Use case','General ICP'];
+  function mappedRowsFirst(view,viewId){
     const rows=view.rows||[],groups=['listicle','landing','informational','matrix'];
     groups.forEach(group=>{
       const positions=[];rows.forEach((row,index)=>{if(row.pageGroup===group)positions.push(index);});
-      const ordered=positions.map(index=>rows[index]).sort((a,b)=>Number(!!b.repositoryHierarchy)-Number(!!a.repositoryHierarchy));
+      const ordered=positions.map(index=>rows[index]).sort((a,b)=>{
+        const mapped=Number(!!b.repositoryHierarchy)-Number(!!a.repositoryHierarchy);
+        if(mapped)return mapped;
+        if(viewId==='icp'&&group==='informational'&&a.repositoryHierarchy&&b.repositoryHierarchy){
+          const ar=ICP_SEO_HIERARCHY_ORDER.indexOf(a.repositoryHierarchy),br=ICP_SEO_HIERARCHY_ORDER.indexOf(b.repositoryHierarchy);
+          return (ar<0?999:ar)-(br<0?999:br)||Number(a.repositoryRowSlot||0)-Number(b.repositoryRowSlot||0);
+        }
+        return 0;
+      });
       positions.forEach((position,index)=>{rows[position]=ordered[index];});
     });
   }
@@ -158,18 +167,24 @@
       cell.st=imported.some(item=>item.covered)?'written':imported.length+manualCount>2?'plus_2':'for_review';
     })));
   }
-  function compactRepositoryCells(view){
+  function compactRepositoryCells(view,viewId){
     const rows=view.rows||[];
     for(const group of ['listicle','landing','informational','matrix']){
       const generated=rows.filter(row=>row.pageGroup===group&&row.repositoryHierarchy);
       if(!generated.length)continue;
-      const columnIds=[...new Set(generated.flatMap(row=>Object.keys(row.cells||{})))];
-      const packed=new Map(columnIds.map(id=>[id,generated.map(row=>row.cells?.[id]).filter(cell=>cell?.repositoryQueries?.length)]));
-      generated.forEach(row=>columnIds.forEach(id=>delete row.cells[id]));
-      const needed=Math.max(0,...[...packed.values()].map(cells=>cells.length));
-      for(let index=0;index<needed;index++)for(const id of columnIds){const cell=packed.get(id)[index];if(cell)generated[index].cells[id]=cell;}
-      generated.slice(0,needed).forEach((row,index)=>{row.repositoryRowSlot=index;const first=Object.values(row.cells||{})[0];if(group==='matrix'&&first?.v)row.name=first.v;});
-      const redundant=new Set(generated.slice(needed));
+      const batches=viewId==='icp'&&group==='informational'
+        ? [...new Set(generated.map(row=>row.repositoryHierarchy))].map(hierarchy=>generated.filter(row=>row.repositoryHierarchy===hierarchy))
+        : [generated];
+      const redundant=new Set();
+      for(const batch of batches){
+        const columnIds=[...new Set(batch.flatMap(row=>Object.keys(row.cells||{})))];
+        const packed=new Map(columnIds.map(id=>[id,batch.map(row=>row.cells?.[id]).filter(cell=>cell?.repositoryQueries?.length)]));
+        batch.forEach(row=>columnIds.forEach(id=>delete row.cells[id]));
+        const needed=Math.max(0,...[...packed.values()].map(cells=>cells.length));
+        for(let index=0;index<needed;index++)for(const id of columnIds){const cell=packed.get(id)[index];if(cell)batch[index].cells[id]=cell;}
+        batch.slice(0,needed).forEach((row,index)=>{row.repositoryRowSlot=index;const first=Object.values(row.cells||{})[0];if(group==='matrix'&&first?.v)row.name=first.v;});
+        batch.slice(needed).forEach(row=>redundant.add(row));
+      }
       if(redundant.size)view.rows=view.rows.filter(row=>!redundant.has(row));
     }
     const matrixColumns=view.pageColumns?.matrix;
@@ -190,7 +205,7 @@
   }
   function installMappings(root,types,options={}){
     if(!root?.views||!productMatches(options.product)||!data())return false;
-    const revision=(data().classifiedAt||'classification')+':repository-statuses-v6';
+    const revision=(data().classifiedAt||'classification')+':repository-statuses-v7';
     if(root.sharedUrlRepositoryRevision===revision)return false;
     const preserved=captureRepositoryState(root);
     clearPreviousMappings(root);
@@ -211,7 +226,7 @@
       if(!queries.some(item=>JSON.stringify(item)===JSON.stringify(spec)))queries.push(spec);
       row.cells[column.id]={...current,...saved,v:saved.v||current.v||record.topic||record.hierarchy,mode,type:saved.type||current.type||typeId(types,format),cfg:true,repositoryQueries:queries};linked++;
     });
-    Object.values(root.views).forEach(view=>{compactRepositoryCells(view);mappedRowsFirst(view);});
+    Object.entries(root.views).forEach(([viewId,view])=>{compactRepositoryCells(view,viewId);mappedRowsFirst(view,viewId);});
     applyRepositoryStatuses(root);
     root.sharedUrlRepositoryRevision=revision;root.sharedUrlLinkedCount=linked;return true;
   }

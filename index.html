@@ -2323,6 +2323,8 @@
   .icp-matrix-topic-cell .icp-keyword-ideas{margin:8px 6px;padding:8px 0 0;border-top:1px solid #e0e7e2;background:transparent;color:#4f5c52;font-size:10px;line-height:1.45}
   .icp-matrix-topic-cell .gr-kws:empty{display:none}
   .mx-table tbody th.icp-matrix-row-topic{min-width:310px;position:relative;left:auto;z-index:1;background:#eef6f0 !important;box-shadow:inset 4px 0 #64c886}
+  .mx-table tbody th.icp-seo-row-axis{min-width:310px;position:relative;left:auto;z-index:1;padding:16px 14px;background:#eef6f0 !important;box-shadow:inset 4px 0 #64c886;color:#263c2d;text-align:left;vertical-align:top}
+  .icp-seo-row-axis strong{display:block;font-size:11px;font-weight:800;letter-spacing:.03em}
   .mx-table thead th.icp-matrix-column-topic{position:relative;top:auto;min-height:220px}
   .mx-table thead th.icp-matrix-column-topic.icp-matrix-use{background:#f4effb !important;box-shadow:inset 0 3px #8d6bc0}
   .mx-table thead th.icp-matrix-column-topic.icp-matrix-ind{background:#edf8f1 !important;box-shadow:inset 0 3px #64c886}
@@ -7544,14 +7546,16 @@ function renderGridTable(v, group, table){
 
   const isPositioningMatrix = ['icp','value'].includes(state.contentView) && group.id === 'matrix';
   const isIcpMatrix = state.contentView === 'icp' && isPositioningMatrix;
-  const sortedColumns = state.contentView === 'icp' && !isIcpMatrix ? KeywordColumns.sortIcpColumns(v.columns) : v.columns;
-  const activeIcpAxis = state.contentView === 'icp' && !isIcpMatrix ? activeBuyingIndustryAxis() : '';
+  const isIcpSeoMatrix = state.contentView === 'icp' && keywordMode === 'seo' && group.id === 'informational';
+  const hasRowAxis = isPositioningMatrix || isIcpSeoMatrix;
+  const sortedColumns = state.contentView === 'icp' && !isIcpMatrix && !isIcpSeoMatrix ? KeywordColumns.sortIcpColumns(v.columns) : v.columns;
+  const activeIcpAxis = state.contentView === 'icp' && !isIcpMatrix && !isIcpSeoMatrix ? activeBuyingIndustryAxis() : '';
   const repositoryColumnIds = new Set(v.rows.filter(row => row.pageGroup === group.id).flatMap(row => Object.entries(row.cells || {}).filter(([,cell]) => cell?.repositoryQueries?.length).map(([id]) => id)));
   const columns = activeIcpAxis
     ? sortedColumns.filter(col => (col.axis || KeywordColumns.inferIcpAxis(col.name)) === activeIcpAxis || repositoryColumnIds.has(col.id))
     : sortedColumns;
-  const NUM_W = isPositioningMatrix ? 310 : 46, COL_W = 310;
-  const contentSlots = isPositioningMatrix ? 4 : 5;
+  const NUM_W = hasRowAxis ? 310 : 46, COL_W = 310;
+  const contentSlots = hasRowAxis ? 4 : 5;
   const fitsViewport = columns.length <= contentSlots;
   const spacerCount = fitsViewport ? contentSlots - columns.length : 0;
   const gridWidth = NUM_W + COL_W * columns.length;
@@ -7571,7 +7575,7 @@ function renderGridTable(v, group, table){
   table.append(cg);
 
   const thead = document.createElement('thead');
-  const showAxisSuperHeaders = (state.contentView === 'icp' && !isIcpMatrix) || (isPositioningMatrix && state.contentView === 'value');
+  const showAxisSuperHeaders = (state.contentView === 'icp' && !isIcpMatrix && !isIcpSeoMatrix) || (isPositioningMatrix && state.contentView === 'value');
   if (showAxisSuperHeaders){
     const axisRow = document.createElement('tr');
     axisRow.className = 'icp-axis-row';
@@ -7591,7 +7595,14 @@ function renderGridTable(v, group, table){
   }
   const hr = document.createElement('tr');
   hr.className = (state.contentView === 'icp' || isPositioningMatrix) ? 'icp-column-row' : '';
-  if (!showAxisSuperHeaders) hr.append(matrixCornerActions(() => addGridColumn(group.id), () => addGridRow(group.id), 'Add column', 'Add row'));
+  if (!showAxisSuperHeaders){
+    const corner = matrixCornerActions(() => addGridColumn(group.id), () => addGridRow(group.id), 'Add column', 'Add row');
+    if (isIcpSeoMatrix){
+      corner.classList.add('icp-matrix-corner');
+      const label = document.createElement('span'); label.className = 'matrix-corner-label'; label.textContent = 'ICP axis ↓\nContent type →'; corner.append(label);
+    }
+    hr.append(corner);
+  }
 
   columns.forEach(function(col){
     const th = document.createElement('th');
@@ -7638,26 +7649,33 @@ function renderGridTable(v, group, table){
   const sourceGroupRows = v.rows.filter(row => row.pageGroup === group.id);
   let allGroupRows = sourceGroupRows;
   if (keywordStatusFilter.size){
-    const packedByColumn = new Map(columns.map(function(col){
-      return [col.id, sourceGroupRows.filter(function(row){
-        const cell = row.cells?.[col.id];
-        return cell && typeof cell === 'object' && keywordStatusFilter.has(cell.st || '');
-      })];
-    }));
-    const packedCount = Math.max(0, ...Array.from(packedByColumn.values(), rows => rows.length));
-    allGroupRows = Array.from({length:packedCount}, function(_, index){
-      const statusFilterSources = {};
-      columns.forEach(function(col){
-        const sourceRow = packedByColumn.get(col.id)?.[index];
-        if (sourceRow) statusFilterSources[col.id] = sourceRow;
+    const hierarchyBatches = isIcpSeoMatrix
+      ? [...new Set(sourceGroupRows.map(row => row.repositoryHierarchy || 'General ICP'))].map(hierarchy => sourceGroupRows.filter(row => (row.repositoryHierarchy || 'General ICP') === hierarchy))
+      : [sourceGroupRows];
+    allGroupRows = hierarchyBatches.flatMap(function(batch, batchIndex){
+      const packedByColumn = new Map(columns.map(function(col){
+        return [col.id, batch.filter(function(row){
+          const cell = row.cells?.[col.id];
+          return cell && typeof cell === 'object' && keywordStatusFilter.has(cell.st || '');
+        })];
+      }));
+      const packedCount = Math.max(0, ...Array.from(packedByColumn.values(), rows => rows.length));
+      return Array.from({length:packedCount}, function(_, index){
+        const statusFilterSources = {};
+        columns.forEach(function(col){
+          const sourceRow = packedByColumn.get(col.id)?.[index];
+          if (sourceRow) statusFilterSources[col.id] = sourceRow;
+        });
+        const statusFilterTopicRow = Object.values(statusFilterSources)[0] || null;
+        return {
+          id:'status-filter-' + group.id + '-' + batchIndex + '-' + index,
+          pageGroup:group.id,
+          repositoryHierarchy:isIcpSeoMatrix ? (statusFilterTopicRow?.repositoryHierarchy || batch[0]?.repositoryHierarchy || 'General ICP') : undefined,
+          cells:{},
+          statusFilterSources,
+          statusFilterTopicRow
+        };
       });
-      return {
-        id:'status-filter-' + group.id + '-' + index,
-        pageGroup:group.id,
-        cells:{},
-        statusFilterSources,
-        statusFilterTopicRow:Object.values(statusFilterSources)[0] || null
-      };
     });
   }
   const pageKey = keywordGridPageKey(group);
@@ -7676,19 +7694,36 @@ function renderGridTable(v, group, table){
     previous.onclick = function(){ changePage(page - 1); }; next.onclick = function(){ changePage(page + 1); };
     pager.append(range, position, previous, next); table.before(pager);
   }
+  const icpSeoHierarchy = row => String((row.statusFilterTopicRow || row).repositoryHierarchy || 'General ICP');
+  const icpSeoRowSpan = index => {
+    if (!isIcpSeoMatrix) return 1;
+    const hierarchy = icpSeoHierarchy(groupRows[index]);
+    if (index > 0 && icpSeoHierarchy(groupRows[index - 1]) === hierarchy) return 0;
+    let span = 1;
+    while (index + span < groupRows.length && icpSeoHierarchy(groupRows[index + span]) === hierarchy) span++;
+    return span;
+  };
   groupRows.forEach(function(row, i){
     const tr = document.createElement('tr');
+    let appendRowHeader = true;
 
     const num = document.createElement('th');
     if(isPositioningMatrix){
       const topicRow = row.statusFilterTopicRow || row;
       num.className='icp-matrix-row-topic';renderMatrixTopicCell(num,topicRow,ro || !!keywordStatusFilter.size);
       if(!ro && !keywordStatusFilter.size){const del=document.createElement('button');del.className='matrix-topic-delete';del.innerHTML='&times;';del.title='Delete row';del.onclick=function(){if(Object.keys(row.cells||{}).length&&!confirm('Delete this row and its contents?'))return;v.rows.splice(v.rows.indexOf(row),1);markDirty();renderGrid();};num.append(del);}
+    }else if(isIcpSeoMatrix){
+      const span = icpSeoRowSpan(i);
+      if (!span) appendRowHeader = false;
+      else {
+        num.className = 'icp-seo-row-axis'; num.rowSpan = span;
+        const axisLabel = document.createElement('strong'); axisLabel.textContent = icpSeoHierarchy(row); num.append(axisLabel);
+      }
     }else{
       num.className='gr-num';const wrap=document.createElement('div');wrap.className='gr-numwrap';const idx=document.createElement('span');idx.textContent=String(rowOffset+i+1);wrap.append(idx);
       if(!ro && !keywordStatusFilter.size){const del=document.createElement('button');del.className='gr-del';del.innerHTML='&times;';del.title='Delete row';del.onclick=function(){if(Object.keys(row.cells).length&&!confirm('Delete this row and its contents?'))return;v.rows.splice(v.rows.indexOf(row),1);markDirty();renderGrid();};wrap.append(del);}num.append(wrap);
     }
-    tr.append(num);
+    if (appendRowHeader) tr.append(num);
 
     columns.forEach(function(col, ci){
       const sourceRow = row.statusFilterSources?.[col.id] || row;

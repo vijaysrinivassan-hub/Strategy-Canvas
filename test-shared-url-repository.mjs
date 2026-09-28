@@ -27,6 +27,9 @@ const linkedUrls=cells.flatMap(cell=>repo.resolve(cell.repositoryQueries));
 assert.equal(new Set(linkedUrls.map(row=>row.url)).size,5399);
 const icpSeoCells=root.views.icp.rows.filter(row=>row.pageGroup==='informational').flatMap(row=>Object.values(row.cells||{})).filter(cell=>cell.repositoryQueries?.some(query=>query.section==='ICP SEO'));
 assert(icpSeoCells.length>0);assert.equal(new Set(icpSeoCells.flatMap(cell=>repo.resolve(cell.repositoryQueries)).map(row=>row.url)).size,782);
+const icpSeoRows=root.views.icp.rows.filter(row=>row.pageGroup==='informational'&&row.repositoryHierarchy);
+assert.deepEqual([...new Set(icpSeoRows.map(row=>row.repositoryHierarchy))],['Industry','Country','Company size','Technology','Role / Team','Process / Use case','General ICP']);
+for(const row of icpSeoRows)for(const cell of Object.values(row.cells||{}))for(const query of cell.repositoryQueries||[])assert.equal(query.hierarchy,row.repositoryHierarchy);
 assert(cells.some(cell=>repo.resolve(cell.repositoryQueries).length===1));
 assert(cells.some(cell=>repo.resolve(cell.repositoryQueries).length>1));
 assert(cells.every(cell=>cell.repositoryQueries.every(query=>query.topicGroup)));
@@ -35,10 +38,10 @@ assert(cells.filter(cell=>repo.resolve(cell.repositoryQueries).some(row=>row.cov
 assert(cells.filter(cell=>!repo.resolve(cell.repositoryQueries).some(row=>row.covered)&&repo.resolve(cell.repositoryQueries).length>2).every(cell=>cell.st==='plus_2'));
 assert(cells.filter(cell=>!repo.resolve(cell.repositoryQueries).some(row=>row.covered)&&repo.resolve(cell.repositoryQueries).length<=2).every(cell=>cell.st==='for_review'));
 assert(Object.values(root.views).flatMap(view=>Object.values(view.pageColumns||{}).flat()).filter(column=>column.instruction).every(column=>column.instruction.includes('Workbook URL grouping:')));
-for(const view of Object.values(root.views))for(const group of ['listicle','landing','informational','matrix']){
+for(const [viewId,view] of Object.entries(root.views))for(const group of ['listicle','landing','informational','matrix']){
   const rows=(view.rows||[]).filter(row=>row.pageGroup===group&&row.repositoryHierarchy);if(!rows.length)continue;
-  const ids=[...new Set(rows.flatMap(row=>Object.keys(row.cells||{})))];
-  for(const id of ids)assert(rows[0].cells[id]?.repositoryQueries?.length,`Expected ${group}/${id} to start in row one`);
+  const batches=viewId==='icp'&&group==='informational'?[...new Set(rows.map(row=>row.repositoryHierarchy))].map(hierarchy=>rows.filter(row=>row.repositoryHierarchy===hierarchy)):[rows];
+  for(const batch of batches){const ids=[...new Set(batch.flatMap(row=>Object.keys(row.cells||{})))];for(const id of ids)assert(batch[0].cells[id]?.repositoryQueries?.length,`Expected ${group}/${batch[0].repositoryHierarchy}/${id} to start in its first row`);}
 }
 for(const view of [root.views.icp,root.views.value])assert((view.pageColumns?.matrix||[]).every(column=>column.matrixGroup));
 const editedCell=cells.find(cell=>cell.repositoryQueries?.[0]?.topicGroup),editedGroup=editedCell.repositoryQueries[0].topicGroup;
