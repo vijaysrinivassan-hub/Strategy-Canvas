@@ -2382,6 +2382,10 @@
   .gr-status option[data-status=""]{--status-bg:#fff;--status-fg:#465367}
 .keyword-page-section { margin: 0 0 32px; }
 .keyword-page-section > h3 { margin: 0; padding: 20px 16px 12px; font-size: 15px; color: #17221c; }
+.keyword-grid-pager{display:flex;align-items:center;justify-content:flex-end;gap:8px;padding:8px 16px;border-top:1px solid #dce4df;border-bottom:1px solid #dce4df;background:#f7faf8;color:#5f6e64;font-size:11px}
+.keyword-grid-pager strong{margin-right:auto;color:#26342b;font-size:11px;font-weight:700}
+.keyword-grid-pager button{min-width:68px;padding:5px 9px;background:#fff;border:1px solid #cfd9d1;color:#26342b;font-size:10px}
+.keyword-grid-pager button:disabled{opacity:.42}
 .gr-author[data-author="old"]{background:#fff0d4 !important;color:#805000 !important;border-color:#d7a747 !important;font-weight:600}
 #clientKeywordPrompts{padding:20px;border-top:1px solid #dce4df}
 #clientKeywordPrompts textarea{display:block;width:100%;min-height:360px;margin:12px 0;padding:14px;font-family:inherit;font-size:13px;line-height:1.6;border:1px solid #cbd5ce;resize:vertical;color:#25382c;background:#fff}
@@ -7397,6 +7401,9 @@ function renderMatrixTopicCell(host,holder,ro){
   cellControls(host,{ro,get,set:patch=>setMatrixTopicCell(holder,patch),seed:()=>get().v.trim(),refreshEmpty:()=>{},onTypeChange:renderGrid,rerender:renderGrid});
 }
 
+const KEYWORD_GRID_PAGE_SIZE = 40;
+const keywordGridPages = new Map();
+function keywordGridPageKey(group){ return [state.boardId,state.clientProduct,state.contentView,keywordMode,group.id].join('|'); }
 function renderGridTable(v, group, table){
   $('competitorComparison').hidden = true;
   const vd = viewDef(state.contentView);
@@ -7495,7 +7502,23 @@ function renderGridTable(v, group, table){
   table.append(thead);
 
   const tbody = document.createElement('tbody');
-  const groupRows = v.rows.filter(row => row.pageGroup === group.id);
+  const allGroupRows = v.rows.filter(row => row.pageGroup === group.id);
+  const pageKey = keywordGridPageKey(group);
+  const pageCount = Math.max(1, Math.ceil(allGroupRows.length / KEYWORD_GRID_PAGE_SIZE));
+  const page = Math.min(Math.max(0, keywordGridPages.get(pageKey) || 0), pageCount - 1);
+  keywordGridPages.set(pageKey, page);
+  const rowOffset = page * KEYWORD_GRID_PAGE_SIZE;
+  const groupRows = allGroupRows.slice(rowOffset, rowOffset + KEYWORD_GRID_PAGE_SIZE);
+  if (pageCount > 1){
+    const pager = document.createElement('nav'); pager.className = 'keyword-grid-pager'; pager.setAttribute('aria-label', group.label + ' pages');
+    const range = document.createElement('strong'); range.textContent = 'Rows ' + (rowOffset + 1) + '\u2013' + Math.min(rowOffset + KEYWORD_GRID_PAGE_SIZE, allGroupRows.length) + ' of ' + allGroupRows.length;
+    const position = document.createElement('span'); position.textContent = 'Page ' + (page + 1) + ' of ' + pageCount;
+    const previous = document.createElement('button'); previous.type = 'button'; previous.textContent = 'Previous'; previous.disabled = page === 0;
+    const next = document.createElement('button'); next.type = 'button'; next.textContent = 'Next'; next.disabled = page >= pageCount - 1;
+    const changePage = function(nextPage){ keywordGridPages.set(pageKey,nextPage); renderGrid(); requestAnimationFrame(function(){ document.querySelector('.keyword-page-section .keyword-grid-pager')?.scrollIntoView({block:'nearest'}); }); };
+    previous.onclick = function(){ changePage(page - 1); }; next.onclick = function(){ changePage(page + 1); };
+    pager.append(range, position, previous, next); table.before(pager);
+  }
   groupRows.forEach(function(row, i){
     const tr = document.createElement('tr');
 
@@ -7504,7 +7527,7 @@ function renderGridTable(v, group, table){
       num.className='icp-matrix-row-topic';renderMatrixTopicCell(num,row,ro);
       if(!ro){const del=document.createElement('button');del.className='matrix-topic-delete';del.innerHTML='&times;';del.title='Delete row';del.onclick=function(){if(Object.keys(row.cells||{}).length&&!confirm('Delete this row and its contents?'))return;v.rows.splice(v.rows.indexOf(row),1);markDirty();renderGrid();};num.append(del);}
     }else{
-      num.className='gr-num';const wrap=document.createElement('div');wrap.className='gr-numwrap';const idx=document.createElement('span');idx.textContent=String(i+1);wrap.append(idx);
+      num.className='gr-num';const wrap=document.createElement('div');wrap.className='gr-numwrap';const idx=document.createElement('span');idx.textContent=String(rowOffset+i+1);wrap.append(idx);
       if(!ro){const del=document.createElement('button');del.className='gr-del';del.innerHTML='&times;';del.title='Delete row';del.onclick=function(){if(Object.keys(row.cells).length&&!confirm('Delete this row and its contents?'))return;v.rows.splice(v.rows.indexOf(row),1);markDirty();renderGrid();};wrap.append(del);}num.append(wrap);
     }
     tr.append(num);
@@ -7572,7 +7595,7 @@ function renderGridTable(v, group, table){
 
     tbody.append(tr);
   });
-  if (!groupRows.length){
+  if (!allGroupRows.length){
     const tr = document.createElement('tr'), td = document.createElement('td');
     td.colSpan = columns.length + 1;
     td.style.padding = '20px';
