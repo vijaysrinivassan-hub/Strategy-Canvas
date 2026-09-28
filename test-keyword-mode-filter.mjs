@@ -12,7 +12,7 @@ assert.deepEqual(nodes.keywordModeFilter.children.map(n=>n.textContent),['AEO','
 nodes.keywordModeFilter.children[1].onclick();
 assert.equal(renders,1);
 assert.equal(nodes.keywordModeFilter.children[1].attrs['aria-pressed'],'true');
-vm.runInContext(html.slice(html.indexOf('function cellState('),html.indexOf('/* What a matrix cell catches')),ctx);
+vm.runInContext(html.slice(html.indexOf('function normalizePageUrls('),html.indexOf('/* What a matrix cell catches')),ctx);
 vm.runInContext(html.slice(html.indexOf('function cellOf('),html.indexOf('function renderArticleTypes(')),ctx);
 const row={cells:{old:{v:'Keep',mode:'aeo'},legacy:'Legacy'}};
 assert.equal(ctx.cellOf(row,'old',{mode:'seo'}).mode,'aeo');

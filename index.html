@@ -729,6 +729,25 @@
             background:#fafbfc; border-top:1px solid var(--line-2)}
   .kw-total em{font-style:normal; font-weight:700; color:var(--ink-2);
                font-variant-numeric:tabular-nums}
+  .gr-page-urls{display:flex; flex-direction:column; border-top:1px solid var(--line-2);
+                background:rgba(248,251,249,.86)}
+  .gr-page-url{display:grid; grid-template-columns:minmax(0,1fr) 82px 20px; align-items:center;
+               gap:5px; min-height:30px; padding:3px 7px; border-bottom:1px solid var(--line-2)}
+  .gr-cell .gr-page-url input[type=text],.gr-cell .gr-page-url input[type=number]{
+    width:100%; min-width:0; height:24px; box-sizing:border-box; padding:0 5px;
+    border:1px solid transparent; border-radius:3px; outline:none; background:transparent;
+    color:var(--ink-2); font:inherit; font-size:10.5px; font-weight:400
+  }
+  .gr-cell .gr-page-url input:focus{border-color:#78c491; background:#fff; box-shadow:none}
+  .gr-cell .gr-page-url input::placeholder{color:#a9afa9}
+  .gr-page-traffic{text-align:right; font-variant-numeric:tabular-nums}
+  .gr-page-remove{width:20px; height:20px; padding:0; border:0; background:transparent;
+                  color:#a1a6a1; font-size:14px; line-height:1}
+  .gr-page-remove:hover:not(:disabled){border:0; background:#fff0f0; color:var(--danger)}
+  .gr-url-total{display:flex; align-items:center; justify-content:space-between; gap:8px;
+                padding:5px 10px; background:#f0f7f2; color:#657067; font-size:10.5px}
+  .gr-url-total em{font-style:normal; font-weight:700; color:#294732;
+                  font-variant-numeric:tabular-nums}
 
   /* free-form data grids: Category, ICP, Value */
   .gr-num{position:sticky; left:0; z-index:3; background:#f8fbf9; width:46px;
@@ -6284,25 +6303,34 @@ function cellKeywords(comp, type){
   });
 }
 
+function normalizePageUrls(rows){
+  if (!Array.isArray(rows)) return [];
+  return rows.filter(Boolean).map(function(row, index){
+    if (typeof row === 'string') return { id: 'legacy-url-' + index, url: row, traffic: '' };
+    return { id: String(row.id || ('page-url-' + index)), url: String(row.url || ''), traffic: row.traffic == null ? '' : String(row.traffic) };
+  });
+}
+
 /* A cell used to be a bare `true`. It now carries the SEO/AEO choice too, so
    old boards are read forward rather than reset. */
 function cellState(m, key, defaults){
   const raw = m.cells[key];
   const d = defaults || {};
-  if (raw === true) return { on: true, mode: 'aeo', type: d.type || '', v: '', aw: d.aw || '', st: '', cfg:false, kws: [] };
+  if (raw === true) return { on: true, mode: 'aeo', type: d.type || '', v: '', aw: d.aw || '', st: '', cfg:false, kws: [], pageUrls: [] };
   if (raw && typeof raw === 'object'){
     return { on: !!raw.on, mode: raw.mode === 'seo' ? 'seo' : 'aeo', type: raw.type || '',
              v: raw.v || '', url: raw.url || '', writtenBy: raw.writtenBy || '', aw: raw.aw || '', st: raw.st || '', cfg:!!raw.cfg,
-             kws: Array.isArray(raw.kws) ? raw.kws.filter(Boolean) : [] };
+             kws: Array.isArray(raw.kws) ? raw.kws.filter(Boolean) : [], pageUrls: normalizePageUrls(raw.pageUrls) };
   }
-  return { on: false, mode: d.mode || 'aeo', type: d.type || '', v: '', aw: d.aw || '', st: '', cfg:false, kws: [] };
+  return { on: false, mode: d.mode || 'aeo', type: d.type || '', v: '', aw: d.aw || '', st: '', cfg:false, kws: [], pageUrls: [] };
 }
 function setCellState(m, key, st){
   /* the default — nothing chosen, nothing written — need not be stored */
   const kws = Array.isArray(st.kws) ? st.kws.filter(Boolean) : [];
-  if (!st.url && !st.writtenBy && !st.cfg && !st.on && st.mode === 'aeo' && !st.type && !st.v && !st.aw && !st.st && !kws.length) delete m.cells[key];
+  const pageUrls = normalizePageUrls(st.pageUrls);
+  if (!st.url && !st.writtenBy && !st.cfg && !st.on && st.mode === 'aeo' && !st.type && !st.v && !st.aw && !st.st && !kws.length && !pageUrls.length) delete m.cells[key];
   else m.cells[key] = { on: !!st.on, mode: st.mode, type: st.type || '', v: st.v || '',
-                        aw: st.aw || '', st: st.st || '', url: st.url || '', writtenBy: st.writtenBy || '', cfg:!!st.cfg, kws: kws };
+                        aw: st.aw || '', st: st.st || '', url: st.url || '', writtenBy: st.writtenBy || '', cfg:!!st.cfg, kws: kws, pageUrls: pageUrls };
 }
 
 /* What a matrix cell catches: the repo keywords that mention the competitor
@@ -6443,6 +6471,54 @@ function statusSelect(current, disabled, onPick){
   return sel;
 }
 
+function pageTrafficTotal(rows){
+  return normalizePageUrls(rows).reduce(function(sum, row){
+    const traffic = Number(row.traffic);
+    return sum + (Number.isFinite(traffic) && traffic > 0 ? traffic : 0);
+  }, 0);
+}
+
+function renderPageUrlEvidence(td, o){
+  let host = td.querySelector(':scope > .gr-page-urls');
+  if (!host){
+    host = document.createElement('div'); host.className = 'gr-page-urls';
+    const keywordHost = td.querySelector(':scope > .gr-kws');
+    if (keywordHost) keywordHost.after(host); else td.append(host);
+  }
+  host.replaceChildren();
+  const rows = normalizePageUrls(o.get().pageUrls);
+  if (!rows.length){ host.hidden = true; return; }
+  host.hidden = false;
+  const saveRows = function(next){
+    o.set({ pageUrls: next });
+    o.refreshEmpty();
+    markDirty();
+  };
+  rows.forEach(function(row){
+    const line = document.createElement('div'); line.className = 'gr-page-url';
+    const url = document.createElement('input'); url.type = 'text'; url.className = 'gr-page-url-input';
+    url.placeholder = 'Page URL'; url.value = row.url; url.disabled = o.ro; url.setAttribute('aria-label', 'Page URL');
+    const traffic = document.createElement('input'); traffic.type = 'number'; traffic.className = 'gr-page-traffic';
+    traffic.min = '0'; traffic.step = '1'; traffic.placeholder = 'Traffic'; traffic.value = row.traffic; traffic.disabled = o.ro;
+    traffic.setAttribute('aria-label', 'Net page traffic');
+    const update = function(){
+      const next = rows.map(function(item){ return item.id === row.id ? { id:item.id, url:url.value, traffic:traffic.value } : item; });
+      saveRows(next);
+      const total = host.querySelector('.gr-url-total em');
+      if (total) total.textContent = pageTrafficTotal(next).toLocaleString() + ' traffic total';
+    };
+    url.oninput = update; traffic.oninput = update;
+    const remove = document.createElement('button'); remove.type = 'button'; remove.className = 'gr-page-remove';
+    remove.innerHTML = '&times;'; remove.title = 'Remove URL'; remove.disabled = o.ro;
+    remove.onclick = function(){ saveRows(rows.filter(function(item){ return item.id !== row.id; })); renderPageUrlEvidence(td, o); };
+    line.append(url, traffic, remove); host.append(line);
+  });
+  const total = document.createElement('div'); total.className = 'gr-url-total';
+  const label = document.createElement('span'); label.textContent = rows.length + ' URL' + (rows.length === 1 ? '' : 's');
+  const sum = document.createElement('em'); sum.textContent = pageTrafficTotal(rows).toLocaleString() + ' traffic total';
+  sum.title = 'Net page traffic across every URL in this cell'; total.append(label, sum); host.append(total);
+}
+
 /* The controls every content cell carries, in the tables and the competitor
    matrix alike: the tick, the AEO/SEO choice, the status and + kw on one line,
    the article type and the awareness level on the next. `get` reads the cell
@@ -6467,6 +6543,7 @@ function cellControls(td, o){
     urlRow.append(url);
     td.insertBefore(urlRow, td.querySelector(':scope > .gr-kws'));
   }
+  renderPageUrlEvidence(td, o);
   if (['icp','value'].includes(state.contentView) && keywordMode === 'aeo' && !td.querySelector(':scope > .gr-actor')){
     const actorRow=document.createElement('div');actorRow.className='gr-actor';
     const actorType=document.createElement('select');actorType.className='gr-kind gr-entity-type';actorType.disabled=o.ro;actorType.setAttribute('aria-label','Technology, product, or analyst');
@@ -6561,6 +6638,23 @@ function cellControls(td, o){
       });
     };
     foot.append(add);
+    const addUrl = document.createElement('button');
+    addUrl.className = 'gr-kwadd gr-urladd';
+    addUrl.textContent = '+ URL';
+    addUrl.title = 'Add a page URL and its net traffic to this cell';
+    addUrl.onclick = function(){
+      const current = o.get();
+      const pageUrls = normalizePageUrls(current.pageUrls);
+      pageUrls.push({ id: uid(), url: '', traffic: '' });
+      o.set({ pageUrls: pageUrls });
+      o.refreshEmpty();
+      markDirty();
+      renderPageUrlEvidence(td, o);
+      const inputs = td.querySelectorAll(':scope > .gr-page-urls .gr-page-url-input');
+      const last = inputs[inputs.length - 1];
+      if (last) last.focus();
+    };
+    foot.append(addUrl);
   }
   ctl.append(foot);
 
@@ -6781,21 +6875,21 @@ function openColumnGuide(col, label, rerender){
 function cellOf(row, colId, defaults){
   const c = row.cells[colId];
   const d = defaults || {};
-  if (typeof c === 'string') return { v: c, mode: d.forceMode ? d.mode : 'aeo', type: d.type || '', on: false, aw: d.aw || '', st: '', cfg:false, kws: [] };
+  if (typeof c === 'string') return { v: c, mode: d.forceMode ? d.mode : 'aeo', type: d.type || '', on: false, aw: d.aw || '', st: '', cfg:false, kws: [], pageUrls: [] };
   if (c && typeof c === 'object'){
     const mode = d.forceMode ? d.mode : (c.mode === 'seo' ? 'seo' : c.mode === 'aeo' ? 'aeo' : (d.mode || 'aeo'));
     return { v: c.v || '', mode: mode, type: c.type || '',
              on: !!c.on, aw: c.aw || '', st: c.st || '', url: c.url || '', writtenBy: c.writtenBy || '', cfg:!!c.cfg,
              actorType: c.actorType || '', actor: c.actor || '',
              keywordIdeas: Array.isArray(c.keywordIdeas) ? c.keywordIdeas : [], icpSource:c.icpSource || null,
-             kws: Array.isArray(c.kws) ? c.kws.filter(Boolean) : [] };
+             kws: Array.isArray(c.kws) ? c.kws.filter(Boolean) : [], pageUrls: normalizePageUrls(c.pageUrls) };
   }
-  return { v: '', mode: d.mode || 'aeo', type: d.type || '', on: false, aw: d.aw || '', st: '', cfg:false, kws: [] };
+  return { v: '', mode: d.mode || 'aeo', type: d.type || '', on: false, aw: d.aw || '', st: '', cfg:false, kws: [], pageUrls: [] };
 }
 
 /* A cell with nothing chosen and nothing caught keeps its controls quiet. */
 function cellQuiet(c, keywordCount){
-  return !c.url && !c.writtenBy && !c.actorType && !c.actor && !c.v && !c.on && !keywordCount && !c.type && !c.aw && !c.st;
+  return !c.url && !c.writtenBy && !c.actorType && !c.actor && !c.v && !c.on && !keywordCount && !c.type && !c.aw && !c.st && !normalizePageUrls(c.pageUrls).length;
 }
 
 /* An empty cell is left out of the record entirely, so a blank table saves as
@@ -6803,9 +6897,10 @@ function cellQuiet(c, keywordCount){
 function setCellIn(row, colId, patch, defaults){
   const c = Object.assign(cellOf(row, colId, defaults), patch);
   const kws = Array.isArray(c.kws) ? c.kws.filter(Boolean) : [];
+  const pageUrls = normalizePageUrls(c.pageUrls);
   const defaultMode = (defaults && defaults.mode) || 'aeo';
-  if (!c.url && !c.writtenBy && !c.actorType && !c.actor && !c.cfg && !c.v && !c.type && c.mode === defaultMode && !c.on && !c.aw && !c.st && !kws.length && !c.keywordIdeas?.length && !c.icpSource) delete row.cells[colId];
-  else row.cells[colId] = { v: c.v, mode: c.mode, type: c.type, on: c.on, aw: c.aw, st: c.st, url: c.url || '', writtenBy: c.writtenBy || '', cfg:!!c.cfg, kws: kws,
+  if (!c.url && !c.writtenBy && !c.actorType && !c.actor && !c.cfg && !c.v && !c.type && c.mode === defaultMode && !c.on && !c.aw && !c.st && !kws.length && !pageUrls.length && !c.keywordIdeas?.length && !c.icpSource) delete row.cells[colId];
+  else row.cells[colId] = { v: c.v, mode: c.mode, type: c.type, on: c.on, aw: c.aw, st: c.st, url: c.url || '', writtenBy: c.writtenBy || '', cfg:!!c.cfg, kws: kws, pageUrls: pageUrls,
     ...(c.actorType ? {actorType:c.actorType} : {}), ...(c.actor ? {actor:c.actor} : {}),
     ...(c.keywordIdeas?.length ? {keywordIdeas:c.keywordIdeas} : {}), ...(c.icpSource ? {icpSource:c.icpSource} : {}) };
 }

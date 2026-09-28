@@ -1,7 +1,7 @@
 import fs from 'node:fs';import vm from 'node:vm';import assert from 'node:assert/strict';
 const html=fs.readFileSync(new URL('./index.html',import.meta.url),'utf8');
 const ctx=vm.createContext({});
-vm.runInContext(html.slice(html.indexOf('function cellState('),html.indexOf('/* What a matrix cell catches')),ctx);
+vm.runInContext(html.slice(html.indexOf('function normalizePageUrls('),html.indexOf('/* What a matrix cell catches')),ctx);
 vm.runInContext(html.slice(html.indexOf('function cellOf('),html.indexOf('function renderArticleTypes(')),ctx);
 const m={cells:{legacy:true}};
 assert.equal(ctx.cellState(m,'legacy',{}).on,true);
