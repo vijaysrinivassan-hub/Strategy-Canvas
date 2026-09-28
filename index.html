@@ -690,6 +690,8 @@
             font-variant-numeric:tabular-nums; flex:none}
   .mx-kw.on{background:#f4f7ff}
   .mx-kw.on span{font-weight:600; color:var(--accent)}
+  .mx-kw .kw-remove{width:18px;height:18px;padding:0;border:0;background:transparent;color:#a1a6a1;font-size:13px;line-height:1}
+  .mx-kw .kw-remove:hover{background:#fff0f0;color:var(--danger)}
   /* the cell's own tick: "we are writing this article", with or without a
      keyword behind it. Green, so it never reads as a keyword selection. */
   .mx-plan{display:flex; align-items:center; gap:8px; height:30px; flex:none;
@@ -745,6 +747,8 @@
   .gr-page-remove{width:20px; height:20px; padding:0; border:0; background:transparent;
                   color:#a1a6a1; font-size:14px; line-height:1}
   .gr-page-remove:hover:not(:disabled){border:0; background:#fff0f0; color:var(--danger)}
+  .gr-cell.maximus-covered{background:#fff0f0!important;box-shadow:inset 3px 0 0 #c00000}
+  .gr-cell.maximus-covered .gr-page-urls{background:#fff7f7}
   .gr-url-total{display:flex; align-items:center; justify-content:space-between; gap:8px;
                 padding:5px 10px; background:#f0f7f2; color:#657067; font-size:10.5px}
   .gr-url-total em{font-style:normal; font-weight:700; color:#294732;
@@ -6313,6 +6317,15 @@ function normalizePageUrls(rows){
     return { id: String(row.id || ('page-url-' + index)), url: String(row.url || ''), traffic: row.traffic == null ? '' : String(row.traffic) };
   });
 }
+function normalizeRepositoryUrlOverrides(value){
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return {};
+  const out = {};
+  Object.keys(value).forEach(function(id){
+    const row = value[id]; if (!row || typeof row !== 'object') return;
+    out[String(id)] = { url: row.url == null ? undefined : String(row.url), traffic: row.traffic == null ? undefined : String(row.traffic), deleted: !!row.deleted };
+  });
+  return out;
+}
 
 /* A cell used to be a bare `true`. It now carries the SEO/AEO choice too, so
    old boards are read forward rather than reset. */
@@ -6323,8 +6336,8 @@ function cellState(m, key, defaults){
   if (raw && typeof raw === 'object'){
     return { on: !!raw.on, mode: raw.mode === 'seo' ? 'seo' : 'aeo', type: raw.type || '',
              v: raw.v || '', url: raw.url || '', writtenBy: raw.writtenBy || '', aw: raw.aw || '', st: raw.st || '', cfg:!!raw.cfg,
-             kws: Array.isArray(raw.kws) ? raw.kws.filter(Boolean) : [], pageUrls: normalizePageUrls(raw.pageUrls),
-             repositoryQueries: Array.isArray(raw.repositoryQueries) ? raw.repositoryQueries : [] };
+             kws: Array.isArray(raw.kws) ? raw.kws.filter(Boolean) : [], excludedKws:Array.isArray(raw.excludedKws)?raw.excludedKws.filter(Boolean):[], pageUrls: normalizePageUrls(raw.pageUrls),
+             repositoryQueries: Array.isArray(raw.repositoryQueries) ? raw.repositoryQueries : [], repositoryUrlOverrides:normalizeRepositoryUrlOverrides(raw.repositoryUrlOverrides) };
   }
   return { on: false, mode: d.mode || 'aeo', type: d.type || '', v: '', aw: d.aw || '', st: '', cfg:false, kws: [], pageUrls: [] };
 }
@@ -6333,9 +6346,11 @@ function setCellState(m, key, st){
   const kws = Array.isArray(st.kws) ? st.kws.filter(Boolean) : [];
   const pageUrls = normalizePageUrls(st.pageUrls);
   const repositoryQueries = Array.isArray(st.repositoryQueries) ? st.repositoryQueries : [];
-  if (!st.url && !st.writtenBy && !st.cfg && !st.on && st.mode === 'aeo' && !st.type && !st.v && !st.aw && !st.st && !kws.length && !pageUrls.length && !repositoryQueries.length) delete m.cells[key];
+  const excludedKws = Array.isArray(st.excludedKws) ? st.excludedKws.filter(Boolean) : [];
+  const repositoryUrlOverrides = normalizeRepositoryUrlOverrides(st.repositoryUrlOverrides);
+  if (!st.url && !st.writtenBy && !st.cfg && !st.on && st.mode === 'aeo' && !st.type && !st.v && !st.aw && !st.st && !kws.length && !excludedKws.length && !pageUrls.length && !repositoryQueries.length && !Object.keys(repositoryUrlOverrides).length) delete m.cells[key];
   else m.cells[key] = { on: !!st.on, mode: st.mode, type: st.type || '', v: st.v || '',
-                        aw: st.aw || '', st: st.st || '', url: st.url || '', writtenBy: st.writtenBy || '', cfg:!!st.cfg, kws: kws, pageUrls: pageUrls, repositoryQueries };
+                        aw: st.aw || '', st: st.st || '', url: st.url || '', writtenBy: st.writtenBy || '', cfg:!!st.cfg, kws: kws, excludedKws, pageUrls: pageUrls, repositoryQueries, repositoryUrlOverrides };
 }
 
 /* What a matrix cell catches: the repo keywords that mention the competitor
@@ -6347,12 +6362,19 @@ function keywordRowsByIds(ids){
   return kwRows.filter(function(r){ return r.id != null && wanted[String(r.id)]; });
 }
 
-function matrixCellKeywords(comp, ty, text, manualIds){
+function keywordEvidenceKey(row){return row&&row.id!=null?String(row.id):String(row?.keyword||'').toLowerCase();}
+function keywordRemovalPatch(current,row){
+  const key=keywordEvidenceKey(row),excluded=Array.isArray(current.excludedKws)?current.excludedKws.slice():[];
+  if(key&&!excluded.map(String).includes(key))excluded.push(key);
+  return {kws:(current.kws||[]).filter(id=>String(id)!==key),excludedKws:excluded};
+}
+function matrixCellKeywords(comp, ty, text, manualIds, excludedIds){
   const seen = {};
+  const excluded=new Set((excludedIds||[]).map(String));
   const out = [];
   keywordRowsByIds(manualIds).concat(cellKeywords(comp, ty), gridCellKeywords(text)).filter(r=>!KeywordAssignments.isComparison(r.keyword)).forEach(function(r){
     const k = r.id != null ? String(r.id) : String(r.keyword).toLowerCase();
-    if (seen[k]) return;
+    if (seen[k]||excluded.has(k)) return;
     seen[k] = true;
     out.push(r);
   });
@@ -6492,11 +6514,12 @@ function renderPageUrlEvidence(td, o){
   }
   host.replaceChildren();
   const manualRows = normalizePageUrls(o.get().pageUrls);
-  const sharedRows = window.SharedUrlRepository?.resolve(o.get().repositoryQueries) || [];
+  const overrides = normalizeRepositoryUrlOverrides(o.get().repositoryUrlOverrides);
+  const sharedRows = window.SharedUrlRepository?.resolve(o.get().repositoryQueries, overrides) || [];
   const manualIds = new Set(manualRows.map(row => String(row.url || '').replace(/\/$/,'')));
-  const visibleSharedRows = td.dataset.sharedUrlsOpen === 'true'
-    ? sharedRows.filter(row => !manualIds.has(String(row.url || '').replace(/\/$/,''))) : [];
+  const visibleSharedRows = sharedRows.filter(row => !manualIds.has(String(row.url || '').replace(/\/$/,'')));
   const rows = visibleSharedRows.concat(manualRows);
+  td.classList.toggle('maximus-covered', rows.some(row => row.covered));
   if (!rows.length){ host.hidden = true; return; }
   host.hidden = false;
   const saveRows = function(next){
@@ -6507,12 +6530,18 @@ function renderPageUrlEvidence(td, o){
   rows.forEach(function(row){
     const line = document.createElement('div'); line.className = 'gr-page-url';
     const url = document.createElement('input'); url.type = 'text'; url.className = 'gr-page-url-input';
-    url.placeholder = 'Page URL'; url.value = row.url; url.disabled = o.ro || !!row.shared; url.setAttribute('aria-label', 'Page URL');
+    url.placeholder = 'Page URL'; url.value = row.url; url.disabled = o.ro; url.setAttribute('aria-label', 'Page URL');
     const traffic = document.createElement('input'); traffic.type = 'number'; traffic.className = 'gr-page-traffic';
-    traffic.min = '0'; traffic.step = '1'; traffic.placeholder = 'Traffic'; traffic.value = row.traffic; traffic.disabled = o.ro || !!row.shared;
+    traffic.min = '0'; traffic.step = '1'; traffic.placeholder = 'Traffic'; traffic.value = row.traffic; traffic.disabled = o.ro;
     traffic.setAttribute('aria-label', 'Net page traffic');
     const update = function(){
-      if (row.shared) return;
+      if (row.shared){
+        const nextOverrides = normalizeRepositoryUrlOverrides(o.get().repositoryUrlOverrides);
+        nextOverrides[row.id] = {url:url.value,traffic:traffic.value,deleted:false};
+        o.set({repositoryUrlOverrides:nextOverrides});o.refreshEmpty();markDirty();
+        const updated=window.SharedUrlRepository?.resolve(o.get().repositoryQueries,nextOverrides)||[];
+        const total=host.querySelector('.gr-url-total em');if(total)total.textContent=pageTrafficTotal(updated.concat(manualRows)).toLocaleString()+' traffic total';return;
+      }
       const next = manualRows.map(function(item){ return item.id === row.id ? { id:item.id, url:url.value, traffic:traffic.value } : item; });
       saveRows(next);
       const total = host.querySelector('.gr-url-total em');
@@ -6520,8 +6549,12 @@ function renderPageUrlEvidence(td, o){
     };
     url.oninput = update; traffic.oninput = update;
     const remove = document.createElement('button'); remove.type = 'button'; remove.className = 'gr-page-remove';
-    remove.innerHTML = '&times;'; remove.title = 'Remove URL'; remove.disabled = o.ro; remove.hidden = !!row.shared;
-    remove.onclick = function(){ saveRows(manualRows.filter(function(item){ return item.id !== row.id; })); renderPageUrlEvidence(td, o); };
+    remove.innerHTML = '&times;'; remove.title = 'Remove URL'; remove.disabled = o.ro;
+    remove.onclick = function(){
+      if(row.shared){const nextOverrides=normalizeRepositoryUrlOverrides(o.get().repositoryUrlOverrides);nextOverrides[row.id]={...(nextOverrides[row.id]||{}),deleted:true};o.set({repositoryUrlOverrides:nextOverrides});o.refreshEmpty();markDirty();}
+      else saveRows(manualRows.filter(function(item){ return item.id !== row.id; }));
+      renderPageUrlEvidence(td, o);
+    };
     line.append(url, traffic, remove);
     if (row.shared){ const source = document.createElement('small'); source.className = 'gr-page-source'; source.textContent = row.competitor || 'Competitive Intelligence'; line.append(source); }
     host.append(line);
@@ -6653,19 +6686,13 @@ function cellControls(td, o){
     foot.append(add);
     const addUrl = document.createElement('button');
     addUrl.className = 'gr-kwadd gr-urladd';
-    const importedUrlCount = window.SharedUrlRepository?.resolve(o.get().repositoryQueries).length || 0;
+    const importedUrlCount = window.SharedUrlRepository?.resolve(o.get().repositoryQueries, o.get().repositoryUrlOverrides).length || 0;
     addUrl.textContent = importedUrlCount ? '+ URL (' + importedUrlCount + ')' : '+ URL';
     addUrl.title = importedUrlCount
       ? 'Open ' + importedUrlCount + ' imported URLs; click again to add a manual URL'
       : 'Add a page URL and its net traffic to this cell';
     addUrl.onclick = function(){
       const current = o.get();
-      const sharedUrls = window.SharedUrlRepository?.resolve(current.repositoryQueries) || [];
-      if (sharedUrls.length && td.dataset.sharedUrlsOpen !== 'true'){
-        td.dataset.sharedUrlsOpen = 'true';
-        renderPageUrlEvidence(td, o);
-        return;
-      }
       const pageUrls = normalizePageUrls(current.pageUrls);
       pageUrls.push({ id: uid(), url: '', traffic: '' });
       o.set({ pageUrls: pageUrls });
@@ -6714,7 +6741,7 @@ function cellControls(td, o){
 
 /* Keywords as evidence under a cell, each with its volume, and the total at
    the foot: two keywords at 50 each read as 100. */
-function keywordBlock(rows){
+function keywordBlock(rows,onRemove){
   const frag = document.createDocumentFragment();
   if (!rows.length) return frag;
   const list = document.createElement('div');
@@ -6728,6 +6755,7 @@ function keywordBlock(rows){
     const vol = document.createElement('em');
     vol.textContent = r.volume == null ? '' : Number(r.volume).toLocaleString();
     line.append(nm, vol);
+    if(onRemove){const remove=document.createElement('button');remove.type='button';remove.className='kw-remove';remove.innerHTML='&times;';remove.title='Remove keyword';remove.onclick=function(ev){ev.stopPropagation();onRemove(r);};line.append(remove);}
     list.append(line);
   });
   frag.append(list);
@@ -6745,12 +6773,14 @@ function keywordBlock(rows){
 
 /* Which repo keywords belong to a table cell: any keyword that contains the
    cell's own words. Three letters is the floor, or "ai" would catch the lot. */
-function gridCellKeywords(text, manualIds){
+function gridCellKeywords(text, manualIds, excludedIds){
   const t = String(text || '').trim().toLowerCase();
+  const excluded=new Set((excludedIds||[]).map(String));
   const seen = {};
   const out = [];
   keywordRowsByIds(manualIds).forEach(function(r){
     const k = r.id != null ? String(r.id) : String(r.keyword).toLowerCase();
+    if(excluded.has(k))return;
     seen[k] = true;
     out.push(r);
   });
@@ -6759,7 +6789,7 @@ function gridCellKeywords(text, manualIds){
     return String(r.keyword || '').toLowerCase().indexOf(t) !== -1;
   }).forEach(function(r){
     const k = r.id != null ? String(r.id) : String(r.keyword).toLowerCase();
-    if (seen[k]) return;
+    if (seen[k]||excluded.has(k)) return;
     seen[k] = true;
     out.push(r);
   });
@@ -6904,8 +6934,8 @@ function cellOf(row, colId, defaults){
              on: !!c.on, aw: c.aw || '', st: c.st || '', url: c.url || '', writtenBy: c.writtenBy || '', cfg:!!c.cfg,
              actorType: c.actorType || '', actor: c.actor || '',
              keywordIdeas: Array.isArray(c.keywordIdeas) ? c.keywordIdeas : [], icpSource:c.icpSource || null,
-             kws: Array.isArray(c.kws) ? c.kws.filter(Boolean) : [], pageUrls: normalizePageUrls(c.pageUrls),
-             repositoryQueries: Array.isArray(c.repositoryQueries) ? c.repositoryQueries : [] };
+             kws: Array.isArray(c.kws) ? c.kws.filter(Boolean) : [], excludedKws:Array.isArray(c.excludedKws)?c.excludedKws.filter(Boolean):[], pageUrls: normalizePageUrls(c.pageUrls),
+             repositoryQueries: Array.isArray(c.repositoryQueries) ? c.repositoryQueries : [], repositoryUrlOverrides:normalizeRepositoryUrlOverrides(c.repositoryUrlOverrides) };
   }
   return { v: '', mode: d.mode || 'aeo', type: d.type || '', on: false, aw: d.aw || '', st: '', cfg:false, kws: [], pageUrls: [] };
 }
@@ -6922,9 +6952,11 @@ function setCellIn(row, colId, patch, defaults){
   const kws = Array.isArray(c.kws) ? c.kws.filter(Boolean) : [];
   const pageUrls = normalizePageUrls(c.pageUrls);
   const repositoryQueries = Array.isArray(c.repositoryQueries) ? c.repositoryQueries : [];
+  const excludedKws = Array.isArray(c.excludedKws) ? c.excludedKws.filter(Boolean) : [];
+  const repositoryUrlOverrides = normalizeRepositoryUrlOverrides(c.repositoryUrlOverrides);
   const defaultMode = (defaults && defaults.mode) || 'aeo';
-  if (!c.url && !c.writtenBy && !c.actorType && !c.actor && !c.cfg && !c.v && !c.type && c.mode === defaultMode && !c.on && !c.aw && !c.st && !kws.length && !pageUrls.length && !repositoryQueries.length && !c.keywordIdeas?.length && !c.icpSource) delete row.cells[colId];
-  else row.cells[colId] = { v: c.v, mode: c.mode, type: c.type, on: c.on, aw: c.aw, st: c.st, url: c.url || '', writtenBy: c.writtenBy || '', cfg:!!c.cfg, kws: kws, pageUrls: pageUrls, repositoryQueries,
+  if (!c.url && !c.writtenBy && !c.actorType && !c.actor && !c.cfg && !c.v && !c.type && c.mode === defaultMode && !c.on && !c.aw && !c.st && !kws.length && !excludedKws.length && !pageUrls.length && !repositoryQueries.length && !Object.keys(repositoryUrlOverrides).length && !c.keywordIdeas?.length && !c.icpSource) delete row.cells[colId];
+  else row.cells[colId] = { v: c.v, mode: c.mode, type: c.type, on: c.on, aw: c.aw, st: c.st, url: c.url || '', writtenBy: c.writtenBy || '', cfg:!!c.cfg, kws: kws, excludedKws, pageUrls: pageUrls, repositoryQueries, repositoryUrlOverrides,
     ...(c.actorType ? {actorType:c.actorType} : {}), ...(c.actor ? {actor:c.actor} : {}),
     ...(c.keywordIdeas?.length ? {keywordIdeas:c.keywordIdeas} : {}), ...(c.icpSource ? {icpSource:c.icpSource} : {}) };
 }
@@ -7227,7 +7259,8 @@ function renderMatrix(){
       const cellKey = comp.id + '|' + ty.id;
       const defaults = Object.assign({mode:keywordMode}, defaultsFor(ty));
       const st = cellState(m, cellKey, defaults);
-      const rows = matrixCellKeywords(comp, ty, st.v || st.url, st.kws);
+      const rows = matrixCellKeywords(comp, ty, st.v || st.url, st.kws, st.excludedKws);
+      const removeKeyword = function(row){const now=cellState(m,cellKey,defaults);setCellState(m,cellKey,Object.assign(now,keywordRemovalPatch(now,row),{cfg:true}));markDirty();renderMatrix();};
       const untouched = !m.cells[cellKey];
       td.className = 'gr-cell' + ((untouched || cellQuiet(st, rows.length)) ? ' empty' : '') + (st.on ? ' planned' : '')
                    + (st.st === 'written' ? ' written' : '');
@@ -7243,7 +7276,7 @@ function renderMatrix(){
 
       const kwHost = document.createElement('div');
       kwHost.className = 'gr-kws';
-      kwHost.append(keywordBlock(rows));
+      kwHost.append(keywordBlock(rows,ro?null:removeKeyword));
       td.append(kwHost);
 
       let paintTimer = null;
@@ -7253,9 +7286,9 @@ function renderMatrix(){
         clearTimeout(paintTimer);
         paintTimer = setTimeout(function(){
           const now = cellState(m, cellKey, defaults);
-          const rows2 = matrixCellKeywords(comp, ty, now.v || now.url, now.kws);
+          const rows2 = matrixCellKeywords(comp, ty, now.v || now.url, now.kws, now.excludedKws);
           kwHost.innerHTML = '';
-          kwHost.append(keywordBlock(rows2));
+          kwHost.append(keywordBlock(rows2,ro?null:removeKeyword));
           td.classList.toggle('empty', cellQuiet(now, rows2.length));
         }, 250);
       };
@@ -7274,7 +7307,7 @@ function renderMatrix(){
         },
         refreshEmpty: function(){
           const now = cellState(m, cellKey, defaults);
-          td.classList.toggle('empty', cellQuiet(now, matrixCellKeywords(comp, ty, now.v || now.url, now.kws).length));
+          td.classList.toggle('empty', cellQuiet(now, matrixCellKeywords(comp, ty, now.v || now.url, now.kws, now.excludedKws).length));
         },
         rerender: renderMatrix
       });
@@ -7355,8 +7388,9 @@ function renderMatrixTopicCell(host,holder,ro){
   host.classList.add('gr-cell','icp-matrix-topic-cell');
   const get=()=>matrixTopicCell(holder),cell=get();
   const title=document.createElement('input');title.type='text';title.value=cell.v;title.placeholder='Title....';title.disabled=ro;title.setAttribute('aria-label','Title');host.append(title);
-  const kwHost=document.createElement('div');kwHost.className='gr-kws';kwHost.append(keywordBlock(gridCellKeywords(cell.v||cell.url,cell.kws)));host.append(kwHost);
-  let timer=null;title.oninput=function(){setMatrixTopicCell(holder,{v:title.value});markDirty();clearTimeout(timer);timer=setTimeout(()=>{const now=get();kwHost.replaceChildren(keywordBlock(gridCellKeywords(now.v||now.url,now.kws)));},250);};
+  const removeKeyword=row=>{const now=get();setMatrixTopicCell(holder,keywordRemovalPatch(now,row));markDirty();renderGrid();};
+  const kwHost=document.createElement('div');kwHost.className='gr-kws';kwHost.append(keywordBlock(gridCellKeywords(cell.v||cell.url,cell.kws,cell.excludedKws),ro?null:removeKeyword));host.append(kwHost);
+  let timer=null;title.oninput=function(){setMatrixTopicCell(holder,{v:title.value});markDirty();clearTimeout(timer);timer=setTimeout(()=>{const now=get();kwHost.replaceChildren(keywordBlock(gridCellKeywords(now.v||now.url,now.kws,now.excludedKws),ro?null:removeKeyword));},250);};
   cellControls(host,{ro,get,set:patch=>setMatrixTopicCell(holder,patch),seed:()=>get().v.trim(),refreshEmpty:()=>{},onTypeChange:renderGrid,rerender:renderGrid});
 }
 
@@ -7480,7 +7514,8 @@ function renderGridTable(v, group, table){
       });
       if (!defaults.type && group.type) defaults.type = articleTypes().find(t => t.name.toLowerCase() === group.type.toLowerCase())?.id || '';
       const cell = cellOf(row, col.id, defaults);
-      const kws = gridCellKeywords(cell.v || cell.url, cell.kws);
+      const kws = gridCellKeywords(cell.v || cell.url, cell.kws, cell.excludedKws);
+      const removeKeyword = function(keyword){const now=cellOf(row,col.id,defaults);setCellIn(row,col.id,Object.assign(keywordRemovalPatch(now,keyword),{cfg:true}),defaults);markDirty();renderGrid();};
       const td = document.createElement('td');
       const untouched = !row.cells[col.id];
       td.className = 'gr-cell' + ((untouched || cellQuiet(cell, kws.length)) ? ' empty' : '') + (cell.on ? ' planned' : '')
@@ -7497,7 +7532,7 @@ function renderGridTable(v, group, table){
       /* the keywords this cell's words catch in the repo, with their total */
       const kwHost = document.createElement('div');
       kwHost.className = 'gr-kws';
-      kwHost.append(keywordBlock(kws));
+      kwHost.append(keywordBlock(kws,ro?null:removeKeyword));
       td.append(kwHost);
 
       /* typed straight into state; only this cell's evidence is repainted,
@@ -7509,9 +7544,9 @@ function renderGridTable(v, group, table){
         clearTimeout(paintTimer);
         paintTimer = setTimeout(function(){
           const now = cellOf(row, col.id, defaults);
-          const rows2 = gridCellKeywords(now.v || now.url, now.kws);
+          const rows2 = gridCellKeywords(now.v || now.url, now.kws, now.excludedKws);
           kwHost.innerHTML = '';
-          kwHost.append(keywordBlock(rows2));
+          kwHost.append(keywordBlock(rows2,ro?null:removeKeyword));
           td.classList.toggle('empty', cellQuiet(now, rows2.length));
         }, 250);
       };
@@ -7523,7 +7558,7 @@ function renderGridTable(v, group, table){
         seed: function(){ return (cellOf(row, col.id, defaults).v || '').trim(); },
         refreshEmpty: function(){
           const now = cellOf(row, col.id, defaults);
-          td.classList.toggle('empty', cellQuiet(now, gridCellKeywords(now.v || now.url, now.kws).length));
+          td.classList.toggle('empty', cellQuiet(now, gridCellKeywords(now.v || now.url, now.kws, now.excludedKws).length));
         },
         onTypeChange: renderGrid,
         rerender: renderGrid
