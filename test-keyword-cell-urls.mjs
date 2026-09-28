@@ -15,10 +15,13 @@ const overrides={'https://example.com/source':{url:'https://example.com/edited',
 ctx.setCellIn(row,'a',{repositoryQueries:[{topicGroup:'g'}],repositoryUrlOverrides:overrides,excludedKws:['17']},{});
 c=ctx.cellOf(JSON.parse(JSON.stringify(row)),'a',{});assert.deepEqual(JSON.parse(JSON.stringify(c.repositoryUrlOverrides)),overrides);assert.deepEqual(JSON.parse(JSON.stringify(c.excludedKws)),['17']);
 assert(html.includes("addUrl.textContent = importedUrlCount ? '+ URL (' + importedUrlCount + ')' : '+ URL'"));
+assert(html.includes("importedUrlCount + ' imported URLs are shown; add a manual URL'"));
 assert(html.includes("url.placeholder = 'Page URL'"));
 assert(html.includes("traffic.placeholder = 'Traffic'"));
 assert(html.includes("sum.textContent = pageTrafficTotal(rows).toLocaleString() + ' traffic total'"));
 assert(html.includes('renderPageUrlEvidence(td, o);'));
+assert(html.includes('const firstReadyPaint = sharedUrlRepositoryReadyFor !== mappingKey'));
+assert(html.includes('(changed || firstReadyPaint)'));
 assert(!html.includes("td.dataset.sharedUrlsOpen === 'true'"));
 assert(html.includes("url.disabled = o.ro"));assert(html.includes("nextOverrides[row.id]"));
 assert(html.includes("remove.title = 'Remove URL'"));assert(html.includes("remove.title='Remove keyword'"));

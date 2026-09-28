@@ -6696,7 +6696,7 @@ function cellControls(td, o){
     const importedUrlCount = window.SharedUrlRepository?.resolve(o.get().repositoryQueries, o.get().repositoryUrlOverrides).length || 0;
     addUrl.textContent = importedUrlCount ? '+ URL (' + importedUrlCount + ')' : '+ URL';
     addUrl.title = importedUrlCount
-      ? 'Open ' + importedUrlCount + ' imported URLs; click again to add a manual URL'
+      ? importedUrlCount + ' imported URLs are shown; add a manual URL'
       : 'Add a page URL and its net traffic to this cell';
     addUrl.onclick = function(){
       const current = o.get();
@@ -7332,13 +7332,17 @@ function renderMatrix(){
 
 /* ---- plain tables (Category, ICP, Value) ---------------------------- */
 let sharedUrlMappingPending = null;
+let sharedUrlRepositoryReadyFor = '';
 function ensureSharedUrlCellMappings(){
   if (!window.SharedUrlRepository?.productMatches(state.clientProduct)) return;
-  if (sharedUrlMappingPending) return;
+  const mappingKey = [state.boardId,state.clientProduct].join('|');
+  if (sharedUrlMappingPending || sharedUrlRepositoryReadyFor === mappingKey) return;
   sharedUrlMappingPending = window.SharedUrlRepository.load().then(function(){
     const board = state.boardId, changed = window.SharedUrlRepository.installMappings(contentRoot(), articleTypes(), {product:state.clientProduct,uid});
+    const firstReadyPaint = sharedUrlRepositoryReadyFor !== mappingKey;
+    sharedUrlRepositoryReadyFor = mappingKey;
     if (changed && !readOnly()) markDirty();
-    if (changed && state.boardId === board && state.tab === CONTENT_TAB) renderContentView();
+    if ((changed || firstReadyPaint) && state.boardId === board && state.tab === CONTENT_TAB) renderContentView();
   }).catch(function(error){ console.error(error); toast('Could not load the classified URLs.', true); }).finally(function(){ sharedUrlMappingPending = null; });
 }
 function renderGrid(){
