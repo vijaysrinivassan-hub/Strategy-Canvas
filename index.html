@@ -740,6 +740,7 @@
   }
   .gr-cell .gr-page-url input:focus{border-color:#78c491; background:#fff; box-shadow:none}
   .gr-cell .gr-page-url input::placeholder{color:#a9afa9}
+  .gr-page-source{grid-column:1/-1;color:#7b857d;font-size:9px;padding:0 3px 3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .gr-page-traffic{text-align:right; font-variant-numeric:tabular-nums}
   .gr-page-remove{width:20px; height:20px; padding:0; border:0; background:transparent;
                   color:#a1a6a1; font-size:14px; line-height:1}
@@ -2907,7 +2908,6 @@
 <link rel="stylesheet" href="competitive-intelligence.css">
 <script src="competitive-intelligence-seed.js"></script>
 <script src="competitive-intelligence.js"></script>
-<link rel="stylesheet" href="shared-url-repository.css">
 <script src="shared-url-repository.js"></script>
 <link rel="stylesheet" href="icp-workflows.css">
 <script src="icp-workflows.js"></script>
@@ -6215,8 +6215,7 @@ const CONTENT_VIEWS = [
   { id: 'icp', label: 'ICP', noun: 'ICP', kind: 'grid',
     columns: ['ICP', 'Synonyms', 'Pains', 'Use cases', 'Content angles'] },
   { id: 'value', label: 'Value', noun: 'value', kind: 'grid',
-    columns: ['Value proposition', 'Synonyms', 'Proof points', 'Objections', 'Content angles'] },
-  { id: 'nonseo', label: 'Corporate & Non-SEO', noun: 'URL', kind: 'shared' }
+    columns: ['Value proposition', 'Synonyms', 'Proof points', 'Objections', 'Content angles'] }
 ];
 const viewDef = function(id){
   return CONTENT_VIEWS.filter(function(v){ return v.id === id; })[0] || CONTENT_VIEWS[1];
@@ -6258,7 +6257,6 @@ function contentRoot(){
     const cur = t.views[v.id] || (t.views[v.id] = {});
     cur.kind = v.kind;
 
-    if (v.kind === 'shared') return;
 
     if (v.kind === 'matrix'){
       if (!Array.isArray(cur.rows)) cur.rows = [];
@@ -6325,7 +6323,8 @@ function cellState(m, key, defaults){
   if (raw && typeof raw === 'object'){
     return { on: !!raw.on, mode: raw.mode === 'seo' ? 'seo' : 'aeo', type: raw.type || '',
              v: raw.v || '', url: raw.url || '', writtenBy: raw.writtenBy || '', aw: raw.aw || '', st: raw.st || '', cfg:!!raw.cfg,
-             kws: Array.isArray(raw.kws) ? raw.kws.filter(Boolean) : [], pageUrls: normalizePageUrls(raw.pageUrls) };
+             kws: Array.isArray(raw.kws) ? raw.kws.filter(Boolean) : [], pageUrls: normalizePageUrls(raw.pageUrls),
+             repositoryQueries: Array.isArray(raw.repositoryQueries) ? raw.repositoryQueries : [] };
   }
   return { on: false, mode: d.mode || 'aeo', type: d.type || '', v: '', aw: d.aw || '', st: '', cfg:false, kws: [], pageUrls: [] };
 }
@@ -6333,9 +6332,10 @@ function setCellState(m, key, st){
   /* the default — nothing chosen, nothing written — need not be stored */
   const kws = Array.isArray(st.kws) ? st.kws.filter(Boolean) : [];
   const pageUrls = normalizePageUrls(st.pageUrls);
-  if (!st.url && !st.writtenBy && !st.cfg && !st.on && st.mode === 'aeo' && !st.type && !st.v && !st.aw && !st.st && !kws.length && !pageUrls.length) delete m.cells[key];
+  const repositoryQueries = Array.isArray(st.repositoryQueries) ? st.repositoryQueries : [];
+  if (!st.url && !st.writtenBy && !st.cfg && !st.on && st.mode === 'aeo' && !st.type && !st.v && !st.aw && !st.st && !kws.length && !pageUrls.length && !repositoryQueries.length) delete m.cells[key];
   else m.cells[key] = { on: !!st.on, mode: st.mode, type: st.type || '', v: st.v || '',
-                        aw: st.aw || '', st: st.st || '', url: st.url || '', writtenBy: st.writtenBy || '', cfg:!!st.cfg, kws: kws, pageUrls: pageUrls };
+                        aw: st.aw || '', st: st.st || '', url: st.url || '', writtenBy: st.writtenBy || '', cfg:!!st.cfg, kws: kws, pageUrls: pageUrls, repositoryQueries };
 }
 
 /* What a matrix cell catches: the repo keywords that mention the competitor
@@ -6491,7 +6491,12 @@ function renderPageUrlEvidence(td, o){
     if (keywordHost) keywordHost.after(host); else td.append(host);
   }
   host.replaceChildren();
-  const rows = normalizePageUrls(o.get().pageUrls);
+  const manualRows = normalizePageUrls(o.get().pageUrls);
+  const sharedRows = window.SharedUrlRepository?.resolve(o.get().repositoryQueries) || [];
+  const manualIds = new Set(manualRows.map(row => String(row.url || '').replace(/\/$/,'')));
+  const visibleSharedRows = td.dataset.sharedUrlsOpen === 'true'
+    ? sharedRows.filter(row => !manualIds.has(String(row.url || '').replace(/\/$/,''))) : [];
+  const rows = visibleSharedRows.concat(manualRows);
   if (!rows.length){ host.hidden = true; return; }
   host.hidden = false;
   const saveRows = function(next){
@@ -6502,21 +6507,24 @@ function renderPageUrlEvidence(td, o){
   rows.forEach(function(row){
     const line = document.createElement('div'); line.className = 'gr-page-url';
     const url = document.createElement('input'); url.type = 'text'; url.className = 'gr-page-url-input';
-    url.placeholder = 'Page URL'; url.value = row.url; url.disabled = o.ro; url.setAttribute('aria-label', 'Page URL');
+    url.placeholder = 'Page URL'; url.value = row.url; url.disabled = o.ro || !!row.shared; url.setAttribute('aria-label', 'Page URL');
     const traffic = document.createElement('input'); traffic.type = 'number'; traffic.className = 'gr-page-traffic';
-    traffic.min = '0'; traffic.step = '1'; traffic.placeholder = 'Traffic'; traffic.value = row.traffic; traffic.disabled = o.ro;
+    traffic.min = '0'; traffic.step = '1'; traffic.placeholder = 'Traffic'; traffic.value = row.traffic; traffic.disabled = o.ro || !!row.shared;
     traffic.setAttribute('aria-label', 'Net page traffic');
     const update = function(){
-      const next = rows.map(function(item){ return item.id === row.id ? { id:item.id, url:url.value, traffic:traffic.value } : item; });
+      if (row.shared) return;
+      const next = manualRows.map(function(item){ return item.id === row.id ? { id:item.id, url:url.value, traffic:traffic.value } : item; });
       saveRows(next);
       const total = host.querySelector('.gr-url-total em');
-      if (total) total.textContent = pageTrafficTotal(next).toLocaleString() + ' traffic total';
+      if (total) total.textContent = pageTrafficTotal(sharedRows.concat(next)).toLocaleString() + ' traffic total';
     };
     url.oninput = update; traffic.oninput = update;
     const remove = document.createElement('button'); remove.type = 'button'; remove.className = 'gr-page-remove';
-    remove.innerHTML = '&times;'; remove.title = 'Remove URL'; remove.disabled = o.ro;
-    remove.onclick = function(){ saveRows(rows.filter(function(item){ return item.id !== row.id; })); renderPageUrlEvidence(td, o); };
-    line.append(url, traffic, remove); host.append(line);
+    remove.innerHTML = '&times;'; remove.title = 'Remove URL'; remove.disabled = o.ro; remove.hidden = !!row.shared;
+    remove.onclick = function(){ saveRows(manualRows.filter(function(item){ return item.id !== row.id; })); renderPageUrlEvidence(td, o); };
+    line.append(url, traffic, remove);
+    if (row.shared){ const source = document.createElement('small'); source.className = 'gr-page-source'; source.textContent = row.competitor || 'Competitive Intelligence'; line.append(source); }
+    host.append(line);
   });
   const total = document.createElement('div'); total.className = 'gr-url-total';
   const label = document.createElement('span'); label.textContent = rows.length + ' URL' + (rows.length === 1 ? '' : 's');
@@ -6649,6 +6657,12 @@ function cellControls(td, o){
     addUrl.title = 'Add a page URL and its net traffic to this cell';
     addUrl.onclick = function(){
       const current = o.get();
+      const sharedUrls = window.SharedUrlRepository?.resolve(current.repositoryQueries) || [];
+      if (sharedUrls.length && td.dataset.sharedUrlsOpen !== 'true'){
+        td.dataset.sharedUrlsOpen = 'true';
+        renderPageUrlEvidence(td, o);
+        return;
+      }
       const pageUrls = normalizePageUrls(current.pageUrls);
       pageUrls.push({ id: uid(), url: '', traffic: '' });
       o.set({ pageUrls: pageUrls });
@@ -6887,14 +6901,15 @@ function cellOf(row, colId, defaults){
              on: !!c.on, aw: c.aw || '', st: c.st || '', url: c.url || '', writtenBy: c.writtenBy || '', cfg:!!c.cfg,
              actorType: c.actorType || '', actor: c.actor || '',
              keywordIdeas: Array.isArray(c.keywordIdeas) ? c.keywordIdeas : [], icpSource:c.icpSource || null,
-             kws: Array.isArray(c.kws) ? c.kws.filter(Boolean) : [], pageUrls: normalizePageUrls(c.pageUrls) };
+             kws: Array.isArray(c.kws) ? c.kws.filter(Boolean) : [], pageUrls: normalizePageUrls(c.pageUrls),
+             repositoryQueries: Array.isArray(c.repositoryQueries) ? c.repositoryQueries : [] };
   }
   return { v: '', mode: d.mode || 'aeo', type: d.type || '', on: false, aw: d.aw || '', st: '', cfg:false, kws: [], pageUrls: [] };
 }
 
 /* A cell with nothing chosen and nothing caught keeps its controls quiet. */
 function cellQuiet(c, keywordCount){
-  return !c.url && !c.writtenBy && !c.actorType && !c.actor && !c.v && !c.on && !keywordCount && !c.type && !c.aw && !c.st && !normalizePageUrls(c.pageUrls).length;
+  return !c.url && !c.writtenBy && !c.actorType && !c.actor && !c.v && !c.on && !keywordCount && !c.type && !c.aw && !c.st && !normalizePageUrls(c.pageUrls).length && !c.repositoryQueries?.length;
 }
 
 /* An empty cell is left out of the record entirely, so a blank table saves as
@@ -6903,9 +6918,10 @@ function setCellIn(row, colId, patch, defaults){
   const c = Object.assign(cellOf(row, colId, defaults), patch);
   const kws = Array.isArray(c.kws) ? c.kws.filter(Boolean) : [];
   const pageUrls = normalizePageUrls(c.pageUrls);
+  const repositoryQueries = Array.isArray(c.repositoryQueries) ? c.repositoryQueries : [];
   const defaultMode = (defaults && defaults.mode) || 'aeo';
-  if (!c.url && !c.writtenBy && !c.actorType && !c.actor && !c.cfg && !c.v && !c.type && c.mode === defaultMode && !c.on && !c.aw && !c.st && !kws.length && !pageUrls.length && !c.keywordIdeas?.length && !c.icpSource) delete row.cells[colId];
-  else row.cells[colId] = { v: c.v, mode: c.mode, type: c.type, on: c.on, aw: c.aw, st: c.st, url: c.url || '', writtenBy: c.writtenBy || '', cfg:!!c.cfg, kws: kws, pageUrls: pageUrls,
+  if (!c.url && !c.writtenBy && !c.actorType && !c.actor && !c.cfg && !c.v && !c.type && c.mode === defaultMode && !c.on && !c.aw && !c.st && !kws.length && !pageUrls.length && !repositoryQueries.length && !c.keywordIdeas?.length && !c.icpSource) delete row.cells[colId];
+  else row.cells[colId] = { v: c.v, mode: c.mode, type: c.type, on: c.on, aw: c.aw, st: c.st, url: c.url || '', writtenBy: c.writtenBy || '', cfg:!!c.cfg, kws: kws, pageUrls: pageUrls, repositoryQueries,
     ...(c.actorType ? {actorType:c.actorType} : {}), ...(c.actor ? {actor:c.actor} : {}),
     ...(c.keywordIdeas?.length ? {keywordIdeas:c.keywordIdeas} : {}), ...(c.icpSource ? {icpSource:c.icpSource} : {}) };
 }
@@ -7030,7 +7046,7 @@ function renderKeywordModeFilter(){
     host.setAttribute('role', 'group'); host.setAttribute('aria-label', 'Keyword channel');
     $('productSwitcher').after(host);
   }
-  host.hidden = state.tab !== CONTENT_TAB || ['competitor','nonseo'].includes(state.contentView) || ['settings','clients','atypes','mcp'].includes(state.screen);
+  host.hidden = state.tab !== CONTENT_TAB || state.contentView === 'competitor' || ['settings','clients','atypes','mcp'].includes(state.screen);
   host.replaceChildren();
   if (host.hidden) return;
   [['aeo','AEO'],['seo','SEO']].forEach(([mode,label]) => {
@@ -7272,8 +7288,19 @@ function renderMatrix(){
 
 
 /* ---- plain tables (Category, ICP, Value) ---------------------------- */
+let sharedUrlMappingPending = null;
+function ensureSharedUrlCellMappings(){
+  if (!window.SharedUrlRepository?.productMatches(state.clientProduct)) return;
+  if (sharedUrlMappingPending) return;
+  sharedUrlMappingPending = window.SharedUrlRepository.load().then(function(){
+    const board = state.boardId, changed = window.SharedUrlRepository.installMappings(contentRoot(), articleTypes(), {product:state.clientProduct,uid});
+    if (changed && !readOnly()) markDirty();
+    if (changed && state.boardId === board && state.tab === CONTENT_TAB) renderContentView();
+  }).catch(function(error){ console.error(error); toast('Could not load the classified URLs.', true); }).finally(function(){ sharedUrlMappingPending = null; });
+}
 function renderGrid(){
   renderKeywordModeFilter();
+  ensureSharedUrlCellMappings();
   const v = matrixState(), types = articleTypes();
   if (!readOnly()){
     for (const group of KeywordPageTables.groups){
@@ -7291,8 +7318,6 @@ function renderGrid(){
     legacy.after(host);
   }
   host.hidden = false; host.innerHTML = '';
-  const sharedUrls = document.createElement('div'); sharedUrls.className = 'shared-keyword-urls'; host.append(sharedUrls);
-  window.SharedUrlRepository?.render(sharedUrls, {view:state.contentView,mode:keywordMode,product:state.clientProduct});
   if (['icp','value'].includes(state.contentView) && keywordMode === 'aeo'){
     const group = {id:'matrix', label:state.contentView === 'icp' ? 'ICP matrix' : 'Value matrix', type:''};
     const section = document.createElement('section');section.className = 'keyword-page-section';
@@ -7542,8 +7567,7 @@ function addGridColumn(pageGroup = 'listicle'){
 /* One entry point; the view decides which shape it is. */
 function renderContent(){
   const vd = viewDef(state.contentView);
-  if (vd.kind === 'shared') renderSharedUrlView();
-  else if (vd.kind === 'grid') renderGrid(); else renderMatrix();
+  if (vd.kind === 'grid') renderGrid(); else renderMatrix();
 }
 
 /* Every content view reads the keyword repo now: the matrix matches on
@@ -7567,20 +7591,7 @@ async function refreshMatrix(){
   }
 }
 function renderContentView(){
-  const kind = viewDef(state.contentView).kind;
-  if (kind === 'shared') renderSharedUrlView();
-  else if (kind === 'grid') renderGrid(); else renderMatrix();
-}
-
-function renderSharedUrlView(){
-  renderKeywordModeFilter();
-  $('mxTable').hidden = true; $('competitorComparison').hidden = true;
-  $('mxPane').querySelector('.mx-head').hidden = true; $('mxSetup').hidden = true;
-  let host = $('keywordPageTables');
-  if (!host){ host = document.createElement('div'); host.id = 'keywordPageTables'; $('mxTable').after(host); }
-  host.hidden = false; host.replaceChildren();
-  const sharedUrls = document.createElement('div'); host.append(sharedUrls);
-  window.SharedUrlRepository?.render(sharedUrls, {view:'nonseo',mode:'nonseo',product:state.clientProduct});
+  if (viewDef(state.contentView).kind === 'grid') renderGrid(); else renderMatrix();
 }
 
 /* Keep both keyword views in step when one of them changes a row. */
