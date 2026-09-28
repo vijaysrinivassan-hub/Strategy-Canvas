@@ -7386,12 +7386,14 @@ function renderMatrix(){
 /* ---- plain tables (Category, ICP, Value) ---------------------------- */
 let sharedUrlMappingPending = null;
 let sharedUrlRepositoryReadyFor = '';
+function sharedUrlBoardContext(){ return [state.clientProduct,state.client].filter(Boolean).join(' | '); }
 function ensureSharedUrlCellMappings(){
-  if (!window.SharedUrlRepository?.productMatches(state.clientProduct)) return;
-  const mappingKey = [state.boardId,state.clientProduct].join('|');
+  const repositoryContext = sharedUrlBoardContext();
+  if (!window.SharedUrlRepository?.productMatches(repositoryContext)) return;
+  const mappingKey = [state.boardId,repositoryContext].join('|');
   if (sharedUrlMappingPending || sharedUrlRepositoryReadyFor === mappingKey) return;
   sharedUrlMappingPending = window.SharedUrlRepository.load().then(function(){
-    const board = state.boardId, changed = window.SharedUrlRepository.installMappings(contentRoot(), articleTypes(), {product:state.clientProduct,uid});
+    const board = state.boardId, changed = window.SharedUrlRepository.installMappings(contentRoot(), articleTypes(), {product:repositoryContext,uid});
     const firstReadyPaint = sharedUrlRepositoryReadyFor !== mappingKey;
     sharedUrlRepositoryReadyFor = mappingKey;
     if (changed && !readOnly()) markDirty();

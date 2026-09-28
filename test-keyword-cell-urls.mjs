@@ -21,6 +21,8 @@ assert(html.includes("traffic.placeholder = 'Traffic'"));
 assert(html.includes("sum.textContent = pageTrafficTotal(rows).toLocaleString() + ' traffic total'"));
 assert(html.includes('renderPageUrlEvidence(td, o);'));
 assert(html.includes('const firstReadyPaint = sharedUrlRepositoryReadyFor !== mappingKey'));
+assert(html.includes('function sharedUrlBoardContext()'));
+assert(html.includes('product:repositoryContext'));
 assert(html.includes('(changed || firstReadyPaint)'));
 assert(!html.includes("td.dataset.sharedUrlsOpen === 'true'"));
 assert(html.includes("url.disabled = o.ro"));assert(html.includes("nextOverrides[row.id]"));

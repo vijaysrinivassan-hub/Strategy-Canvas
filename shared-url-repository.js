@@ -3,7 +3,7 @@
   const normalizeUrl=value=>String(value||'').trim().replace(/\/$/,'');
   const normalizeName=value=>String(value||'').trim().toLowerCase().replace(/[^a-z0-9]+/g,' ');
   const slug=value=>normalizeName(value).trim().replace(/\s+/g,'-')||'general';
-  const productMatches=product=>/answer engine optimization agency/i.test(String(product||''));
+  const productMatches=product=>/answer engine optimization agency|\baeo agency\b/i.test(String(product||''));
   const pageGroup=value=>{
     const text=String(value||'').toLowerCase();
     if(text.includes('listicle'))return 'listicle';
@@ -182,7 +182,7 @@
   }
   function installMappings(root,types,options={}){
     if(!root?.views||!productMatches(options.product)||!data())return false;
-    const revision=(data().classifiedAt||'classification')+':packed-columns-v4';
+    const revision=(data().classifiedAt||'classification')+':board-context-remap-v5';
     if(root.sharedUrlRepositoryRevision===revision)return false;
     const preserved=captureRepositoryState(root);
     clearPreviousMappings(root);

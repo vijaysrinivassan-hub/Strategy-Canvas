@@ -6,6 +6,7 @@ const source=fs.readFileSync(new URL('./shared-url-repository.js',import.meta.ur
 const html=fs.readFileSync(new URL('./index.html',import.meta.url),'utf8');
 const context=vm.createContext({globalThis:{CompetitiveIntelligenceClassifications:asset},console});vm.runInContext(source,context);
 const repo=context.globalThis.SharedUrlRepository;
+assert.equal(repo.productMatches('Product name | AEO Agency'),true);
 assert.equal(repo.records().length,7880);
 assert.equal(repo.query({section:'Value AEO'}).length,178);
 assert.equal(repo.query({section:'Value SEO'}).length,2813);
