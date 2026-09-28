@@ -1667,8 +1667,8 @@
                           margin:0 auto 14px}
   .gtm-market-system-head h4{margin:3px 0 4px; color:#20211e; font-size:15px}
   .gtm-market-system-head p{max-width:760px; margin:0; color:#6f706a; font-size:11px; line-height:1.5}
-  .industry-fit{display:grid; grid-template-columns:350px minmax(820px,1fr);
-                gap:18px; align-items:stretch; width:max-content; min-width:1220px; margin:0 auto}
+  .industry-fit{display:grid; grid-template-columns:440px minmax(850px,1fr);
+                gap:18px; align-items:stretch; width:max-content; min-width:1320px; margin:0 auto}
   .industry-fit-preview{display:grid; grid-template-columns:minmax(0,1fr) 42px minmax(0,1fr);
                         align-items:start; gap:10px; width:100%; height:100%; margin:0;
                         padding:16px; border:1px solid #e0e2dd; border-radius:6px;
@@ -1699,11 +1699,11 @@
                                     background:#fbfbfa}
   .industry-fit-axis-row{display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:5px;
                          width:100%}
-  .industry-fit-axis-row button{min-width:0; min-height:38px; padding:7px 3px;
+  .industry-fit-axis-row button{min-width:0; min-height:42px; padding:7px 6px;
                                 border:1px solid #d8dcd7; border-radius:3px;
-                                background:#fff; color:#777d77; font-size:11px; font-weight:800;
-                                line-height:1.2; letter-spacing:.035em; text-align:center;
-                                text-transform:uppercase; white-space:nowrap; overflow-wrap:normal}
+                                background:#fff; color:#777d77; font-size:9px; font-weight:800;
+                                line-height:1.25; letter-spacing:.02em; text-align:center;
+                                text-transform:uppercase; white-space:normal; overflow-wrap:anywhere}
   .industry-fit-axis-row button:hover:not(:disabled){border-color:#8ec69f; background:#f2faf4; color:#2b6840}
   .industry-fit-axis-row button:focus-visible{outline:2px solid #2f9a54; outline-offset:1px}
   .industry-fit-axis-row button.on{border-color:#78c491; background:#eaf8ee; color:#216c3d}
@@ -1743,26 +1743,30 @@
                          border-top:1px solid #e4e6e2; color:#252925;
                          font-size:9px; font-weight:750; text-align:center;
                          letter-spacing:.035em; text-transform:uppercase}
-  .industry-matrix-wrap{padding:12px; border:1px solid #e0e2dd; border-radius:6px;
+  .industry-matrix-wrap{padding:12px; overflow-x:auto; border:1px solid #e0e2dd; border-radius:6px;
                         background:rgba(255,255,255,.76)}
-  .industry-market-matrix{width:100%; min-width:800px; border-collapse:separate; border-spacing:5px;
-                          table-layout:fixed}
-  .industry-market-matrix th{height:38px; padding:7px 8px; border:1px solid #1e231f;
-                             background:#171c18; color:#f5f7f4; font-size:9px; font-weight:800;
-                             letter-spacing:.08em; text-align:center; text-transform:uppercase}
-  .industry-market-matrix th:first-child{width:118px; color:#9bd5ae}
-  .industry-market-matrix td{padding:0; vertical-align:stretch}
-  .industry-market-cell{display:flex; flex-direction:column; justify-content:center; width:100%; min-height:108px;
-                        padding:12px 10px; border:1px solid #d4d8d3; border-radius:4px;
+  .industry-market-grid{display:grid; grid-template-columns:126px repeat(4,minmax(174px,1fr));
+                        grid-auto-rows:auto; gap:5px; width:100%; min-width:842px}
+  .industry-market-corner,.industry-market-column,.industry-market-row{
+    display:flex; align-items:center; justify-content:center; min-height:40px; padding:7px 8px;
+    box-sizing:border-box; border:1px solid #1e231f; background:#171c18; color:#f5f7f4;
+    font-size:9px; font-weight:800; letter-spacing:.07em; line-height:1.25;
+    text-align:center; text-transform:uppercase
+  }
+  .industry-market-corner{color:#9bd5ae}
+  .industry-market-row{min-height:112px; color:#9bd5ae}
+  .industry-market-cell{display:flex; flex-direction:column; justify-content:center; width:100%; min-width:0;
+                        min-height:112px; padding:12px 10px; box-sizing:border-box;
+                        border:1px solid #d4d8d3; border-radius:4px;
                         background:#fff; color:#272c28; text-align:left; cursor:pointer}
   .industry-market-cell:hover:not(:disabled){border-color:#8ec69f; background:#f5faf6}
   .industry-market-cell:focus-visible{outline:2px solid #2f9a54; outline-offset:1px}
   .industry-market-cell.on{border-color:#57c982; background:#edf9f1;
                            box-shadow:0 0 0 1px rgba(87,201,130,.14)}
   .industry-market-cell strong{display:block; color:#236a3d; font-size:10px; line-height:1.35;
-                               letter-spacing:.025em; text-transform:uppercase}
+                               letter-spacing:.025em; overflow-wrap:anywhere; text-transform:uppercase}
   .industry-market-cell span{display:block; margin-top:8px; padding-top:8px; border-top:1px solid #e4e7e3;
-                             color:#687068; font-size:9px; line-height:1.45}
+                             color:#687068; font-size:9px; line-height:1.45; overflow-wrap:anywhere}
   .industry-market-cell span b{color:#8a908a; font-size:8px; letter-spacing:.08em; text-transform:uppercase}
   @media(max-width:1050px){
     .gtm-market-system-head{min-width:1180px}
@@ -9582,21 +9586,22 @@ function renderIndustryFit(ro){
   preview.append(previewLeft, previewRight);
 
   const matrixWrap = document.createElement('div'); matrixWrap.className = 'industry-matrix-wrap';
-  const table = document.createElement('table'); table.className = 'industry-market-matrix';
-  const thead = document.createElement('thead');
-  const headerRow = document.createElement('tr');
-  const corner = document.createElement('th'); corner.scope = 'col'; corner.textContent = 'Selling ↓ / Receiving →';
-  headerRow.append(corner);
-  axes.forEach(axis => { const th = document.createElement('th'); th.scope = 'col'; th.textContent = axis.label; headerRow.append(th); });
-  thead.append(headerRow); table.append(thead);
-  const tbody = document.createElement('tbody');
+  const grid = document.createElement('div'); grid.className = 'industry-market-grid';
+  grid.setAttribute('role', 'grid');
+  grid.setAttribute('aria-label', 'Selling component by receiving component market matrix');
+  const corner = document.createElement('div'); corner.className = 'industry-market-corner'; corner.textContent = 'Selling ↓ / Receiving →';
+  grid.append(corner);
+  axes.forEach(axis => {
+    const column = document.createElement('div'); column.className = 'industry-market-column';
+    column.setAttribute('role', 'columnheader'); column.textContent = axis.label; grid.append(column);
+  });
   axes.forEach(selling => {
-    const row = document.createElement('tr');
-    const rowHead = document.createElement('th'); rowHead.scope = 'row'; rowHead.textContent = selling.label; row.append(rowHead);
+    const rowHead = document.createElement('div'); rowHead.className = 'industry-market-row';
+    rowHead.setAttribute('role', 'rowheader'); rowHead.textContent = selling.label; grid.append(rowHead);
     axes.forEach(receiving => {
       const model = markets.find(item => item.selling === selling.id && item.buying === receiving.id);
-      const cell = document.createElement('td');
       const button = document.createElement('button'); button.type = 'button'; button.className = 'industry-market-cell'; button.disabled = ro;
+      button.setAttribute('role', 'gridcell');
       const active = sellingAxis === model.selling && buyingAxis === model.buying;
       if (active) button.classList.add('on');
       button.setAttribute('aria-pressed', active ? 'true' : 'false');
@@ -9619,11 +9624,10 @@ function renderIndustryFit(ro){
         renderBrandRadar();
         toast(model.market + ' selected.');
       };
-      cell.append(button); row.append(cell);
+      grid.append(button);
     });
-    tbody.append(row);
   });
-  table.append(tbody); matrixWrap.append(table);
+  matrixWrap.append(grid);
   host.append(preview, matrixWrap);
 }
 function renderPositioning(){

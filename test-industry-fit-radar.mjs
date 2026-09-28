@@ -23,16 +23,20 @@ assert(html.includes("market:'Business Inputs / Information Services market'"));
 assert(html.includes("market:'Consumer Goods market'"));
 assert(html.includes("market:'Commodities / Materials market'"));
 assert.equal((html.match(/selling:'(?:technology|process|people|input)',buying:'(?:technology|process|people|input)',market:/g)||[]).length,16);
+assert(html.includes("grid.className = 'industry-market-grid'"));
 assert(html.includes("button.className = 'industry-market-cell'"));
 assert(html.includes("evolutionState().axis = model.selling;"));
 assert(html.includes("buying.buyingAxis = model.buying;"));
 assert(html.includes("buying.industryModel = model.selling + '-' + model.buying;"));
 assert(html.includes("renderIndustryFit(readOnly());\n  const t = channelState();"));
 assert(html.includes("sharedPagesLabel.textContent = 'Pages to create'"));
-assert(/\.industry-market-matrix\{[^}]*table-layout:fixed/.test(html));
-assert(/\.industry-market-cell\{[^}]*min-height:108px/.test(html));
+assert(/\.industry-market-grid\{[^}]*grid-template-columns:126px repeat\(4,minmax\(174px,1fr\)\)/.test(html));
+assert(/\.industry-market-cell\{[^}]*min-height:112px/.test(html));
 assert(html.indexOf('id="gtmIndustryFit"') < html.indexOf('id="chanFlow"'));
 assert(html.includes('renderIcpCards(p, ro, activeBuyingIndustryAxis())'));
+assert(html.includes("rowHead.className = 'industry-market-row'"));
+assert(html.includes("column.className = 'industry-market-column'"));
+assert(html.includes('white-space:normal; overflow-wrap:anywhere'));
 
 const scripts=[...html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/g)]
   .map(match=>match[1]).filter(source=>source.trim());
