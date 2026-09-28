@@ -1215,6 +1215,10 @@
   .product-switcher button[aria-pressed="true"]{background:#e2f4e7; border-color:#71bf88; color:#225f35; font-weight:700}
   .product-switcher button:focus-visible{outline:2px solid #328b50; outline-offset:-2px}
   .product-switcher:not([hidden]) + .acct{margin-left:10px}
+  .ocean-switcher{margin-left:4px;max-width:none}
+  #productSwitcher[hidden] ~ .ocean-switcher:not([hidden]){margin-left:auto}
+  .ocean-switcher button[data-ocean="red"][aria-pressed="true"]{background:#fff0ed;border-color:#d97868;color:#8a2f24}
+  .ocean-switcher button[data-ocean="blue"][aria-pressed="true"]{background:#edf5ff;border-color:#679bd2;color:#245b91}
   .client-product-editor{display:grid; gap:8px; margin:12px 0; max-height:40vh; overflow:auto}
   .arch-prompts{width:min(660px,calc(100vw - 40px)); max-height:85vh; padding:24px;
     border:1px solid #cfd8d1; background:#fbfcf9; color:#303b33; box-shadow:0 20px 70px #15251c30}
@@ -2471,6 +2475,7 @@
       </select>
 
       <div id="productSwitcher" class="product-switcher" role="group" aria-label="Product" hidden></div>
+      <div id="oceanSwitcher" class="product-switcher ocean-switcher" role="group" aria-label="Market type" hidden></div>
       <!-- who you are, and which view you are looking through -->
       <div class="acct" id="acct">
         <button class="acct-btn" id="acctBtn" type="button" title="Account and view">
@@ -4850,6 +4855,7 @@ function activateProduct(productId){
 }
 function renderProductSwitcher(){
   renderKeywordModeFilter();
+  renderOceanSwitcher();
   const host = $('productSwitcher');
   const shown = state.screen !== 'settings' && state.screen !== 'clients' &&
     state.screen !== 'atypes' && state.screen !== 'mcp' && productScopedTabs().includes(state.tab);
@@ -5949,6 +5955,7 @@ function openClientSettings(){
     state.clientType = typeIn.value;
     state.clientGoal = goalIn.value.trim() || 'Customer Acquisition';
     state.clientMarketType = marketIn.value;
+    renderOceanSwitcher();
     state.clientSalesMotion = salesMotionIn.value;
     state.clientIcp1 = icp1In.value.trim() || 'New Entrants';
     const guide = strategyOneState();
@@ -7188,6 +7195,29 @@ function modeSwitch(current, disabled, onPick){
     wrap.append(btn);
   });
   return wrap;
+}
+
+function renderOceanSwitcher(){
+  const host = $('oceanSwitcher');
+  if (!host) return;
+  const selected = state.clientMarketType === 'red' || state.clientMarketType === 'blue' ? state.clientMarketType : '';
+  host.hidden = state.screen !== 'board' || !selected || !state.client;
+  host.replaceChildren();
+  if (host.hidden) return;
+  [['red','Red Ocean'],['blue','Blue Ocean']].forEach(([value,label]) => {
+    const button = document.createElement('button'); button.type = 'button';
+    button.textContent = label; button.dataset.ocean = value;
+    button.setAttribute('aria-pressed', String(selected === value));
+    button.disabled = readOnly();
+    button.onclick = () => {
+      if (readOnly() || state.clientMarketType === value) return;
+      state.clientMarketType = value;
+      const guide = strategyOneState(); guide.ocean = value; guide.opened = true;
+      markDirty(); renderOceanSwitcher();
+      if (state.tab === STRATEGY_ONE_TAB || state.tab === CHANNELS_TAB) renderStrategyGuide();
+    };
+    host.append(button);
+  });
 }
 
 let keywordMode = 'aeo';
@@ -13014,6 +13044,7 @@ function strategyNode(host, value, title, detail, current){
     strategyOneState().ocean = value;
     state.clientMarketType = value;
     markDirty();
+    renderOceanSwitcher();
     renderStrategyGuide();
   };
   host.append(b);
