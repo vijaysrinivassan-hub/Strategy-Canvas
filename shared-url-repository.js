@@ -105,6 +105,7 @@
         defaults:{mode,type:typeId(types,group),aw:''},...(group==='matrix'?{matrixGroup:matrixGroup(viewId,axis)}:viewId==='icp'?{axis:/role|people/.test(key)?'people':/tech/.test(key)?'technology':/size|input/.test(key)?'input':'process'}:{})};
       columns.push(column);view.pageOrders[group]=columns.map(item=>item.id);
     }
+    if(group==='matrix'&&!column.matrixGroup)column.matrixGroup=matrixGroup(viewId,axis);
     const guidance='Workbook URL grouping: create one content cell per URL unless the source workbook explicitly groups URLs between separator lines. Keep every separator-delimited URL group in one cell. A group containing a Maximus Labs URL is already covered and appears red. Keep URL and keyword evidence editable and removable.';
     if(!String(column.instruction||'').includes('Workbook URL grouping:'))column.instruction=(String(column.instruction||'').trim()+' '+guidance).trim();
     return column;
@@ -117,11 +118,10 @@
   }
   function clearPreviousMappings(root){
     Object.values(root.views||{}).forEach(view=>{
-      (view.rows||[]).forEach(row=>Object.values(row.cells||{}).forEach(cell=>{if(cell&&typeof cell==='object')delete cell.repositoryQueries;}));
       view.rows=(view.rows||[]).filter(row=>{
         if(!row.repositoryHierarchy)return true;
-        const cells=Object.values(row.cells||{});
-        if(cells.some(hasUserContent)){delete row.repositoryHierarchy;return true;}
+        for(const [id,cell] of Object.entries(row.cells||{}))if(cell?.repositoryQueries?.length)delete row.cells[id];
+        if(Object.values(row.cells||{}).some(cell=>hasUserContent(cell)||cell?.v)){delete row.repositoryHierarchy;delete row.repositoryRowSlot;return true;}
         return false;
       });
       for(const group of Object.keys(view.pageColumns||{})){
@@ -135,6 +135,13 @@
       }
     });
   }
+  function captureRepositoryState(root){
+    const saved=new Map();
+    Object.values(root.views||{}).forEach(view=>(view.rows||[]).forEach(row=>Object.values(row.cells||{}).forEach(cell=>{
+      for(const query of cell?.repositoryQueries||[]){if(!query.topicGroup||saved.has(query.topicGroup))continue;const snapshot={...cell};delete snapshot.repositoryQueries;saved.set(query.topicGroup,snapshot);}
+    })));
+    return saved;
+  }
   function mappedRowsFirst(view){
     const rows=view.rows||[],groups=['listicle','landing','informational','matrix'];
     groups.forEach(group=>{
@@ -142,6 +149,27 @@
       const ordered=positions.map(index=>rows[index]).sort((a,b)=>Number(!!b.repositoryHierarchy)-Number(!!a.repositoryHierarchy));
       positions.forEach((position,index)=>{rows[position]=ordered[index];});
     });
+  }
+  function compactRepositoryCells(view){
+    const rows=view.rows||[];
+    for(const group of ['listicle','landing','informational','matrix']){
+      const generated=rows.filter(row=>row.pageGroup===group&&row.repositoryHierarchy);
+      if(!generated.length)continue;
+      const columnIds=[...new Set(generated.flatMap(row=>Object.keys(row.cells||{})))];
+      const packed=new Map(columnIds.map(id=>[id,generated.map(row=>row.cells?.[id]).filter(cell=>cell?.repositoryQueries?.length)]));
+      generated.forEach(row=>columnIds.forEach(id=>delete row.cells[id]));
+      const needed=Math.max(0,...[...packed.values()].map(cells=>cells.length));
+      for(let index=0;index<needed;index++)for(const id of columnIds){const cell=packed.get(id)[index];if(cell)generated[index].cells[id]=cell;}
+      generated.slice(0,needed).forEach((row,index)=>{row.repositoryRowSlot=index;const first=Object.values(row.cells||{})[0];if(group==='matrix'&&first?.v)row.name=first.v;});
+      const redundant=new Set(generated.slice(needed));
+      if(redundant.size)view.rows=view.rows.filter(row=>!redundant.has(row));
+    }
+    const matrixColumns=view.pageColumns?.matrix;
+    if(Array.isArray(matrixColumns)){
+      const used=new Set((view.rows||[]).filter(row=>row.pageGroup==='matrix').flatMap(row=>Object.keys(row.cells||{})));
+      view.pageColumns.matrix=matrixColumns.filter(column=>column.matrixGroup||used.has(column.id));
+      if(Array.isArray(view.pageOrders?.matrix))view.pageOrders.matrix=view.pageOrders.matrix.filter(id=>view.pageColumns.matrix.some(column=>column.id===id));
+    }
   }
   function ensureRow(view,group,hierarchy,slot,uid){
     view.rows ||= [];
@@ -154,8 +182,9 @@
   }
   function installMappings(root,types,options={}){
     if(!root?.views||!productMatches(options.product)||!data())return false;
-    const revision=(data().classifiedAt||'classification')+':workbook-groups-v3';
+    const revision=(data().classifiedAt||'classification')+':packed-columns-v4';
     if(root.sharedUrlRepositoryRevision===revision)return false;
+    const preserved=captureRepositoryState(root);
     clearPreviousMappings(root);
     const uid=options.uid||(()=>Math.random().toString(36).slice(2));
     let linked=0;
@@ -168,12 +197,13 @@
       const column=ensureColumn(viewId,view,group,record.axis,mode,types);
       const row=ensureRow(view,group,record.hierarchy,record.groupOrder,uid);
       const current=row.cells[column.id]&&typeof row.cells[column.id]==='object'?row.cells[column.id]:{};
+      const saved=preserved.get(record.topicGroup)||{};
       const spec={section:record.section,pageType:record.pageType,hierarchy:record.hierarchy,axis:record.axis,topicGroup:record.topicGroup};
       const queries=Array.isArray(current.repositoryQueries)?current.repositoryQueries.slice():[];
       if(!queries.some(item=>JSON.stringify(item)===JSON.stringify(spec)))queries.push(spec);
-      row.cells[column.id]={...current,v:current.v||record.topic||record.hierarchy,mode,type:current.type||typeId(types,format),cfg:true,repositoryQueries:queries};linked++;
+      row.cells[column.id]={...current,...saved,v:saved.v||current.v||record.topic||record.hierarchy,mode,type:saved.type||current.type||typeId(types,format),cfg:true,repositoryQueries:queries};linked++;
     });
-    Object.values(root.views).forEach(mappedRowsFirst);
+    Object.values(root.views).forEach(view=>{compactRepositoryCells(view);mappedRowsFirst(view);});
     root.sharedUrlRepositoryRevision=revision;root.sharedUrlLinkedCount=linked;return true;
   }
   global.SharedUrlRepository={load,records,query,resolve,installMappings,productMatches,pageGroup,sectionFor};

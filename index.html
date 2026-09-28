@@ -733,6 +733,8 @@
                font-variant-numeric:tabular-nums}
   .gr-page-urls{display:flex; flex-direction:column; border-top:1px solid var(--line-2);
                 background:rgba(248,251,249,.86)}
+  .gr-page-urls.scrolling{max-height:230px;overflow-y:auto;overscroll-behavior:contain}
+  .gr-page-urls.scrolling .gr-url-total{position:sticky;bottom:0;z-index:1}
   .gr-page-url{display:grid; grid-template-columns:minmax(0,1fr) 82px 20px; align-items:center;
                gap:5px; min-height:30px; padding:3px 7px; border-bottom:1px solid var(--line-2)}
   .gr-cell .gr-page-url input[type=text],.gr-cell .gr-page-url input[type=number]{
@@ -6522,6 +6524,7 @@ function renderPageUrlEvidence(td, o){
   td.classList.toggle('maximus-covered', rows.some(row => row.covered));
   if (!rows.length){ host.hidden = true; return; }
   host.hidden = false;
+  host.classList.toggle('scrolling',rows.length>5);
   const saveRows = function(next){
     o.set({ pageUrls: next });
     o.refreshEmpty();

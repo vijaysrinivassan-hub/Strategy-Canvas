@@ -23,6 +23,8 @@ assert(!html.includes("td.dataset.sharedUrlsOpen === 'true'"));
 assert(html.includes("url.disabled = o.ro"));assert(html.includes("nextOverrides[row.id]"));
 assert(html.includes("remove.title = 'Remove URL'"));assert(html.includes("remove.title='Remove keyword'"));
 assert(html.includes("classList.toggle('maximus-covered'"));
+assert(html.includes("host.classList.toggle('scrolling',rows.length>5)"));
+assert(/\.gr-page-urls\.scrolling\{max-height:230px;overflow-y:auto/.test(html));
 assert(html.includes("pageUrls.push({ id: uid(), url: '', traffic: '' })"));
 assert(/\.gr-page-url\{[^}]*grid-template-columns:minmax\(0,1fr\) 82px 20px/.test(html));
 console.log('PASS: every shared keyword cell supports repeatable URL rows, per-page traffic, persistence, removal and traffic totals.');
