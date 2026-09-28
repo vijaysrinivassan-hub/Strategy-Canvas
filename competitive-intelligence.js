@@ -8,6 +8,23 @@
     if (!/^https?:\/\//i.test(text)) text = 'https://' + text;
     try { return new URL(text).href; } catch { return ''; }
   };
+  let classificationLoad;
+  function loadClassifications(){
+    if (global.CompetitiveIntelligenceClassifications) return Promise.resolve(global.CompetitiveIntelligenceClassifications);
+    if (!classificationLoad){
+      classificationLoad = fetch('competitive-intelligence-classifications.json', {cache:'no-store'})
+        .then(response => {
+          if (!response.ok) throw new Error('Could not load Competitive Intelligence classifications.');
+          return response.json();
+        })
+        .then(data => { global.CompetitiveIntelligenceClassifications = data; return data; })
+        .catch(error => { console.error(error); return null; });
+    }
+    return classificationLoad;
+  }
+  function classificationOf(value){
+    return global.CompetitiveIntelligenceClassifications?.classifications?.[String(value || '').replace(/\/$/,'')] || null;
+  }
   function normalize(tab){
     if (!Array.isArray(tab.competitors)) tab.competitors = [];
     tab.competitors.forEach(item => {
@@ -39,12 +56,6 @@
     complete:'Sitemap complete', indexed_snapshot:'Indexed snapshot',
     domain_required:'Domain required', empty:'Empty'
   }[status] || status.replaceAll('_',' '));
-  function sectionOf(value){
-    try {
-      const parts = new URL(value).pathname.split('/').filter(Boolean);
-      return parts[0] || 'Homepage';
-    } catch { return 'Other'; }
-  }
   function render(host, tab, options = {}){
     normalize(tab); host.innerHTML = '';
     const ro = !!options.readOnly, changed = () => options.onChange?.();
@@ -129,17 +140,28 @@
     tools.append(search,addUrl,copy); detail.append(tools);
     const wrap = document.createElement('div'); wrap.className = 'ci-url-wrap';
     const table = document.createElement('table'); table.className = 'ci-url-table';
-    const thead = document.createElement('thead'); thead.innerHTML = '<tr><th>#</th><th>URL</th><th>Section</th></tr>';
+    const thead = document.createElement('thead'); thead.innerHTML = '<tr><th>#</th><th>URL</th><th>Strategic section</th><th>Page type</th><th>Classification</th></tr>';
     const body = document.createElement('tbody'); table.append(thead,body); wrap.append(table); detail.append(wrap);
     const draw = () => {
       const query = search.value.trim().toLowerCase(); body.innerHTML = '';
-      active.urls.filter(url => !query || url.toLowerCase().includes(query)).forEach((url,index) => {
-        const row = document.createElement('tr'), num = document.createElement('td'), cell = document.createElement('td'), type = document.createElement('td');
+      const visible = active.urls.filter(url => {
+        const meta = classificationOf(url);
+        const haystack = [url,meta?.section,meta?.pageType,meta?.hierarchy,meta?.axis].filter(Boolean).join(' ').toLowerCase();
+        return !query || haystack.includes(query);
+      });
+      visible.forEach((url,index) => {
+        const meta = classificationOf(url);
+        const row = document.createElement('tr'), num = document.createElement('td'), cell = document.createElement('td');
+        const section = document.createElement('td'), pageType = document.createElement('td'), classification = document.createElement('td');
         num.textContent = String(index + 1); const link = document.createElement('a'); link.href = url; link.target = '_blank'; link.rel = 'noopener noreferrer'; link.textContent = url;
-        const code = document.createElement('code'); code.textContent = sectionOf(url); cell.append(link); type.append(code); row.append(num,cell,type); body.append(row);
+        const sectionCode = document.createElement('code'); sectionCode.textContent = meta?.section || 'Unclassified';
+        const pageTypeCode = document.createElement('code'); pageTypeCode.textContent = meta?.pageType || 'Unclassified';
+        const classificationCode = document.createElement('code'); classificationCode.textContent = [meta?.hierarchy,meta?.axis].filter(Boolean).join(' · ') || 'Unclassified';
+        cell.append(link); section.append(sectionCode); pageType.append(pageTypeCode); classification.append(classificationCode);
+        row.append(num,cell,section,pageType,classification); body.append(row);
       });
     };
     search.oninput = draw; draw(); board.append(list,detail); host.append(board);
   }
-  global.CompetitiveIntelligence = { ensure, normalize, render };
+  global.CompetitiveIntelligence = { ensure, normalize, render, loadClassifications, classificationOf };
 })(window);

@@ -10365,13 +10365,14 @@ function renderCommunicationStrategyCanvas(){
   requestAnimationFrame(drawCommunicationWires);
 }
 
-function renderCompetitiveIntelligence(){
+async function renderCompetitiveIntelligence(){
   const model = state.tabs[COMPETITIVE_INTELLIGENCE_TAB] ||
     (state.tabs[COMPETITIVE_INTELLIGENCE_TAB] = { nodes: [], edges: [] });
   if (!window.CompetitiveIntelligence){
     $('ciHost').textContent = 'Competitive Intelligence could not be loaded.';
     return;
   }
+  await window.CompetitiveIntelligence.loadClassifications();
   const seeded = window.CompetitiveIntelligence.ensure(model, state.client, state.clientProduct);
   if (seeded && !readOnly()) markDirty();
   window.CompetitiveIntelligence.render($('ciHost'), model, {

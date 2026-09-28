@@ -32,7 +32,7 @@
 .ci-tools button{height:34px;background:#fff;font-size:8px}.ci-tools .primary{border-color:#5dac76;background:#1c231e;color:#fff}
 .ci-url-wrap{height:420px;margin:0 20px 20px;overflow:auto;border:1px solid #d5dcd6}
 .ci-url-table{width:100%;border-collapse:collapse;table-layout:fixed}.ci-url-table th{position:sticky;top:0;z-index:1;padding:9px 10px;border-right:1px solid #343a35;background:#151a16;color:#eef2ef;font-size:8px;letter-spacing:.07em;text-align:left;text-transform:uppercase}
-.ci-url-table th:first-child{width:52px}.ci-url-table th:nth-child(3){width:130px}.ci-url-table td{padding:8px 10px;border-top:1px solid #e1e5e2;border-right:1px solid #e1e5e2;color:#4b554e;font-size:9px;vertical-align:top}
+.ci-url-table th:first-child{width:52px}.ci-url-table th:nth-child(3){width:145px}.ci-url-table th:nth-child(4){width:120px}.ci-url-table th:nth-child(5){width:230px}.ci-url-table td{padding:8px 10px;border-top:1px solid #e1e5e2;border-right:1px solid #e1e5e2;color:#4b554e;font-size:9px;vertical-align:top}
 .ci-url-table tr:first-child td{border-top:0}.ci-url-table a{color:#2f6641;word-break:break-all}.ci-url-table code{font:8px/1.4 ui-monospace,SFMono-Regular,Consolas,monospace;color:#778078}
 .ci-empty{display:grid;place-items:center;min-height:520px;padding:40px;color:#7a837c;text-align:center}.ci-empty b{display:block;margin-bottom:7px;color:#313832;font-size:14px}
 @media(max-width:1100px){.ci{padding:18px}.ci-shell{min-width:920px}.ci-board{grid-template-columns:240px minmax(660px,1fr)}}
