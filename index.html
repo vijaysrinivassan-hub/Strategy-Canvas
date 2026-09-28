@@ -6524,11 +6524,23 @@ function statusSelect(current, disabled, onPick){
 
 const keywordStatusFilter = new Set();
 let keywordStatusFilterOpen = false;
+let keywordStatusOutsideBound = false;
 function keywordStatusMatches(cells){
   if (!keywordStatusFilter.size) return true;
   return (cells || []).some(cell => cell && typeof cell === 'object' && keywordStatusFilter.has(cell.st || ''));
 }
+function bindKeywordStatusOutsideClick(){
+  if (keywordStatusOutsideBound) return;
+  keywordStatusOutsideBound = true;
+  document.addEventListener('pointerdown', function(event){
+    const details = $('keywordStatusToolbar')?.querySelector('.keyword-status-filter');
+    if (!details?.open || details.contains(event.target)) return;
+    keywordStatusFilterOpen = false;
+    details.open = false;
+  }, true);
+}
 function renderKeywordStatusFilter(){
+  bindKeywordStatusOutsideClick();
   let host = $('keywordStatusToolbar');
   if (!host){
     host = document.createElement('div'); host.id = 'keywordStatusToolbar'; host.className = 'keyword-status-toolbar';
@@ -7624,6 +7636,12 @@ function renderGridTable(v, group, table){
       td.className = 'gr-cell' + ((untouched || cellQuiet(cell, kws.length)) ? ' empty' : '') + (cell.on ? ' planned' : '')
                    + (cell.st === 'written' ? ' written' : '');
       td.dataset.status = cell.st || '';
+      if (keywordStatusFilter.size && !keywordStatusFilter.has(cell.st || '')){
+        td.className = 'gr-cell empty status-filtered-out';
+        td.setAttribute('aria-hidden','true');
+        tr.append(td);
+        return;
+      }
 
       const inp = document.createElement('input');
       inp.type = 'text';
