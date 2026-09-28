@@ -2393,6 +2393,10 @@
   .gr-status[data-status="selected"],.gr-status option[data-status="selected"]{--status-bg:#def5f2;--status-fg:#00695c;--status-border:#85c9bd}
   .gr-status[data-status="rejected"],.gr-status option[data-status="rejected"]{--status-bg:#fde8e8;--status-fg:#a32626;--status-border:#e4a0a0}
   .gr-status option[data-status=""]{--status-bg:#fff;--status-fg:#465367}
+  .gr-status[data-status="plus_2"],.gr-status option[data-status="plus_2"]{--status-bg:#dfeeff;--status-fg:#174e9c;--status-border:#76a9e6}
+  .mx-table td.gr-cell[data-status="for_review"],.comparison-table td.gr-cell[data-status="for_review"]{background:#fff3d6 !important;box-shadow:inset 3px 0 #d9a928}
+  .mx-table td.gr-cell[data-status="written"],.comparison-table td.gr-cell[data-status="written"]{background:#fde8e8 !important;box-shadow:inset 3px 0 #c74444}
+  .mx-table td.gr-cell[data-status="plus_2"],.comparison-table td.gr-cell[data-status="plus_2"]{background:#dfeeff !important;box-shadow:inset 3px 0 #397dcc}
 .keyword-page-section { margin: 0 0 32px; }
 .keyword-page-section > h3 { margin: 0; padding: 20px 16px 12px; font-size: 15px; color: #17221c; }
 .keyword-grid-pager{display:flex;align-items:center;justify-content:flex-end;gap:8px;padding:8px 16px;border-top:1px solid #dce4df;border-bottom:1px solid #dce4df;background:#f7faf8;color:#5f6e64;font-size:11px}
@@ -6482,6 +6486,7 @@ const STATUS = [
   { id: 'review',   label: 'Sent for review' },
   { id: 'progress', label: 'In progress' },
   { id: 'planned',  label: 'Planned' },
+  { id: 'plus_2', label: 'Plus 2 pages' },
   { id: 'for_review', label: 'For review' },
   { id: 'selected', label: 'Selected' },
   { id: 'rejected', label: 'Rejected' }
@@ -6695,6 +6700,7 @@ function cellControls(td, o){
     o.set({ st: id });
     /* the full render used to paint this; only the cell redraws now */
     td.classList.toggle('written', id === 'written');
+    td.dataset.status = id || '';
     o.refreshEmpty();
     markDirty();
     redraw();              /* the tick comes or goes with it */
@@ -7324,6 +7330,7 @@ function renderMatrix(){
       const untouched = !m.cells[cellKey];
       td.className = 'gr-cell' + ((untouched || cellQuiet(st, rows.length)) ? ' empty' : '') + (st.on ? ' planned' : '')
                    + (st.st === 'written' ? ' written' : '');
+      td.dataset.status = st.st || '';
 
       /* the cell's own words: the title or keyword this article is about */
       const inp = document.createElement('input');
@@ -7616,6 +7623,7 @@ function renderGridTable(v, group, table){
       const untouched = !row.cells[col.id];
       td.className = 'gr-cell' + ((untouched || cellQuiet(cell, kws.length)) ? ' empty' : '') + (cell.on ? ' planned' : '')
                    + (cell.st === 'written' ? ' written' : '');
+      td.dataset.status = cell.st || '';
 
       const inp = document.createElement('input');
       inp.type = 'text';

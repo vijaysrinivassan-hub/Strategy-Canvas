@@ -30,6 +30,10 @@ assert(icpSeoCells.length>0);assert.equal(new Set(icpSeoCells.flatMap(cell=>repo
 assert(cells.some(cell=>repo.resolve(cell.repositoryQueries).length===1));
 assert(cells.some(cell=>repo.resolve(cell.repositoryQueries).length>1));
 assert(cells.every(cell=>cell.repositoryQueries.every(query=>query.topicGroup)));
+assert(cells.every(cell=>['written','plus_2','for_review'].includes(cell.st)));
+assert(cells.filter(cell=>repo.resolve(cell.repositoryQueries).some(row=>row.covered)).every(cell=>cell.st==='written'));
+assert(cells.filter(cell=>!repo.resolve(cell.repositoryQueries).some(row=>row.covered)&&repo.resolve(cell.repositoryQueries).length>2).every(cell=>cell.st==='plus_2'));
+assert(cells.filter(cell=>!repo.resolve(cell.repositoryQueries).some(row=>row.covered)&&repo.resolve(cell.repositoryQueries).length<=2).every(cell=>cell.st==='for_review'));
 assert(Object.values(root.views).flatMap(view=>Object.values(view.pageColumns||{}).flat()).filter(column=>column.instruction).every(column=>column.instruction.includes('Workbook URL grouping:')));
 for(const view of Object.values(root.views))for(const group of ['listicle','landing','informational','matrix']){
   const rows=(view.rows||[]).filter(row=>row.pageGroup===group&&row.repositoryHierarchy);if(!rows.length)continue;
@@ -38,10 +42,11 @@ for(const view of Object.values(root.views))for(const group of ['listicle','land
 }
 for(const view of [root.views.icp,root.views.value])assert((view.pageColumns?.matrix||[]).every(column=>column.matrixGroup));
 const editedCell=cells.find(cell=>cell.repositoryQueries?.[0]?.topicGroup),editedGroup=editedCell.repositoryQueries[0].topicGroup;
+const editedRows=repo.resolve(editedCell.repositoryQueries),editedExpectedStatus=editedRows.some(row=>row.covered)?'written':editedRows.length>2?'plus_2':'for_review';
 editedCell.v='Edited title';editedCell.st='planned';editedCell.repositoryUrlOverrides={[repo.resolve(editedCell.repositoryQueries)[0].id]:{url:'https://edited.example/preserved',traffic:'7'}};
 root.sharedUrlRepositoryRevision='force-repack';assert.equal(repo.installMappings(root,types,{product:'Answer Engine Optimization Agency',uid:()=>'repack-'+(++n)}),true);
 const repacked=Object.values(root.views).flatMap(view=>(view.rows||[]).flatMap(row=>Object.values(row.cells||{}))).find(cell=>cell.repositoryQueries?.some(query=>query.topicGroup===editedGroup));
-assert.equal(repacked.v,'Edited title');assert.equal(repacked.st,'planned');assert.equal(Object.values(repacked.repositoryUrlOverrides)[0].url,'https://edited.example/preserved');
+assert.equal(repacked.v,'Edited title');assert.equal(repacked.st,editedExpectedStatus);assert.equal(Object.values(repacked.repositoryUrlOverrides)[0].url,'https://edited.example/preserved');
 assert(root.views.value.rows.filter(row=>row.pageGroup==='matrix').every(row=>Object.values(row.cells).every(cell=>cell.mode==='aeo')));
 assert(root.views.value.rows.filter(row=>row.pageGroup==='informational').every(row=>Object.values(row.cells).every(cell=>cell.mode==='seo')));
 const aliasRoot={views:{category:{columns:[],pageColumns:{listicle:[{id:'existing-category',name:'Category Names'}]},rows:[{id:'blank',pageGroup:'listicle',cells:{}}]},icp:{columns:[],rows:[]},value:{columns:[],rows:[]}},sharedUrlRepositoryRevision:'old:existing-cells-v1'};

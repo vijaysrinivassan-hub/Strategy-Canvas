@@ -150,6 +150,14 @@
       positions.forEach((position,index)=>{rows[position]=ordered[index];});
     });
   }
+  function applyRepositoryStatuses(root){
+    Object.values(root.views||{}).forEach(view=>(view.rows||[]).forEach(row=>Object.values(row.cells||{}).forEach(cell=>{
+      if(!cell?.repositoryQueries?.length)return;
+      const imported=resolve(cell.repositoryQueries,cell.repositoryUrlOverrides);
+      const manualCount=Array.isArray(cell.pageUrls)?cell.pageUrls.filter(item=>String(item?.url||'').trim()).length:0;
+      cell.st=imported.some(item=>item.covered)?'written':imported.length+manualCount>2?'plus_2':'for_review';
+    })));
+  }
   function compactRepositoryCells(view){
     const rows=view.rows||[];
     for(const group of ['listicle','landing','informational','matrix']){
@@ -182,7 +190,7 @@
   }
   function installMappings(root,types,options={}){
     if(!root?.views||!productMatches(options.product)||!data())return false;
-    const revision=(data().classifiedAt||'classification')+':board-context-remap-v5';
+    const revision=(data().classifiedAt||'classification')+':repository-statuses-v6';
     if(root.sharedUrlRepositoryRevision===revision)return false;
     const preserved=captureRepositoryState(root);
     clearPreviousMappings(root);
@@ -204,6 +212,7 @@
       row.cells[column.id]={...current,...saved,v:saved.v||current.v||record.topic||record.hierarchy,mode,type:saved.type||current.type||typeId(types,format),cfg:true,repositoryQueries:queries};linked++;
     });
     Object.values(root.views).forEach(view=>{compactRepositoryCells(view);mappedRowsFirst(view);});
+    applyRepositoryStatuses(root);
     root.sharedUrlRepositoryRevision=revision;root.sharedUrlLinkedCount=linked;return true;
   }
   global.SharedUrlRepository={load,records,query,resolve,installMappings,productMatches,pageGroup,sectionFor};

@@ -22,4 +22,6 @@ assert(html.includes("url.placeholder = 'Slug'"));
 assert(html.includes("[['','Written by'],['old','Old'],['new','New']]"));
 assert(html.includes("foot2.append(writtenBy)"));
 assert(html.includes("td.insertBefore(urlRow, td.querySelector(':scope > .gr-kws'))"));
+assert(html.includes("{ id: 'plus_2', label: 'Plus 2 pages' }"));
+assert(html.includes('data-status="plus_2"'));
 console.log('PASS: URL and Written by persist through edits and reload, legacy cells preserved, clearing supported, title/slug placeholders and shared layout wiring.');
