@@ -616,6 +616,17 @@
 
   .mx-wrap{width:100%; flex:1; min-height:0; border:0; border-radius:0; background:#fff;
            box-shadow:none; overflow:auto; max-height:none}
+  .keyword-status-toolbar{display:flex;align-items:center;justify-content:flex-end;min-height:42px;padding:6px 16px;border-bottom:1px solid var(--line);background:#fff;position:relative;z-index:8}
+  .keyword-status-filter{position:relative}
+  .keyword-status-filter>summary{min-width:150px;padding:7px 30px 7px 10px;border:1px solid #cfd9d1;border-radius:3px;background:#fff;color:#26342b;font-size:11px;font-weight:700;cursor:pointer;list-style:none;position:relative}
+  .keyword-status-filter>summary::-webkit-details-marker{display:none}
+  .keyword-status-filter>summary::after{content:'▾';position:absolute;right:10px;color:#657269}
+  .keyword-status-filter[open]>summary{border-color:#57c982;box-shadow:0 0 0 2px rgba(87,201,130,.12)}
+  .keyword-status-menu{position:absolute;top:calc(100% + 5px);right:0;width:220px;padding:7px;border:1px solid #cfd9d1;background:#fff;box-shadow:0 10px 26px rgba(28,46,34,.14)}
+  .keyword-status-option{display:flex;align-items:center;gap:8px;padding:7px 6px;color:#35443a;font-size:11px;cursor:pointer}
+  .keyword-status-option:hover{background:#f1f8f3}
+  .keyword-status-option input{margin:0}
+  .keyword-status-clear{width:100%;margin-top:5px;padding:6px;border:1px solid #dce4df;background:#f7faf8;color:#526057;font-size:10px}
 
   /* Fixed layout keeps headers aligned. The table fills the workspace, while
      its JS minimum width preserves usable columns and enables horizontal
@@ -6504,6 +6515,38 @@ function statusSelect(current, disabled, onPick){
   return sel;
 }
 
+const keywordStatusFilter = new Set();
+let keywordStatusFilterOpen = false;
+function keywordStatusMatches(cells){
+  if (!keywordStatusFilter.size) return true;
+  return (cells || []).some(cell => cell && typeof cell === 'object' && keywordStatusFilter.has(cell.st || ''));
+}
+function renderKeywordStatusFilter(){
+  let host = $('keywordStatusToolbar');
+  if (!host){
+    host = document.createElement('div'); host.id = 'keywordStatusToolbar'; host.className = 'keyword-status-toolbar';
+    $('mxPane').querySelector('.mx-wrap').before(host);
+  }
+  host.replaceChildren();
+  const details = document.createElement('details'); details.className = 'keyword-status-filter'; details.open = keywordStatusFilterOpen;
+  details.ontoggle = function(){ keywordStatusFilterOpen = details.open; };
+  const summary = document.createElement('summary');
+  summary.textContent = keywordStatusFilter.size ? 'Status: ' + keywordStatusFilter.size + ' selected' : 'Status: All';
+  const menu = document.createElement('div'); menu.className = 'keyword-status-menu';
+  STATUS.forEach(function(status){
+    const label = document.createElement('label'); label.className = 'keyword-status-option';
+    const checkbox = document.createElement('input'); checkbox.type = 'checkbox'; checkbox.checked = keywordStatusFilter.has(status.id);
+    checkbox.onchange = function(){
+      if (checkbox.checked) keywordStatusFilter.add(status.id); else keywordStatusFilter.delete(status.id);
+      keywordStatusFilterOpen = true; renderContentView();
+    };
+    const text = document.createElement('span'); text.textContent = status.label; label.append(checkbox,text); menu.append(label);
+  });
+  const clear = document.createElement('button'); clear.type = 'button'; clear.className = 'keyword-status-clear'; clear.textContent = 'Clear status filter'; clear.disabled = !keywordStatusFilter.size;
+  clear.onclick = function(){ keywordStatusFilter.clear(); keywordStatusFilterOpen = true; renderContentView(); };
+  menu.append(clear); details.append(summary,menu); host.append(details);
+}
+
 function pageTrafficTotal(rows){
   return normalizePageUrls(rows).reduce(function(sum, row){
     const traffic = Number(row.traffic);
@@ -7101,6 +7144,7 @@ function renderKeywordModeFilter(){
 
 function renderMatrix(){
   renderKeywordModeFilter();
+  renderKeywordStatusFilter();
   $('mxTable').hidden = false;
   if ($('keywordPageTables')) $('keywordPageTables').hidden = true;
   const m = matrixState();
@@ -7157,8 +7201,10 @@ function renderMatrix(){
   const ro = readOnly();
   $('mxPane').querySelector('.mx-head').hidden = true;
 
-  /* Explicit widths, so the header and body can never disagree. */
+  /* Up to five content columns share the viewport. A sixth starts a horizontal canvas. */
   const NUM_W = 46, RH_W = 310, COL_W = 310;
+  const fitsViewport = m.types.length <= 5;
+  const matrixWidth = NUM_W + RH_W + COL_W * m.types.length;
   const cg = document.createElement('colgroup');
   const cn = document.createElement('col');
   cn.style.width = NUM_W + 'px';
@@ -7168,11 +7214,11 @@ function renderMatrix(){
   cg.append(c0);
   m.types.forEach(function(){
     const c = document.createElement('col');
-    c.style.width = COL_W + 'px';
+    c.style.width = fitsViewport ? 'calc((100% - ' + (NUM_W + RH_W) + 'px) / ' + Math.max(1,m.types.length) + ')' : COL_W + 'px';
     cg.append(c);
   });
-  table.style.width = '100%';
-  table.style.minWidth = (NUM_W + RH_W + COL_W * m.types.length) + 'px';
+  table.style.width = fitsViewport ? '100%' : matrixWidth + 'px';
+  table.style.minWidth = fitsViewport ? '100%' : matrixWidth + 'px';
   table.append(cg);
 
   const thead = document.createElement('thead');
@@ -7220,7 +7266,8 @@ function renderMatrix(){
   table.append(thead);
 
   const tbody = document.createElement('tbody');
-  [...m.rows.filter(r=>r.role!=='others'&&String(r.name||'').trim().toLowerCase()!=='others'),...m.rows.filter(r=>r.role==='others'||String(r.name||'').trim().toLowerCase()==='others')].forEach(function(comp, ri){
+  const orderedMatrixRows = [...m.rows.filter(r=>r.role!=='others'&&String(r.name||'').trim().toLowerCase()!=='others'),...m.rows.filter(r=>r.role==='others'||String(r.name||'').trim().toLowerCase()==='others')];
+  orderedMatrixRows.filter(comp=>keywordStatusMatches(m.types.map(ty=>m.cells[comp.id+'|'+ty.id]))).forEach(function(comp, ri){
     const tr = document.createElement('tr');
 
     const num = document.createElement('th');
@@ -7347,6 +7394,7 @@ function ensureSharedUrlCellMappings(){
 }
 function renderGrid(){
   renderKeywordModeFilter();
+  renderKeywordStatusFilter();
   ensureSharedUrlCellMappings();
   const v = matrixState(), types = articleTypes();
   if (!readOnly()){
@@ -7431,8 +7479,10 @@ function renderGridTable(v, group, table){
     ? sortedColumns.filter(col => (col.axis || KeywordColumns.inferIcpAxis(col.name)) === activeIcpAxis || repositoryColumnIds.has(col.id))
     : sortedColumns;
   const NUM_W = isPositioningMatrix ? 310 : 46, COL_W = 310;
-  table.style.width = '100%';
-  table.style.minWidth = (NUM_W + COL_W * columns.length) + 'px';
+  const fitsViewport = columns.length <= 5;
+  const gridWidth = NUM_W + COL_W * columns.length;
+  table.style.width = fitsViewport ? '100%' : gridWidth + 'px';
+  table.style.minWidth = fitsViewport ? '100%' : gridWidth + 'px';
 
   const cg = document.createElement('colgroup');
   const c0 = document.createElement('col');
@@ -7440,7 +7490,7 @@ function renderGridTable(v, group, table){
   cg.append(c0);
   columns.forEach(function(){
     const c = document.createElement('col');
-    c.style.width = COL_W + 'px';
+    c.style.width = fitsViewport ? 'calc((100% - ' + NUM_W + 'px) / ' + Math.max(1,columns.length) + ')' : COL_W + 'px';
     cg.append(c);
   });
   table.append(cg);
@@ -7508,7 +7558,7 @@ function renderGridTable(v, group, table){
   table.append(thead);
 
   const tbody = document.createElement('tbody');
-  const allGroupRows = v.rows.filter(row => row.pageGroup === group.id);
+  const allGroupRows = v.rows.filter(row => row.pageGroup === group.id && keywordStatusMatches(Object.values(row.cells || {})));
   const pageKey = keywordGridPageKey(group);
   const pageCount = Math.max(1, Math.ceil(allGroupRows.length / KEYWORD_GRID_PAGE_SIZE));
   const page = Math.min(Math.max(0, keywordGridPages.get(pageKey) || 0), pageCount - 1);
@@ -7605,8 +7655,8 @@ function renderGridTable(v, group, table){
     const tr = document.createElement('tr'), td = document.createElement('td');
     td.colSpan = columns.length + 1;
     td.style.padding = '20px';
-    td.textContent = 'No ' + group.label.toLowerCase() + ' yet.';
-    if (!ro){
+    td.textContent = keywordStatusFilter.size ? 'No rows match the selected statuses.' : 'No ' + group.label.toLowerCase() + ' yet.';
+    if (!ro && !keywordStatusFilter.size){
       const add = document.createElement('button'); add.textContent = '+ Add row';
       add.style.marginLeft = '12px'; add.onclick = () => addGridRow(group.id); td.append(add);
     }
