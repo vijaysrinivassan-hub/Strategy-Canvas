@@ -8890,9 +8890,13 @@ productArchitectureState = function(){
   const tab = state.tabs[tabKey] ||
     (state.tabs[tabKey] = { nodes: [], edges: [] });
   let architecture = tab.architecture;
-  if (!architecture || architecture.version !== 3){
+  const uninitializedMaturity = tabKey === MATURITY_ACCESS_TAB && architecture?.version === 3 &&
+    architecture.sample === 'blank' && !(architecture.nodes || []).length &&
+    !(architecture.edges || []).length && (architecture.systems || []).length <= 1;
+  if (!architecture || architecture.version !== 3 || uninitializedMaturity){
     const previousSample = architecture && architecture.sample;
-    if (previousSample === 'soc') architecture = socProductArchitecture();
+    if (tabKey === MATURITY_ACCESS_TAB && (!architecture || uninitializedMaturity)) architecture = dataPlatformMaturityArchitecture();
+    else if (previousSample === 'soc') architecture = socProductArchitecture();
     else if (previousSample === 'data') architecture = dataPlatformArchitecture();
     else if (architecture && architecture.version === 2){
       architecture.version = 3;

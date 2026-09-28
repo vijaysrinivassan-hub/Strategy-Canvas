@@ -6,6 +6,8 @@ const prompts = JSON.parse(readFileSync(new URL('./ai-prompts.json', import.meta
 const tools = readFileSync(new URL('./mcp-server/src/tools/architecture.ts', import.meta.url), 'utf8');
 
 assert.match(html, /function dataPlatformMaturityArchitecture\(\)/);
+assert.ok(html.includes('const uninitializedMaturity = tabKey === MATURITY_ACCESS_TAB'));
+assert.ok(html.includes("if (tabKey === MATURITY_ACCESS_TAB && (!architecture || uninitializedMaturity)) architecture = dataPlatformMaturityArchitecture();"));
 assert.match(html, /const MATURITY_DEPARTMENT_TEMPLATES/);
 assert.match(html, /function maturityDepartmentsFor\(architecture\)/);
 assert.match(html, /function renderMaturityDepartments\(architecture, ro\)/);
