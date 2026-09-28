@@ -7422,8 +7422,9 @@ function renderGridTable(v, group, table){
   const isIcpMatrix = state.contentView === 'icp' && isPositioningMatrix;
   const sortedColumns = state.contentView === 'icp' && !isIcpMatrix ? KeywordColumns.sortIcpColumns(v.columns) : v.columns;
   const activeIcpAxis = state.contentView === 'icp' && !isIcpMatrix ? activeBuyingIndustryAxis() : '';
+  const repositoryColumnIds = new Set(v.rows.filter(row => row.pageGroup === group.id).flatMap(row => Object.entries(row.cells || {}).filter(([,cell]) => cell?.repositoryQueries?.length).map(([id]) => id)));
   const columns = activeIcpAxis
-    ? sortedColumns.filter(col => (col.axis || KeywordColumns.inferIcpAxis(col.name)) === activeIcpAxis)
+    ? sortedColumns.filter(col => (col.axis || KeywordColumns.inferIcpAxis(col.name)) === activeIcpAxis || repositoryColumnIds.has(col.id))
     : sortedColumns;
   const NUM_W = isPositioningMatrix ? 310 : 46, COL_W = 310;
   table.style.width = '100%';
@@ -7441,7 +7442,8 @@ function renderGridTable(v, group, table){
   table.append(cg);
 
   const thead = document.createElement('thead');
-  if (state.contentView === 'icp' || isPositioningMatrix){
+  const showAxisSuperHeaders = (state.contentView === 'icp' && !isIcpMatrix) || (isPositioningMatrix && state.contentView === 'value');
+  if (showAxisSuperHeaders){
     const axisRow = document.createElement('tr');
     axisRow.className = 'icp-axis-row';
     const corner = matrixCornerActions(() => addGridColumn(group.id), () => addGridRow(group.id), 'Add column', 'Add row');
@@ -7459,7 +7461,7 @@ function renderGridTable(v, group, table){
   }
   const hr = document.createElement('tr');
   hr.className = (state.contentView === 'icp' || isPositioningMatrix) ? 'icp-column-row' : '';
-  if (state.contentView !== 'icp' && !isPositioningMatrix) hr.append(matrixCornerActions(() => addGridColumn(group.id), () => addGridRow(group.id), 'Add column', 'Add row'));
+  if (!showAxisSuperHeaders) hr.append(matrixCornerActions(() => addGridColumn(group.id), () => addGridRow(group.id), 'Add column', 'Add row'));
 
   columns.forEach(function(col){
     const th = document.createElement('th');

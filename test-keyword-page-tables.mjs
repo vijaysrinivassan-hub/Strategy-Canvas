@@ -37,5 +37,7 @@ assert.ok(html.includes('const KEYWORD_GRID_PAGE_SIZE = 40'));
 assert.ok(html.includes('const groupRows = allGroupRows.slice(rowOffset, rowOffset + KEYWORD_GRID_PAGE_SIZE)'));
 assert.ok(html.includes("range.textContent = 'Rows ' + (rowOffset + 1)"));
 assert.match(html, /keyword-grid-pager\{[^}]*display:flex/);
+assert.ok(html.includes("const showAxisSuperHeaders = (state.contentView === 'icp' && !isIcpMatrix)"));
+assert.ok(html.includes("repositoryColumnIds.has(col.id)"));
 assert.match(html, /v\.rows\.splice\(v\.rows\.indexOf\(row\),\s*1\)/);
 console.log('PASS: shared page groups, ICP AEO matrix handoff, SEO informational view, split stability, metadata preservation and per-table controls.');
