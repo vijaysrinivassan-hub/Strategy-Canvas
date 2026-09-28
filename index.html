@@ -7591,7 +7591,31 @@ function renderGridTable(v, group, table){
   table.append(thead);
 
   const tbody = document.createElement('tbody');
-  const allGroupRows = v.rows.filter(row => row.pageGroup === group.id && keywordStatusMatches(Object.values(row.cells || {})));
+  const sourceGroupRows = v.rows.filter(row => row.pageGroup === group.id);
+  let allGroupRows = sourceGroupRows;
+  if (keywordStatusFilter.size){
+    const packedByColumn = new Map(columns.map(function(col){
+      return [col.id, sourceGroupRows.filter(function(row){
+        const cell = row.cells?.[col.id];
+        return cell && typeof cell === 'object' && keywordStatusFilter.has(cell.st || '');
+      })];
+    }));
+    const packedCount = Math.max(0, ...Array.from(packedByColumn.values(), rows => rows.length));
+    allGroupRows = Array.from({length:packedCount}, function(_, index){
+      const statusFilterSources = {};
+      columns.forEach(function(col){
+        const sourceRow = packedByColumn.get(col.id)?.[index];
+        if (sourceRow) statusFilterSources[col.id] = sourceRow;
+      });
+      return {
+        id:'status-filter-' + group.id + '-' + index,
+        pageGroup:group.id,
+        cells:{},
+        statusFilterSources,
+        statusFilterTopicRow:Object.values(statusFilterSources)[0] || null
+      };
+    });
+  }
   const pageKey = keywordGridPageKey(group);
   const pageCount = Math.max(1, Math.ceil(allGroupRows.length / KEYWORD_GRID_PAGE_SIZE));
   const page = Math.min(Math.max(0, keywordGridPages.get(pageKey) || 0), pageCount - 1);
@@ -7613,35 +7637,38 @@ function renderGridTable(v, group, table){
 
     const num = document.createElement('th');
     if(isPositioningMatrix){
-      num.className='icp-matrix-row-topic';renderMatrixTopicCell(num,row,ro);
-      if(!ro){const del=document.createElement('button');del.className='matrix-topic-delete';del.innerHTML='&times;';del.title='Delete row';del.onclick=function(){if(Object.keys(row.cells||{}).length&&!confirm('Delete this row and its contents?'))return;v.rows.splice(v.rows.indexOf(row),1);markDirty();renderGrid();};num.append(del);}
+      const topicRow = row.statusFilterTopicRow || row;
+      num.className='icp-matrix-row-topic';renderMatrixTopicCell(num,topicRow,ro || !!keywordStatusFilter.size);
+      if(!ro && !keywordStatusFilter.size){const del=document.createElement('button');del.className='matrix-topic-delete';del.innerHTML='&times;';del.title='Delete row';del.onclick=function(){if(Object.keys(row.cells||{}).length&&!confirm('Delete this row and its contents?'))return;v.rows.splice(v.rows.indexOf(row),1);markDirty();renderGrid();};num.append(del);}
     }else{
       num.className='gr-num';const wrap=document.createElement('div');wrap.className='gr-numwrap';const idx=document.createElement('span');idx.textContent=String(rowOffset+i+1);wrap.append(idx);
-      if(!ro){const del=document.createElement('button');del.className='gr-del';del.innerHTML='&times;';del.title='Delete row';del.onclick=function(){if(Object.keys(row.cells).length&&!confirm('Delete this row and its contents?'))return;v.rows.splice(v.rows.indexOf(row),1);markDirty();renderGrid();};wrap.append(del);}num.append(wrap);
+      if(!ro && !keywordStatusFilter.size){const del=document.createElement('button');del.className='gr-del';del.innerHTML='&times;';del.title='Delete row';del.onclick=function(){if(Object.keys(row.cells).length&&!confirm('Delete this row and its contents?'))return;v.rows.splice(v.rows.indexOf(row),1);markDirty();renderGrid();};wrap.append(del);}num.append(wrap);
     }
     tr.append(num);
 
     columns.forEach(function(col, ci){
+      const sourceRow = row.statusFilterSources?.[col.id] || row;
+      if (row.statusFilterSources && !row.statusFilterSources[col.id]){
+        const td = document.createElement('td');
+        td.className = 'gr-cell empty';
+        td.setAttribute('aria-hidden','true');
+        tr.append(td);
+        return;
+      }
       const configuredDefaults = Object.assign({}, defaultsFor(col));
       const defaults = Object.assign({}, configuredDefaults, {
         mode: configuredDefaults.mode || keywordMode,
         forceMode: !!configuredDefaults.mode
       });
       if (!defaults.type && group.type) defaults.type = articleTypes().find(t => t.name.toLowerCase() === group.type.toLowerCase())?.id || '';
-      const cell = cellOf(row, col.id, defaults);
+      const cell = cellOf(sourceRow, col.id, defaults);
       const kws = gridCellKeywords(cell.v || cell.url, cell.kws, cell.excludedKws);
-      const removeKeyword = function(keyword){const now=cellOf(row,col.id,defaults);setCellIn(row,col.id,Object.assign(keywordRemovalPatch(now,keyword),{cfg:true}),defaults);markDirty();renderGrid();};
+      const removeKeyword = function(keyword){const now=cellOf(sourceRow,col.id,defaults);setCellIn(sourceRow,col.id,Object.assign(keywordRemovalPatch(now,keyword),{cfg:true}),defaults);markDirty();renderGrid();};
       const td = document.createElement('td');
-      const untouched = !row.cells[col.id];
+      const untouched = !sourceRow.cells[col.id];
       td.className = 'gr-cell' + ((untouched || cellQuiet(cell, kws.length)) ? ' empty' : '') + (cell.on ? ' planned' : '')
                    + (cell.st === 'written' ? ' written' : '');
       td.dataset.status = cell.st || '';
-      if (keywordStatusFilter.size && !keywordStatusFilter.has(cell.st || '')){
-        td.className = 'gr-cell empty status-filtered-out';
-        td.setAttribute('aria-hidden','true');
-        tr.append(td);
-        return;
-      }
 
       const inp = document.createElement('input');
       inp.type = 'text';
@@ -7661,11 +7688,11 @@ function renderGridTable(v, group, table){
          a beat after typing stops, so the caret is never disturbed */
       let paintTimer = null;
       inp.oninput = function(){
-        setCellIn(row, col.id, { v: inp.value }, defaults);
+        setCellIn(sourceRow, col.id, { v: inp.value }, defaults);
         markDirty();
         clearTimeout(paintTimer);
         paintTimer = setTimeout(function(){
-          const now = cellOf(row, col.id, defaults);
+          const now = cellOf(sourceRow, col.id, defaults);
           const rows2 = gridCellKeywords(now.v || now.url, now.kws, now.excludedKws);
           kwHost.innerHTML = '';
           kwHost.append(keywordBlock(rows2,ro?null:removeKeyword));
@@ -7675,11 +7702,11 @@ function renderGridTable(v, group, table){
 
       cellControls(td, {
         ro: ro,
-        get: function(){ return cellOf(row, col.id, defaults); },
-        set: function(patch){ setCellIn(row, col.id, Object.assign({}, patch, { cfg:true }), defaults); },
-        seed: function(){ return (cellOf(row, col.id, defaults).v || '').trim(); },
+        get: function(){ return cellOf(sourceRow, col.id, defaults); },
+        set: function(patch){ setCellIn(sourceRow, col.id, Object.assign({}, patch, { cfg:true }), defaults); },
+        seed: function(){ return (cellOf(sourceRow, col.id, defaults).v || '').trim(); },
         refreshEmpty: function(){
-          const now = cellOf(row, col.id, defaults);
+          const now = cellOf(sourceRow, col.id, defaults);
           td.classList.toggle('empty', cellQuiet(now, gridCellKeywords(now.v || now.url, now.kws, now.excludedKws).length));
         },
         onTypeChange: renderGrid,

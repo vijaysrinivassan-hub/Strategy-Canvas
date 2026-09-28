@@ -41,8 +41,10 @@ assert.ok(html.includes("const showAxisSuperHeaders = (state.contentView === 'ic
 assert.ok(html.includes("repositoryColumnIds.has(col.id)"));
 assert.ok(html.includes('const keywordStatusFilter = new Set()'));
 assert.ok(html.includes("keywordStatusFilter.add(status.id)"));
-assert.ok(html.includes("keywordStatusMatches(Object.values(row.cells || {}))"));
-assert.ok(html.includes("!keywordStatusFilter.has(cell.st || '')"));
+assert.ok(html.includes("const packedByColumn = new Map(columns.map"));
+assert.ok(html.includes("statusFilterSources"));
+assert.ok(html.includes("const sourceRow = row.statusFilterSources?.[col.id] || row"));
+assert.ok(!html.includes("status-filtered-out"));
 assert.ok(html.includes("details.contains(event.target)"));
 assert.ok(html.includes("document.addEventListener('pointerdown'"));
 assert.ok(html.includes('const contentSlots = 4'));
