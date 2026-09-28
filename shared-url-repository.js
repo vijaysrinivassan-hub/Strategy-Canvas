@@ -56,14 +56,82 @@
     if(!Array.isArray(view.pageColumns[group]))view.pageColumns[group]=JSON.parse(JSON.stringify(view.columns||[]));
     return view.pageColumns[group];
   }
+  const columnAliases={
+    category:{
+      'category name':['category name','category names','category synonyms listicle','category and synonyms listicle','category synonyms'],
+      'category synonyms':['category synonyms','category synonym'],
+      'capability':['capability','capabilities','feature','features','feature pages'],
+      'benefit':['benefit','benefits','outcome','outcomes'],
+      'country':['country','countries'],
+      'technology':['technology','technologies','seo and aeo tools','seo aeo tools']
+    },
+    icp:{
+      'industry':['industry','industries','industry pages'],
+      'country':['country','countries'],
+      'technology':['technology','technologies','existing tech stack','tech stack'],
+      'company size':['company size','size'],
+      'role team':['role team','role or team','people','person or role']
+    },
+    value:{
+      'use cases or services':['use cases or services','use cases','use case','processes use cases','process method','processes','service pages'],
+      'capability':['capability','capabilities','features'],
+      'benefit':['benefit','benefits','nodal benefit','nodal benefits','outcomes'],
+      'problem pain':['problem pain','problems','pain','pain points'],
+      'guides':['guides','guide'],
+      'how to articles':['how to articles','how to'],
+      'explainers':['explainers','explainer'],
+      'trends':['trends','trend'],
+      'topic vs topic':['topic vs topic','topic versus topic']
+    }
+  };
+  function aliasesFor(viewId,axis){
+    const key=normalizeName(axis),aliases=columnAliases[viewId]||{};
+    if(aliases[key])return aliases[key];
+    for(const values of Object.values(aliases))if(values.includes(key))return values;
+    return [key];
+  }
   function ensureColumn(viewId,view,group,axis,mode,types){
-    const columns=columnsFor(view,group),key=normalizeName(axis);
-    let column=columns.find(item=>normalizeName(item.name)===key);
+    const columns=columnsFor(view,group),key=normalizeName(axis),aliases=aliasesFor(viewId,axis);
+    let column=columns.find(item=>normalizeName(item.name)===key)
+      ||columns.find(item=>aliases.includes(normalizeName(item.name)));
     if(!column){
       column={id:'shared-url-col-'+viewId+'-'+group+'-'+slug(axis),name:axis,local:true,
         defaults:{mode,type:typeId(types,group),aw:''},...(group==='matrix'?{matrixGroup:matrixGroup(viewId,axis)}:viewId==='icp'?{axis:/role|people/.test(key)?'people':/tech/.test(key)?'technology':/size|input/.test(key)?'input':'process'}:{})};
       columns.push(column);view.pageOrders[group]=columns.map(item=>item.id);
     }return column;
+  }
+  function hasUserContent(cell){
+    if(!cell||typeof cell!=='object')return false;
+    return !!(cell.url||cell.slug||cell.st||cell.aw||cell.writtenBy||cell.actor||cell.on
+      ||(Array.isArray(cell.kws)&&cell.kws.length)||(Array.isArray(cell.pageUrls)&&cell.pageUrls.length));
+  }
+  function clearPreviousMappings(root){
+    Object.values(root.views||{}).forEach(view=>{
+      (view.rows||[]).forEach(row=>Object.values(row.cells||{}).forEach(cell=>{if(cell&&typeof cell==='object')delete cell.repositoryQueries;}));
+      view.rows=(view.rows||[]).filter(row=>{
+        if(!row.repositoryHierarchy)return true;
+        const cells=Object.values(row.cells||{});
+        if(cells.some(hasUserContent)){delete row.repositoryHierarchy;return true;}
+        return false;
+      });
+      for(const group of Object.keys(view.pageColumns||{})){
+        const removable=new Set((view.pageColumns[group]||[]).filter(column=>String(column.id||'').startsWith('shared-url-col-')).map(column=>column.id));
+        (view.rows||[]).forEach(row=>Object.keys(row.cells||{}).forEach(id=>{if(removable.has(id)&&hasUserContent(row.cells[id]))removable.delete(id);}));
+        if(removable.size){
+          view.pageColumns[group]=view.pageColumns[group].filter(column=>!removable.has(column.id));
+          if(Array.isArray(view.pageOrders?.[group]))view.pageOrders[group]=view.pageOrders[group].filter(id=>!removable.has(id));
+          (view.rows||[]).forEach(row=>removable.forEach(id=>delete row.cells?.[id]));
+        }
+      }
+    });
+  }
+  function mappedRowsFirst(view){
+    const rows=view.rows||[],groups=['listicle','landing','informational','matrix'];
+    groups.forEach(group=>{
+      const positions=[];rows.forEach((row,index)=>{if(row.pageGroup===group)positions.push(index);});
+      const ordered=positions.map(index=>rows[index]).sort((a,b)=>Number(!!b.repositoryHierarchy)-Number(!!a.repositoryHierarchy));
+      positions.forEach((position,index)=>{rows[position]=ordered[index];});
+    });
   }
   function ensureRow(view,group,hierarchy,uid){
     view.rows ||= [];
@@ -76,8 +144,9 @@
   }
   function installMappings(root,types,options={}){
     if(!root?.views||!productMatches(options.product)||!data())return false;
-    const revision=(data().classifiedAt||'classification')+':existing-cells-v1';
+    const revision=(data().classifiedAt||'classification')+':existing-cells-v2';
     if(root.sharedUrlRepositoryRevision===revision)return false;
+    clearPreviousMappings(root);
     const uid=options.uid||(()=>Math.random().toString(36).slice(2));
     let linked=0;
     records().forEach(record=>{
@@ -94,6 +163,7 @@
       if(!queries.some(item=>JSON.stringify(item)===JSON.stringify(spec)))queries.push(spec);
       row.cells[column.id]={...current,v:current.v||record.hierarchy,mode,type:current.type||typeId(types,format),cfg:true,repositoryQueries:queries};linked++;
     });
+    Object.values(root.views).forEach(mappedRowsFirst);
     root.sharedUrlRepositoryRevision=revision;root.sharedUrlLinkedCount=linked;return true;
   }
   global.SharedUrlRepository={load,records,query,resolve,installMappings,productMatches,pageGroup,sectionFor};

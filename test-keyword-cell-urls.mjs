@@ -11,7 +11,7 @@ assert.equal(ctx.pageTrafficTotal(c.pageUrls),200);
 const row={cells:{}};ctx.setCellIn(row,'a',{pageUrls:pages},{});c=ctx.cellOf(JSON.parse(JSON.stringify(row)),'a',{});
 assert.deepEqual(JSON.parse(JSON.stringify(c.pageUrls)),pages);assert.equal(ctx.cellQuiet(c,0),false);
 ctx.setCellIn(row,'a',{pageUrls:[]},{});assert.equal(ctx.cellOf(row,'a',{}).pageUrls.length,0);
-assert(html.includes("addUrl.textContent = '+ URL'"));
+assert(html.includes("addUrl.textContent = importedUrlCount ? '+ URL (' + importedUrlCount + ')' : '+ URL'"));
 assert(html.includes("url.placeholder = 'Page URL'"));
 assert(html.includes("traffic.placeholder = 'Traffic'"));
 assert(html.includes("sum.textContent = pageTrafficTotal(rows).toLocaleString() + ' traffic total'"));
