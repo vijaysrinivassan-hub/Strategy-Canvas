@@ -3300,6 +3300,7 @@ const TAB_ICONS = {
   'Content Strategy': '<path d="M4 5h16v14H4z"/><path d="M8 9h8M8 13h5"/>',
   'Category': '<path d="M4 5h16v14H4zM4 10h16M10 5v14"/>',
   'Competitor': '<circle cx="8" cy="9" r="3"/><circle cx="16" cy="9" r="3"/><path d="M3 19c.5-3 2.2-5 5-5s4.5 2 5 5M11 19c.5-3 2.2-5 5-5s4.5 2 5 5"/>',
+  'Competitor-aware': '<circle cx="8" cy="9" r="3"/><circle cx="16" cy="9" r="3"/><path d="M3 19c.5-3 2.2-5 5-5s4.5 2 5 5M11 19c.5-3 2.2-5 5-5s4.5 2 5 5"/>',
   'ICP': '<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/><path d="M12 1v3M12 20v3M1 12h3M20 12h3"/>',
   'Value': '<path d="M12 3l8 7-8 11-8-11z"/><path d="M4 10h16"/>',
   'Competitive Intelligence': '<circle cx="10" cy="10" r="6"/><path d="M14.5 14.5L21 21M4 20h7M16 4h4v4"/>',
@@ -6146,7 +6147,7 @@ const GRID_MAX_COLS = 10;
 const CONTENT_VIEWS = [
   { id: 'category', label: 'Category', noun: 'category', kind: 'grid',
     columns: ['Category name', 'Category synonyms', 'Features', 'Reviews', 'Pricing'] },
-  { id: 'competitor', label: 'Competitor', noun: 'competitor', kind: 'matrix',
+  { id: 'competitor', label: 'Competitor-aware', noun: 'competitor', kind: 'matrix',
     types: COMPETITOR_TYPES },
   { id: 'icp', label: 'ICP', noun: 'ICP', kind: 'grid',
     columns: ['ICP', 'Synonyms', 'Pains', 'Use cases', 'Content angles'] },
