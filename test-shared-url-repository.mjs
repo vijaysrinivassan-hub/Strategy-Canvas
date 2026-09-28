@@ -28,6 +28,16 @@ const linkedUrls=cells.flatMap(cell=>repo.resolve(cell.repositoryQueries));
 assert.equal(new Set(linkedUrls.map(row=>row.url)).size,5399);
 const icpSeoCells=root.views.icp.rows.filter(row=>row.pageGroup==='informational').flatMap(row=>Object.values(row.cells||{})).filter(cell=>cell.repositoryQueries?.some(query=>query.section==='ICP SEO'));
 assert(icpSeoCells.length>0);assert.equal(new Set(icpSeoCells.flatMap(cell=>repo.resolve(cell.repositoryQueries)).map(row=>row.url)).size,880);
+const valueSeoColumns=root.views.value.pageColumns.informational;
+assert.deepEqual(Object.fromEntries(valueSeoColumns.map(column=>[column.name,column.awarenessGroup])),{'Explainers':'problem','Trends':'problem','Guides':'solution','How-to articles':'solution','Topic vs. Topic':'product'});
+assert.deepEqual([...new Set(valueSeoColumns.map(column=>column.repositoryAwareness))],['Problem aware','Solution aware','Product aware']);
+const valueSeoRows=root.views.value.rows.filter(row=>row.pageGroup==='informational'&&row.repositoryHierarchy);
+assert(valueSeoRows.length>0);
+const valueSeoCells=valueSeoRows.flatMap(row=>Object.values(row.cells||{}));
+assert.equal(new Set(valueSeoCells.flatMap(cell=>repo.resolve(cell.repositoryQueries||[])).filter(row=>row.section==='Value SEO').map(row=>row.url)).size,3268);
+const valueSeoAwarenessByColumn=Object.fromEntries(valueSeoColumns.map(column=>[column.id,column.repositoryAwareness]));
+for(const row of valueSeoRows)for(const [columnId,cell] of Object.entries(row.cells||{}))if((cell.repositoryQueries||[]).some(query=>query.section==='Value SEO'))assert.equal(cell.aw,valueSeoAwarenessByColumn[columnId]);
+
 const icpSeoRows=root.views.icp.rows.filter(row=>row.pageGroup==='informational'&&row.repositoryHierarchy);
 const icpSeoDimensions=[...new Set(icpSeoRows.map(row=>row.repositorySuperHierarchy||row.repositoryHierarchy))];
 assert.deepEqual(icpSeoDimensions,['Industry','Company size','Process / Use case','Country','Technology','Role / Team','General ICP']);
@@ -59,7 +69,7 @@ assert(cells.filter(cell=>!repo.resolve(cell.repositoryQueries).some(row=>row.co
 assert(Object.values(root.views).flatMap(view=>Object.values(view.pageColumns||{}).flat()).filter(column=>column.instruction).every(column=>column.instruction.includes('Workbook URL grouping:')));
 for(const [viewId,view] of Object.entries(root.views))for(const group of ['listicle','landing','informational','matrix']){
   const rows=(view.rows||[]).filter(row=>row.pageGroup===group&&row.repositoryHierarchy);if(!rows.length)continue;
-  const batches=(viewId==='category'||(viewId==='icp'&&(group==='informational'||group==='matrix')))?[...new Set(rows.map(row=>(row.repositorySuperHierarchy||'')+'|'+row.repositoryHierarchy))].map(key=>rows.filter(row=>(row.repositorySuperHierarchy||'')+'|'+row.repositoryHierarchy===key)):[rows];
+  const batches=(viewId==='category'||(viewId==='icp'&&(group==='informational'||group==='matrix'))||(viewId==='value'&&group==='informational'))?[...new Set(rows.map(row=>(row.repositorySuperHierarchy||'')+'|'+row.repositoryHierarchy))].map(key=>rows.filter(row=>(row.repositorySuperHierarchy||'')+'|'+row.repositoryHierarchy===key)):[rows];
   for(const batch of batches){const ids=[...new Set(batch.flatMap(row=>Object.keys(row.cells||{})))];for(const id of ids)assert(batch[0].cells[id]?.repositoryQueries?.length,`Expected ${group}/${batch[0].repositoryHierarchy}/${id} to start in its first row`);}
 }
 for(const view of [root.views.icp,root.views.value])assert((view.pageColumns?.matrix||[]).every(column=>column.matrixGroup));

@@ -158,7 +158,7 @@
     if(/client success|customer success/.test(name))return 'Client Success';
     return 'Strategy & Research';
   };
-  const usesRepositoryAxis=(viewId,group)=>viewId==='category'||(viewId==='icp'&&(group==='informational'||group==='matrix'));
+  const usesRepositoryAxis=(viewId,group)=>viewId==='category'||(viewId==='icp'&&(group==='informational'||group==='matrix'))||(viewId==='value'&&group==='informational');
   const ICP_DIMENSION_ORDER=['Industry','Company size','Process / Use case','Country','Technology','Role / Team','General ICP'];
   const ICP_MATRIX_GROUP_ORDER=['ind','size','process','ctry','tech','role'];
   const INDUSTRY_ORDER=['B2B SaaS','Fintech & Financial Services','Healthcare & Life Sciences','E-commerce & Retail','Cybersecurity','HR Tech','MarTech & AdTech','Technology & Software','Aerospace & Aviation','Agriculture & AgTech','Automotive','Construction & Home Services','Education & EdTech','Energy, Environment & Utilities','Manufacturing & Industrial','Real Estate & PropTech','Logistics & Transportation','Crypto & Web3','Telecom & IT Services','Media & Entertainment','Professional Services','Consumer','B2B Services','Other Industry'];
@@ -202,6 +202,8 @@
   };
   const icpDimensionValue=(record,dimension)=>{const name=normalizeName(dimension);if(/industry/.test(name))return industryValue(record);if(/company size/.test(name))return companySizeValue(record);if(/process|use case/.test(name))return processDepartment(record);return dimension||'General ICP';};
   const childOrder=(group,value)=>{if(group==='size')return ['SMB','Mid-market','Enterprise'].indexOf(value);if(group==='process')return CATEGORY_DEPARTMENT_ORDER.indexOf(value);if(group==='ind'){const index=INDUSTRY_ORDER.indexOf(value);return index<0?INDUSTRY_ORDER.length:index;}return 0;};
+  const valueSeoAwarenessGroup=axis=>{const name=normalizeName(axis);if(/topic vs topic|topic versus topic/.test(name))return 'product';if(/guide|how to/.test(name))return 'solution';return 'problem';};
+  const awarenessForGroup=group=>group==='product'?'Product aware':group==='solution'?'Solution aware':'Problem aware';
   function mappedRowsFirst(view,viewId){
     const rows=view.rows||[],groups=['listicle','landing','informational','matrix'];
     groups.forEach(group=>{
@@ -214,6 +216,7 @@
             const ar=CATEGORY_DEPARTMENT_ORDER.indexOf(a.repositoryHierarchy),br=CATEGORY_DEPARTMENT_ORDER.indexOf(b.repositoryHierarchy);
             return (ar<0?999:ar)-(br<0?999:br)||Number(a.repositoryRowSlot||0)-Number(b.repositoryRowSlot||0);
           }
+          if(viewId==='value')return String(a.repositoryHierarchy).localeCompare(String(b.repositoryHierarchy))||Number(a.repositoryRowSlot||0)-Number(b.repositoryRowSlot||0);
           if(group==='matrix'){const ar=CATEGORY_DEPARTMENT_ORDER.indexOf(a.repositoryHierarchy),br=CATEGORY_DEPARTMENT_ORDER.indexOf(b.repositoryHierarchy);return (ar<0?999:ar)-(br<0?999:br)||Number(a.repositoryRowSlot||0)-Number(b.repositoryRowSlot||0);}
           const ag=a.repositorySuperHierarchy||a.repositoryHierarchy,bg=b.repositorySuperHierarchy||b.repositoryHierarchy;
           const ar=ICP_DIMENSION_ORDER.indexOf(ag),br=ICP_DIMENSION_ORDER.indexOf(bg);
@@ -275,9 +278,14 @@
     columns.sort((a,b)=>{const ag=ICP_MATRIX_GROUP_ORDER.indexOf(a.matrixGroup),bg=ICP_MATRIX_GROUP_ORDER.indexOf(b.matrixGroup);if(ag!==bg)return (ag<0?999:ag)-(bg<0?999:bg);const ac=childOrder(a.matrixGroup,a.name),bc=childOrder(b.matrixGroup,b.name);return ac-bc||String(a.name).localeCompare(String(b.name));});
     view.pageOrders ||= {};view.pageOrders.matrix=columns.map(column=>column.id);
   }
+  function sortValueSeoColumns(view){
+    const columns=view.pageColumns?.informational;if(!Array.isArray(columns))return;const order=['problem','solution','product'];
+    columns.sort((a,b)=>{const ai=order.indexOf(a.awarenessGroup),bi=order.indexOf(b.awarenessGroup);return (ai<0?999:ai)-(bi<0?999:bi)||String(a.name).localeCompare(String(b.name));});
+    view.pageOrders ||= {};view.pageOrders.informational=columns.map(column=>column.id);
+  }
   function installMappings(root,types,options={}){
     if(!root?.views||!productMatches(options.product)||!data())return false;
-    const revision=(data().classifiedAt||'classification')+':icp-department-row-axis-v1';
+    const revision=(data().classifiedAt||'classification')+':value-seo-awareness-axis-v1';
     if(root.sharedUrlRepositoryRevision===revision)return false;
     const preserved=captureRepositoryState(root);
     clearPreviousMappings(root);
@@ -297,6 +305,7 @@
       const columnName=viewId==='icp'&&mode==='aeo'?dimensionValue:record.axis;
       const column=ensureColumn(viewId,view,group,columnName,mode,types);
       if(viewId==='icp'&&group==='matrix'){column.matrixGroup=matrixGroup('icp',sourceDimension);column.repositoryDimension=sourceDimension;}
+      if(viewId==='value'&&mode==='seo'){column.awarenessGroup=valueSeoAwarenessGroup(record.axis);column.repositoryAwareness=awarenessForGroup(column.awarenessGroup);}
       const rowHierarchy=viewId==='category'?categoryDepartment(record):viewId==='icp'&&mode==='aeo'?processDepartment(record):viewId==='icp'&&mode==='seo'?dimensionValue:record.hierarchy;
       const rowSuperHierarchy=viewId==='icp'&&mode==='seo'?sourceDimension:undefined;
       const row=ensureRow(view,group,rowHierarchy,record.groupOrder,uid,rowSuperHierarchy);
@@ -305,7 +314,8 @@
       const spec={section:record.section,pageType:record.pageType,hierarchy:record.hierarchy,axis:record.axis,topicGroup:record.topicGroup};
       const queries=Array.isArray(current.repositoryQueries)?current.repositoryQueries.slice():[];
       if(!queries.some(item=>JSON.stringify(item)===JSON.stringify(spec)))queries.push(spec);
-      row.cells[column.id]={...current,...saved,v:saved.v||current.v||record.topic||record.hierarchy,mode,type:saved.type||current.type||typeId(types,format),cfg:true,repositoryQueries:queries};linked++;
+      const awareness=viewId==='value'&&mode==='seo'?awarenessForGroup(valueSeoAwarenessGroup(record.axis)):'';
+      row.cells[column.id]={...current,...saved,v:saved.v||current.v||record.topic||record.hierarchy,mode,type:saved.type||current.type||typeId(types,format),aw:saved.aw||current.aw||awareness,cfg:true,repositoryQueries:queries};linked++;
     });
     Object.entries(root.views).forEach(([viewId,view])=>compactRepositoryCells(view,viewId));
     const categoryView=root.views.category;
@@ -322,6 +332,7 @@
       for(const value of CATEGORY_DEPARTMENT_ORDER){const column=ensureColumn('icp',icpView,'matrix',value,'aeo',types);column.matrixGroup='process';column.repositoryDimension='Process / Use case';}
       sortIcpMatrixColumns(icpView);
     }
+    if(root.views.value)sortValueSeoColumns(root.views.value);
     Object.entries(root.views).forEach(([viewId,view])=>mappedRowsFirst(view,viewId));
     applyRepositoryStatuses(root);
     root.sharedUrlRepositoryRevision=revision;root.sharedUrlLinkedCount=linked;return true;
