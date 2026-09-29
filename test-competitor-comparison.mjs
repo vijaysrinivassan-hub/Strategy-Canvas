@@ -13,9 +13,9 @@ const host=new El('section'),m={rows:['A','B','C','D','E'].map(id=>({id,name:id}
 let readonly=false,dirty=0;
 const state={contentView:'competitor',tabs:{content:{views:{competitor:m}}}};
 const select=(value,ro,save)=>{const e=new El('select');e.value=value;e.disabled=ro;e.onchange=()=>save(e.value);return e;};
-const ctx=vm.createContext({KeywordAssignments,keywordRowsByIds:()=>[],state,CONTENT_TAB:'content',$:()=>host,document:{createElement:t=>new El(t)},
+const ctx=vm.createContext({KeywordAssignments,keywordRowsByIds:()=>[],normalizePageUrls:r=>Array.isArray(r)?r:[],normalizeRepositoryUrlOverrides:r=>r||{},window:{SharedUrlRepository:null},state,CONTENT_TAB:'content',$:()=>host,document:{createElement:t=>new El(t)},
  readOnly:()=>readonly,markDirty:()=>dirty++,gridCellKeywords:()=>[],keywordBlock:()=>new El('div'),
- renderIcpKeywordIdeas:()=>{},
+ renderIcpKeywordIdeas:()=>{},renderPageUrlEvidence:()=>{},
  kindSelect:select,awarenessSelect:select,statusSelect:select,modeSwitch:()=>new El('div'),
  keywordMode:'aeo',setTimeout:()=>0,clearTimeout(){}});
 const html=fs.readFileSync(new URL('./index.html',import.meta.url),'utf8');

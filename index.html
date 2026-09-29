@@ -2950,6 +2950,7 @@
 <script src="keyword-columns.js"></script>
 <script src="ai-data-icp-matrix.js"></script>
 <script src="keyword-columns-ui.js"></script>
+<script src="eor-provider-india-keywords.js"></script>
 <script src="competitor-comparison.js"></script>
 <link rel="stylesheet" href="competitive-intelligence.css">
 <script src="competitive-intelligence-seed.js"></script>
@@ -5041,6 +5042,7 @@ async function openBoard(id, location){
   state.dirty = false;
   const migratedOnOpen = globalThis.AiDataIcpMatrix?.ensure(state.tabs[CONTENT_TAB] || (state.tabs[CONTENT_TAB] = {}), state.client, state.workspaceProductId);
   if (migratedOnOpen && !readOnly()){ markDirty(); await saveBoard(true); }
+  await ensureEorProviderIndiaKeywordSeed();
   $('saveState').textContent = 'Saved';
   $('saveState').className = 'save-line';
   const cachedBoard = state.boards.find(b => b.id === data.id);
@@ -6116,6 +6118,29 @@ async function saveKeywords(rows, source){
   }
 }
 
+let eorProviderIndiaSeedPending = null;
+async function ensureEorProviderIndiaKeywordSeed(){
+  const api = globalThis.EorProviderIndiaKeywords;
+  const board = state.boards.find(item => item.id === state.boardId);
+  if (!api?.matchesBoard([state.client, state.clientProduct, board?.title]) || readOnly()) return false;
+  const root = contentRoot();
+  if (root.eorProviderIndiaKeywordRevision === api.REVISION) return false;
+  if (eorProviderIndiaSeedPending) return eorProviderIndiaSeedPending;
+  const targetBoard = state.boardId;
+  eorProviderIndiaSeedPending = (async function(){
+    const saved = await saveKeywords(api.keywordRows(), 'eor-provider-india-screenshots');
+    if (!saved || state.boardId !== targetBoard) return false;
+    const defaults = KeywordAssignments.comparisonDefaults(root);
+    const changed = api.apply(root, kwRows, uid, defaults);
+    root.eorProviderIndiaKeywordRevision = api.REVISION;
+    markDirty();
+    await saveBoard(true);
+    return changed;
+  })();
+  try { return await eorProviderIndiaSeedPending; }
+  catch (error){ console.error(error); toast('Could not import the EOR competitor keywords: ' + (error.message || error), true); return false; }
+  finally { eorProviderIndiaSeedPending = null; }
+}
 async function repaintFromDb(){
   await loadKeywords(true);
   if (state.tab === KEYWORDS_TAB) renderKeywordTables();
