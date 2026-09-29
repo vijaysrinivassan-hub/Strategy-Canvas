@@ -1,0 +1,17 @@
+import assert from 'node:assert/strict';
+import links from './high-priority-links.js';
+const model={};
+assert.deepEqual(links.list(model),[]);
+assert.equal(links.isInternalSlug(''),false);
+assert.equal(links.isInternalSlug('/blog/example'),true);
+assert.equal(links.toggle(model,'https://www.maximuslabs.ai/blog/example/'),true);
+assert.equal(links.has(model,'https://www.maximuslabs.ai/blog/example'),true);
+assert.equal(links.has(model,'/blog/example'),true);
+assert.equal(links.toggle(model,'/blog/example'),false);
+assert.deepEqual(links.list(model),[]);
+assert.equal(links.toggle(model,'/services/eor-india'),true);
+assert.equal(links.has(model,'https://example.com/services/eor-india'),true);
+model.highPriorityUrls=[' /services/eor-india ','/services/eor-india','https://other.example/different'];
+assert.deepEqual(links.normalize(model),['/services/eor-india','https://other.example/different']);
+assert.equal(links.same('https://a.example/same','https://b.example/same'),false);
+console.log('PASS: high-priority URLs toggle once, match full and internal slugs, and deduplicate safely.');

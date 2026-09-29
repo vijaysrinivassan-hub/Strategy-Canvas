@@ -26,6 +26,7 @@
     return global.CompetitiveIntelligenceClassifications?.classifications?.[String(value || '').replace(/\/$/,'')] || null;
   }
   function normalize(tab){
+    global.HighPriorityLinks?.normalize(tab);
     if (!Array.isArray(tab.competitors)) tab.competitors = [];
     tab.competitors.forEach(item => {
       item.id ||= makeId(); item.name ||= 'Untitled competitor'; item.domain ||= '';
@@ -163,7 +164,7 @@
     tools.append(search,addUrl,copy); detail.append(tools);
     const wrap = document.createElement('div'); wrap.className = 'ci-url-wrap';
     const table = document.createElement('table'); table.className = 'ci-url-table';
-    const thead = document.createElement('thead'); thead.innerHTML = '<tr><th>#</th><th>URL</th><th>Strategic section</th><th>Page type</th><th>Classification</th></tr>';
+    const thead = document.createElement('thead'); thead.innerHTML = '<tr><th>Priority</th><th>#</th><th>URL</th><th>Strategic section</th><th>Page type</th><th>Classification</th></tr>';
     const body = document.createElement('tbody'); table.append(thead,body); wrap.append(table); detail.append(wrap);
     const draw = () => {
       const query = search.value.trim().toLowerCase(); body.innerHTML = '';
@@ -174,14 +175,30 @@
       });
       visible.forEach((url,index) => {
         const meta = classificationOf(url);
-        const row = document.createElement('tr'), num = document.createElement('td'), cell = document.createElement('td');
+        const row = document.createElement('tr'), priority = document.createElement('td'), num = document.createElement('td'), cell = document.createElement('td');
         const section = document.createElement('td'), pageType = document.createElement('td'), classification = document.createElement('td');
+        const star = document.createElement('button'); star.type = 'button'; star.className = 'ci-priority-star';
+        const paintStar = () => {
+          const starred = !!global.HighPriorityLinks?.has(tab,url);
+          star.textContent = starred ? '★' : '☆'; star.classList.toggle('on',starred);
+          star.setAttribute('aria-pressed',String(starred));
+          star.setAttribute('aria-label',starred ? 'Remove high-priority link' : 'Mark as high-priority link');
+          star.title = starred ? 'High-priority link' : 'Mark as high-priority link';
+        };
+        star.disabled = ro;
+        star.onpointerdown = event => event.stopPropagation();
+        star.onclick = event => {
+          event.preventDefault(); event.stopPropagation();
+          if (ro) return;
+          global.HighPriorityLinks?.toggle(tab,url); changed(); paintStar();
+        };
+        paintStar(); priority.append(star);
         num.textContent = String(index + 1); const link = document.createElement('a'); link.href = url; link.target = '_blank'; link.rel = 'noopener noreferrer'; link.textContent = url;
         const sectionCode = document.createElement('code'); sectionCode.textContent = meta?.section || 'Unclassified';
         const pageTypeCode = document.createElement('code'); pageTypeCode.textContent = meta?.pageType || 'Unclassified';
         const classificationCode = document.createElement('code'); classificationCode.textContent = [meta?.hierarchy,meta?.axis].filter(Boolean).join(' · ') || 'Unclassified';
         cell.append(link); section.append(sectionCode); pageType.append(pageTypeCode); classification.append(classificationCode);
-        row.append(num,cell,section,pageType,classification); body.append(row);
+        row.append(priority,num,cell,section,pageType,classification); body.append(row);
       });
     };
     search.oninput = draw; draw(); board.append(list,detail); host.append(board);

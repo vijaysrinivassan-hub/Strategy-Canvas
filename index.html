@@ -1966,6 +1966,10 @@
     color:#292b27; font:inherit; font-size:12px; line-height:1.55}
   .positioning-document-field textarea:focus{border-color:#57c982; box-shadow:0 0 0 2px rgba(87,201,130,.12)}
   .positioning-document-field textarea:read-only{background:#fafaf8; color:#4c4e49}
+  .positioning-document-field-head{display:flex;align-items:center;gap:9px;margin-bottom:9px}
+  .positioning-document-field-head span{margin:0;flex:1}.positioning-document-field-head small{color:#848984;font-size:10px}
+  .positioning-document-field-head button{padding:6px 10px;background:#fff;font-size:10px}
+  .high-priority-links-field textarea{min-height:150px;font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:11px;line-height:1.55}
   @media(max-width:780px){
     .positioning-document{padding:14px}.positioning-document-sheet{padding:14px}
     .positioning-document-field{padding:12px}
@@ -2317,6 +2321,8 @@
   .col-lock{display:inline-flex;color:#68776d;padding:3px}
   .gr-url{display:flex;align-items:center;gap:6px;padding:0 6px 5px;color:#748177;font-size:10px}
   .gr-url input[type=text]{min-width:0;flex:1;font-weight:400;padding:4px 2px}
+  .gr-priority-star{flex:0 0 24px;width:24px;height:24px;padding:0;border:0;background:transparent;color:#9ba29c;font-size:18px;line-height:1}
+  .gr-priority-star:hover:not(:disabled),.gr-priority-star.on{border:0;background:transparent;color:#d49a00;box-shadow:none}
   .gr-actor{display:flex;gap:4px;padding:0 6px 7px}
   .gr-actor .gr-entity-type{flex:.85 1 0;min-width:0;height:22px;padding:0 4px;border-radius:2px}
   .gr-actor .gr-entity-detail{flex:1.35 1 0;min-width:0;height:22px;border:1px solid #cfd9d1;border-radius:2px;background:#fff;color:#344339;font-size:10px;font-weight:400 !important;padding:0 5px}
@@ -2950,6 +2956,7 @@
 <script src="keyword-columns.js"></script>
 <script src="ai-data-icp-matrix.js"></script>
 <script src="keyword-columns-ui.js"></script>
+<script src="high-priority-links.js"></script>
 <script src="eor-provider-india-keywords.js"></script>
 <script src="competitor-comparison.js"></script>
 <link rel="stylesheet" href="competitive-intelligence.css">
@@ -6433,6 +6440,24 @@ function normalizeRepositoryUrlOverrides(value){
 
 /* A cell used to be a bare `true`. It now carries the SEO/AEO choice too, so
    old boards are read forward rather than reset. */
+function highPriorityLinksModel(){
+  const model = state.tabs[COMPETITIVE_INTELLIGENCE_TAB] ||
+    (state.tabs[COMPETITIVE_INTELLIGENCE_TAB] = { nodes: [], edges: [], competitors: [] });
+  globalThis.HighPriorityLinks?.normalize(model);
+  return model;
+}
+function highPriorityLinkList(){
+  const model = highPriorityLinksModel();
+  const selected = globalThis.HighPriorityLinks?.list(model) || [];
+  const known = (model.competitors || []).flatMap(item => Array.isArray(item.urls) ? item.urls : []);
+  return selected.map(value => known.find(url => globalThis.HighPriorityLinks?.same(value,url)) || value);
+}
+function isHighPriorityLink(url){ return !!globalThis.HighPriorityLinks?.has(highPriorityLinksModel(), url); }
+function toggleHighPriorityLink(url){
+  const starred = !!globalThis.HighPriorityLinks?.toggle(highPriorityLinksModel(), url);
+  markDirty();
+  return starred;
+}
 function cellState(m, key, defaults){
   const raw = m.cells[key];
   const d = defaults || {};
@@ -6736,11 +6761,28 @@ function cellControls(td, o){
     const urlRow = document.createElement('label'); urlRow.className = 'gr-url';
     const url = document.createElement('input'); url.type = 'text'; url.placeholder = 'Slug';
     url.value = cell.url || ''; url.disabled = o.ro; url.setAttribute('aria-label', 'Slug');
+    const star = document.createElement('button'); star.type = 'button'; star.className = 'gr-priority-star';
+    const paintStar = function(){
+      const visible = !!globalThis.HighPriorityLinks?.isInternalSlug(url.value);
+      const starred = visible && isHighPriorityLink(url.value);
+      star.hidden = !visible; star.textContent = starred ? '★' : '☆';
+      star.classList.toggle('on', starred); star.setAttribute('aria-pressed', String(starred));
+      star.setAttribute('aria-label', starred ? 'Remove high-priority link' : 'Mark as high-priority link');
+      star.title = starred ? 'High-priority link' : 'Mark as high-priority link';
+    };
     url.oninput = function(){
       if(o.ro || readOnly()) return;
-      o.set({url:url.value}); o.refreshEmpty(); markDirty();
+      o.set({url:url.value}); o.refreshEmpty(); markDirty(); paintStar();
     };
-    urlRow.append(url);
+    star.disabled = o.ro;
+    star.onpointerdown = function(event){ event.stopPropagation(); };
+    star.onclick = function(event){
+      event.preventDefault(); event.stopPropagation();
+      if(o.ro || readOnly() || !url.value.trim()) return;
+      toggleHighPriorityLink(url.value); paintStar();
+    };
+    paintStar();
+    urlRow.append(url,star);
     td.insertBefore(urlRow, td.querySelector(':scope > .gr-kws'));
   }
   renderPageUrlEvidence(td, o);
@@ -10453,7 +10495,8 @@ const POSITIONING_DOCUMENT_FIELDS = [
   ['icp_positioning', 'ICP Positioning'],
   ['category_positioning', 'Category Positioning'],
   ['competitive_positioning', 'Competitive Positioning'],
-  ['value_positioning', 'Value Positioning']
+  ['value_positioning', 'Value Positioning'],
+  ['high_priority_links', 'High Priority Links', 'links']
 ];
 
 function positioningDocumentState(){
@@ -10461,7 +10504,7 @@ function positioningDocumentState(){
     (state.tabs[POSITIONING_DOCUMENT_TAB] = { nodes: [], edges: [] });
   if (!tab.fields || typeof tab.fields !== 'object') tab.fields = {};
   POSITIONING_DOCUMENT_FIELDS.forEach(field => {
-    if (typeof tab.fields[field[0]] !== 'string') tab.fields[field[0]] = '';
+    if (field[2] !== 'links' && typeof tab.fields[field[0]] !== 'string') tab.fields[field[0]] = '';
   });
   return tab.fields;
 }
@@ -10471,19 +10514,34 @@ function renderPositioningDocument(){
   const host = $('positioningDocumentFields');
   host.innerHTML = '';
   POSITIONING_DOCUMENT_FIELDS.forEach(field => {
-    const wrapper = document.createElement('label');
-    wrapper.className = 'positioning-document-field';
+    const isLinks = field[2] === 'links';
+    const wrapper = document.createElement(isLinks ? 'section' : 'label');
+    wrapper.className = 'positioning-document-field' + (isLinks ? ' high-priority-links-field' : '');
     const label = document.createElement('span');
     label.textContent = field[1];
     const textarea = document.createElement('textarea');
-    textarea.value = fields[field[0]];
-    textarea.placeholder = 'Add text';
-    textarea.readOnly = readOnly();
-    textarea.oninput = event => {
-      fields[field[0]] = event.target.value;
-      markDirty();
-    };
-    wrapper.append(label, textarea);
+    if (isLinks){
+      const links = highPriorityLinkList();
+      const head = document.createElement('div'); head.className = 'positioning-document-field-head';
+      const count = document.createElement('small'); count.textContent = links.length + ' link' + (links.length === 1 ? '' : 's');
+      const copy = document.createElement('button'); copy.type = 'button'; copy.textContent = 'Copy links'; copy.disabled = !links.length;
+      copy.onclick = async function(){
+        try { await navigator.clipboard.writeText(links.join('\n')); toast(links.length + ' high-priority links copied.'); }
+        catch { toast('Clipboard permission was not available.', true); }
+      };
+      head.append(label,count,copy);
+      textarea.value = links.join('\n'); textarea.placeholder = 'Star a slug or Competitive Intelligence URL'; textarea.readOnly = true;
+      wrapper.append(head,textarea);
+    }else{
+      textarea.value = fields[field[0]];
+      textarea.placeholder = 'Add text';
+      textarea.readOnly = readOnly();
+      textarea.oninput = event => {
+        fields[field[0]] = event.target.value;
+        markDirty();
+      };
+      wrapper.append(label, textarea);
+    }
     host.append(wrapper);
   });
 }
