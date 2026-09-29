@@ -6629,6 +6629,10 @@ function pageTrafficTotal(rows){
   }, 0);
 }
 
+function isMaximusLabsUrl(row){
+  return String(row?.competitor || '').trim().toLowerCase() === 'maximus labs';
+}
+
 function renderPageUrlEvidence(td, o){
   let host = td.querySelector(':scope > .gr-page-urls');
   if (!host){
@@ -6641,9 +6645,9 @@ function renderPageUrlEvidence(td, o){
   const overrides = normalizeRepositoryUrlOverrides(o.get().repositoryUrlOverrides);
   const sharedRows = window.SharedUrlRepository?.resolve(o.get().repositoryQueries, overrides) || [];
   const manualIds = new Set(manualRows.map(row => String(row.url || '').replace(/\/$/,'')));
-  const visibleSharedRows = sharedRows.filter(row => !manualIds.has(String(row.url || '').replace(/\/$/,'')));
+  const visibleSharedRows = sharedRows.filter(row => !isMaximusLabsUrl(row) && !manualIds.has(String(row.url || '').replace(/\/$/,'')));
   const rows = visibleSharedRows.concat(manualRows);
-  td.classList.toggle('maximus-covered', rows.some(row => row.covered));
+  td.classList.toggle('maximus-covered', sharedRows.some(row => row.covered));
   if (!rows.length){ host.hidden = true; return; }
   host.hidden = false;
   host.classList.toggle('scrolling',rows.length>5);
@@ -6664,13 +6668,13 @@ function renderPageUrlEvidence(td, o){
         const nextOverrides = normalizeRepositoryUrlOverrides(o.get().repositoryUrlOverrides);
         nextOverrides[row.id] = {url:url.value,traffic:traffic.value,deleted:false};
         o.set({repositoryUrlOverrides:nextOverrides});o.refreshEmpty();markDirty();
-        const updated=window.SharedUrlRepository?.resolve(o.get().repositoryQueries,nextOverrides)||[];
+        const updated=(window.SharedUrlRepository?.resolve(o.get().repositoryQueries,nextOverrides)||[]).filter(item=>!isMaximusLabsUrl(item));
         const total=host.querySelector('.gr-url-total em');if(total)total.textContent=pageTrafficTotal(updated.concat(manualRows)).toLocaleString()+' traffic total';return;
       }
       const next = manualRows.map(function(item){ return item.id === row.id ? { id:item.id, url:url.value, traffic:traffic.value } : item; });
       saveRows(next);
       const total = host.querySelector('.gr-url-total em');
-      if (total) total.textContent = pageTrafficTotal(sharedRows.concat(next)).toLocaleString() + ' traffic total';
+      if (total) total.textContent = pageTrafficTotal(visibleSharedRows.concat(next)).toLocaleString() + ' traffic total';
     };
     url.oninput = update; traffic.oninput = update;
     const remove = document.createElement('button'); remove.type = 'button'; remove.className = 'gr-page-remove';
@@ -6812,7 +6816,7 @@ function cellControls(td, o){
     foot.append(add);
     const addUrl = document.createElement('button');
     addUrl.className = 'gr-kwadd gr-urladd';
-    const importedUrlCount = window.SharedUrlRepository?.resolve(o.get().repositoryQueries, o.get().repositoryUrlOverrides).length || 0;
+    const importedUrlCount = (window.SharedUrlRepository?.resolve(o.get().repositoryQueries, o.get().repositoryUrlOverrides) || []).filter(row => !isMaximusLabsUrl(row)).length;
     addUrl.textContent = importedUrlCount ? '+ URL (' + importedUrlCount + ')' : '+ URL';
     addUrl.title = importedUrlCount
       ? importedUrlCount + ' imported URLs are shown; add a manual URL'

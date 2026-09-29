@@ -15,6 +15,9 @@ const overrides={'https://example.com/source':{url:'https://example.com/edited',
 ctx.setCellIn(row,'a',{repositoryQueries:[{topicGroup:'g'}],repositoryUrlOverrides:overrides,excludedKws:['17']},{});
 c=ctx.cellOf(JSON.parse(JSON.stringify(row)),'a',{});assert.deepEqual(JSON.parse(JSON.stringify(c.repositoryUrlOverrides)),overrides);assert.deepEqual(JSON.parse(JSON.stringify(c.excludedKws)),['17']);
 assert(html.includes("addUrl.textContent = importedUrlCount ? '+ URL (' + importedUrlCount + ')' : '+ URL'"));
+assert(html.includes('function isMaximusLabsUrl(row)'));
+assert(html.includes('!isMaximusLabsUrl(row) && !manualIds.has'));
+assert(html.includes('.filter(row => !isMaximusLabsUrl(row)).length'));
 assert(html.includes("importedUrlCount + ' imported URLs are shown; add a manual URL'"));
 assert(html.includes("url.placeholder = 'Page URL'"));
 assert(html.includes("traffic.placeholder = 'Traffic'"));

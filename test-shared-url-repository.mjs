@@ -64,9 +64,14 @@ assert(cells.some(cell=>repo.resolve(cell.repositoryQueries).length>1));
 assert(cells.every(cell=>cell.repositoryQueries.every(query=>query.topicGroup)));
 assert(cells.every(cell=>['written','plus_2','for_review'].includes(cell.st)));
 assert(cells.filter(cell=>repo.resolve(cell.repositoryQueries).some(row=>row.covered)).every(cell=>cell.st==='written'));
+const maximusCells=cells.filter(cell=>repo.resolve(cell.repositoryQueries).some(row=>row.competitor==='Maximus Labs'));
+assert(maximusCells.length>0);
+assert(maximusCells.every(cell=>cell.url===repo.resolve(cell.repositoryQueries).find(row=>row.competitor==='Maximus Labs').url));
+assert(maximusCells.every(cell=>cell.st==='written'));
 assert(cells.filter(cell=>!repo.resolve(cell.repositoryQueries).some(row=>row.covered)&&repo.resolve(cell.repositoryQueries).length>2).every(cell=>cell.st==='plus_2'));
 assert(cells.filter(cell=>!repo.resolve(cell.repositoryQueries).some(row=>row.covered)&&repo.resolve(cell.repositoryQueries).length<=2).every(cell=>cell.st==='for_review'));
 assert(Object.values(root.views).flatMap(view=>Object.values(view.pageColumns||{}).flat()).filter(column=>column.instruction).every(column=>column.instruction.includes('Workbook URL grouping:')));
+assert(Object.values(root.views).flatMap(view=>Object.values(view.pageColumns||{}).flat()).filter(column=>column.instruction).every(column=>column.instruction.includes('Store the Maximus Labs URL in the Slug field')));
 for(const [viewId,view] of Object.entries(root.views))for(const group of ['listicle','landing','informational','matrix']){
   const rows=(view.rows||[]).filter(row=>row.pageGroup===group&&row.repositoryHierarchy);if(!rows.length)continue;
   const batches=(viewId==='category'||(viewId==='icp'&&(group==='informational'||group==='matrix'))||(viewId==='value'&&group==='informational'))?[...new Set(rows.map(row=>(row.repositorySuperHierarchy||'')+'|'+row.repositoryHierarchy))].map(key=>rows.filter(row=>(row.repositorySuperHierarchy||'')+'|'+row.repositoryHierarchy===key)):[rows];
