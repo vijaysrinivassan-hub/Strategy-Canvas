@@ -1,0 +1,242 @@
+/* Board-scoped Ask Luca sitemap import for Competitive Intelligence. */
+(function(root,factory){
+  const api=factory();
+  if(typeof module==='object'&&module.exports)module.exports=api;
+  else root.AskLucaCompetitiveIntelligence=api;
+})(typeof globalThis!=='undefined'?globalThis:this,function(){
+  'use strict';
+  const REVISION='ask-luca-sitemap-2026-09-30-v1';
+  const clone=value=>JSON.parse(JSON.stringify(value));
+  const normalize=value=>String(value||'').trim().toLowerCase().replace(/\/$/,'');
+  const unique=values=>[...new Set((values||[]).filter(Boolean))];
+  const PROFILE={
+    id:'ask-luca',
+    name:'Ask Luca',
+    domain:'https://ask-luca.com',
+    aliases:['Luca','Luca AI'],
+    sitemaps:['https://ask-luca.com/sitemap.xml'],
+    urls:[
+    'https://ask-luca.com',
+    'https://ask-luca.com/about',
+    'https://ask-luca.com/blog',
+    'https://ask-luca.com/blog-categories/8fig',
+    'https://ask-luca.com/blog-categories/ai-for-ecommerce',
+    'https://ask-luca.com/blog-categories/ai-tools-agents',
+    'https://ask-luca.com/blog-categories/amazon-lending',
+    'https://ask-luca.com/blog-categories/analytics-tools-platforms',
+    'https://ask-luca.com/blog-categories/bi-platforms-reporting',
+    'https://ask-luca.com/blog-categories/business-intelligence-data',
+    'https://ask-luca.com/blog-categories/clearco',
+    'https://ask-luca.com/blog-categories/competitor-intelligence',
+    'https://ask-luca.com/blog-categories/customer-retention-analytics',
+    'https://ask-luca.com/blog-categories/data-integration-management',
+    'https://ask-luca.com/blog-categories/ecommerce-analytics',
+    'https://ask-luca.com/blog-categories/ecommerce-financing-capital',
+    'https://ask-luca.com/blog-categories/funding-providers-compared',
+    'https://ask-luca.com/blog-categories/funding-types-fundamentals',
+    'https://ask-luca.com/blog-categories/growth-retention-playbooks',
+    'https://ask-luca.com/blog-categories/inventory-seasonal-planning',
+    'https://ask-luca.com/blog-categories/marketing-attribution-analytics',
+    'https://ask-luca.com/blog-categories/operations-growth',
+    'https://ask-luca.com/blog-categories/outfund',
+    'https://ask-luca.com/blog-categories/payability',
+    'https://ask-luca.com/blog-categories/platform-analytics',
+    'https://ask-luca.com/blog-categories/predictive-conversational-analytics',
+    'https://ask-luca.com/blog-categories/profitability-unit-economics',
+    'https://ask-luca.com/blog-categories/shopify-capital-competitor',
+    'https://ask-luca.com/blog-categories/supermetrics',
+    'https://ask-luca.com/blog-categories/tech-stack-tools',
+    'https://ask-luca.com/blog-categories/the-ai-co-founder',
+    'https://ask-luca.com/blog-categories/triple-whale',
+    'https://ask-luca.com/blog-categories/walmart-capital',
+    'https://ask-luca.com/blog-categories/wayflyer',
+    'https://ask-luca.com/blog-categories/working-capital-cash-flow',
+    'https://ask-luca.com/blogs/7-best-e-commerce-analytics-tools-that-fund-your-campaigns',
+    'https://ask-luca.com/blogs/8fig-alternatives-reviews-pricing',
+    'https://ask-luca.com/blogs/add-google-analytics-to-shopify',
+    'https://ask-luca.com/blogs/agentic-ai-for-ecommerce-founders',
+    'https://ask-luca.com/blogs/agentic-analytics-tools',
+    'https://ask-luca.com/blogs/agentic-bi',
+    'https://ask-luca.com/blogs/agents-for-ecommerce',
+    'https://ask-luca.com/blogs/ai-agents-for-data-analysis',
+    'https://ask-luca.com/blogs/ai-data-analyst-for-ecommerce',
+    'https://ask-luca.com/blogs/ai-data-visualization-tools',
+    'https://ask-luca.com/blogs/ai-demand-forecasting-ecommerce',
+    'https://ask-luca.com/blogs/ai-for-e-commerce-cash-flow-forecasting',
+    'https://ask-luca.com/blogs/ai-marketing-analytics-for-ecommerce',
+    'https://ask-luca.com/blogs/ai-native-data-platform',
+    'https://ask-luca.com/blogs/ai-powered-analytics-tools',
+    'https://ask-luca.com/blogs/ai-reporting-software',
+    'https://ask-luca.com/blogs/ai-solution-for-facebook-analytics',
+    'https://ask-luca.com/blogs/ai-underwriting',
+    'https://ask-luca.com/blogs/alternative-lenders',
+    'https://ask-luca.com/blogs/amazon-brand-analytics',
+    'https://ask-luca.com/blogs/amazon-seller-funding',
+    'https://ask-luca.com/blogs/automated-ecommerce-reporting',
+    'https://ask-luca.com/blogs/best-ai-powered-bi-tools-for-ecommerce',
+    'https://ask-luca.com/blogs/best-ai-solutions-for-ecommerce',
+    'https://ask-luca.com/blogs/best-ai-tools-for-shopify-owners',
+    'https://ask-luca.com/blogs/best-alternative-lenders-for-ecommerce',
+    'https://ask-luca.com/blogs/best-augmented-analytics-tools',
+    'https://ask-luca.com/blogs/best-automated-data-reporting-in-ecommerce',
+    'https://ask-luca.com/blogs/best-cross-channel-analytics-tools-for-ecommerce',
+    'https://ask-luca.com/blogs/best-customer-segmentation-in-ecommerce',
+    'https://ask-luca.com/blogs/best-ecommerce-working-capital-loans',
+    'https://ask-luca.com/blogs/best-etl-tools-for-small-business',
+    'https://ask-luca.com/blogs/best-insight-engines',
+    'https://ask-luca.com/blogs/best-omnichannel-analytics-platform-for-ecommerce',
+    'https://ask-luca.com/blogs/best-predictive-analytics-tools-for-ecommerce',
+    'https://ask-luca.com/blogs/best-revenue-based-financing-companies',
+    'https://ask-luca.com/blogs/best-reverse-etl-tools',
+    'https://ask-luca.com/blogs/best-reverse-etl-tools-for-ecommerce',
+    'https://ask-luca.com/blogs/best-self-service-analytics-tools',
+    'https://ask-luca.com/blogs/best-shopify-analytics-apps',
+    'https://ask-luca.com/blogs/best-shopify-reporting-apps',
+    'https://ask-luca.com/blogs/best-way-to-track-e-commerce-unit-economics',
+    'https://ask-luca.com/blogs/calculating-working-capital-for-ecommerce-business-needs',
+    'https://ask-luca.com/blogs/cash-flow-business-loan',
+    'https://ask-luca.com/blogs/cash-flow-vs-revenue-vs-profit',
+    'https://ask-luca.com/blogs/chatgpt-4-fee-starting-jan-2026-what-smart-merchants-do-now',
+    'https://ask-luca.com/blogs/chatgpt-for-ecommerce-data-analysis',
+    'https://ask-luca.com/blogs/clearco-alternatives',
+    'https://ask-luca.com/blogs/cognitive-analytics-platform',
+    'https://ask-luca.com/blogs/contribution-margin-vs-gross-margin',
+    'https://ask-luca.com/blogs/conversational-analytics-for-ecommerce',
+    'https://ask-luca.com/blogs/conversational-analytics-tools',
+    'https://ask-luca.com/blogs/customer-behavior-analytics',
+    'https://ask-luca.com/blogs/customer-churn-analysis',
+    'https://ask-luca.com/blogs/customer-cohort-analysis',
+    'https://ask-luca.com/blogs/customer-profitability-analysis',
+    'https://ask-luca.com/blogs/customer-retention-strategies-ecommerce',
+    'https://ask-luca.com/blogs/daasity-alternatives',
+    'https://ask-luca.com/blogs/data-storytelling-tools',
+    'https://ask-luca.com/blogs/databox-alternatives',
+    'https://ask-luca.com/blogs/decision-intelligence-tools',
+    'https://ask-luca.com/blogs/declining-platform-roas-vs-true-profitability',
+    'https://ask-luca.com/blogs/direct-to-consumer-financing',
+    'https://ask-luca.com/blogs/e-commerce-tech-stack',
+    'https://ask-luca.com/blogs/ecommerce-ai-agents',
+    'https://ask-luca.com/blogs/ecommerce-analytics-dashboard',
+    'https://ask-luca.com/blogs/ecommerce-analytics-platforms',
+    'https://ask-luca.com/blogs/ecommerce-api-integrations',
+    'https://ask-luca.com/blogs/ecommerce-business-intelligence',
+    'https://ask-luca.com/blogs/ecommerce-cash-flow-forecasting-tool',
+    'https://ask-luca.com/blogs/ecommerce-conversion-tracking',
+    'https://ask-luca.com/blogs/ecommerce-customer-analytics',
+    'https://ask-luca.com/blogs/ecommerce-customer-journey-analytics',
+    'https://ask-luca.com/blogs/ecommerce-customer-lifetime-value',
+    'https://ask-luca.com/blogs/ecommerce-customer-segmentation',
+    'https://ask-luca.com/blogs/ecommerce-data-analytics',
+    'https://ask-luca.com/blogs/ecommerce-data-collection',
+    'https://ask-luca.com/blogs/ecommerce-data-integration',
+    'https://ask-luca.com/blogs/ecommerce-data-management',
+    'https://ask-luca.com/blogs/ecommerce-data-visualization',
+    'https://ask-luca.com/blogs/ecommerce-growth-strategy',
+    'https://ask-luca.com/blogs/ecommerce-inventory-management',
+    'https://ask-luca.com/blogs/ecommerce-kpis',
+    'https://ask-luca.com/blogs/ecommerce-management-software',
+    'https://ask-luca.com/blogs/ecommerce-monitoring-tools',
+    'https://ask-luca.com/blogs/ecommerce-omnichannel-analytics',
+    'https://ask-luca.com/blogs/ecommerce-performance-analytics',
+    'https://ask-luca.com/blogs/ecommerce-platform-integration',
+    'https://ask-luca.com/blogs/ecommerce-product-data-management',
+    'https://ask-luca.com/blogs/ecommerce-profit-margins',
+    'https://ask-luca.com/blogs/ecommerce-reporting',
+    'https://ask-luca.com/blogs/ecommerce-website-analytics',
+    'https://ask-luca.com/blogs/ecommerce-working-capital',
+    'https://ask-luca.com/blogs/evaluating-ai-data-agents',
+    'https://ask-luca.com/blogs/forecast-cash-flow-for-e-commerce',
+    'https://ask-luca.com/blogs/funding-to-scale-e-commerce-marketing-campaigns',
+    'https://ask-luca.com/blogs/generative-bi-tools',
+    'https://ask-luca.com/blogs/glew-alternatives',
+    'https://ask-luca.com/blogs/google-analytics-alternatives-for-ecommerce',
+    'https://ask-luca.com/blogs/google-analytics-for-ecommerce',
+    'https://ask-luca.com/blogs/how-ai-can-actually-help-you-run-your-e-commerce-business',
+    'https://ask-luca.com/blogs/invoice-financing-vs-factoring',
+    'https://ask-luca.com/blogs/invoice-funding',
+    'https://ask-luca.com/blogs/lebesgue-alternatives',
+    'https://ask-luca.com/blogs/lifetimely-alternatives',
+    'https://ask-luca.com/blogs/luca-ai-vs-wayflyer',
+    'https://ask-luca.com/blogs/meet-luca-ai',
+    'https://ask-luca.com/blogs/merchant-cash-advance',
+    'https://ask-luca.com/blogs/no-code-analytics-platform',
+    'https://ask-luca.com/blogs/non-bank-credit-options',
+    'https://ask-luca.com/blogs/outfund-alternatives-reviews-pricing',
+    'https://ask-luca.com/blogs/payability-alternatives-reviews-pricing',
+    'https://ask-luca.com/blogs/polar-analytics-alternatives',
+    'https://ask-luca.com/blogs/predictive-analytics-for-ecommerce',
+    'https://ask-luca.com/blogs/revenue-based-financing',
+    'https://ask-luca.com/blogs/saas-bi-tools',
+    'https://ask-luca.com/blogs/seasonal-inventory-management',
+    'https://ask-luca.com/blogs/self-service-bi-tools',
+    'https://ask-luca.com/blogs/shopify-analytics-dashboard-explained',
+    'https://ask-luca.com/blogs/shopify-analytics-guide',
+    'https://ask-luca.com/blogs/shopify-business-intelligence',
+    'https://ask-luca.com/blogs/shopify-capital',
+    'https://ask-luca.com/blogs/shopify-custom-reports',
+    'https://ask-luca.com/blogs/shopify-loan',
+    'https://ask-luca.com/blogs/shopify-ltv',
+    'https://ask-luca.com/blogs/shopify-reporting',
+    'https://ask-luca.com/blogs/Shopify-reporting-dashboard',
+    'https://ask-luca.com/blogs/shopifys-winter-26-ai-sidekick',
+    'https://ask-luca.com/blogs/slowest-retail-months',
+    'https://ask-luca.com/blogs/start-up-business-loans',
+    'https://ask-luca.com/blogs/supermetrics-alternatives-for-ecommerce',
+    'https://ask-luca.com/blogs/the-intelligence-capital-thesis',
+    'https://ask-luca.com/blogs/top-ecommerce-kpis',
+    'https://ask-luca.com/blogs/triple-whale-alternatives',
+    'https://ask-luca.com/blogs/types-of-inventory-financing',
+    'https://ask-luca.com/blogs/walmart-loans',
+    'https://ask-luca.com/blogs/wayflyer-alternatives',
+    'https://ask-luca.com/blogs/wayflyer-reviews-pricing',
+    'https://ask-luca.com/blogs/what-is-an-ai-co-founder-for-e-commerce',
+    'https://ask-luca.com/blogs/what-is-luca-ai-the-ai-co-founder-for-e-commerce-explained',
+    'https://ask-luca.com/blogs/what-smes-are-asking-ai',
+    'https://ask-luca.com/blogs/why-e-commerce-founders-are-drowning-in-data',
+    'https://ask-luca.com/capital',
+    'https://ask-luca.com/careers',
+    'https://ask-luca.com/contact',
+    'https://ask-luca.com/how-it-works',
+    'https://ask-luca.com/pricing',
+    'https://ask-luca.com/pricing-mastercard-business-bonus',
+    'https://ask-luca.com/privacy',
+    'https://ask-luca.com/terms-and-conditions',
+    'https://ask-luca.com/the-agent'
+    ],
+    source:'Published sitemap.xml',
+    fetchedAt:'2026-09-30T00:00:00.000Z',
+    status:'complete',
+    note:'Complete URL inventory from the sitemap declared in robots.txt.'
+  };
+  function matchesBoard(values){
+    return (values||[]).some(value=>normalize(value)==='ai data platform');
+  }
+  function apply(tab){
+    if(!tab||typeof tab!=='object')return false;
+    if(!Array.isArray(tab.competitors))tab.competitors=[];
+    const before=JSON.stringify(tab);
+    const existing=tab.competitors.find(item=>
+      normalize(item?.domain)===normalize(PROFILE.domain)||
+      normalize(item?.name)===normalize(PROFILE.name)||
+      String(item?.id||'')===PROFILE.id
+    );
+    if(existing){
+      existing.name=PROFILE.name;
+      existing.domain=PROFILE.domain;
+      existing.aliases=unique([...(existing.aliases||[]),...PROFILE.aliases]);
+      existing.sitemaps=unique([...(existing.sitemaps||[]),...PROFILE.sitemaps]);
+      existing.urls=unique([...(existing.urls||[]),...PROFILE.urls]);
+      existing.source=PROFILE.source;
+      existing.fetchedAt=PROFILE.fetchedAt;
+      existing.status=existing.urls.length?'complete':'empty';
+      existing.note=existing.note||PROFILE.note;
+      existing.id=existing.id||PROFILE.id;
+      tab.activeCompetitorId=tab.activeCompetitorId||existing.id;
+    }else{
+      tab.competitors.push(clone(PROFILE));
+      tab.activeCompetitorId=tab.activeCompetitorId||PROFILE.id;
+    }
+    return JSON.stringify(tab)!==before;
+  }
+  return {REVISION,PROFILE,matchesBoard,apply};
+});

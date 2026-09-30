@@ -2961,6 +2961,7 @@
 <script src="competitor-comparison.js"></script>
 <link rel="stylesheet" href="competitive-intelligence.css">
 <script src="competitive-intelligence-seed.js"></script>
+<script src="ask-luca-competitive-intelligence.js"></script>
 <script src="competitive-intelligence.js"></script>
 <script src="shared-url-repository.js"></script>
 <link rel="stylesheet" href="icp-workflows.css">
@@ -5050,6 +5051,7 @@ async function openBoard(id, location){
   const migratedOnOpen = globalThis.AiDataIcpMatrix?.ensure(state.tabs[CONTENT_TAB] || (state.tabs[CONTENT_TAB] = {}), state.client, state.workspaceProductId);
   if (migratedOnOpen && !readOnly()){ markDirty(); await saveBoard(true); }
   await ensureEorProviderIndiaKeywordSeed();
+  await ensureAskLucaCompetitiveIntelligenceSeed();
   $('saveState').textContent = 'Saved';
   $('saveState').className = 'save-line';
   const cachedBoard = state.boards.find(b => b.id === data.id);
@@ -6147,6 +6149,28 @@ async function ensureEorProviderIndiaKeywordSeed(){
   try { return await eorProviderIndiaSeedPending; }
   catch (error){ console.error(error); toast('Could not import the EOR competitor keywords: ' + (error.message || error), true); return false; }
   finally { eorProviderIndiaSeedPending = null; }
+}
+let askLucaCompetitiveIntelligenceSeedPending = null;
+async function ensureAskLucaCompetitiveIntelligenceSeed(){
+  const api = globalThis.AskLucaCompetitiveIntelligence;
+  const board = state.boards.find(item => item.id === state.boardId);
+  if (!api?.matchesBoard([state.client, state.clientProduct, board?.title]) || readOnly()) return false;
+  const model = state.tabs[COMPETITIVE_INTELLIGENCE_TAB] ||
+    (state.tabs[COMPETITIVE_INTELLIGENCE_TAB] = { nodes: [], edges: [] });
+  if (model.askLucaSitemapRevision === api.REVISION) return false;
+  if (askLucaCompetitiveIntelligenceSeedPending) return askLucaCompetitiveIntelligenceSeedPending;
+  const targetBoard = state.boardId;
+  askLucaCompetitiveIntelligenceSeedPending = (async function(){
+    const changed = api.apply(model);
+    if (state.boardId !== targetBoard) return false;
+    model.askLucaSitemapRevision = api.REVISION;
+    markDirty();
+    await saveBoard(true);
+    return changed;
+  })();
+  try { return await askLucaCompetitiveIntelligenceSeedPending; }
+  catch (error){ console.error(error); toast('Could not import the Ask Luca sitemap: ' + (error.message || error), true); return false; }
+  finally { askLucaCompetitiveIntelligenceSeedPending = null; }
 }
 async function repaintFromDb(){
   await loadKeywords(true);
