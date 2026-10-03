@@ -6,15 +6,18 @@ const tool = fs.readFileSync(new URL('./mcp-server/src/tools/architecture.ts', i
 const prompts = JSON.parse(fs.readFileSync(new URL('./ai-prompts.json', import.meta.url), 'utf8'));
 
 assert(html.includes('id="btnMaturityProcessView"'));
-assert(html.includes("processView.textContent = processNode.label + ' · Process view'"));
+assert(html.includes("processView.textContent = maturityProcessName(processNode) + ' · Process view'"));
 assert(html.includes('checkedViewNodes.length === 1'));
 assert(html.includes('function renderMaturityProcessDetail(system, node, architecture)'));
-assert(html.includes("processButton.textContent = processNode.label + (activeViewNode ? ' · Canvas view' : ' · Process view')"));
+assert(html.includes("processButton.textContent = maturityProcessName(processNode) + (activeViewNode ? ' · Canvas view' : ' · Process view')"));
+assert(html.includes("/(^|-)analysis$/.test(id)"));
+assert(html.includes("maturityProcessName(node) === 'Analysis'"));
 assert(html.includes("['Descriptive analysis','What happened?']"));
 assert(html.includes("['Comparative analysis','Period versus period, segment versus segment, or product versus product.']"));
 assert.equal((html.match(/^\s*\['[^']+ analysis'/gm) || []).length, 14);
 assert(html.includes("node.subProcesses.push({id:uid(),name:'New sub-process',description:''})"));
 assert(html.includes("node.subProcesses.splice(index,1)"));
+assert(html.includes("target.closest('.maturity-process-detail"));
 assert(tool.includes('subProcesses:z.array(z.object'));
 assert(prompts.maturity_axis.prompt.includes('editable subProcesses list'));
 assert(prompts.maturity_axis.prompt.includes('comparative analysis'));

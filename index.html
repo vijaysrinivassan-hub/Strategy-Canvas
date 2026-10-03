@@ -2370,6 +2370,11 @@
   .icp-matrix-topic-cell .gr-kws:empty{display:none}
   .mx-table tbody th.icp-matrix-row-topic{min-width:310px;position:relative;left:auto;z-index:1;background:#eef6f0 !important;box-shadow:inset 4px 0 #64c886}
   .mx-table tbody th.icp-seo-row-axis{min-width:310px;position:relative;left:auto;z-index:1;padding:16px 14px;background:#eef6f0 !important;box-shadow:inset 4px 0 #64c886;color:#263c2d;text-align:left;vertical-align:top}
+  .mx-table tbody th.value-process-parent{background:#171c18 !important;box-shadow:inset 4px 0 #64c886;color:#fff !important}
+  .mx-table tbody th.value-process-child{padding-left:28px !important;background:#f3f8f4 !important;box-shadow:inset 4px 0 #9acaaa}
+  .matrix-row-kind{display:block;margin:0 0 7px;color:#6a8170;font-size:7px;font-weight:850;letter-spacing:.1em;text-transform:uppercase}
+  .value-process-parent .matrix-row-kind{color:#8bd29e}
+  .value-process-parent input{color:#fff !important;border-bottom-color:rgba(255,255,255,.2) !important}
   .icp-seo-row-axis small{display:block;margin-bottom:5px;color:#568164;font-size:8px;font-weight:850;letter-spacing:.1em;text-transform:uppercase}
   .icp-seo-row-axis strong{display:block;font-size:11px;font-weight:800;letter-spacing:.03em}
   .mx-table thead th.icp-matrix-column-topic{position:relative;top:auto;min-height:220px}
@@ -7892,7 +7897,13 @@ function renderGridTable(v, group, table){
       }
     }else if(isPositioningMatrix){
       const topicRow = row.statusFilterTopicRow || row;
-      num.className='icp-matrix-row-topic';renderMatrixTopicCell(num,topicRow,ro || !!keywordStatusFilter.size);
+      num.className='icp-matrix-row-topic';
+      if(state.contentView==='value' && topicRow.processLevel){
+        num.classList.add(topicRow.processLevel==='process'?'value-process-parent':'value-process-child');
+        const kind=document.createElement('small');kind.className='matrix-row-kind';
+        kind.textContent=topicRow.processLevel==='process'?'Process':'Sub-process';num.append(kind);
+      }
+      renderMatrixTopicCell(num,topicRow,ro || !!keywordStatusFilter.size);
       if(!ro && !keywordStatusFilter.size){const del=document.createElement('button');del.className='matrix-topic-delete';del.innerHTML='&times;';del.title='Delete row';del.onclick=function(){if(Object.keys(row.cells||{}).length&&!confirm('Delete this row and its contents?'))return;v.rows.splice(v.rows.indexOf(row),1);markDirty();renderGrid();};num.append(del);}
     }else{
       num.className='gr-num';const wrap=document.createElement('div');wrap.className='gr-numwrap';const idx=document.createElement('span');idx.textContent=String(rowOffset+i+1);wrap.append(idx);
@@ -8887,6 +8898,16 @@ function seededAnalysisSubProcesses(){
   return ANALYSIS_SUBPROCESSES.map(item => ({id:uid(),name:item[0],description:item[1]}));
 }
 
+function maturityProcessName(node){
+  if (String(node.processName || '').trim()) return String(node.processName).trim();
+  const id = String(node.id || '').toLowerCase();
+  if (/(^|-)analysis$/.test(id) || /^analysis$/i.test(String(node.label || '').trim())) return 'Analysis';
+  if (/(^|-)reporting$/.test(id) || /^reporting$/i.test(String(node.label || '').trim())) return 'Reporting';
+  if (/(^|-)forecasting$/.test(id) || /^forecasting$/i.test(String(node.label || '').trim())) return 'Forecasting';
+  if (/(^|-)optimization$/.test(id) || /^optimization$/i.test(String(node.label || '').trim())) return 'Optimization';
+  return String(node.label || 'Process').trim();
+}
+
 function archFlowSystem(name, height, row, width){
   return { id: uid(), name: name || 'New system', height: Math.max(230, Number(height) || 300),
     row: Math.max(0, Math.floor(Number(row) || 0)), width: Math.max(640, Number(width) || 1060) };
@@ -9154,6 +9175,10 @@ if (tab.architectureFeaturePromptRevision !== 1){
     if (!readOnly()) setTimeout(markDirty,0);
   }
   architecture.nodes = architecture.nodes.filter(node => architecture.systems.some(system => system.id === node.systemId));
+  const analysisContext = /ai data platform|data analytics/.test(
+    (String(state.client || '') + ' ' + String(architecture.name || '')).toLowerCase());
+  const migrateAnalysisSubProcesses = tabKey === MATURITY_ACCESS_TAB && analysisContext &&
+    architecture.analysisSubprocessRevision !== 1;
   architecture.nodes.forEach(node => {
     if (!node.id) node.id = uid();
     if (!ARCH_NODE_TYPES.some(type => type[0] === node.type)) node.type = 'technology';
@@ -9169,20 +9194,25 @@ if (tab.architectureFeaturePromptRevision !== 1){
       {id:uid(),name:item,description:''} : {
         id:item.id || uid(), name:String(item.name || '').trim(), description:String(item.description || '').trim()
       }).filter(item => item.name);
-    const analysisContext = /ai data platform|data analytics/.test(
-      (String(state.client || '') + ' ' + String(architecture.name || '')).toLowerCase());
-    if (tabKey === MATURITY_ACCESS_TAB && analysisContext && /^analysis$/i.test(node.label.trim()) &&
-        !node.subProcesses.length){
-      node.subProcesses = seededAnalysisSubProcesses();
-      if (!readOnly()) setTimeout(markDirty,0);
+    if (migrateAnalysisSubProcesses && maturityProcessName(node) === 'Analysis'){
+      const existing = new Set(node.subProcesses.map(item => item.name.toLowerCase()));
+      seededAnalysisSubProcesses().forEach(item => {
+        if (!existing.has(item.name.toLowerCase())) node.subProcesses.push(item);
+      });
     }
     delete node.nodalBenefit;
     if (tabKey === MATURITY_ACCESS_TAB){
+      const inferredProcessName = maturityProcessName(node);
+      if (!node.processName && inferredProcessName !== node.label) node.processName = inferredProcessName;
       if (!['supporting','pillar'].includes(node.processRole)) node.processRole = 'supporting';
       if (node.processRole === 'pillar' && !['current','inherited'].includes(node.pillarState)) node.pillarState = 'current';
       node.replacementSelected = node.replacementSelected === true;
     }
   });
+  if (migrateAnalysisSubProcesses){
+    architecture.analysisSubprocessRevision = 1;
+    if (!readOnly()) setTimeout(markDirty,0);
+  }
   architecture.edges = architecture.edges.filter(edge =>
     architecture.nodes.some(node => node.id === edge.from) &&
     architecture.nodes.some(node => node.id === edge.to) && edge.from !== edge.to);
@@ -9513,7 +9543,7 @@ function enableArchitectureBoardMarquee(architecture){
   board.onpointerdown = event => {
     const target = event.target;
     if (!target || !target.closest) return;
-    if (target.closest('.arch-flow-wire-hit,.arch-edge-label,.arch-flow-system-head,.arch-flow-node,.arch-node-group,.arch-flow-resize,.arch-flow-resize-x,.arch-flow-port')) return;
+    if (target.closest('.maturity-process-detail,.arch-flow-wire-hit,.arch-edge-label,.arch-flow-system-head,.arch-flow-node,.arch-node-group,.arch-flow-resize,.arch-flow-resize-x,.arch-flow-port')) return;
     const row = document.elementsFromPoint(event.clientX, event.clientY)
       .find(element => element.classList && element.classList.contains('arch-flow-system'));
     if (!row) return;
@@ -9536,12 +9566,12 @@ function renderArchitectureSelectionTools(architecture){
   const processNode = activeViewNode || selectedViewNode;
   tools.hidden = readOnly() || (ids.length === 0 && !selectedEdge && !processNode);
   if (tools.hidden) return;
-  $('archSelectionCount').textContent = processNode ? processNode.label :
+  $('archSelectionCount').textContent = processNode ? maturityProcessName(processNode) :
     selectedEdge ? 'Connector selected' : ids.length + ' selected';
   const processButton = $('btnMaturityProcessView');
   processButton.hidden = !processNode;
   if (processNode){
-    processButton.textContent = processNode.label + (activeViewNode ? ' · Canvas view' : ' · Process view');
+    processButton.textContent = maturityProcessName(processNode) + (activeViewNode ? ' · Canvas view' : ' · Process view');
     processButton.title = activeViewNode ? 'Return to the complete maturity row' :
       'Open this process and its sub-processes across the selected maturity row';
     processButton.onclick = () => {
@@ -9581,8 +9611,8 @@ function renderMaturityProcessDetail(system, node, architecture){
   const kicker = document.createElement('span'); kicker.className = 'process-kicker';
   kicker.textContent = node.processRole === 'pillar' ? 'Pillar process' : 'Supporting process';
   const processName = document.createElement('input'); processName.className = 'process-name';
-  processName.value = node.label; processName.readOnly = readOnly();
-  processName.oninput = () => { node.label = processName.value; markDirty(); renderArchitectureSelectionTools(architecture); };
+  processName.value = maturityProcessName(node); processName.readOnly = readOnly();
+  processName.oninput = () => { node.processName = processName.value; markDirty(); renderArchitectureSelectionTools(architecture); };
   const ownerLabel = document.createElement('span'); ownerLabel.className = 'process-kicker'; ownerLabel.textContent = 'Who or what does it?';
   const owner = document.createElement('textarea'); owner.value = node.actor || ''; owner.readOnly = readOnly();
   owner.oninput = () => { node.actor = owner.value; markDirty(); };
@@ -9596,7 +9626,7 @@ function renderMaturityProcessDetail(system, node, architecture){
   const list = document.createElement('section'); list.className = 'maturity-subprocesses';
   const listHead = document.createElement('div'); listHead.className = 'maturity-subprocesses-head';
   const headText = document.createElement('div');
-  const listKicker = document.createElement('span'); listKicker.textContent = node.label;
+  const listKicker = document.createElement('span'); listKicker.textContent = maturityProcessName(node);
   const title = document.createElement('h4'); title.textContent = 'Sub-processes';
   const helper = document.createElement('p'); helper.textContent = 'The specific forms of work contained inside this process.';
   headText.append(listKicker,title,helper); listHead.append(headText);
@@ -9744,8 +9774,8 @@ function renderArchitectureSystem(system, index, architecture, siblings){
     if (processNode){
       const processView = document.createElement('button'); processView.type = 'button';
       processView.className = 'maturity-process-head-toggle';
-      processView.textContent = processNode.label + ' · Process view';
-      processView.title = 'Open ' + processNode.label + ' and its sub-processes';
+      processView.textContent = maturityProcessName(processNode) + ' · Process view';
+      processView.title = 'Open ' + maturityProcessName(processNode) + ' and its sub-processes';
       processView.onclick = () => {
         maturityProcessViewNodeId = processNode.id;
         architectureSelection.clear(); architectureSelectedEdge = '';

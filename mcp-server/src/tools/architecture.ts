@@ -19,13 +19,14 @@ export async function architecturePrompts(body?: {tabs: Record<string, any>}, se
 }
 const architectureSchema = z.object({
   name: z.string().min(1), summary: z.string(), detailCardsVersion:z.number().int().optional(),
+  analysisSubprocessRevision:z.number().int().optional(),
   departmentsVersion:z.number().int().optional(),
   departments:z.array(z.string()).optional(),
   systems: z.array(z.object({id:z.string().min(1),name:z.string().min(1),height:z.number().min(230),width:z.number().min(640).optional(),row:z.number().int().min(0).optional(),selected:z.boolean().optional()})),
   nodes: z.array(z.object({
     id:z.string().min(1),systemId:z.string(),label:z.string().min(1),type:z.enum(['technology','people']),x:z.number().min(10),y:z.number().min(54),
     processRole:z.enum(['supporting','pillar']).optional(),pillarState:z.enum(['current','inherited']).or(z.literal('')).optional(),
-    actorType:z.enum(['technology','people','technology_or_people']).optional(),actor:z.string().optional(),
+    processName:z.string().optional(),actorType:z.enum(['technology','people','technology_or_people']).optional(),actor:z.string().optional(),
     nodalBenefit:z.string().optional(),capabilities:z.array(z.string()).length(2).optional(),replacementSelected:z.boolean().optional(),
     subProcesses:z.array(z.object({id:z.string().min(1),name:z.string().min(1),description:z.string()})).optional()
   })),

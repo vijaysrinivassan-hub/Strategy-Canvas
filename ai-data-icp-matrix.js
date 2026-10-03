@@ -1,7 +1,7 @@
 /* Generated from the supplied ICP matrix and Processes > Analysis matrix. */
 (function(root,factory){const api=factory();if(typeof module==='object')module.exports=api;else root.AiDataIcpMatrix=api;})(globalThis,function(){
 const data={
-  "revision": "ai-data-positioning-matrices-v3",
+  "revision": "ai-data-positioning-matrices-v4",
   "client": "AI Data Platform",
   "productId": "0jgsw8bx554d",
   "columns": [
@@ -1023,7 +1023,7 @@ const data={
 };
 const copy=value=>JSON.parse(JSON.stringify(value));
 const ICP_PROMPT='Classify only audience-fit positioning: this product is for this industry, country, company size, role/team or installed technology. Do not place a process, use case, benefit, capability or problem here; route those to Value. Keep named competitors in Competitor and category names/features/integrations in Category.';
-const VALUE_PROMPT='Classify what the product helps someone do or obtain. Processes and use cases name the work or data transformation. Nodal benefits state the direct benefit produced by a specific process node. Capabilities state what the product, technology or person can actually do. Keep audience-fit dimensions in ICP, category names/features/integrations in Category, and named competitors in Competitor.';
+const VALUE_PROMPT='Classify what the product helps someone do or obtain. Processes and use cases name the work or data transformation. For the AI Data Platform, keep Analysis as the parent process and place its specific analysis methods directly beneath it as sub-process rows; these belong to Value, never ICP. Nodal benefits state the direct benefit produced by a specific process node. Capabilities state what the product, technology or person can actually do. Keep audience-fit dimensions in ICP, category names/features/integrations in Category, and named competitors in Competitor.';
 const ROUTING_PROMPT='Competitor: any keyword containing a named competitor, including alternatives, reviews, pricing, features, two-way comparisons and three-way comparisons. ICP: product fit by industry, country, company size, role/team or installed technology. Value: processes/use cases, nodal benefits, capabilities, problems and outcomes. Category: category names/synonyms, category definitions, feature pages and integration pages. Preserve SEO while reorganizing AEO.';
 const benefits={
  Cohort:['Understand how groups behave over time',['cohort reporting','cohort comparison','lifecycle diagnosis']],
@@ -1032,14 +1032,43 @@ const benefits={
  Retention:['Identify why customers stay, leave or return',['retention reporting','churn diagnosis','retention prediction']],
  Segmentation:['Turn a mixed audience into actionable groups',['rule-based segmentation','behavioral segmentation','predictive clustering']]
 };
+const analysisTaxonomy={name:'Analysis',description:'Core pillar process for transforming data into explanations and decision-ready insight.',subProcesses:[
+ {id:'descriptive',name:'Descriptive analysis',description:'What happened?'},
+ {id:'diagnostic',name:'Diagnostic analysis',description:'Why did it happen?'},
+ {id:'cohort',name:'Cohort analysis',description:'How do different customer groups behave over time?'},
+ {id:'funnel',name:'Funnel analysis',description:'Where do users convert or drop off?'},
+ {id:'attribution',name:'Attribution analysis',description:'Which channels or activities produced the result?'},
+ {id:'segmentation',name:'Segmentation analysis',description:'How do customer or product groups differ?'},
+ {id:'retention',name:'Retention and churn analysis',description:'Who stays, who leaves, and why?'},
+ {id:'ltv',name:'Customer lifetime-value analysis',description:'What is each customer or segment worth over time?'},
+ {id:'sku',name:'Product and SKU performance analysis',description:'Which products or SKUs create or lose performance?'},
+ {id:'marketing',name:'Marketing-performance analysis',description:'How effectively do campaigns and channels perform?'},
+ {id:'revenue',name:'Revenue and profitability analysis',description:'Where are revenue and profit created or lost?'},
+ {id:'anomaly',name:'Anomaly and trend analysis',description:'What changed unexpectedly or over time?'},
+ {id:'root-cause',name:'Root-cause analysis',description:'What underlying factors produced the outcome?'},
+ {id:'comparative',name:'Comparative analysis',description:'Period versus period, segment versus segment, or product versus product.'}
+]};
+data.analysisTaxonomy=copy(analysisTaxonomy);
 data.icpColumns=data.columns.filter(column=>column.matrixGroup!=='use');
 data.valueColumns=[...data.columns.filter(column=>column.matrixGroup==='use'),
  {id:'ai-value-nodal-benefit',name:'Nodal benefits',matrixGroup:'benefit',keywordIdeas:['process benefit','operational benefit','business outcome']},
  {id:'ai-value-capabilities',name:'Capabilities',matrixGroup:'cap',keywordIdeas:['analytics capabilities','platform capabilities','data capabilities']}];
 data.icpRows=data.rows.map(row=>({...copy(row),cells:row.cells.slice(4)}));
-data.valueRows=data.rows.map(row=>{const pair=benefits[row.name]||['Direct process benefit',['platform capability']];return {...copy(row),cells:[...row.cells.slice(0,4),
+const legacyValueRows=data.rows.map(row=>{const pair=benefits[row.name]||['Direct process benefit',['platform capability']];return {...copy(row),cells:[...row.cells.slice(0,4),
  {title:pair[0],actorType:'product',actor:'AI data platform',keywordIdeas:[row.name.toLowerCase()+' benefits','benefits of '+row.name.toLowerCase(),row.name.toLowerCase()+' outcomes']},
  {title:pair[1].join(', '),actorType:'technology',actor:'AI data platform',keywordIdeas:copy(pair[1])}]};});
+const legacyValueById=new Map(legacyValueRows.map(row=>[row.id,row]));
+const emptyValueCells=()=>data.valueColumns.map(()=>({title:'',actorType:'product',actor:'AI data platform',keywordIdeas:[]}));
+data.valueRows=[{
+ id:'ai-value-process-analysis',name:analysisTaxonomy.name,description:analysisTaxonomy.description,
+ keywordIdeas:['data analysis','analytics process'],processLevel:'process',parentProcess:'',cells:emptyValueCells()
+},...analysisTaxonomy.subProcesses.map(item=>{
+ const legacyId='ai-icp-row-'+item.id.replace('root-cause','root-cause');
+ const legacy=legacyValueById.get(legacyId);
+ return {id:legacy?.id||'ai-value-subprocess-'+item.id,name:item.name,description:item.description,
+  keywordIdeas:[item.name.toLowerCase()],processLevel:'subprocess',parentProcess:analysisTaxonomy.name,
+  cells:legacy?copy(legacy.cells):emptyValueCells()};
+})];
 data.icpPrompt=ICP_PROMPT;data.valuePrompt=VALUE_PROMPT;data.routingPrompt=ROUTING_PROMPT;
 const blankCell=(sourceRow,sourceCell,column,kind)=>({v:sourceCell.title,url:'',mode:'aeo',type:'',on:false,aw:'',st:'',writtenBy:'',cfg:true,kws:[],keywordIdeas:copy(sourceCell.keywordIdeas),actorType:sourceCell.actorType,actor:sourceCell.actor,icpSource:{kind:kind||'sample-matrix',row:sourceRow.name,column:column.name}});
 const matrixRows=view=>(view.rows||[]).filter(row=>row.pageGroup==='matrix');
@@ -1059,7 +1088,7 @@ function ensure(content,client,productId){
  icp.pageColumns.matrix=mergeColumns(data.icpColumns,oldIcpColumns.filter(column=>column.matrixGroup!=='use'));icp.pageOrders.matrix=icp.pageColumns.matrix.map(column=>column.id);icp.matrixAiPrompt=ICP_PROMPT;
  value.pageColumns.matrix=mergeColumns(data.valueColumns,oldValueColumns);value.pageOrders.matrix=value.pageColumns.matrix.map(column=>column.id);value.matrixAiPrompt=VALUE_PROMPT;
  const oldIcpById=new Map(oldIcpRows.map(row=>[row.id,row])),oldValueById=new Map(oldValueRows.map(row=>[row.id,row]));
- const buildRows=(sourceRows,columns,targetOld,kind)=>sourceRows.map(sourceRow=>{const oldTarget=targetOld.get(sourceRow.id);const oldSource=oldIcpById.get(sourceRow.id);const row=oldTarget||{id:sourceRow.id,pageGroup:'matrix',name:sourceRow.name,description:sourceRow.description,keywordIdeas:copy(sourceRow.keywordIdeas),cells:{}};row.pageGroup='matrix';row.cells ||= {};const next={};sourceRow.cells.forEach((sourceCell,index)=>{const column=columns[index];next[column.id]=row.cells[column.id]||oldSource?.cells?.[column.id]||blankCell(sourceRow,sourceCell,column,kind);});row.cells=next;return row;});
+ const buildRows=(sourceRows,columns,targetOld,kind)=>sourceRows.map(sourceRow=>{const oldTarget=targetOld.get(sourceRow.id);const oldSource=oldIcpById.get(sourceRow.id);const row=oldTarget||{id:sourceRow.id,pageGroup:'matrix',name:sourceRow.name,description:sourceRow.description,keywordIdeas:copy(sourceRow.keywordIdeas),cells:{}};row.pageGroup='matrix';row.name=sourceRow.name;row.description=sourceRow.description;row.keywordIdeas=copy(sourceRow.keywordIdeas);row.processLevel=sourceRow.processLevel||'';row.parentProcess=sourceRow.parentProcess||'';if(row.processLevel)row.topicCell={...(row.topicCell||{}),v:sourceRow.name};row.cells ||= {};const next={};sourceRow.cells.forEach((sourceCell,index)=>{const column=columns[index];next[column.id]=row.cells[column.id]||oldSource?.cells?.[column.id]||blankCell(sourceRow,sourceCell,column,kind);});row.cells=next;return row;});
  const icpIds=new Set(data.icpRows.map(row=>row.id)),valueIds=new Set(data.valueRows.map(row=>row.id));
  const valueSeed=buildRows(data.valueRows,data.valueColumns,oldValueById,'sample-matrix-value');
  const icpSeed=buildRows(data.icpRows,data.icpColumns,oldIcpById,'sample-matrix-icp');
