@@ -128,6 +128,10 @@
                         text-overflow:ellipsis; white-space:nowrap}
   .tab-sub.content-sub.active{background:#effbf3; color:#287343}
   .tab-sub.content-sub:hover{background:#f2f9f4}
+  .tab-sub.awareness-card{margin:3px 12px 3px 36px; width:calc(100% - 48px);
+    padding:8px 10px; border:1px solid var(--line); border-radius:6px; background:#fff}
+  .tab-sub.awareness-card:hover{background:#f5faf6; border-color:#b9d8c2}
+  .tab-sub.awareness-card.active{background:#effbf3; color:#287343; border-color:#8bc79c}
   /* canvases can be dragged directly into a new order */
   .tab-sub .sub-grip,.canvas-tab .sub-grip{color:var(--faint); font-size:10px; letter-spacing:-1px;
                      margin:0 4px 0 -6px; flex:none; visibility:hidden; cursor:grab}
@@ -3155,6 +3159,8 @@ const state = {
   viewMode: 'admin',              /* 'admin' sees everything; 'client' sees what a client gets */
   screen: 'board',                /* 'board' | 'clients' */
   contentView: 'competitor',      /* which axis the content matrix is showing */
+  keywordAwareness: '',          /* problem-unaware | problem-aware | solution-aware */
+  keywordAwarenessOpen: '',      /* expanded awareness layer in the Keywords sidebar */
   navOpen: { strategy1: false, brand: false, content: false, settings: false, frames: false },
   frames: [],                     /* the Obsidian Frames folder, loaded once */
   frameEdits: {},                 /* frame name -> your edited copy, saved with the board */
@@ -3181,6 +3187,9 @@ function rememberLocation(){
       screen: state.screen,
       tab: state.tab,
       contentView: state.contentView,
+      keywordAwareness: state.keywordAwareness,
+      keywordAwarenessOpen: state.keywordAwarenessOpen,
+      keywordMode: typeof keywordMode === 'string' ? keywordMode : 'aeo',
       frameIndex: state.frameIndex,
       settingsPart: state.settingsPart || ''
     }));
@@ -3193,6 +3202,13 @@ function restoreLocation(location){
     (Object.prototype.hasOwnProperty.call(state.tabs, rememberedTab) || state.extra.indexOf(rememberedTab) !== -1);
   if (knownTab) state.tab = rememberedTab;
   if (CONTENT_VIEWS.some(view => view.id === location.contentView)) state.contentView = location.contentView;
+  if (location.keywordMode === 'aeo' || location.keywordMode === 'seo') keywordMode = location.keywordMode;
+  const awareness = ['problem-unaware','problem-aware','solution-aware'].includes(location.keywordAwareness)
+    ? location.keywordAwareness : '';
+  state.keywordAwareness = ['icp','value'].includes(state.contentView)
+    ? (awareness || (keywordMode === 'seo' ? 'problem-aware' : 'solution-aware')) : '';
+  state.keywordAwarenessOpen = ['problem-unaware','problem-aware','solution-aware'].includes(location.keywordAwarenessOpen)
+    ? location.keywordAwarenessOpen : state.keywordAwareness;
   const frameIndex = Number(location.frameIndex);
   if (state.tab === FRAME_TAB && Number.isInteger(frameIndex) && state.frames[frameIndex]){
     state.frameIndex = frameIndex;
@@ -3460,8 +3476,13 @@ const TAB_ICONS = {
   'Content Strategy': '<path d="M4 5h16v14H4z"/><path d="M8 9h8M8 13h5"/>',
   'Category': '<path d="M4 5h16v14H4zM4 10h16M10 5v14"/>',
   'Category Aware': '<path d="M4 5h16v14H4zM4 10h16M10 5v14"/>',
+  'Category-aware': '<path d="M4 5h16v14H4zM4 10h16M10 5v14"/>',
   'Competitor': '<circle cx="8" cy="9" r="3"/><circle cx="16" cy="9" r="3"/><path d="M3 19c.5-3 2.2-5 5-5s4.5 2 5 5M11 19c.5-3 2.2-5 5-5s4.5 2 5 5"/>',
   'Competitor-aware': '<circle cx="8" cy="9" r="3"/><circle cx="16" cy="9" r="3"/><path d="M3 19c.5-3 2.2-5 5-5s4.5 2 5 5M11 19c.5-3 2.2-5 5-5s4.5 2 5 5"/>',
+  'Competitor Aware': '<circle cx="8" cy="9" r="3"/><circle cx="16" cy="9" r="3"/><path d="M3 19c.5-3 2.2-5 5-5s4.5 2 5 5M11 19c.5-3 2.2-5 5-5s4.5 2 5 5"/>',
+  'Problem Unaware': '<circle cx="12" cy="12" r="8"/><path d="M9.8 9a2.4 2.4 0 1 1 3.6 2.1c-.9.5-1.4 1-1.4 2.1M12 17h.01"/>',
+  'Problem Aware': '<circle cx="12" cy="12" r="8"/><path d="M12 7v6M12 17h.01"/>',
+  'Solution Aware': '<path d="M8.5 15.5h7M9.5 18.5h5"/><path d="M8 13c-1.2-1-2-2.6-2-4.3a6 6 0 1 1 12 0c0 1.7-.8 3.3-2 4.3-.7.6-1 1.1-1 2H9c0-.9-.3-1.4-1-2z"/>',
   'ICP': '<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/><path d="M12 1v3M12 20v3M1 12h3M20 12h3"/>',
   'Value': '<path d="M12 3l8 7-8 11-8-11z"/><path d="M4 10h16"/>',
   'Competitive Intelligence': '<circle cx="10" cy="10" r="6"/><path d="M14.5 14.5L21 21M4 20h7M16 4h4v4"/>',
@@ -3587,25 +3608,38 @@ function renderTabs(){
       return;
     }
 
-    /* Keywords is a first-class section; its four matrices are direct
-       destinations rather than children of a Content Strategy parent. */
+    /* Awareness is the first navigation layer. Problem Unaware and Problem
+       Aware use independent SEO matrices; Solution Aware opens AEO. */
     if (item.kind === 'keywords-tabs'){
-      const root = contentRoot();
-      CONTENT_VIEWS.forEach(v => {
-        const view = root.views[v.id];
-        let planned = 0;
-        if (view && view.cells){
-          planned = Object.keys(view.cells).filter(k => {
-            const cell = view.cells[k]; return cell === true || (cell && cell.on);
-          }).length;
-        }
+      const awarenessLayers = [
+        { id:'problem-unaware', label:'Problem Unaware' },
+        { id:'problem-aware', label:'Problem Aware' },
+        { id:'solution-aware', label:'Solution Aware' }
+      ];
+      awarenessLayers.forEach(layer => {
+        const open = state.keywordAwarenessOpen === layer.id;
+        const parent = groupButton(layer.label, layer.label, open, () => {
+          state.keywordAwarenessOpen = open ? '' : layer.id;
+          renderTabs();
+          rememberLocation();
+        });
+        if (onBoard && state.tab === CONTENT_TAB && state.keywordAwareness === layer.id) parent.classList.add('active');
+        box.append(parent);
+        if (!open) return;
+        ['icp','value'].forEach(viewId => {
+          const active = onBoard && state.tab === CONTENT_TAB && state.contentView === viewId && state.keywordAwareness === layer.id;
+          const card = subButton(viewId === 'icp' ? 'ICP' : 'Value', active,
+            () => switchAwarenessContent(layer.id, viewId), 0);
+          card.classList.add('awareness-card');
+          box.append(card);
+        });
+      });
+      ['category','competitor'].forEach(viewId => {
+        const v = viewDef(viewId);
         const b = tabButton(CONTENT_TAB, v.label);
         b.replaceChild(tabIcon(v.label), b.firstChild);
-        b.classList.toggle('active', onBoard && state.tab === CONTENT_TAB && state.contentView === v.id);
-        b.onclick = () => switchContentView(v.id);
-        if (planned){
-          const count = document.createElement('span'); count.className = 'n'; count.textContent = planned; b.append(count);
-        }
+        b.classList.toggle('active', onBoard && state.tab === CONTENT_TAB && state.contentView === viewId && !state.keywordAwareness);
+        b.onclick = () => switchContentView(viewId);
         box.append(b);
       });
       return;
@@ -3747,7 +3781,7 @@ function renderTabs(){
   /* off-board screens set their own title in applyTabMode */
   if (onBoard && !inFrame()){
     /* The Keywords section uses the selected matrix as its page title. */
-    $('tabTitle').textContent = state.tab === CONTENT_TAB ? viewDef(state.contentView).label
+    $('tabTitle').textContent = state.tab === CONTENT_TAB ? activeContentLabel()
       : state.tab === STRATEGY_ONE_TAB || state.tab === CHANNELS_TAB ? 'GTM Strategy'
       : state.tab === PRODUCT_ARCHITECTURE_TAB ? 'Product Architecture'
       : state.tab === MATURITY_ACCESS_TAB ? 'Maturity Axis'
@@ -4992,6 +5026,10 @@ function hydrate(text){
   let d = null;
   try { d = JSON.parse(text); } catch (e) {}
   state.tabs = blankTabs();
+  state.contentView = 'competitor';
+  state.keywordAwareness = '';
+  state.keywordAwarenessOpen = '';
+  keywordMode = 'aeo';
   state.productWorkspaces = d && d.productWorkspaces && typeof d.productWorkspaces === 'object' ? d.productWorkspaces : {};
   state.companyUrlWorkspaceMigrated = !!(d && d.companyUrlWorkspaceMigrated);
   Object.values(state.productWorkspaces).forEach(workspace => {
@@ -6389,9 +6427,9 @@ const GRID_ROWS = 20;
 const GRID_MAX_COLS = 10;
 
 const CONTENT_VIEWS = [
-  { id: 'category', label: 'Category Aware', noun: 'category', kind: 'grid',
+  { id: 'category', label: 'Category-aware', noun: 'category', kind: 'grid',
     columns: ['Category name', 'Category synonyms', 'Features', 'Reviews', 'Pricing'] },
-  { id: 'competitor', label: 'Competitor-aware', noun: 'competitor', kind: 'matrix',
+  { id: 'competitor', label: 'Competitor Aware', noun: 'competitor', kind: 'matrix',
     types: COMPETITOR_TYPES },
   { id: 'icp', label: 'ICP', noun: 'ICP', kind: 'grid',
     columns: ['ICP', 'Synonyms', 'Pains', 'Use cases', 'Content angles'] },
@@ -6474,7 +6512,19 @@ function contentRoot(){
 }
 
 function matrixState(){
-  return contentRoot().views[state.contentView] || contentRoot().views.competitor;
+  const root = contentRoot();
+  if (state.keywordAwareness === 'problem-unaware' && ['icp','value'].includes(state.contentView)){
+    if (!root.awarenessViews || typeof root.awarenessViews !== 'object') root.awarenessViews = {};
+    const key = 'problem-unaware:' + state.contentView;
+    if (!root.awarenessViews[key]){
+      /* Start as a true replica of the current SEO matrix, then persist it as
+         its own editable bucket so Problem Unaware and Problem Aware diverge. */
+      root.awarenessViews[key] = JSON.parse(JSON.stringify(root.views[state.contentView]));
+      if (!readOnly()) setTimeout(markDirty, 0);
+    }
+    return root.awarenessViews[key];
+  }
+  return root.views[state.contentView] || root.views.competitor;
 }
 
 function cellKeywords(comp, type){
@@ -7367,7 +7417,9 @@ function renderKeywordModeFilter(){
     host.setAttribute('role', 'group'); host.setAttribute('aria-label', 'Keyword channel');
     $('productSwitcher').after(host);
   }
-  host.hidden = state.tab !== CONTENT_TAB || state.contentView === 'competitor' || ['settings','clients','atypes','mcp'].includes(state.screen);
+  host.hidden = state.tab !== CONTENT_TAB || state.contentView === 'competitor' ||
+    (!!state.keywordAwareness && ['icp','value'].includes(state.contentView)) ||
+    ['settings','clients','atypes','mcp'].includes(state.screen);
   host.replaceChildren();
   if (host.hidden) return;
   [['aeo','AEO'],['seo','SEO']].forEach(([mode,label]) => {
@@ -7708,7 +7760,7 @@ function renderGridTable(v, group, table){
   table.innerHTML = '';
 
   const heading = $('mxHeading');
-  if (heading) heading.textContent = vd.label;
+  if (heading) heading.textContent = activeContentLabel();
   $('mxSetup').hidden = true;
   $('btnAddCompetitor').textContent = '+ Row';
   $('btnAddType').textContent = '+ Column';
@@ -8047,6 +8099,19 @@ function renderContentView(){
   if (viewDef(state.contentView).kind === 'grid') renderGrid(); else renderMatrix();
 }
 
+function awarenessLabel(id){
+  return ({
+    'problem-unaware':'Problem Unaware',
+    'problem-aware':'Problem Aware',
+    'solution-aware':'Solution Aware'
+  })[id] || '';
+}
+function activeContentLabel(){
+  const view = viewDef(state.contentView).label;
+  const layer = awarenessLabel(state.keywordAwareness);
+  return layer && ['icp','value'].includes(state.contentView) ? layer + ' · ' + view : view;
+}
+
 /* Keep both keyword views in step when one of them changes a row. */
 function repaintKeywordViews(){
   if (state.tab === KEYWORDS_TAB) renderKeywordTables();
@@ -8056,6 +8121,10 @@ function repaintKeywordViews(){
 function switchContentView(id){
   captureFrame();
   state.contentView = id;
+  if (!['icp','value'].includes(id)){
+    state.keywordAwareness = '';
+    state.keywordAwarenessOpen = '';
+  }
   state.frameIndex = -1;
   closeNav();
   state.tab = CONTENT_TAB;
@@ -8063,6 +8132,15 @@ function switchContentView(id){
   renderTabs();
   applyTabMode();
   rememberLocation();
+}
+
+function switchAwarenessContent(layer, id){
+  if (!['problem-unaware','problem-aware','solution-aware'].includes(layer)) return;
+  if (!['icp','value'].includes(id)) return;
+  state.keywordAwareness = layer;
+  state.keywordAwarenessOpen = layer;
+  keywordMode = layer === 'solution-aware' ? 'aeo' : 'seo';
+  switchContentView(id);
 }
 
 function addCompetitor(){
