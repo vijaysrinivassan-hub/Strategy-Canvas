@@ -25,8 +25,12 @@ function activeUniversalColumns(){
 }
 function syncUniversalWorkspaces(){
  const config=activeUniversalColumns();if(!config)return;
- KeywordColumns.sync(state.tabs[CONTENT_TAB] ||= {},config);
- for(const w of Object.values(state.productWorkspaces||{})) {w.tabs ||= {};KeywordColumns.sync(w.tabs[CONTENT_TAB] ||= {},config);}
+ const syncRoot=root=>{
+  KeywordColumns.sync(root,config);
+  for(const nodeWorkspace of Object.values(root.nodeKeywordWorkspaces||{}))KeywordColumns.sync(nodeWorkspace,config);
+ };
+ syncRoot(state.tabs[CONTENT_TAB] ||= {});
+ for(const w of Object.values(state.productWorkspaces||{})) {w.tabs ||= {};syncRoot(w.tabs[CONTENT_TAB] ||= {});}
 }
 function keywordOrderTools(col, rerender){
  const wrap=document.createElement('span');wrap.className='column-order';

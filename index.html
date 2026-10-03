@@ -2172,6 +2172,12 @@
   .side-head{padding:20px 18px 15px; border-bottom:1px solid var(--line)}
   .tabs{padding:8px 0 12px}
   .nav-label{padding:18px 18px 7px}
+  .nav-label.keyword-label{display:flex;align-items:center;gap:6px;min-width:0}
+  .keyword-node-switcher{display:flex;flex:1;min-width:0;gap:2px;overflow-x:auto;scrollbar-width:none;text-transform:none;letter-spacing:0}
+  .keyword-node-switcher::-webkit-scrollbar{display:none}
+  .keyword-node-toggle{min-width:28px;max-width:66px;padding:2px 5px;border:1px solid #d8d8d3;background:#fff;color:#77776f;font-size:8px;font-weight:700;line-height:1.25;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer}
+  .keyword-node-toggle:hover{border-color:#8d8d86;color:#222}
+  .keyword-node-toggle.active{background:#171b19;border-color:#171b19;color:#fff}
   .tabs > .nav-label:first-child{padding-top:10px}
   .tab,.tab-sub{border-radius:0; border-left:3px solid transparent; border-right:0;
                 border-top:0; border-bottom:0; box-shadow:none; margin:0}
@@ -3588,6 +3594,10 @@ function renderTabs(){
       const l = document.createElement('div');
       l.className = 'nav-label';
       l.textContent = item.text;
+      if (item.text === 'Keywords'){
+        l.classList.add('keyword-label');
+        renderKeywordNodeSwitcher(l);
+      }
       box.append(l);
       return;
     }
@@ -4901,6 +4911,7 @@ function ensureProductWorkspace(){
 }
 function snapshotProductWorkspace(){
   if (!state.workspaceProductId) return;
+  if (typeof snapshotActiveKeywordNodeWorkspace === 'function') snapshotActiveKeywordNodeWorkspace();
   state.productWorkspaces ||= {};
   const tabs = {};
   productScopedTabs().forEach(key => { tabs[key] = state.tabs[key] || {nodes:[],edges:[]}; });
@@ -6502,6 +6513,96 @@ function contentRoot(){
   return t;
 }
 
+function selectedMaturityKeywordNodes(){
+  const architecture = state.tabs[MATURITY_ACCESS_TAB]?.architecture;
+  if (!architecture || !Array.isArray(architecture.nodes)) return [];
+  const systemOrder = new Map((architecture.systems || []).map((system,index) => [system.id,index]));
+  return architecture.nodes.filter(node => node && node.replacementSelected === true).map((node,index) => ({
+    id:String(node.id),
+    label:String((typeof maturityProcessName === 'function' ? maturityProcessName(node) : node.label) || 'Process').trim() || 'Process',
+    order:(systemOrder.get(node.systemId) ?? 999) * 1000 + index
+  })).sort((a,b) => a.order - b.order);
+}
+function cloneKeywordNodeProjection(source){
+  return JSON.parse(JSON.stringify({
+    views:source?.views && typeof source.views === 'object' ? source.views : {},
+    awarenessViews:source?.awarenessViews && typeof source.awarenessViews === 'object' ? source.awarenessViews : {}
+  }));
+}
+function snapshotActiveKeywordNodeWorkspace(){
+  const root = state.tabs[CONTENT_TAB];
+  if (!root?.activeKeywordNodeId) return;
+  root.keywordNodeWorkspaces ||= {};
+  root.keywordNodeWorkspaces[root.activeKeywordNodeId] = cloneKeywordNodeProjection(root);
+}
+function installKeywordNodeProjection(root, projection){
+  const copy = cloneKeywordNodeProjection(projection || {});
+  root.views = copy.views;
+  root.awarenessViews = copy.awarenessViews;
+}
+function createFreshKeywordNodeProjection(root){
+  root.views = {};
+  root.awarenessViews = {};
+  contentRoot();
+  return cloneKeywordNodeProjection(root);
+}
+function ensureKeywordNodeScope(){
+  const nodes = selectedMaturityKeywordNodes();
+  if (!nodes.length) return {nodes,active:''};
+  const root = contentRoot();
+  root.keywordNodeWorkspaces ||= {};
+  let changed = false;
+  const ids = new Set(nodes.map(node => node.id));
+  if (!root.activeKeywordNodeId){
+    root.activeKeywordNodeId = nodes[0].id;
+    root.keywordNodeWorkspaces[root.activeKeywordNodeId] = cloneKeywordNodeProjection(root);
+    changed = true;
+  } else if (!ids.has(String(root.activeKeywordNodeId))){
+    snapshotActiveKeywordNodeWorkspace();
+    const target = nodes[0].id;
+    if (root.keywordNodeWorkspaces[target]) installKeywordNodeProjection(root,root.keywordNodeWorkspaces[target]);
+    else root.keywordNodeWorkspaces[target] = createFreshKeywordNodeProjection(root);
+    root.activeKeywordNodeId = target;
+    changed = true;
+  }
+  if (changed && !readOnly()) setTimeout(markDirty,0);
+  return {nodes,active:String(root.activeKeywordNodeId || '')};
+}
+function renderKeywordNodeSwitcher(labelHost){
+  const scope = ensureKeywordNodeScope();
+  if (!scope.nodes.length) return;
+  const switcher = document.createElement('span');
+  switcher.className = 'keyword-node-switcher';
+  switcher.setAttribute('role','group');
+  switcher.setAttribute('aria-label','Selected maturity process keyword sets');
+  scope.nodes.forEach(node => {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'keyword-node-toggle' + (scope.active === node.id ? ' active' : '');
+    button.textContent = node.label;
+    button.title = node.label + ' keywords';
+    button.setAttribute('aria-pressed',String(scope.active === node.id));
+    button.onclick = event => { event.stopPropagation(); switchKeywordNode(node.id); };
+    switcher.append(button);
+  });
+  labelHost.append(switcher);
+}
+function switchKeywordNode(nodeId){
+  const scope = ensureKeywordNodeScope();
+  if (!scope.nodes.some(node => node.id === nodeId) || scope.active === nodeId) return;
+  const root = contentRoot();
+  snapshotActiveKeywordNodeWorkspace();
+  if (root.keywordNodeWorkspaces[nodeId]) installKeywordNodeProjection(root,root.keywordNodeWorkspaces[nodeId]);
+  else root.keywordNodeWorkspaces[nodeId] = createFreshKeywordNodeProjection(root);
+  root.activeKeywordNodeId = nodeId;
+  sharedUrlRepositoryReadyFor = '';
+  keywordGridPages.clear();
+  if (!readOnly()) markDirty();
+  renderTabs();
+  if (state.tab === CONTENT_TAB && state.screen === 'board') applyTabMode();
+  rememberLocation();
+}
+
 function matrixState(){
   const root = contentRoot();
   if (state.keywordAwareness === 'problem-unaware' && ['icp','value'].includes(state.contentView)){
@@ -7725,7 +7826,7 @@ function renderMatrixTopicCell(host,holder,ro){
 
 const KEYWORD_GRID_PAGE_SIZE = 40;
 const keywordGridPages = new Map();
-function keywordGridPageKey(group){ return [state.boardId,state.clientProduct,state.contentView,keywordMode,group.id].join('|'); }
+function keywordGridPageKey(group){ return [state.boardId,state.clientProduct,state.tabs[CONTENT_TAB]?.activeKeywordNodeId || '',state.contentView,keywordMode,group.id].join('|'); }
 function renderGridTable(v, group, table){
   $('competitorComparison').hidden = true;
   const vd = viewDef(state.contentView);
@@ -8055,11 +8156,13 @@ let matrixRefreshRequest = 0;
 async function refreshMatrix(){
   if (state.keywordAwarenessPicker){ renderContentView(); return; }
   const request = ++matrixRefreshRequest, board = state.boardId, view = state.contentView;
+  const keywordNodeId = state.tabs[CONTENT_TAB]?.activeKeywordNodeId || '';
   const table = $('mxTable'); table.setAttribute('aria-busy', 'true');
   try {
     const err = await loadKeywords().catch(error => error.message || 'Network error');
     if(request !== matrixRefreshRequest || state.boardId !== board ||
-       state.contentView !== view || state.tab !== CONTENT_TAB || state.screen !== 'board') return;
+       state.contentView !== view || (state.tabs[CONTENT_TAB]?.activeKeywordNodeId || '') !== keywordNodeId ||
+       state.tab !== CONTENT_TAB || state.screen !== 'board') return;
     if(err && err !== 'no-board') kwRows = [];
     renderContentView();
     if (err && err !== 'no-board'){
@@ -9871,7 +9974,7 @@ function renderArchitectureSystem(system, index, architecture, siblings){
       system.selected = checkbox.checked;
       if (!system.selected) architecture.nodes.filter(node => node.systemId === system.id)
         .forEach(node => { node.replacementSelected = false; });
-      markDirty(); renderProductArchitecture();
+      markDirty(); renderProductArchitecture(); renderTabs();
     };
     choice.append(checkbox); head.append(choice);
   }
@@ -9954,7 +10057,7 @@ function renderArchitectureSystem(system, index, architecture, siblings){
           if (replaceCheckbox.checked){
             architectureSelection.clear(); architectureSelection.add(node.id); architectureSelectedEdge = '';
           } else architectureSelection.delete(node.id);
-          markDirty(); renderProductArchitecture();
+          markDirty(); renderProductArchitecture(); renderTabs();
         };
         replace.append(replaceCheckbox); card.append(replace);
       }
