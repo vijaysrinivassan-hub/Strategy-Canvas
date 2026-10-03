@@ -3036,6 +3036,7 @@
 <link rel="stylesheet" href="competitive-intelligence.css">
 <script src="competitive-intelligence-seed.js"></script>
 <script src="ask-luca-competitive-intelligence.js"></script>
+<script src="saras-analytics-competitive-intelligence.js"></script>
 <script src="competitive-intelligence.js"></script>
 <script src="shared-url-repository.js"></script>
 <link rel="stylesheet" href="icp-workflows.css">
@@ -5155,6 +5156,7 @@ async function openBoard(id, location){
   if (migratedOnOpen && !readOnly()){ markDirty(); await saveBoard(true); }
   await ensureEorProviderIndiaKeywordSeed();
   await ensureAskLucaCompetitiveIntelligenceSeed();
+  await ensureSarasAnalyticsCompetitiveIntelligenceSeed();
   $('saveState').textContent = 'Saved';
   $('saveState').className = 'save-line';
   const cachedBoard = state.boards.find(b => b.id === data.id);
@@ -6534,6 +6536,29 @@ function contentRoot(){
   }
   return t;
 }
+let sarasAnalyticsCompetitiveIntelligenceSeedPending = null;
+async function ensureSarasAnalyticsCompetitiveIntelligenceSeed(){
+  const api = globalThis.SarasAnalyticsCompetitiveIntelligence;
+  const board = state.boards.find(item => item.id === state.boardId);
+  if (!api?.matchesBoard([state.client, state.clientProduct, board?.title]) || readOnly()) return false;
+  const model = state.tabs[COMPETITIVE_INTELLIGENCE_TAB] ||
+    (state.tabs[COMPETITIVE_INTELLIGENCE_TAB] = { nodes: [], edges: [] });
+  if (model.sarasAnalyticsSitemapRevision === api.REVISION) return false;
+  if (sarasAnalyticsCompetitiveIntelligenceSeedPending) return sarasAnalyticsCompetitiveIntelligenceSeedPending;
+  const targetBoard = state.boardId;
+  sarasAnalyticsCompetitiveIntelligenceSeedPending = (async function(){
+    const profile = await api.loadProfile();
+    const changed = api.apply(model, profile);
+    if (state.boardId !== targetBoard) return false;
+    model.sarasAnalyticsSitemapRevision = api.REVISION;
+    markDirty();
+    await saveBoard(true);
+    return changed;
+  })();
+  try { return await sarasAnalyticsCompetitiveIntelligenceSeedPending; }
+  catch (error){ console.error(error); toast('Could not import the Saras Analytics sitemap: ' + (error.message || error), true); return false; }
+  finally { sarasAnalyticsCompetitiveIntelligenceSeedPending = null; }
+}
 
 function selectedMaturityKeywordNodes(){
   const architecture = state.tabs[MATURITY_ACCESS_TAB]?.architecture;
@@ -7771,14 +7796,20 @@ function renderMatrix(){
 /* ---- plain tables (Category, ICP, Value) ---------------------------- */
 let sharedUrlMappingPending = null;
 let sharedUrlRepositoryReadyFor = '';
-function sharedUrlBoardContext(){ return String(state.client || '').trim(); }
+function sharedUrlBoardContext(){
+  const board = state.boards.find(item => item.id === state.boardId);
+  return [state.client,state.clientProduct,board?.title].map(value=>String(value||'').trim())
+    .find(value=>window.SharedUrlRepository?.productMatches(value)) || '';
+}
 function ensureSharedUrlCellMappings(){
   const repositoryContext = sharedUrlBoardContext();
   if (!window.SharedUrlRepository?.productMatches(repositoryContext)) return;
-  const mappingKey = [state.boardId,state.workspaceProductId,repositoryContext].join('|');
+  const mappingKey = [state.boardId,state.workspaceProductId,repositoryContext,state.keywordAwareness,state.contentView,keywordMode].join('|');
   if (sharedUrlMappingPending || sharedUrlRepositoryReadyFor === mappingKey) return;
   sharedUrlMappingPending = window.SharedUrlRepository.load().then(function(){
-    const board = state.boardId, changed = window.SharedUrlRepository.installMappings(contentRoot(), articleTypes(), {product:repositoryContext,uid});
+    const board = state.boardId;
+    const activeView = ['icp','value'].includes(state.contentView) ? matrixState() : null;
+    const changed = window.SharedUrlRepository.installMappings(contentRoot(), articleTypes(), {product:repositoryContext,uid,awareness:state.keywordAwareness||'problem-aware',contentView:state.contentView,mode:keywordMode,activeView});
     const firstReadyPaint = sharedUrlRepositoryReadyFor !== mappingKey;
     sharedUrlRepositoryReadyFor = mappingKey;
     if (changed && !readOnly()) markDirty();

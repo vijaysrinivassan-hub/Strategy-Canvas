@@ -20,5 +20,5 @@ assert.ok(!open.includes('refreshBoards('));
 const directory=html.slice(html.indexOf('async function refreshBoards(){'),html.indexOf('let boardOpenRequest'));
 assert.ok(directory.includes(".select('id,title,updated_at,owner_id')"));
 assert.ok(!directory.includes('seedProductArchitecturesForBoards()'));
-assert.ok(html.includes('async function repaintFromDb(){\n  await loadKeywords(true);'));
+assert.ok(/async function repaintFromDb\(\)\{\r?\n  await loadKeywords\(true\);/.test(html));
 console.log('On-demand loading and keyword cache tests passed');

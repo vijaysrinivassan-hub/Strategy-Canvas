@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 
 const asset = JSON.parse(fs.readFileSync(new URL('./competitive-intelligence-classifications.json', import.meta.url), 'utf8'));
-const rows = Object.entries(asset.classifications);
+const rows = Object.entries(asset.classifications).filter(([,meta]) => !meta.workspace || meta.workspace === 'aeo-agency');
 const audit = asset.routingAudit?.categorySeoCleanup;
 
 assert.deepEqual(

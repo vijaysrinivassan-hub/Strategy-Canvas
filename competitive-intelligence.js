@@ -49,7 +49,7 @@
     const matches = seed && (clientName === 'aeo agency' ||
       [seed.product.toLowerCase(), 'aeo agency'].includes(productName));
     if (!tab.competitors.length && matches){
-      const profiles = global.CompetitiveIntelligenceClassifications?.profiles;
+      const profiles = global.CompetitiveIntelligenceClassifications?.profiles?.filter(profile => !profile.workspace || profile.workspace === 'aeo-agency');
       if (Array.isArray(profiles) && profiles.length){
         const priorByDomain = new Map(seed.competitors
           .filter(item => item.domain)

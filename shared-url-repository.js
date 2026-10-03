@@ -3,7 +3,8 @@
   const normalizeUrl=value=>String(value||'').trim().replace(/\/$/,'');
   const normalizeName=value=>String(value||'').trim().toLowerCase().replace(/[^a-z0-9]+/g,' ');
   const slug=value=>normalizeName(value).trim().replace(/\s+/g,'-')||'general';
-  const productMatches=product=>/answer engine optimization agency|\baeo agency\b/i.test(String(product||''));
+  const workspaceFor=product=>/\bai data platform\b/i.test(String(product||''))?'ai-data-platform':/answer engine optimization agency|\baeo agency\b/i.test(String(product||''))?'aeo-agency':'';
+  const productMatches=product=>!!workspaceFor(product);
   const pageGroup=value=>{
     const text=String(value||'').toLowerCase();
     if(text.includes('listicle'))return 'listicle';
@@ -17,10 +18,10 @@
   function buildIndex(source){
     if(!source||indexedSource===source)return indexedRecords;
     const owners=new Map();
-    (source.profiles||[]).forEach(profile=>(profile.urls||[]).forEach(url=>owners.set(normalizeUrl(url),{competitorId:profile.id||'',competitor:profile.name||''})));
+    (source.profiles||[]).forEach(profile=>(profile.urls||[]).forEach(url=>owners.set(normalizeUrl(url),{competitorId:profile.id||'',competitor:profile.name||'',workspace:profile.workspace||'aeo-agency'})));
     indexedRecords=Object.entries(source.classifications||{}).map(([url,meta])=>{
       const owner=owners.get(normalizeUrl(url))||{};
-      return {id:normalizeUrl(url),url,traffic:meta.traffic||'',shared:true,competitorId:owner.competitorId||'',competitor:owner.competitor||'',
+      return {id:normalizeUrl(url),url,traffic:meta.traffic||'',shared:true,competitorId:owner.competitorId||'',competitor:owner.competitor||'',workspace:meta.workspace||owner.workspace||'aeo-agency',awareness:meta.awareness||'',
         section:meta.section||'',pageType:meta.pageType||'',hierarchy:meta.hierarchy||'General',axis:meta.axis||'General',
         topicGroup:meta.topicGroup||normalizeUrl(url),topic:meta.topic||meta.hierarchy||'URL topic',groupOrder:Number(meta.groupOrder)||0,
         groupSize:Number(meta.groupSize)||1,covered:!!meta.covered,sourceSheet:meta.sourceSheet||'',sourceCell:meta.sourceCell||''};
@@ -35,7 +36,7 @@
   }
   function records(){return buildIndex(data());}
   function query(spec={}){
-    return records().filter(record=>(!spec.section||record.section===spec.section)&&(!spec.pageType||record.pageType===spec.pageType)
+    return records().filter(record=>(!spec.workspace||record.workspace===spec.workspace)&&(!spec.awareness||record.awareness===spec.awareness)&&(!spec.section||record.section===spec.section)&&(!spec.pageType||record.pageType===spec.pageType)
       &&(!spec.hierarchy||record.hierarchy===spec.hierarchy)&&(!spec.axis||record.axis===spec.axis)
       &&(!spec.topicGroup||record.topicGroup===spec.topicGroup));
   }
@@ -285,6 +286,8 @@
   }
   function installMappings(root,types,options={}){
     if(!root?.views||!productMatches(options.product)||!data())return false;
+    const workspace=workspaceFor(options.product);
+    if(workspace==='ai-data-platform')return installScopedMappings(root,types,{...options,workspace});
     const revision=(data().classifiedAt||'classification')+':maximus-url-to-slug-v1';
     if(root.sharedUrlRepositoryRevision===revision)return false;
     const preserved=captureRepositoryState(root);
@@ -292,7 +295,7 @@
     const uid=options.uid||(()=>Math.random().toString(36).slice(2));
     let linked=0;
     const dimensionValues=new Map();
-    records().forEach(record=>{
+    records().filter(record=>record.workspace===workspace).forEach(record=>{
       if(record.section==='Corporate & Non-SEO')return;
       const match=/^(Category|ICP|Value) (AEO|SEO)$/.exec(record.section);if(!match)return;
       const viewId=match[1].toLowerCase(),mode=match[2].toLowerCase(),format=pageGroup(record.pageType);if(!format)return;
@@ -311,7 +314,7 @@
       const row=ensureRow(view,group,rowHierarchy,record.groupOrder,uid,rowSuperHierarchy);
       const current=row.cells[column.id]&&typeof row.cells[column.id]==='object'?row.cells[column.id]:{};
       const saved=preserved.get(record.topicGroup)||{};
-      const spec={section:record.section,pageType:record.pageType,hierarchy:record.hierarchy,axis:record.axis,topicGroup:record.topicGroup};
+      const spec={workspace,section:record.section,pageType:record.pageType,hierarchy:record.hierarchy,axis:record.axis,topicGroup:record.topicGroup};
       const queries=Array.isArray(current.repositoryQueries)?current.repositoryQueries.slice():[];
       if(!queries.some(item=>JSON.stringify(item)===JSON.stringify(spec)))queries.push(spec);
       const awareness=viewId==='value'&&mode==='seo'?awarenessForGroup(valueSeoAwarenessGroup(record.axis)):'';
@@ -338,6 +341,44 @@
     applyRepositoryStatuses(root);
     root.sharedUrlRepositoryRevision=revision;root.sharedUrlLinkedCount=linked;return true;
   }
-  global.SharedUrlRepository={load,records,query,resolve,installMappings,productMatches,pageGroup,sectionFor};
+  function clearScopedMappings(view,workspace){
+    if(!view)return;
+    (view.rows||[]).forEach(row=>Object.entries(row.cells||{}).forEach(([id,cell])=>{
+      if((cell?.repositoryQueries||[]).some(query=>query.workspace===workspace))delete row.cells[id];
+    }));
+    view.rows=(view.rows||[]).filter(row=>!row.repositoryWorkspace||row.repositoryWorkspace!==workspace||Object.values(row.cells||{}).some(hasUserContent));
+  }
+  function installScopedMappings(root,types,options){
+    const workspace=options.workspace,awareness=options.awareness||'problem-aware',viewId=options.contentView;
+    if(!['icp','value'].includes(viewId)||!options.activeView)return false;
+    const mode=awareness==='solution-aware'?'aeo':'seo';
+    const scope=[workspace,awareness,viewId,mode].join(':');
+    const revision=(data().classifiedAt||'classification')+':'+scope+':v1';
+    root.sharedUrlRepositoryRevisions ||= {};
+    if(root.sharedUrlRepositoryRevisions[scope]===revision)return false;
+    const view=options.activeView,uid=options.uid||(()=>Math.random().toString(36).slice(2));
+    clearScopedMappings(view,workspace);
+    let linked=0;
+    records().filter(record=>record.workspace===workspace&&record.awareness===awareness&&record.section===sectionFor(viewId,mode)).forEach(record=>{
+      if(record.section==='Corporate & Non-SEO')return;
+      const format=pageGroup(record.pageType);if(!format)return;
+      const group=mode==='aeo'?'matrix':'informational';
+      const column=ensureColumn(viewId,view,group,record.axis||'General',mode,types);
+      if(group==='matrix')column.matrixGroup=matrixGroup(viewId,record.hierarchy);
+      const row=ensureRow(view,group,record.hierarchy||'General',record.groupOrder,uid,viewId==='icp'?record.hierarchy:undefined);
+      row.repositoryWorkspace=workspace;
+      const current=row.cells[column.id]&&typeof row.cells[column.id]==='object'?row.cells[column.id]:{};
+      const spec={workspace,awareness,section:record.section,pageType:record.pageType,hierarchy:record.hierarchy,axis:record.axis,topicGroup:record.topicGroup};
+      row.cells[column.id]={...current,v:record.topic||record.hierarchy,url:'',mode,type:current.type||typeId(types,format),cfg:true,repositoryQueries:[spec]};
+      linked++;
+    });
+    compactRepositoryCells(view,viewId);
+    mappedRowsFirst(view,viewId);
+    applyRepositoryStatuses({views:{[viewId]:view}});
+    root.sharedUrlRepositoryRevisions[scope]=revision;
+    root.sharedUrlLinkedCount=(root.sharedUrlLinkedCount||0)+linked;
+    return true;
+  }
+  global.SharedUrlRepository={load,records,query,resolve,installMappings,productMatches,workspaceFor,pageGroup,sectionFor};
   if(typeof module!=='undefined')module.exports=global.SharedUrlRepository;
 })(typeof globalThis!=='undefined'?globalThis:this);
