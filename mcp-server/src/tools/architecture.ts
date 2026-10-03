@@ -18,7 +18,7 @@ export async function architecturePrompts(body?: {tabs: Record<string, any>}, se
   return {...defaults, prompt: typeof custom === 'string' ? custom : defaults.prompt};
 }
 const architectureSchema = z.object({
-  name: z.string().min(1), summary: z.string(),
+  name: z.string().min(1), summary: z.string(), detailCardsVersion:z.number().int().optional(),
   departmentsVersion:z.number().int().optional(),
   departments:z.array(z.string()).optional(),
   systems: z.array(z.object({id:z.string().min(1),name:z.string().min(1),height:z.number().min(230),width:z.number().min(640).optional(),row:z.number().int().min(0).optional(),selected:z.boolean().optional()})),
@@ -26,7 +26,7 @@ const architectureSchema = z.object({
     id:z.string().min(1),systemId:z.string(),label:z.string().min(1),type:z.enum(['technology','people']),x:z.number().min(10),y:z.number().min(54),
     processRole:z.enum(['supporting','pillar']).optional(),pillarState:z.enum(['current','inherited']).or(z.literal('')).optional(),
     actorType:z.enum(['technology','people','technology_or_people']).optional(),actor:z.string().optional(),
-    nodalBenefit:z.string().optional(),capabilities:z.array(z.string()).optional(),replacementSelected:z.boolean().optional()
+    nodalBenefit:z.string().optional(),capabilities:z.array(z.string()).length(2).optional(),replacementSelected:z.boolean().optional()
   })),
   edges: z.array(z.object({id:z.string().min(1),from:z.string(),to:z.string(),label:z.string().min(1)})),
   groups: z.array(z.object({id:z.string().min(1),systemId:z.string(),name:z.string().min(1),nodeIds:z.array(z.string()).min(2)}))
@@ -61,7 +61,7 @@ export function registerArchitectureTools(server:McpServer) {
   });
   server.registerTool('product_architecture_set', {
     title:'Save product architecture workflows',
-    description:'Save the complete workflow architecture to Strategy Product Architecture. Read first, preserve existing work unless replacement was requested, and supply its revision. Each system is a process canvas; row groups canvases horizontally and omitted row defaults to the first row. Nodes are Technology or People; edge labels are outputs. Keep 154px-wide nodes and groups inside canvas bounds with space between labels. Omitted prior nodes are removed.',
+    description:'Save the complete workflow architecture to Strategy Product Architecture. Read first, preserve existing work unless replacement was requested, and supply its revision. Each system is a process canvas; row groups canvases horizontally and omitted row defaults to the first row. Nodes are Technology or People; each technology has exactly two features and each person exactly two skills; edge labels are outputs. Keep 154px-wide nodes and groups inside canvas bounds with space between labels. Omitted prior nodes are removed.',
     inputSchema:{board_id:z.string(),revision:z.string(),architecture:architectureSchema},
     annotations:{readOnlyHint:false,destructiveHint:true,idempotentHint:false}
   }, async({board_id,revision,architecture})=>{
@@ -72,7 +72,7 @@ export function registerArchitectureTools(server:McpServer) {
     const nodes=new Map(architecture.nodes.map(n=>[n.id,n]));
     for(const n of architecture.nodes){
       const system=architecture.systems.find(s=>s.id===n.systemId);
-      if(!system || n.y+96>system.height || n.x+176>(system.width||1060))throw new ToolError('Node falls outside its workflow row.');
+      if(!system || n.y+220>system.height || n.x+200>(system.width||1060))throw new ToolError('Node falls outside its workflow row.');
     }
     for(const e of architecture.edges)if(!nodes.has(e.from)||!nodes.has(e.to)||e.from===e.to)throw new ToolError('Invalid connector endpoints.');
     for(const g of architecture.groups)if(new Set(g.nodeIds).size!==g.nodeIds.length||g.nodeIds.some(id=>!nodes.has(id)||nodes.get(id)!.systemId!==g.systemId))throw new ToolError('Group members must belong to the same workflow.');
@@ -85,7 +85,7 @@ export function registerArchitectureTools(server:McpServer) {
   });
   server.registerTool('maturity_axis_set', {
     title:'Save maturity axis',
-    description:'Save the complete active-product Maturity Axis. Read first and supply its revision. Preserve and update departments as a simple list of department names relevant to this product. Do not add raw material, input types, descriptions or nested maps. Each system is one maturity row. Supporting nodes do not directly transform the input. Pillars do; mark the newest pillar current and repeated earlier pillars inherited. Record T/P ownership, actor, nodal benefit and a variable capability list. Omitted prior nodes are removed.',
+    description:'Save the complete active-product Maturity Axis. Read first and supply its revision. Preserve and update departments as a simple list of department names relevant to this product. Do not add raw material, input types, descriptions or nested maps. Each system is one maturity row. Supporting nodes do not directly transform the input. Pillars do; mark the newest pillar current and repeated earlier pillars inherited. Record T/P ownership, actor, and exactly two features for technology or two skills for people. Omitted prior nodes are removed.',
     inputSchema:{board_id:z.string(),revision:z.string(),architecture:architectureSchema},
     annotations:{readOnlyHint:false,destructiveHint:true,idempotentHint:false}
   }, async({board_id,revision,architecture})=>{

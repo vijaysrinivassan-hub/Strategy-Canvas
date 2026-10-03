@@ -1407,29 +1407,29 @@
                          letter-spacing:.07em; text-transform:uppercase}
   .arch-flow-node .node-remove{margin-left:auto; padding:0 3px; border:0; background:transparent;
                                color:#a0a29d; font-size:12px; box-shadow:none}
-  .arch-flow-node.maturity-node{width:176px; min-height:184px; padding:9px 10px 10px; background:#fff}
+  .arch-flow-node.detail-node{width:176px; min-height:184px; padding:9px 10px 10px; background:#fff}
   .arch-flow-system[data-maturity-selected="true"]{box-shadow:inset 4px 0 0 #5791d0}
   .maturity-row-check{display:flex; align-items:center; justify-content:center; width:18px; height:22px; flex:none}
   .maturity-row-check input,.maturity-replace-check input{width:12px; height:12px; margin:0; accent-color:#3f83c5; cursor:pointer}
   .maturity-replace-check{position:absolute; z-index:8; top:7px; right:7px; display:flex; align-items:center;
                            justify-content:center; width:15px; height:15px; padding:0; background:rgba(255,255,255,.88)}
-  .maturity-node.has-replace-check > input:first-of-type{width:calc(100% - 20px)}
+  .detail-node.has-replace-check > input:first-of-type{width:calc(100% - 20px)}
   .arch-flow-node.maturity-node[data-process-role="supporting"]{border-color:#b9beb9; background:#f1f2ef}
   .arch-flow-node.maturity-node[data-process-role="pillar"][data-pillar-state="inherited"]{border-color:#d8bd50; background:#fff8d9}
   .arch-flow-node.maturity-node[data-process-role="pillar"][data-pillar-state="current"]{border-color:#5791d0; background:#eaf4ff}
   .maturity-node-badges{display:flex; align-items:center; gap:4px; margin-bottom:5px}
   .maturity-node-badges select{flex:1; max-width:none; padding:3px 16px 3px 4px; border:1px solid rgba(86,96,87,.15);
                                background:rgba(255,255,255,.72); color:#626961; font-size:7px}
-  .maturity-node .maturity-field{margin:5px 0 0}
-  .maturity-node .maturity-field span{display:block; margin-bottom:2px; color:#858b85; font-size:6.5px;
+  .detail-node .maturity-field{margin:5px 0 0}
+  .detail-node .maturity-field span{display:block; margin-bottom:2px; color:#858b85; font-size:6.5px;
                                       font-weight:850; letter-spacing:.08em; text-transform:uppercase}
-  .maturity-node .maturity-field input,.maturity-node .maturity-field textarea{display:block; width:100%; margin:0; padding:3px 2px;
+  .detail-node .maturity-field input,.detail-node .maturity-field textarea{display:block; width:100%; margin:0; padding:3px 2px;
     border:0; border-bottom:1px solid rgba(92,102,93,.18); border-radius:0; outline:none; background:transparent;
     color:#4b504b; font:inherit; font-size:8px; font-weight:550; line-height:1.3; resize:none; user-select:text}
-  .maturity-node .maturity-field textarea{height:34px; overflow:auto}
-  .maturity-node .maturity-field input:focus,.maturity-node .maturity-field textarea:focus{border-bottom-color:#5791d0}
-  .maturity-node .arch-flow-node-foot{margin-top:5px; padding-top:5px; border-top:1px solid rgba(92,102,93,.14)}
-  .maturity-node .arch-flow-node-foot select{max-width:62px}
+  .detail-node .maturity-field textarea{height:34px; overflow:auto}
+  .detail-node .maturity-field input:focus,.detail-node .maturity-field textarea:focus{border-bottom-color:#5791d0}
+  .detail-node .arch-flow-node-foot{margin-top:5px; padding-top:5px; border-top:1px solid rgba(92,102,93,.14)}
+  .detail-node .arch-flow-node-foot select{max-width:82px}
   .arch-flow-port{position:absolute; z-index:6; top:50%; width:10px; height:10px; margin-top:-5px;
                   border:1.5px solid #65b97e; border-radius:50%; background:#fff; cursor:crosshair}
   .arch-flow-port.in{left:-6px}.arch-flow-port.out{right:-6px; background:#65b97e}
@@ -9014,6 +9014,16 @@ productArchitectureState = function(){
   const tabKey = activeArchitectureTab();
   const tab = state.tabs[tabKey] ||
     (state.tabs[tabKey] = { nodes: [], edges: [] });
+if (tab.architectureFeaturePromptRevision !== 1){
+    if (typeof tab.aiPrompt === 'string'){
+      tab.aiPrompt = tab.aiPrompt.replace(/nodal benefits?/gi,'features or skills');
+      if (!/exactly two (features|skills|short)/i.test(tab.aiPrompt)){
+        tab.aiPrompt = tab.aiPrompt.trim() + '\n\nFor every technology node record exactly two Features. For every person node record exactly two Skills.';
+      }
+    }
+    tab.architectureFeaturePromptRevision = 1;
+    if (!readOnly()) setTimeout(markDirty,0);
+  }
   let architecture = tab.architecture;
   const uninitializedMaturity = tabKey === MATURITY_ACCESS_TAB && architecture?.version === 3 &&
     architecture.sample === 'blank' && !(architecture.nodes || []).length &&
@@ -9044,6 +9054,13 @@ productArchitectureState = function(){
       architecture.departments.every(value => typeof value === 'string');
     if (!simpleDepartments) architecture.departments = maturityDepartmentsFor(architecture);
     architecture.departments = architecture.departments.map(value => String(value).trim()).filter(Boolean);
+    const knownDepartmentTemplate = /ai data platform|ai soc|aeo agency/.test(
+      String(state.client || '') + ' ' + String(architecture.name || ''));
+    if (knownDepartmentTemplate && architecture.departmentFeatureRevision !== 1){
+      architecture.departments = maturityDepartmentsFor(architecture);
+      architecture.departmentFeatureRevision = 1;
+      if (!readOnly()) setTimeout(markDirty,0);
+    }
     if (architecture.departmentsVersion !== 2){
       architecture.departmentsVersion = 2;
       delete architecture.departmentMapsVersion;
@@ -9062,6 +9079,21 @@ productArchitectureState = function(){
     system.row = Math.max(0, Math.floor(Number(system.row) || 0));
     if (tabKey === MATURITY_ACCESS_TAB) system.selected = system.selected === true;
   });
+  if (tabKey === PRODUCT_ARCHITECTURE_TAB && architecture.detailCardsVersion !== 1){
+    architecture.systems.forEach(system => {
+      const nodes = architecture.nodes.filter(node => node.systemId === system.id)
+        .sort((a,b) => (a.x - b.x) || (a.y - b.y));
+      nodes.forEach((node,index) => {
+        node.x = 40 + (index % 4) * 230;
+        node.y = 70 + Math.floor(index / 4) * 220;
+      });
+      const rows = Math.max(1, Math.ceil(nodes.length / 4));
+      system.height = Math.max(300, 90 + rows * 220);
+      system.width = Math.max(1060, system.width);
+    });
+    architecture.detailCardsVersion = 1;
+    if (!readOnly()) setTimeout(markDirty,0);
+  }
   architecture.nodes = architecture.nodes.filter(node => architecture.systems.some(system => system.id === node.systemId));
   architecture.nodes.forEach(node => {
     if (!node.id) node.id = uid();
@@ -9069,14 +9101,14 @@ productArchitectureState = function(){
     if (typeof node.label !== 'string') node.label = 'Untitled node';
     node.x = Math.max(10, Number(node.x) || 10); node.y = Math.max(54, Number(node.y) || 54);
     node.width = 154;
+    if (!['technology','people','technology_or_people'].includes(node.actorType)) node.actorType = node.type === 'people' ? 'people' : 'technology';
+    if (typeof node.actor !== 'string') node.actor = '';
+    if (!Array.isArray(node.capabilities)) node.capabilities = [];
+    node.capabilities = node.capabilities.map(value => String(value).trim()).filter(Boolean).slice(0,2);
+    delete node.nodalBenefit;
     if (tabKey === MATURITY_ACCESS_TAB){
       if (!['supporting','pillar'].includes(node.processRole)) node.processRole = 'supporting';
       if (node.processRole === 'pillar' && !['current','inherited'].includes(node.pillarState)) node.pillarState = 'current';
-      if (!['technology','people','technology_or_people'].includes(node.actorType)) node.actorType = node.type === 'people' ? 'people' : 'technology';
-      if (typeof node.actor !== 'string') node.actor = '';
-      if (typeof node.nodalBenefit !== 'string') node.nodalBenefit = '';
-      if (!Array.isArray(node.capabilities)) node.capabilities = [];
-      node.capabilities = node.capabilities.map(value => String(value).trim()).filter(Boolean);
       node.replacementSelected = node.replacementSelected === true;
     }
   });
@@ -9500,12 +9532,13 @@ function enableArchitectureNodeDrag(element, node, system, architecture){
 
 function addArchitectureNode(architecture, system){
   const count = architecture.nodes.filter(node => node.systemId === system.id).length;
-  const verticalStep = state.tab === MATURITY_ACCESS_TAB ? 220 : 94;
+  const verticalStep = 220;
   const node = archFlowNode(system.id, 'New node', 'technology', 34 + (count % 5) * 190, 76 + Math.floor(count / 5) * verticalStep);
+  Object.assign(node, { actorType:'technology', actor:'', capabilities:[] });
   if (state.tab === MATURITY_ACCESS_TAB) Object.assign(node, {
-    processRole:'supporting', pillarState:'', actorType:'technology', actor:'', nodalBenefit:'', capabilities:[]
+    processRole:'supporting', pillarState:'', replacementSelected:false
   });
-  const nodeHeight = state.tab === MATURITY_ACCESS_TAB ? 210 : 92;
+  const nodeHeight = 210;
   if (node.y + nodeHeight > system.height) system.height = node.y + nodeHeight + 20;
   architecture.nodes.push(node); architecture.sample = 'blank'; markDirty(); renderProductArchitecture();
 }
@@ -9572,7 +9605,7 @@ function renderArchitectureSystem(system, index, architecture, siblings){
   nodes.forEach(node => {
     const maturityNode = state.tab === MATURITY_ACCESS_TAB;
     const card = document.createElement('article');
-    card.className = 'arch-flow-node' + (maturityNode ? ' maturity-node' : '') +
+    card.className = 'arch-flow-node detail-node' + (maturityNode ? ' maturity-node' : '') +
       (architectureSelection.has(node.id) ? ' selected' : '');
     card.dataset.nodeId = node.id;
     card.dataset.type = node.type; card.style.left = node.x + 'px'; card.style.top = node.y + 'px';
@@ -9625,10 +9658,24 @@ function renderArchitectureSystem(system, index, architecture, siblings){
         control.oninput = () => { oninput(control.value); markDirty(); };
         field.append(caption, control); card.append(field);
       };
+      const abilityLabel = node.actorType === 'people' ? 'Skills' :
+        node.actorType === 'technology_or_people' ? 'Features / skills' : 'Features';
       addField('Who or what does it?', node.actor, 'Name the technology or person', false, value => { node.actor = value; });
-      addField('Nodal benefit', node.nodalBenefit, 'What this node enables', true, value => { node.nodalBenefit = value; });
-      addField('Capabilities', node.capabilities.join(', '), 'Capability types, comma separated', false,
-        value => { node.capabilities = value.split(',').map(item => item.trim()).filter(Boolean); });
+      addField(abilityLabel, node.capabilities.join('\n'), 'Add two, one per line', true,
+        value => { node.capabilities = value.split(/[\n,]+/).map(item => item.trim()).filter(Boolean).slice(0,2); });
+    } else {
+      const addField = (label, value, placeholder, multiline, oninput) => {
+        const field = document.createElement('label'); field.className = 'maturity-field';
+        const caption = document.createElement('span'); caption.textContent = label;
+        const control = document.createElement(multiline ? 'textarea' : 'input');
+        control.value = value || ''; control.placeholder = placeholder; control.readOnly = readOnly();
+        control.oninput = () => { oninput(control.value); markDirty(); };
+        field.append(caption, control); card.append(field);
+      };
+      const abilityLabel = node.type === 'people' ? 'Skills' : 'Features';
+      addField('Who or what does it?', node.actor, 'Name the technology or person', false, value => { node.actor = value; });
+      addField(abilityLabel, node.capabilities.join('\n'), 'Add two, one per line', true,
+        value => { node.capabilities = value.split(/[\n,]+/).map(item => item.trim()).filter(Boolean).slice(0,2); });
     }
     const foot = document.createElement('div'); foot.className = 'arch-flow-node-foot';
     const type = document.createElement('select'); type.disabled = readOnly();
@@ -9642,8 +9689,8 @@ function renderArchitectureSystem(system, index, architecture, siblings){
     type.onchange = () => {
       if (maturityNode){
         node.actorType = type.value; node.type = type.value === 'people' ? 'people' : 'technology';
-      } else node.type = type.value;
-      card.dataset.type = node.type; markDirty();
+      } else { node.type = type.value; node.actorType = type.value; }
+      card.dataset.type = node.type; markDirty(); renderProductArchitecture();
     };
     foot.append(type);
     if (!readOnly()){
@@ -9684,7 +9731,7 @@ function renderArchitectureSystem(system, index, architecture, siblings){
       event.preventDefault(); event.stopPropagation();
       const startX = event.clientX, startWidth = system.width;
       const minNodeWidth = Math.max(640, ...nodes.map(node =>
-        node.x + (state.tab === MATURITY_ACCESS_TAB ? 200 : 176)));
+        node.x + 200));
       const move = moveEvent => {
         system.width = Math.max(minNodeWidth, startWidth + moveEvent.clientX - startX);
         row.style.width = system.width + 'px'; row.style.flexBasis = system.width + 'px';
@@ -9763,7 +9810,7 @@ renderProductArchitecture = function(){
   const guide = $('architecturePane').querySelector('.arch-v2-guide');
   guide.querySelector('b').textContent = maturity ? 'Map the transformation' : 'Draw a connection';
   guide.querySelector('span').textContent = maturity ?
-    'Connect the raw input through supporting and pillar processes. Record T/P ownership, nodal benefit and every capability type on its node.' :
+    'Connect the raw input through supporting and pillar processes. Record T/P ownership and exactly two features for technology or two skills for people on each node.' :
     'Drag the green dot from one Technology or People note to another. Click + on the connector to name its output.';
   $('archSample').value = architecture.sample || 'blank'; $('archSample').disabled = ro;
   $('btnArchLoadSample').hidden = ro; $('btnArchAddDomain').hidden = ro;
