@@ -24,6 +24,16 @@ const title = url => {
 const isCorporate = pathname => /^\/?$|^\/(about|contact-us|privacy|terms-of-use|partners|authors(?:\/|$)|events(?:\/|$)|events-confrences|case-study(?:\/|$)|case-studies-old|customers(?:\/|$)|testimonial-strip-layout|podcast(?:\/|$)|ebooks(?:\/|$)|ebook-lp)(?:\/|$)/i.test(pathname);
 const isSolution = (pathname, text) => /^\/(products|saras-daton|saras-iq|saras-iq-mcp|saras-data-engineering|saras-consulting|saras-ad|solutions|connectors|lp|talk-to-data-consultants|claude-bigquery|vs)(?:\/|$)/i.test(pathname)
   || /\b(alternative|alternatives|pricing|platform|software|tool|tools|connector|integration service|consulting service|data engineering service)\b/.test(text);
+const COMPETITOR_NAMES = {dassity:'Daasity',daasity:'Daasity',sourcemedium:'SourceMedium',glew:'Glew',openbridge:'Openbridge','polar analytics':'Polar Analytics','triple whale moby ai':'Triple Whale / Moby AI',beprofit:'BeProfit',conjura:'Conjura','hevo data':'Hevo Data',decile:'Decile',finaloop:'Finaloop',fivetran:'Fivetran','iris finance':'Iris Finance',keboola:'Keboola',lifetimely:'Lifetimely','peel insights':'Peel Insights',prediko:'Prediko',profitpeak:'ProfitPeak',retentionx:'RetentionX','stitch data':'Stitch Data',storehero:'StoreHero',trueprofit:'TrueProfit',zenlytic:'Zenlytic'};
+const competitorName = pathname => {
+  const alternative = pathname.match(/^\/(?:blog\/)?(?:best-)?(.+?)-(?:alternative|alternatives)(?:-competitors)?$/i);
+  const comparison = pathname.match(/^\/vs\/(.+)$/i);
+  const key = clean(alternative?.[1] || comparison?.[1] || '');
+  if (key) return COMPETITOR_NAMES[key] || key.replace(/\b\w/g,letter=>letter.toUpperCase());
+  const text = clean(pathname);
+  const found = Object.entries(COMPETITOR_NAMES).find(([name])=>new RegExp('(?:^| )'+name.replace(/ /g,' +')+'(?: |$)').test(text));
+  return found?.[1] || '';
+};
 const isIcp = text => /\b(amazon|shopify|ecommerce|e commerce|retail|agency|agencies|brand|brands|seller|sellers|merchant|marketing team|finance team|data team|analyst|enterprise|small business|smb|mid market|bigquery|snowflake|redshift|tableau|power bi|looker|hubspot|salesforce|google ads|facebook ads|tiktok|klaviyo|stripe|netsuite|quickbooks|mysql|postgres|mongodb|oracle|microsoft|adobe|adjust|appsflyer|magento|woocommerce|walmart)\b/.test(text);
 const icpDimension = text => {
   if (/\b(enterprise|small business|smb|mid market)\b/.test(text)) return ['Company size', /enterprise/.test(text) ? 'Enterprise' : /mid market/.test(text) ? 'Mid-market' : 'SMB'];
@@ -62,6 +72,15 @@ for (const url of urls) {
   const text = clean(pathname);
   if (isCorporate(pathname)) {
     source.classifications[url] = {workspace, awareness:'non-seo', section:'Corporate & Non-SEO', pageType:'Corporate', hierarchy:'Corporate', axis:'Corporate', topicGroup:url, topic:title(url), groupOrder:0, groupSize:1, covered:false, traffic:''};
+    continue;
+  }
+  const competitor = competitorName(pathname);
+  if (competitor) {
+    const competitorAxis = /\bpricing\b/.test(text)?'Pricing':/\breviews?\b/.test(text)?'Reviews':/\bfeatures?\b/.test(text)?'Features':'Alternatives';
+    const key = ['competitor-aware','Competitor AEO',competitor,competitorAxis].join('|');
+    const groupOrder = counters.get(key) || 0;
+    counters.set(key, groupOrder + 1);
+    source.classifications[url] = {workspace, awareness:'competitor-aware', section:'Competitor AEO', pageType:competitorAxis, hierarchy:competitor, axis:competitorAxis, topicGroup:url, topic:title(url), groupOrder, groupSize:1, covered:false, traffic:''};
     continue;
   }
   const awareness = isSolution(pathname, text) ? 'solution-aware' : (/^\/glossary(?:\/|$)/.test(pathname) || /\b(what is|meaning|definition|explained|overview|benefits|importance|types of)\b/.test(text) ? 'problem-unaware' : 'problem-aware');

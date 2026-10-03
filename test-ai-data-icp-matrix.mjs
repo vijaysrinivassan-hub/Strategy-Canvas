@@ -16,6 +16,8 @@ assert.deepEqual(Matrix.data.valueRows.slice(1).map(r=>r.name),Matrix.data.analy
 assert.ok(Matrix.data.valueRows.slice(1).every(r=>r.parentProcess==='Analysis'&&r.processLevel==='subprocess'));
 assert.match(Columns.strategyPrompt,/Processes and use cases belong to Value/);
 assert.match(Columns.strategyPrompt,/named competitor/);
+assert.match(Columns.strategyPrompt,/first available cell/);
+assert.match(Columns.strategyPrompt,/canonical competitor list/);
 assert.ok(Columns.names.category.includes('Integration pages'));
 
 const use=Matrix.data.columns.slice(0,4),rest=Matrix.data.columns.slice(4);

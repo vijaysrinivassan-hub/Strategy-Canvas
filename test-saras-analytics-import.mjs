@@ -14,8 +14,10 @@ const records=Object.entries(asset.classifications).filter(([,meta])=>meta.works
 assert.equal(records.length,770);
 assert.equal(records.filter(([,meta])=>meta.section==='Corporate & Non-SEO').length,12);
 assert(records.every(([,meta])=>meta.awareness&&meta.topicGroup&&meta.topic));
-assert(records.filter(([,meta])=>meta.section!=='Corporate & Non-SEO').every(([,meta])=>/^(ICP|Value) (SEO|AEO)$/.test(meta.section)));
-assert(records.filter(([,meta])=>meta.section!=='Corporate & Non-SEO').every(([,meta])=>['problem-unaware','problem-aware','solution-aware'].includes(meta.awareness)));
+assert(records.filter(([,meta])=>meta.section!=='Corporate & Non-SEO').every(([,meta])=>/^(ICP|Value|Competitor) (SEO|AEO)$/.test(meta.section)));
+assert(records.filter(([,meta])=>meta.section!=='Corporate & Non-SEO').every(([,meta])=>['problem-unaware','problem-aware','solution-aware','competitor-aware'].includes(meta.awareness)));
+assert.equal(records.filter(([,meta])=>meta.section==='Competitor AEO').length,42);
+assert.equal(new Set(records.filter(([,meta])=>meta.section==='Competitor AEO').map(([,meta])=>meta.hierarchy)).size,23);
 
 const source=fs.readFileSync(new URL('./shared-url-repository.js',import.meta.url),'utf8');
 const context=vm.createContext({globalThis:{CompetitiveIntelligenceClassifications:asset},console});
@@ -40,7 +42,23 @@ assert.equal(afterSolution.flatMap(cell=>repo.resolve(cell.repositoryQueries||[]
 assert.equal(repo.installMappings(root,types,{product:'AI Data Platform',uid:()=>`return-${++n}`,awareness:'problem-aware',contentView:'icp',mode:'seo',activeView:active}),false);
 
 const seedSource=fs.readFileSync(new URL('./saras-analytics-competitive-intelligence.js',import.meta.url),'utf8');
-assert(seedSource.includes("REVISION='saras-analytics-sitemap-2026-10-03-v1'"));
+assert(seedSource.includes("REVISION='saras-analytics-sitemap-2026-10-03-v2'"));
+const seedContext=vm.createContext({globalThis:{CompetitiveIntelligenceClassifications:asset},console});
+vm.runInContext(seedSource,seedContext);
+const importer=seedContext.globalThis.SarasAnalyticsCompetitiveIntelligence;
+const positioningTab={positioning:{selectedCategory:'category-1',categories:[{id:'category-1',name:'AI data analytics platform',competitors:[{id:'old-1',name:'Random Company',contentRowId:'old-row'}]}]}};
+const strategyRoot={views:{category:{rows:[{id:'category-row',cells:{company:{v:'Random Company'}}}]},competitor:{rows:[{id:'old-row',name:'Random Company',positioningCompetitorId:'old-1'}],types:[{id:'alternatives',name:'Alternatives'}],cells:{'old-row|alternatives':{v:'Random Company alternatives'}}}}};
+let strategyId=0;
+assert.equal(importer.applyStrategy(positioningTab,strategyRoot,asset,()=>`strategy-${++strategyId}`),true);
+const canonical=positioningTab.positioning.categories[0].competitors;
+assert.equal(canonical.length,23);
+assert(!canonical.some(item=>item.name==='Random Company'));
+assert.deepEqual(Array.from(strategyRoot.views.competitor.rows.slice(0,canonical.length),row=>row.name),Array.from(canonical,item=>item.name));
+assert.equal(strategyRoot.views.category.rows[0].cells.company,undefined);
+const competitorCells=Object.values(strategyRoot.views.competitor.cells);
+assert.equal(competitorCells.flatMap(cell=>repo.resolve(cell.repositoryQueries||[])).length,42);
+assert(competitorCells.every(cell=>cell.st==='for_review'));
+assert.equal(importer.applyStrategy(positioningTab,strategyRoot,asset,()=>`repeat-${++strategyId}`),false);
 const html=fs.readFileSync(new URL('./index.html',import.meta.url),'utf8');
 assert(html.includes('<script src="saras-analytics-competitive-intelligence.js"></script>'));
 assert(html.includes('await ensureSarasAnalyticsCompetitiveIntelligenceSeed();'));

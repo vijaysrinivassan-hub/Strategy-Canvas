@@ -6549,11 +6549,12 @@ async function ensureSarasAnalyticsCompetitiveIntelligenceSeed(){
   sarasAnalyticsCompetitiveIntelligenceSeedPending = (async function(){
     const profile = await api.loadProfile();
     const changed = api.apply(model, profile);
+    const strategyChanged = api.applyStrategy(state.tabs[POSITIONING_TAB] || (state.tabs[POSITIONING_TAB] = {nodes:[],edges:[]}), contentRoot(), globalThis.CompetitiveIntelligenceClassifications, uid);
     if (state.boardId !== targetBoard) return false;
     model.sarasAnalyticsSitemapRevision = api.REVISION;
     markDirty();
     await saveBoard(true);
-    return changed;
+    return changed || strategyChanged;
   })();
   try { return await sarasAnalyticsCompetitiveIntelligenceSeedPending; }
   catch (error){ console.error(error); toast('Could not import the Saras Analytics sitemap: ' + (error.message || error), true); return false; }

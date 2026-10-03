@@ -1025,6 +1025,7 @@ const copy=value=>JSON.parse(JSON.stringify(value));
 const ICP_PROMPT='Classify only audience-fit positioning: this product is for this industry, country, company size, role/team or installed technology. Do not place a process, use case, benefit, capability or problem here; route those to Value. Keep named competitors in Competitor and category names/features/integrations in Category.';
 const VALUE_PROMPT='Classify what the product helps someone do or obtain. Processes and use cases name the work or data transformation. For the AI Data Platform, keep Analysis as the parent process and place its specific analysis methods directly beneath it as sub-process rows; these belong to Value, never ICP. Nodal benefits state the direct benefit produced by a specific process node. Capabilities state what the product, technology or person can actually do. Keep audience-fit dimensions in ICP, category names/features/integrations in Category, and named competitors in Competitor.';
 const ROUTING_PROMPT='Competitor: any keyword containing a named competitor, including alternatives, reviews, pricing, features, two-way comparisons and three-way comparisons. ICP: product fit by industry, country, company size, role/team or installed technology. Value: processes/use cases, nodal benefits, capabilities, problems and outcomes. Category: category names/synonyms, category definitions, feature pages and integration pages. Preserve SEO while reorganizing AEO.';
+const DATA_IMPORT_PROMPT='Start every import or reclassification at the first available cell in each destination column. Never leave blank cells above or between populated URL cells; compact columns independently without losing metadata. Use one URL per cell unless the source explicitly groups equivalent URLs. The selected Positioning Canvas category is the source of truth for competitor names. Any keyword or topic containing a named competitor belongs in Competitor Aware, including alternatives, reviews, pricing, features and comparisons; never leave company names under Category. Sync Positioning Canvas competitors to the Competitor Aware matrix.';
 const benefits={
  Cohort:['Understand how groups behave over time',['cohort reporting','cohort comparison','lifecycle diagnosis']],
  Funnel:['See where people or records drop between stages',['funnel reporting','drop-off diagnosis','conversion-path analysis']],
@@ -1069,7 +1070,7 @@ data.valueRows=[{
   keywordIdeas:[item.name.toLowerCase()],processLevel:'subprocess',parentProcess:analysisTaxonomy.name,
   cells:legacy?copy(legacy.cells):emptyValueCells()};
 })];
-data.icpPrompt=ICP_PROMPT;data.valuePrompt=VALUE_PROMPT;data.routingPrompt=ROUTING_PROMPT;
+data.icpPrompt=ICP_PROMPT;data.valuePrompt=VALUE_PROMPT;data.routingPrompt=DATA_IMPORT_PROMPT+'\n\n'+ROUTING_PROMPT;
 const blankCell=(sourceRow,sourceCell,column,kind)=>({v:sourceCell.title,url:'',mode:'aeo',type:'',on:false,aw:'',st:'',writtenBy:'',cfg:true,kws:[],keywordIdeas:copy(sourceCell.keywordIdeas),actorType:sourceCell.actorType,actor:sourceCell.actor,icpSource:{kind:kind||'sample-matrix',row:sourceRow.name,column:column.name}});
 const matrixRows=view=>(view.rows||[]).filter(row=>row.pageGroup==='matrix');
 const mergeColumns=(seed,existing)=>{const ids=new Set(seed.map(column=>column.id)),byId=new Map(existing.map(column=>[column.id,column]));return [...seed.map(column=>byId.get(column.id)||({...copy(column),local:true,defaults:{mode:'aeo',type:'',aw:''}})),...existing.filter(column=>!ids.has(column.id)&&column.matrixGroup!=='use')];};
@@ -1077,7 +1078,7 @@ function ensure(content,client,productId){
  if(String(client||'').trim().toLowerCase()!==data.client.toLowerCase()||String(productId||'')!==data.productId)return false;
  content.views ||= {};const icp=content.views.icp;if(!icp)return false;const value=content.views.value ||= {kind:'grid',columns:[],rows:[],pageColumns:{},pageOrders:{}};
  if(icp.icpMatrixRevision===data.revision&&value.valueMatrixRevision===data.revision)return false;
- content.routingInstruction=ROUTING_PROMPT;icp.pageColumns ||= {};icp.pageOrders ||= {};value.pageColumns ||= {};value.pageOrders ||= {};
+ content.routingInstruction=DATA_IMPORT_PROMPT+'\n\n'+ROUTING_PROMPT;icp.pageColumns ||= {};icp.pageOrders ||= {};value.pageColumns ||= {};value.pageOrders ||= {};
  icp.icpMatrixArchive ||= [];value.valueMatrixArchive ||= [];
  const oldIcpColumns=Array.isArray(icp.pageColumns.matrix)?icp.pageColumns.matrix:[];const oldIcpRows=matrixRows(icp);
  const oldValueColumns=Array.isArray(value.pageColumns.matrix)?value.pageColumns.matrix:[];const oldValueRows=matrixRows(value);

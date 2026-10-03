@@ -1,7 +1,7 @@
 /* Board-scoped Saras Analytics sitemap import for Competitive Intelligence. */
 (function(root){
   'use strict';
-  const REVISION='saras-analytics-sitemap-2026-10-03-v1';
+  const REVISION='saras-analytics-sitemap-2026-10-03-v2';
   const normalize=value=>String(value||'').trim().toLowerCase().replace(/\/$/,'');
   const clone=value=>JSON.parse(JSON.stringify(value));
   let pending;
@@ -25,5 +25,55 @@
     if(!tab.activeCompetitorId)tab.activeCompetitorId=profile.id;
     return before!==JSON.stringify(tab);
   }
-  root.SarasAnalyticsCompetitiveIntelligence={REVISION,matchesBoard,loadProfile,apply};
+  function competitorRecords(source){
+    return Object.entries(source?.classifications||{}).filter(([,meta])=>meta.workspace==='ai-data-platform'&&meta.section==='Competitor AEO')
+      .map(([url,meta])=>({url,name:String(meta.hierarchy||'').trim(),meta})).filter(item=>item.name);
+  }
+  function applyStrategy(positioningTab,content,source,uid){
+    if(!positioningTab||!content?.views?.competitor)return false;
+    const records=competitorRecords(source),names=[...new Set(records.map(item=>item.name))];
+    if(!names.length)return false;
+    const before=JSON.stringify({positioning:positioningTab.positioning,category:content.views.category,competitor:content.views.competitor});
+    const positioning=positioningTab.positioning&&typeof positioningTab.positioning==='object'?positioningTab.positioning:(positioningTab.positioning={selectedIcp:'',selectedCategory:'',icps:[],categories:[]});
+    positioning.categories=Array.isArray(positioning.categories)?positioning.categories:[];
+    let category=positioning.categories.find(item=>item.id===positioning.selectedCategory)||positioning.categories.find(item=>String(item.name||'').trim())||positioning.categories[0];
+    if(!category){category={id:uid(),name:'AI data analytics platform',maturity:'',competitors:[]};positioning.categories.push(category);}
+    if(!category.id)category.id=uid();
+    const oldCompetitors=positioning.categories.flatMap(item=>Array.isArray(item.competitors)?item.competitors:[]);
+    const oldByName=new Map(oldCompetitors.map(item=>[normalize(item.name),item]));
+    const oldNames=new Set(oldCompetitors.map(item=>normalize(item.name)).filter(Boolean));
+    positioning.categories.forEach(item=>{item.competitors=[];});
+    category.competitors=names.map(name=>{const old=oldByName.get(normalize(name));return {id:old?.id||uid(),name,contentRowId:old?.contentRowId||''};});
+    positioning.selectedCategory=category.id;
+
+    const matrix=content.views.competitor;
+    matrix.rows=Array.isArray(matrix.rows)?matrix.rows:[];matrix.types=Array.isArray(matrix.types)?matrix.types:[];matrix.cells=matrix.cells&&typeof matrix.cells==='object'?matrix.cells:{};
+    const typeByName=new Map();
+    for(const name of ['Alternatives','Reviews','Pricing','Features']){
+      let type=matrix.types.find(item=>normalize(item.name)===normalize(name));
+      if(!type){type={id:uid(),name};matrix.types.push(type);}
+      typeByName.set(normalize(name),type);
+    }
+    const priorRows=new Map(matrix.rows.filter(row=>names.some(name=>normalize(name)===normalize(row.name))).map(row=>[normalize(row.name),row]));
+    const removedIds=new Set(matrix.rows.filter(row=>row.positioningCompetitorId||oldNames.has(normalize(row.name))).map(row=>row.id));
+    const retained=matrix.rows.filter(row=>String(row.name||'').trim()&&!removedIds.has(row.id)&&!names.some(name=>normalize(name)===normalize(row.name)));
+    for(const key of Object.keys(matrix.cells))if(removedIds.has(key.split('|')[0]))delete matrix.cells[key];
+    const canonical=category.competitors.map(competitor=>{
+      const row=priorRows.get(normalize(competitor.name))||{id:uid(),name:competitor.name};
+      row.name=competitor.name;row.positioningCompetitorId=competitor.id;row.positioningCategoryId=category.id;competitor.contentRowId=row.id;
+      const grouped=new Map();
+      for(const item of records.filter(item=>normalize(item.name)===normalize(competitor.name))){const axis=item.meta.axis||'Alternatives';if(!grouped.has(axis))grouped.set(axis,[]);grouped.get(axis).push(item);}
+      for(const [axis,items] of grouped){const type=typeByName.get(normalize(axis))||typeByName.get('alternatives');const queries=items.map(item=>({workspace:'ai-data-platform',awareness:'competitor-aware',section:'Competitor AEO',pageType:item.meta.pageType,hierarchy:item.meta.hierarchy,axis:item.meta.axis,topicGroup:item.meta.topicGroup}));matrix.cells[row.id+'|'+type.id]={...(matrix.cells[row.id+'|'+type.id]||{}),v:competitor.name+' '+axis.toLowerCase(),url:'',mode:'aeo',type:'',on:false,aw:'',st:'for_review',writtenBy:'',cfg:true,kws:[],repositoryQueries:queries,repositoryUrlOverrides:{}};}
+      return row;
+    });
+    matrix.rows=[...canonical,...retained];
+
+    const categoryView=content.views.category;
+    if(categoryView)for(const row of categoryView.rows||[])for(const [id,cell] of Object.entries(row.cells||{})){
+      const value=normalize(typeof cell==='string'?cell:cell?.v);
+      if(value&&oldNames.has(value))delete row.cells[id];
+    }
+    return before!==JSON.stringify({positioning:positioningTab.positioning,category:content.views.category,competitor:content.views.competitor});
+  }
+  root.SarasAnalyticsCompetitiveIntelligence={REVISION,matchesBoard,loadProfile,apply,competitorRecords,applyStrategy};
 })(typeof globalThis!=='undefined'?globalThis:this);
