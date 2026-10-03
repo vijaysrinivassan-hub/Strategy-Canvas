@@ -2354,6 +2354,21 @@
   .client-actions button:hover:not(:disabled){border-color:var(--line); background:#fff; color:var(--ink)}
   .client-empty{padding:38px 18px; text-align:center; color:var(--muted); font-size:12px}
   .client-create select.modal-in{height:40px; background:#fff}
+  .writing-template-directory{width:100%;margin-top:18px}
+  .writing-template-list{border:1px solid var(--line);border-top:0;background:#fff}
+  .writing-template-entry{display:flex;min-width:0;min-height:64px;border-bottom:1px solid var(--line);background:#fff}
+  .writing-template-entry:last-child{border-bottom:0}
+  .writing-template-entry:hover,.writing-template-entry.current{background:#fafcf9}
+  .writing-template-entry.current{box-shadow:inset 3px 0 #57c982}
+  .writing-template-open{display:grid;grid-template-columns:38px minmax(160px,1fr) 22px;align-items:center;gap:13px;min-width:0;flex:1;padding:12px 16px;border:0;background:transparent;text-align:left}
+  .writing-template-open:hover:not(:disabled){border:0;background:transparent}
+  .writing-template-icon{width:34px;height:34px;display:grid;place-items:center;border:1px solid #d4ddd6;border-radius:4px;background:#eff8f2;color:#287343;font-size:12px;font-weight:800}
+  .writing-template-editor{margin-top:12px;padding:16px;border:1px solid var(--line);background:#fff}
+  .writing-template-editor h4{margin:0 0 10px;font-size:13px}
+  .writing-template-editor textarea{display:block;width:100%;min-height:320px;padding:13px;border:1px solid #d6dbd7;background:#fdfdfc;color:#242824;font:12px/1.6 ui-monospace,SFMono-Regular,Consolas,monospace;resize:vertical;outline:none}
+  .writing-template-editor textarea:focus{border-color:#57c982;box-shadow:0 0 0 2px rgba(87,201,130,.12)}
+  .writing-template-editor-foot{display:flex;align-items:center;justify-content:flex-end;gap:10px;margin-top:10px}
+  .writing-template-editor-foot span{margin-right:auto;color:var(--muted);font-size:10px}
   @media(max-width:850px){
     .client-open{grid-template-columns:40px minmax(130px,1fr) 96px 20px}
     .client-role{display:none}.client-actions{padding-right:8px}
@@ -3806,7 +3821,7 @@ function goScreen(id){
   state.settingsPart = id;
   applyTabMode();
   renderTabs();
-  const part = { clients: 'setClients', atypes: 'setTypes', mcp: 'setMcp' }[id];
+  const part = { clients: 'setClients', templates: 'setWritingTemplates', atypes: 'setTypes', mcp: 'setMcp' }[id];
   const el = part ? $(part) : null;
   if (el) el.scrollIntoView({ block: 'start' });
   else $('settingsPane').scrollTop = 0;
@@ -5104,10 +5119,12 @@ async function refreshBoards(){
     .select('id,title,updated_at,owner_id').order('updated_at', { ascending: false });
   if (error){ toast('Could not list boards: ' + error.message, true); return; }
   const settings = await sb.from('reports').select('id,title,updated_at,owner_id,body')
-    .eq('title', '[Internal] Universal keyword columns').eq('owner_id', state.user.id);
+    .in('title', ['[Internal] Universal keyword columns', WRITING_TEMPLATES_TITLE]).eq('owner_id', state.user.id);
   if (settings.error){ toast('Could not load column settings: ' + settings.error.message, true); return; }
   await readKeywordSettings(settings.data || []);
-  state.boards = (data || []).filter(r => r.title !== '[Internal] Universal keyword columns');
+  readWritingTemplates(settings.data || []);
+  state.boards = (data || []).filter(r =>
+    r.title !== '[Internal] Universal keyword columns' && r.title !== WRITING_TEMPLATES_TITLE);
   /* boards are chosen on the Clients screen now, so nothing to fill here */
 }
 
@@ -5147,7 +5164,7 @@ async function openBoard(id, location){
   renderTabs();
   if (state.screen === 'settings' && state.settingsPart){
     requestAnimationFrame(() => {
-      const part = { clients: 'setClients', atypes: 'setTypes', mcp: 'setMcp' }[state.settingsPart];
+      const part = { clients: 'setClients', templates: 'setWritingTemplates', atypes: 'setTypes', mcp: 'setMcp' }[state.settingsPart];
       const element = part ? $(part) : null;
       if (element) element.scrollIntoView({ block: 'start' });
     });
@@ -5746,6 +5763,7 @@ function applyTabMode(){
     $('tabTitle').textContent = 'Settings';
     renderCrumb();
     renderClients();
+    renderWritingTemplates();
     renderArticleTypes();
     renderUniversalColumns();
     renderKeywordStrategyPrompt();
@@ -11871,6 +11889,144 @@ function openBoardScreen(){
   rememberLocation();
 }
 
+const WRITING_TEMPLATES_TITLE = '[Internal] Writing templates';
+const WRITING_TEMPLATES_KIND = 'writing_templates_v1';
+let writingTemplatesRecord = null;
+let writingTemplates = [];
+let activeWritingTemplateId = '';
+let writingTemplateSaveTimer = null;
+let writingTemplateSaveChain = Promise.resolve();
+
+function readWritingTemplates(records){
+  writingTemplatesRecord = (records || []).find(row => row.title === WRITING_TEMPLATES_TITLE && row.owner_id === state.user?.id) || null;
+  let parsed = null;
+  try { parsed = writingTemplatesRecord ? JSON.parse(writingTemplatesRecord.body || '{}') : null; } catch (error) {}
+  writingTemplates = Array.isArray(parsed?.templates) ? parsed.templates.filter(Boolean).map(item => ({
+    id:String(item.id || uid()),
+    name:String(item.name || 'Untitled template'),
+    body:String(item.body || '')
+  })) : [];
+  if (!writingTemplates.some(item => item.id === activeWritingTemplateId)) activeWritingTemplateId = writingTemplates[0]?.id || '';
+}
+
+async function writingTemplatesRecordId(owner){
+  const bytes = new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(owner + WRITING_TEMPLATES_KIND)));
+  const hex = Array.from(bytes.slice(0,16),byte => byte.toString(16).padStart(2,'0')).join('');
+  return hex.slice(0,8)+'-'+hex.slice(8,12)+'-'+hex.slice(12,16)+'-'+hex.slice(16,20)+'-'+hex.slice(20);
+}
+
+async function saveWritingTemplates(quiet){
+  if (!state.user || clientView()) return false;
+  const owner = state.user.id;
+  const payload = {
+    owner_id:owner,
+    title:WRITING_TEMPLATES_TITLE,
+    body:JSON.stringify({version:1,kind:WRITING_TEMPLATES_KIND,templates:writingTemplates}),
+    updated_at:new Date().toISOString()
+  };
+  let result;
+  if (writingTemplatesRecord){
+    result = await sb.from('reports').update(payload).eq('id',writingTemplatesRecord.id)
+      .eq('owner_id',owner).eq('updated_at',writingTemplatesRecord.updated_at)
+      .select('id,owner_id,title,body,updated_at');
+  } else {
+    payload.id = await writingTemplatesRecordId(owner);
+    result = await sb.from('reports').insert(payload).select('id,owner_id,title,body,updated_at');
+  }
+  if (result.error || !result.data?.length){
+    toast('Writing templates were not saved. Reload Settings before retrying: ' +
+      (result.error?.message || 'Another session changed them.'),true);
+    return false;
+  }
+  if (state.user?.id !== owner) return false;
+  writingTemplatesRecord = result.data[0];
+  const status = $('writingTemplateSaveStatus'); if (status) status.textContent = 'Saved';
+  if (!quiet) toast('Writing template saved.');
+  return true;
+}
+
+function queueWritingTemplateSave(){
+  clearTimeout(writingTemplateSaveTimer);
+  const status = $('writingTemplateSaveStatus'); if (status) status.textContent = 'Saving…';
+  writingTemplateSaveTimer = setTimeout(() => {
+    writingTemplateSaveChain = writingTemplateSaveChain.then(() => saveWritingTemplates(true)).catch(() => false);
+  },700);
+}
+
+function renderWritingTemplates(){
+  const host = $('writingTemplatesHost');
+  if (!host) return;
+  host.innerHTML = '';
+  if (!state.user || clientView()) return;
+  const directory = document.createElement('div'); directory.className = 'writing-template-directory';
+  const bar = document.createElement('div'); bar.className = 'client-dir-head';
+  const summary = document.createElement('div');
+  const count = document.createElement('b'); count.textContent = writingTemplates.length + ' writing template' + (writingTemplates.length === 1 ? '' : 's');
+  const hint = document.createElement('span'); hint.textContent = 'Choose a template, then paste its complete writing instructions below.';
+  summary.append(count,hint);
+  const add = document.createElement('button'); add.type = 'button'; add.className = 'primary'; add.textContent = '+ New template';
+  add.onclick = async function(){
+    const name = prompt('Template name'); if (name === null || !name.trim()) return;
+    const template = {id:uid(),name:name.trim(),body:''};
+    writingTemplates.push(template); activeWritingTemplateId = template.id;
+    renderWritingTemplates();
+    await saveWritingTemplates(true);
+    requestAnimationFrame(() => $('writingTemplateBody')?.focus());
+  };
+  bar.append(summary,add); directory.append(bar);
+  const list = document.createElement('div'); list.className = 'writing-template-list';
+  writingTemplates.forEach(template => {
+    const entry = document.createElement('article');
+    entry.className = 'writing-template-entry' + (template.id === activeWritingTemplateId ? ' current' : '');
+    const open = document.createElement('button'); open.type = 'button'; open.className = 'writing-template-open';
+    open.onclick = () => { activeWritingTemplateId = template.id; renderWritingTemplates(); };
+    const icon = document.createElement('span'); icon.className = 'writing-template-icon'; icon.textContent = 'T';
+    const identity = document.createElement('span'); identity.className = 'client-identity';
+    const title = document.createElement('b'); title.textContent = template.name;
+    const detail = document.createElement('small'); detail.textContent = template.body.trim() ? 'Template added' : 'Empty template';
+    identity.append(title,detail);
+    const arrow = document.createElement('span'); arrow.className = 'client-arrow'; arrow.textContent = '→';
+    open.append(icon,identity,arrow); entry.append(open);
+    const actions = document.createElement('div'); actions.className = 'client-actions';
+    const rename = document.createElement('button'); rename.type = 'button'; rename.textContent = 'Rename';
+    rename.onclick = async () => {
+      const next = prompt('Template name',template.name); if (next === null || !next.trim()) return;
+      template.name = next.trim(); renderWritingTemplates(); await saveWritingTemplates(true);
+    };
+    const remove = document.createElement('button'); remove.type = 'button'; remove.textContent = 'Delete';
+    remove.onclick = async () => {
+      if (!confirm('Delete "' + template.name + '"?')) return;
+      writingTemplates = writingTemplates.filter(item => item.id !== template.id);
+      activeWritingTemplateId = writingTemplates[0]?.id || '';
+      renderWritingTemplates(); await saveWritingTemplates(true);
+    };
+    actions.append(rename,remove); entry.append(actions); list.append(entry);
+  });
+  if (!writingTemplates.length){
+    const empty = document.createElement('div'); empty.className = 'client-empty';
+    empty.textContent = 'No writing templates yet. Create one to paste your first template.'; list.append(empty);
+  }
+  directory.append(list);
+  const active = writingTemplates.find(template => template.id === activeWritingTemplateId);
+  if (active){
+    const editor = document.createElement('section'); editor.className = 'writing-template-editor';
+    const heading = document.createElement('h4'); heading.textContent = active.name;
+    const textarea = document.createElement('textarea'); textarea.id = 'writingTemplateBody';
+    textarea.value = active.body; textarea.placeholder = 'Paste the complete writing template here…';
+    textarea.setAttribute('aria-label',active.name + ' writing template');
+    const foot = document.createElement('div'); foot.className = 'writing-template-editor-foot';
+    const status = document.createElement('span'); status.id = 'writingTemplateSaveStatus'; status.textContent = 'Saved';
+    const save = document.createElement('button'); save.type = 'button'; save.className = 'primary'; save.textContent = 'Save template';
+    textarea.oninput = () => { active.body = textarea.value; status.textContent = 'Unsaved'; queueWritingTemplateSave(); };
+    save.onclick = async () => {
+      clearTimeout(writingTemplateSaveTimer); save.disabled = true;
+      try { await saveWritingTemplates(false); } finally { save.disabled = false; }
+    };
+    foot.append(status,save); editor.append(heading,textarea,foot); directory.append(editor);
+  }
+  host.append(directory);
+}
+
 function boardPresentation(board){
   let body = board && board.body;
   if (typeof body === 'string'){
@@ -13984,6 +14140,10 @@ setTimeout(function(){
   });
   const promptHost = document.createElement('div'); promptHost.id = 'clientKeywordPrompts';
   $('setClients').append(promptHost);
+  const templateSection = document.createElement('section'); templateSection.className = 'set-sec'; templateSection.id = 'setWritingTemplates';
+  const templateTitle = document.createElement('h3'); templateTitle.className = 'set-h'; templateTitle.textContent = 'Writing Templates';
+  const templateHost = document.createElement('div'); templateHost.id = 'writingTemplatesHost';
+  templateSection.append(templateTitle,templateHost); page.insertBefore(templateSection,$('setTypes'));
   const columnSection = document.createElement('section'); columnSection.className = 'set-sec';
   const columnTitle = document.createElement('h3'); columnTitle.className = 'set-h'; columnTitle.textContent = 'Universal keyword columns';
   const columnHost = document.createElement('div'); columnHost.id = 'keywordColumnsSettings';
