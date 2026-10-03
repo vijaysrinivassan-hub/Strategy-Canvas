@@ -341,10 +341,13 @@
     applyRepositoryStatuses(root);
     root.sharedUrlRepositoryRevision=revision;root.sharedUrlLinkedCount=linked;return true;
   }
-  function clearScopedMappings(view,workspace){
+  function hasScopedMappings(view,workspace,awareness){
+    return !!view&&(view.rows||[]).some(row=>Object.values(row.cells||{}).some(cell=>(cell?.repositoryQueries||[]).some(query=>query.workspace===workspace&&query.awareness===awareness)));
+  }
+  function clearScopedMappings(view,workspace,awareness){
     if(!view)return;
     (view.rows||[]).forEach(row=>Object.entries(row.cells||{}).forEach(([id,cell])=>{
-      if((cell?.repositoryQueries||[]).some(query=>query.workspace===workspace))delete row.cells[id];
+      if((cell?.repositoryQueries||[]).some(query=>query.workspace===workspace&&query.awareness===awareness))delete row.cells[id];
     }));
     view.rows=(view.rows||[]).filter(row=>!row.repositoryWorkspace||row.repositoryWorkspace!==workspace||Object.values(row.cells||{}).some(hasUserContent));
   }
@@ -353,11 +356,11 @@
     if(!['icp','value'].includes(viewId)||!options.activeView)return false;
     const mode=awareness==='solution-aware'?'aeo':'seo';
     const scope=[workspace,awareness,viewId,mode].join(':');
-    const revision=(data().classifiedAt||'classification')+':'+scope+':v1';
+    const revision=(data().classifiedAt||'classification')+':'+scope+':v2';
     root.sharedUrlRepositoryRevisions ||= {};
-    if(root.sharedUrlRepositoryRevisions[scope]===revision)return false;
+    if(root.sharedUrlRepositoryRevisions[scope]===revision&&hasScopedMappings(options.activeView,workspace,awareness))return false;
     const view=options.activeView,uid=options.uid||(()=>Math.random().toString(36).slice(2));
-    clearScopedMappings(view,workspace);
+    clearScopedMappings(view,workspace,awareness);
     let linked=0;
     records().filter(record=>record.workspace===workspace&&record.awareness===awareness&&record.section===sectionFor(viewId,mode)).forEach(record=>{
       if(record.section==='Corporate & Non-SEO')return;

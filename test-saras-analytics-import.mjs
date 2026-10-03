@@ -33,6 +33,12 @@ const urls=cells.flatMap(cell=>repo.resolve(cell.repositoryQueries));
 assert.equal(urls.length,repo.query({workspace:'ai-data-platform',awareness:'problem-aware',section:'ICP SEO'}).length);
 assert(cells.every(cell=>repo.resolve(cell.repositoryQueries).length===1));
 
+assert.equal(repo.installMappings(root,types,{product:'AI Data Platform',uid:()=>`solution-${++n}`,awareness:'solution-aware',contentView:'icp',mode:'aeo',activeView:active}),true);
+const afterSolution=active.rows.flatMap(row=>Object.values(row.cells||{}));
+assert.equal(afterSolution.flatMap(cell=>repo.resolve(cell.repositoryQueries||[])).filter(row=>row.awareness==='problem-aware').length,356);
+assert.equal(afterSolution.flatMap(cell=>repo.resolve(cell.repositoryQueries||[])).filter(row=>row.awareness==='solution-aware').length,18);
+assert.equal(repo.installMappings(root,types,{product:'AI Data Platform',uid:()=>`return-${++n}`,awareness:'problem-aware',contentView:'icp',mode:'seo',activeView:active}),false);
+
 const seedSource=fs.readFileSync(new URL('./saras-analytics-competitive-intelligence.js',import.meta.url),'utf8');
 assert(seedSource.includes("REVISION='saras-analytics-sitemap-2026-10-03-v1'"));
 const html=fs.readFileSync(new URL('./index.html',import.meta.url),'utf8');

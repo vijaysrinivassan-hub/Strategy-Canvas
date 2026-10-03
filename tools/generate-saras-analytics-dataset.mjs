@@ -72,7 +72,7 @@ for (const url of urls) {
   const mode = awareness === 'solution-aware' ? 'AEO' : 'SEO';
   const section = `${icp ? 'ICP' : 'Value'} ${mode}`;
   const format = pageType(pathname, text, awareness);
-  const key = [awareness, section, awareness === 'solution-aware' ? format : 'informational', hierarchy, axis].join('|');
+  const key = [awareness, section, hierarchy, axis].join('|');
   const groupOrder = counters.get(key) || 0;
   counters.set(key, groupOrder + 1);
   source.classifications[url] = {workspace, awareness, section, pageType:format, hierarchy, axis, topicGroup:url, topic:title(url), groupOrder, groupSize:1, covered:false, traffic:''};
