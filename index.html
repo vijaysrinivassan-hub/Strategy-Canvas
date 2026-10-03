@@ -2005,6 +2005,10 @@
   .positioning-document-field-head{display:flex;align-items:center;gap:9px;margin-bottom:9px}
   .positioning-document-field-head span{margin:0;flex:1}.positioning-document-field-head small{color:#848984;font-size:10px}
   .positioning-document-field-head button{padding:6px 10px;background:#fff;font-size:10px}
+  .messaging-framework-fields{display:flex;flex-direction:column;gap:10px}
+  .messaging-framework-subfield{display:block;padding:11px;border:1px solid #e1e3de;background:#fafbf9}
+  .messaging-framework-subfield span{margin-bottom:7px;color:#353a35;font-size:9px}
+  .messaging-framework-subfield textarea{min-height:84px;background:#fff}
   .high-priority-links-field textarea{min-height:150px;font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:11px;line-height:1.55}
   @media(max-width:780px){
     .positioning-document{padding:14px}.positioning-document-sheet{padding:14px}
@@ -10998,14 +11002,22 @@ $('btnAddValuePositioningRow').onclick = () => {
 };
 
 /* ===================================================================
-   POSITIONING DOCUMENT — five editable narrative outputs
+   POSITIONING DOCUMENT — editable narrative outputs
    =================================================================== */
+const MESSAGING_FRAMEWORK_FIELDS = [
+  ['problem_unaware', 'Problem unaware'],
+  ['problem_aware', 'Problem-aware'],
+  ['solution_aware', 'Solution-aware'],
+  ['category_aware', 'Category-aware'],
+  ['competitor_aware', 'Competitor-aware']
+];
 const POSITIONING_DOCUMENT_FIELDS = [
   ['positioning_statement', 'Positioning Statement'],
   ['icp_positioning', 'ICP Positioning'],
   ['category_positioning', 'Category Positioning'],
   ['competitive_positioning', 'Competitive Positioning'],
   ['value_positioning', 'Value Positioning'],
+  ['messaging_framework', 'Messaging Framework', 'messaging'],
   ['high_priority_links', 'High Priority Links', 'links']
 ];
 
@@ -11014,7 +11026,12 @@ function positioningDocumentState(){
     (state.tabs[POSITIONING_DOCUMENT_TAB] = { nodes: [], edges: [] });
   if (!tab.fields || typeof tab.fields !== 'object') tab.fields = {};
   POSITIONING_DOCUMENT_FIELDS.forEach(field => {
-    if (field[2] !== 'links' && typeof tab.fields[field[0]] !== 'string') tab.fields[field[0]] = '';
+    if (field[2] === 'messaging'){
+      if (!tab.fields[field[0]] || typeof tab.fields[field[0]] !== 'object') tab.fields[field[0]] = {};
+      MESSAGING_FRAMEWORK_FIELDS.forEach(subfield => {
+        if (typeof tab.fields[field[0]][subfield[0]] !== 'string') tab.fields[field[0]][subfield[0]] = '';
+      });
+    } else if (field[2] !== 'links' && typeof tab.fields[field[0]] !== 'string') tab.fields[field[0]] = '';
   });
   return tab.fields;
 }
@@ -11025,12 +11042,14 @@ function renderPositioningDocument(){
   host.innerHTML = '';
   POSITIONING_DOCUMENT_FIELDS.forEach(field => {
     const isLinks = field[2] === 'links';
-    const wrapper = document.createElement(isLinks ? 'section' : 'label');
-    wrapper.className = 'positioning-document-field' + (isLinks ? ' high-priority-links-field' : '');
+    const isMessaging = field[2] === 'messaging';
+    const wrapper = document.createElement(isLinks || isMessaging ? 'section' : 'label');
+    wrapper.className = 'positioning-document-field' + (isLinks ? ' high-priority-links-field' : '') +
+      (isMessaging ? ' messaging-framework-field' : '');
     const label = document.createElement('span');
     label.textContent = field[1];
-    const textarea = document.createElement('textarea');
     if (isLinks){
+      const textarea = document.createElement('textarea');
       const links = highPriorityLinkList();
       const head = document.createElement('div'); head.className = 'positioning-document-field-head';
       const count = document.createElement('small'); count.textContent = links.length + ' link' + (links.length === 1 ? '' : 's');
@@ -11042,7 +11061,24 @@ function renderPositioningDocument(){
       head.append(label,count,copy);
       textarea.value = links.join('\n'); textarea.placeholder = 'Star a slug or Competitive Intelligence URL'; textarea.readOnly = true;
       wrapper.append(head,textarea);
+    }else if(isMessaging){
+      const stack = document.createElement('div'); stack.className = 'messaging-framework-fields';
+      MESSAGING_FRAMEWORK_FIELDS.forEach(subfield => {
+        const subwrapper = document.createElement('label'); subwrapper.className = 'messaging-framework-subfield';
+        const sublabel = document.createElement('span'); sublabel.textContent = subfield[1];
+        const textarea = document.createElement('textarea');
+        textarea.value = fields[field[0]][subfield[0]];
+        textarea.placeholder = 'Add message';
+        textarea.readOnly = readOnly();
+        textarea.oninput = event => {
+          fields[field[0]][subfield[0]] = event.target.value;
+          markDirty();
+        };
+        subwrapper.append(sublabel,textarea); stack.append(subwrapper);
+      });
+      wrapper.append(label,stack);
     }else{
+      const textarea = document.createElement('textarea');
       textarea.value = fields[field[0]];
       textarea.placeholder = 'Add text';
       textarea.readOnly = readOnly();
