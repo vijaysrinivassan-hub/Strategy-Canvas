@@ -1380,6 +1380,8 @@
   .arch-flow-system-head .system-index{color:#7d817a; font-size:8px; font-weight:850;
                                        letter-spacing:.09em; text-transform:uppercase}
   .arch-flow-system-head button{padding:4px 7px; background:#fff; color:#686b65; font-size:9px}
+  .arch-flow-system-head .maturity-process-head-toggle{border-color:#78b98b; background:#edf8f0;
+    color:#28613c; font-weight:800}
   .arch-flow-system-head .system-remove{border-color:transparent; background:transparent; color:#9a6c68}
   .arch-node-group{position:absolute; z-index:3; border:1px dashed #91b49a; background:rgba(222,242,228,.22);
                    cursor:move; pointer-events:auto}
@@ -9526,10 +9528,13 @@ function renderArchitectureSelectionTools(architecture){
   const selectedEdge = architecture.edges.find(edge => edge.id === architectureSelectedEdge);
   const maturity = state.tab === MATURITY_ACCESS_TAB;
   const activeViewNode = maturity && architecture.nodes.find(node => node.id === maturityProcessViewNodeId);
-  const selectedViewNode = maturity && ids.length === 1 && architecture.nodes.find(node =>
-    node.id === ids[0] && architecture.systems.some(system => system.id === node.systemId && system.selected));
+  const checkedViewNodes = maturity ? architecture.nodes.filter(node => node.replacementSelected &&
+    architecture.systems.some(system => system.id === node.systemId && system.selected)) : [];
+  const selectedViewNode = maturity && ((ids.length === 1 && architecture.nodes.find(node =>
+    node.id === ids[0] && architecture.systems.some(system => system.id === node.systemId && system.selected))) ||
+    (ids.length === 0 && checkedViewNodes.length === 1 && checkedViewNodes[0]));
   const processNode = activeViewNode || selectedViewNode;
-  tools.hidden = readOnly() || (ids.length === 0 && !selectedEdge && !activeViewNode);
+  tools.hidden = readOnly() || (ids.length === 0 && !selectedEdge && !processNode);
   if (tools.hidden) return;
   $('archSelectionCount').textContent = processNode ? processNode.label :
     selectedEdge ? 'Connector selected' : ids.length + ' selected';
@@ -9732,6 +9737,23 @@ function renderArchitectureSystem(system, index, architecture, siblings){
     choice.append(checkbox); head.append(choice);
   }
   head.append(number, name);
+  if (state.tab === MATURITY_ACCESS_TAB && system.selected){
+    const selectedProcess = architecture.nodes.find(node => node.systemId === system.id && architectureSelection.has(node.id));
+    const checkedProcesses = architecture.nodes.filter(node => node.systemId === system.id && node.replacementSelected);
+    const processNode = selectedProcess || (checkedProcesses.length === 1 ? checkedProcesses[0] : null);
+    if (processNode){
+      const processView = document.createElement('button'); processView.type = 'button';
+      processView.className = 'maturity-process-head-toggle';
+      processView.textContent = processNode.label + ' · Process view';
+      processView.title = 'Open ' + processNode.label + ' and its sub-processes';
+      processView.onclick = () => {
+        maturityProcessViewNodeId = processNode.id;
+        architectureSelection.clear(); architectureSelectedEdge = '';
+        renderProductArchitecture();
+      };
+      head.append(processView);
+    }
+  }
   if (!readOnly()){
     const add = document.createElement('button'); add.type = 'button'; add.textContent = '+ Node';
     add.onclick = () => addArchitectureNode(architecture, system); head.append(add);

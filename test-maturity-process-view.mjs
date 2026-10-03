@@ -6,6 +6,8 @@ const tool = fs.readFileSync(new URL('./mcp-server/src/tools/architecture.ts', i
 const prompts = JSON.parse(fs.readFileSync(new URL('./ai-prompts.json', import.meta.url), 'utf8'));
 
 assert(html.includes('id="btnMaturityProcessView"'));
+assert(html.includes("processView.textContent = processNode.label + ' · Process view'"));
+assert(html.includes('checkedViewNodes.length === 1'));
 assert(html.includes('function renderMaturityProcessDetail(system, node, architecture)'));
 assert(html.includes("processButton.textContent = processNode.label + (activeViewNode ? ' · Canvas view' : ' · Process view')"));
 assert(html.includes("['Descriptive analysis','What happened?']"));
