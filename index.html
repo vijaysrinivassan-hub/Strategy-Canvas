@@ -128,10 +128,6 @@
                         text-overflow:ellipsis; white-space:nowrap}
   .tab-sub.content-sub.active{background:#effbf3; color:#287343}
   .tab-sub.content-sub:hover{background:#f2f9f4}
-  .tab-sub.awareness-card{margin:3px 12px 3px 36px; width:calc(100% - 48px);
-    padding:8px 10px; border:1px solid var(--line); border-radius:6px; background:#fff}
-  .tab-sub.awareness-card:hover{background:#f5faf6; border-color:#b9d8c2}
-  .tab-sub.awareness-card.active{background:#effbf3; color:#287343; border-color:#8bc79c}
   /* canvases can be dragged directly into a new order */
   .tab-sub .sub-grip,.canvas-tab .sub-grip{color:var(--faint); font-size:10px; letter-spacing:-1px;
                      margin:0 4px 0 -6px; flex:none; visibility:hidden; cursor:grab}
@@ -2363,10 +2359,6 @@
   .gr-url input[type=text]{min-width:0;flex:1;font-weight:400;padding:4px 2px}
   .gr-priority-star{flex:0 0 24px;width:24px;height:24px;padding:0;border:0;background:transparent;color:#9ba29c;font-size:18px;line-height:1}
   .gr-priority-star:hover:not(:disabled),.gr-priority-star.on{border:0;background:transparent;color:#d49a00;box-shadow:none}
-  .gr-actor{display:flex;gap:4px;padding:0 6px 7px}
-  .gr-actor .gr-entity-type{flex:.85 1 0;min-width:0;height:22px;padding:0 4px;border-radius:2px}
-  .gr-actor .gr-entity-detail{flex:1.35 1 0;min-width:0;height:22px;border:1px solid #cfd9d1;border-radius:2px;background:#fff;color:#344339;font-size:10px;font-weight:400 !important;padding:0 5px}
-  .gr-actor .gr-entity-detail:focus{border-color:#57c982;outline:0;box-shadow:inset 0 -1px 0 #57c982}
   .icp-matrix-topic-cell{position:relative;background:#fff !important;color:#24352b !important;padding:12px !important;vertical-align:top;text-align:left}
   .mx-table thead th.icp-matrix-topic-cell,.mx-table tbody th.icp-matrix-topic-cell{background:#fff !important;color:#24352b !important}
   .icp-matrix-topic-cell>input[type=text]{width:100%;min-width:0;border:0;border-bottom:1px solid #dce4df;background:transparent;color:#1f2b22 !important;-webkit-text-fill-color:#1f2b22;font-size:12px;font-weight:750;padding:4px 2px}
@@ -2467,6 +2459,17 @@
   .mx-table td.gr-cell[data-status="plus_2"],.comparison-table td.gr-cell[data-status="plus_2"]{background:#dfeeff !important;box-shadow:inset 3px 0 #397dcc}
 .keyword-page-section { margin: 0 0 32px; }
 .keyword-page-section > h3 { margin: 0; padding: 20px 16px 12px; font-size: 15px; color: #17221c; }
+.awareness-picker{min-height:calc(100vh - 92px);padding:56px 48px;background:#f7faf8}
+.awareness-picker-inner{max-width:920px;margin:0 auto}
+.awareness-picker-kicker{display:block;margin-bottom:8px;color:#4f8e63;font-size:10px;font-weight:800;letter-spacing:.12em;text-transform:uppercase}
+.awareness-picker h2{margin:0;color:#17221c;font-size:28px;font-weight:700}
+.awareness-picker p{margin:10px 0 32px;color:#6f7d73;font-size:14px}
+.awareness-picker-cards{display:grid;grid-template-columns:repeat(2,minmax(240px,1fr));gap:18px}
+.awareness-picker-card{min-height:180px;padding:24px;border:1px solid #cfd9d1;background:#fff;color:#17221c;text-align:left;cursor:pointer}
+.awareness-picker-card:hover{border-color:#56b875;box-shadow:0 8px 24px rgba(27,69,40,.08);transform:translateY(-1px)}
+.awareness-picker-card strong{display:block;margin-bottom:10px;font-size:21px}
+.awareness-picker-card span{display:block;color:#718077;font-size:12px;line-height:1.55}
+@media(max-width:760px){.awareness-picker{padding:32px 20px}.awareness-picker-cards{grid-template-columns:1fr}}
 .keyword-grid-pager{display:flex;align-items:center;justify-content:flex-end;gap:8px;padding:8px 16px;border-top:1px solid #dce4df;border-bottom:1px solid #dce4df;background:#f7faf8;color:#5f6e64;font-size:11px}
 .keyword-grid-pager strong{margin-right:auto;color:#26342b;font-size:11px;font-weight:700}
 .keyword-grid-pager button{min-width:68px;padding:5px 9px;background:#fff;border:1px solid #cfd9d1;color:#26342b;font-size:10px}
@@ -3160,7 +3163,7 @@ const state = {
   screen: 'board',                /* 'board' | 'clients' */
   contentView: 'competitor',      /* which axis the content matrix is showing */
   keywordAwareness: '',          /* problem-unaware | problem-aware | solution-aware */
-  keywordAwarenessOpen: '',      /* expanded awareness layer in the Keywords sidebar */
+  keywordAwarenessPicker: false, /* the full-page ICP / Value choice is open */
   navOpen: { strategy1: false, brand: false, content: false, settings: false, frames: false },
   frames: [],                     /* the Obsidian Frames folder, loaded once */
   frameEdits: {},                 /* frame name -> your edited copy, saved with the board */
@@ -3188,7 +3191,7 @@ function rememberLocation(){
       tab: state.tab,
       contentView: state.contentView,
       keywordAwareness: state.keywordAwareness,
-      keywordAwarenessOpen: state.keywordAwarenessOpen,
+      keywordAwarenessPicker: !!state.keywordAwarenessPicker,
       keywordMode: typeof keywordMode === 'string' ? keywordMode : 'aeo',
       frameIndex: state.frameIndex,
       settingsPart: state.settingsPart || ''
@@ -3207,8 +3210,7 @@ function restoreLocation(location){
     ? location.keywordAwareness : '';
   state.keywordAwareness = ['icp','value'].includes(state.contentView)
     ? (awareness || (keywordMode === 'seo' ? 'problem-aware' : 'solution-aware')) : '';
-  state.keywordAwarenessOpen = ['problem-unaware','problem-aware','solution-aware'].includes(location.keywordAwarenessOpen)
-    ? location.keywordAwarenessOpen : state.keywordAwareness;
+  state.keywordAwarenessPicker = !!location.keywordAwarenessPicker && !!state.keywordAwareness;
   const frameIndex = Number(location.frameIndex);
   if (state.tab === FRAME_TAB && Number.isInteger(frameIndex) && state.frames[frameIndex]){
     state.frameIndex = frameIndex;
@@ -3608,8 +3610,8 @@ function renderTabs(){
       return;
     }
 
-    /* Awareness is the first navigation layer. Problem Unaware and Problem
-       Aware use independent SEO matrices; Solution Aware opens AEO. */
+    /* Awareness is the first navigation layer. Each awareness destination
+       opens a full-page ICP / Value choice rather than nesting sidebar rows. */
     if (item.kind === 'keywords-tabs'){
       const awarenessLayers = [
         { id:'problem-unaware', label:'Problem Unaware' },
@@ -3617,22 +3619,11 @@ function renderTabs(){
         { id:'solution-aware', label:'Solution Aware' }
       ];
       awarenessLayers.forEach(layer => {
-        const open = state.keywordAwarenessOpen === layer.id;
-        const parent = groupButton(layer.label, layer.label, open, () => {
-          state.keywordAwarenessOpen = open ? '' : layer.id;
-          renderTabs();
-          rememberLocation();
-        });
-        if (onBoard && state.tab === CONTENT_TAB && state.keywordAwareness === layer.id) parent.classList.add('active');
-        box.append(parent);
-        if (!open) return;
-        ['icp','value'].forEach(viewId => {
-          const active = onBoard && state.tab === CONTENT_TAB && state.contentView === viewId && state.keywordAwareness === layer.id;
-          const card = subButton(viewId === 'icp' ? 'ICP' : 'Value', active,
-            () => switchAwarenessContent(layer.id, viewId), 0);
-          card.classList.add('awareness-card');
-          box.append(card);
-        });
+        const button = tabButton(CONTENT_TAB, layer.label);
+        button.replaceChild(tabIcon(layer.label), button.firstChild);
+        button.classList.toggle('active', onBoard && state.tab === CONTENT_TAB && state.keywordAwareness === layer.id);
+        button.onclick = () => openAwarenessLayer(layer.id);
+        box.append(button);
       });
       ['category','competitor'].forEach(viewId => {
         const v = viewDef(viewId);
@@ -5028,7 +5019,7 @@ function hydrate(text){
   state.tabs = blankTabs();
   state.contentView = 'competitor';
   state.keywordAwareness = '';
-  state.keywordAwarenessOpen = '';
+  state.keywordAwarenessPicker = false;
   keywordMode = 'aeo';
   state.productWorkspaces = d && d.productWorkspaces && typeof d.productWorkspaces === 'object' ? d.productWorkspaces : {};
   state.companyUrlWorkspaceMigrated = !!(d && d.companyUrlWorkspaceMigrated);
@@ -6427,7 +6418,7 @@ const GRID_ROWS = 20;
 const GRID_MAX_COLS = 10;
 
 const CONTENT_VIEWS = [
-  { id: 'category', label: 'Category-aware', noun: 'category', kind: 'grid',
+  { id: 'category', label: 'Category Aware', noun: 'category', kind: 'grid',
     columns: ['Category name', 'Category synonyms', 'Features', 'Reviews', 'Pricing'] },
   { id: 'competitor', label: 'Competitor Aware', noun: 'competitor', kind: 'matrix',
     types: COMPETITOR_TYPES },
@@ -6446,7 +6437,7 @@ function normalizeColumnMeta(col){
   if (!col.defaults || typeof col.defaults !== 'object') col.defaults = {};
   col.defaults.mode = ['aeo', 'seo'].indexOf(col.defaults.mode) !== -1 ? col.defaults.mode : '';
   if (typeof col.defaults.type !== 'string') col.defaults.type = '';
-  if (['Problem aware', 'Solution aware', 'Product aware', 'Feature aware', 'Competitor aware'].indexOf(col.defaults.aw) === -1){
+  if (['Bofu Traffic', 'Tofu Traffic', 'Backlinks'].indexOf(col.defaults.aw) === -1){
     col.defaults.aw = '';
   }
   return col;
@@ -6668,18 +6659,18 @@ function kindSelect(current, disabled, onPick){
   return sel;
 }
 
-/* How aware the reader is when they search: the four levels the strategy
-   works with, fixed, so the dropdown reads the same on every board. */
-const AWARENESS = ['Problem aware', 'Solution aware', 'Product aware', 'Feature aware', 'Competitor aware'];
+/* The outcome expected from each keyword cell. Kept fixed so every matrix
+   uses the same three choices. */
+const AWARENESS = ['Bofu Traffic', 'Tofu Traffic', 'Backlinks'];
 
 function awarenessSelect(current, disabled, onPick){
   const sel = document.createElement('select');
   sel.className = 'gr-kind gr-aw' + (current ? ' set' : '');
   sel.disabled = disabled;
-  sel.title = 'Awareness level: how far along the reader is when they search this';
+  sel.title = 'Keyword objective';
   const none = document.createElement('option');
   none.value = '';
-  none.textContent = 'Awareness\u2026';
+  none.textContent = 'Traffic goal\u2026';
   sel.append(none);
   AWARENESS.forEach(function(a){
     const o = document.createElement('option');
@@ -6687,13 +6678,7 @@ function awarenessSelect(current, disabled, onPick){
     o.textContent = a;
     sel.append(o);
   });
-  if (current && AWARENESS.indexOf(current) === -1){
-    const o = document.createElement('option');
-    o.value = current;
-    o.textContent = current;
-    sel.append(o);
-  }
-  sel.value = current || '';
+  sel.value = AWARENESS.indexOf(current) === -1 ? '' : current;
   sel.onchange = function(){
     sel.classList.toggle('set', !!sel.value);
     onPick(sel.value);
@@ -6902,17 +6887,6 @@ function cellControls(td, o){
     td.insertBefore(urlRow, td.querySelector(':scope > .gr-kws'));
   }
   renderPageUrlEvidence(td, o);
-  if (['icp','value'].includes(state.contentView) && keywordMode === 'aeo' && !td.querySelector(':scope > .gr-actor')){
-    const actorRow=document.createElement('div');actorRow.className='gr-actor';
-    const actorType=document.createElement('select');actorType.className='gr-kind gr-entity-type';actorType.disabled=o.ro;actorType.setAttribute('aria-label','Technology, product, or analyst');
-    [['','Entity type…'],['technology','Technology'],['product','Product'],['person','Person / analyst'],['technology_or_person','Technology or person']].forEach(pair=>{const option=document.createElement('option');option.value=pair[0];option.textContent=pair[1];actorType.append(option);});
-    actorType.value=cell.actorType||'';actorType.classList.toggle('set',!!actorType.value);
-    actorType.onchange=function(){o.set({actorType:actorType.value});actorType.classList.toggle('set',!!actorType.value);o.refreshEmpty();markDirty();};
-    const actor=document.createElement('input');actor.className='gr-entity-detail';actor.type='text';actor.placeholder='Product, tool, or analyst';actor.value=cell.actor||'';actor.disabled=o.ro;actor.setAttribute('aria-label','Product, tool, or analyst');
-    actor.oninput=function(){o.set({actor:actor.value});o.refreshEmpty();markDirty();};
-    actorRow.append(actorType,actor);td.append(actorRow);
-  }
-  if (['icp','value'].includes(state.contentView) && keywordMode === 'aeo'){const actorRow=td.querySelector(':scope > .gr-actor');if(actorRow)td.append(actorRow);}
   const ctl = document.createElement('div');
   ctl.className = 'gr-ctl';
 
@@ -8079,6 +8053,7 @@ function renderContent(){
    competitor and article type, the tables match on the cell's own words. */
 let matrixRefreshRequest = 0;
 async function refreshMatrix(){
+  if (state.keywordAwarenessPicker){ renderContentView(); return; }
   const request = ++matrixRefreshRequest, board = state.boardId, view = state.contentView;
   const table = $('mxTable'); table.setAttribute('aria-busy', 'true');
   try {
@@ -8096,7 +8071,46 @@ async function refreshMatrix(){
   }
 }
 function renderContentView(){
+  if (state.keywordAwarenessPicker){ renderAwarenessPicker(); return; }
+  const picker = $('awarenessPicker'); if (picker) picker.hidden = true;
+  const wrap = $('mxPane').querySelector('.mx-wrap'); if (wrap) wrap.hidden = false;
+  const setup = $('mxSetup'); if (setup) setup.hidden = true;
+  const toolbar = $('keywordStatusToolbar'); if (toolbar) toolbar.hidden = false;
   if (viewDef(state.contentView).kind === 'grid') renderGrid(); else renderMatrix();
+}
+
+function renderAwarenessPicker(){
+  renderKeywordModeFilter();
+  let picker = $('awarenessPicker');
+  if (!picker){
+    picker = document.createElement('section');
+    picker.id = 'awarenessPicker';
+    picker.className = 'awareness-picker';
+    $('mxPane').prepend(picker);
+  }
+  $('mxPane').querySelector('.mx-wrap').hidden = true;
+  $('mxPane').querySelector('.mx-head').hidden = true;
+  $('mxSetup').hidden = true;
+  const toolbar = $('keywordStatusToolbar'); if (toolbar) toolbar.hidden = true;
+  picker.hidden = false;
+  picker.replaceChildren();
+  const inner = document.createElement('div'); inner.className = 'awareness-picker-inner';
+  const kicker = document.createElement('span'); kicker.className = 'awareness-picker-kicker'; kicker.textContent = 'Keywords';
+  const title = document.createElement('h2'); title.textContent = awarenessLabel(state.keywordAwareness);
+  const intro = document.createElement('p'); intro.textContent = 'Choose the matrix you want to open.';
+  const cards = document.createElement('div'); cards.className = 'awareness-picker-cards';
+  [
+    {id:'icp', title:'ICP', text:keywordMode === 'seo' ? 'Open the ICP SEO matrix.' : 'Open the ICP AEO matrix.'},
+    {id:'value', title:'Value', text:keywordMode === 'seo' ? 'Open the Value SEO matrix.' : 'Open the Value AEO matrix.'}
+  ].forEach(function(option){
+    const button = document.createElement('button'); button.type = 'button'; button.className = 'awareness-picker-card';
+    const strong = document.createElement('strong'); strong.textContent = option.title;
+    const detail = document.createElement('span'); detail.textContent = option.text;
+    button.append(strong, detail);
+    button.onclick = function(){ switchAwarenessContent(state.keywordAwareness, option.id); };
+    cards.append(button);
+  });
+  inner.append(kicker, title, intro, cards); picker.append(inner);
 }
 
 function awarenessLabel(id){
@@ -8109,6 +8123,7 @@ function awarenessLabel(id){
 function activeContentLabel(){
   const view = viewDef(state.contentView).label;
   const layer = awarenessLabel(state.keywordAwareness);
+  if (layer && state.keywordAwarenessPicker) return layer;
   return layer && ['icp','value'].includes(state.contentView) ? layer + ' · ' + view : view;
 }
 
@@ -8121,10 +8136,26 @@ function repaintKeywordViews(){
 function switchContentView(id){
   captureFrame();
   state.contentView = id;
+  state.keywordAwarenessPicker = false;
   if (!['icp','value'].includes(id)){
     state.keywordAwareness = '';
-    state.keywordAwarenessOpen = '';
   }
+  state.frameIndex = -1;
+  closeNav();
+  state.tab = CONTENT_TAB;
+  state.screen = 'board';
+  renderTabs();
+  applyTabMode();
+  rememberLocation();
+}
+
+function openAwarenessLayer(layer){
+  if (!['problem-unaware','problem-aware','solution-aware'].includes(layer)) return;
+  captureFrame();
+  state.keywordAwareness = layer;
+  state.keywordAwarenessPicker = true;
+  state.contentView = 'icp';
+  keywordMode = layer === 'solution-aware' ? 'aeo' : 'seo';
   state.frameIndex = -1;
   closeNav();
   state.tab = CONTENT_TAB;
@@ -8138,7 +8169,7 @@ function switchAwarenessContent(layer, id){
   if (!['problem-unaware','problem-aware','solution-aware'].includes(layer)) return;
   if (!['icp','value'].includes(id)) return;
   state.keywordAwareness = layer;
-  state.keywordAwarenessOpen = layer;
+  state.keywordAwarenessPicker = false;
   keywordMode = layer === 'solution-aware' ? 'aeo' : 'seo';
   switchContentView(id);
 }
