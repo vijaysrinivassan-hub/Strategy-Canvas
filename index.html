@@ -1335,6 +1335,8 @@
                         border-left:1px solid #d9dfd9}
   .arch-selection-tools span{color:#39744d; font-weight:750}
   .arch-selection-tools button{padding:4px 7px; background:#fff; font-size:8.5px}
+  .arch-selection-tools .maturity-process-toggle{border-color:#8fbca0; background:#eff8f1;
+    color:#285f3b; font-weight:800}
   .arch-flow-board{position:relative; width:max-content; min-width:1060px; padding:0 0 36px}
   .arch-flow-wires{position:absolute; z-index:2; inset:0; width:100%; height:100%; overflow:visible;
                    pointer-events:auto}
@@ -1430,6 +1432,38 @@
   .detail-node .maturity-field input:focus,.detail-node .maturity-field textarea:focus{border-bottom-color:#5791d0}
   .detail-node .arch-flow-node-foot{margin-top:5px; padding-top:5px; border-top:1px solid rgba(92,102,93,.14)}
   .detail-node .arch-flow-node-foot select{max-width:82px}
+  .maturity-process-detail{height:auto!important; min-height:520px; overflow:visible}
+  .maturity-process-detail-body{display:grid; grid-template-columns:230px minmax(650px,1fr); gap:18px;
+    padding:62px 18px 22px}
+  .maturity-process-focus{position:relative; align-self:start; padding:16px; border:1px solid #5791d0;
+    background:#eaf4ff}
+  .maturity-process-focus .process-kicker,.maturity-subprocesses-head span{display:block; margin-bottom:6px;
+    color:#63766a; font-size:7px; font-weight:850; letter-spacing:.1em; text-transform:uppercase}
+  .maturity-process-focus input,.maturity-process-focus textarea{display:block; width:100%; margin:0 0 12px;
+    padding:5px 2px; border:0; border-bottom:1px solid rgba(69,99,79,.2); border-radius:0;
+    outline:none; background:transparent; color:#2e3932; font:inherit}
+  .maturity-process-focus .process-name{font-size:15px; font-weight:800}
+  .maturity-process-focus textarea{height:54px; resize:vertical; font-size:9px; line-height:1.45}
+  .maturity-process-focus .process-meta{margin:0 0 12px; color:#526158; font-size:9px; line-height:1.45}
+  .maturity-subprocesses{min-width:0}
+  .maturity-subprocesses-head{display:flex; align-items:flex-end; gap:12px; margin-bottom:10px;
+    padding-bottom:9px; border-bottom:1px solid #d7ddd8}
+  .maturity-subprocesses-head h4{margin:0; color:#272d29; font-size:14px}
+  .maturity-subprocesses-head p{margin:0; color:#777e78; font-size:9px}
+  .maturity-subprocesses-head button{margin-left:auto; padding:6px 9px; background:#fff; font-size:9px}
+  .maturity-subprocess-grid{display:grid; grid-template-columns:repeat(2,minmax(280px,1fr)); gap:8px}
+  .maturity-subprocess-card{position:relative; min-height:86px; padding:11px 30px 10px 12px;
+    border:1px solid #d1d8d2; background:rgba(255,255,255,.94)}
+  .maturity-subprocess-card .subprocess-number{position:absolute; top:11px; right:10px; color:#7d887f;
+    font-size:8px; font-weight:850}
+  .maturity-subprocess-card input,.maturity-subprocess-card textarea{display:block; width:100%; padding:3px 1px;
+    border:0; border-bottom:1px solid transparent; border-radius:0; outline:none; background:transparent;
+    color:#333b35; font:inherit}
+  .maturity-subprocess-card input{font-size:10px; font-weight:750}
+  .maturity-subprocess-card textarea{height:38px; color:#687169; font-size:8.5px; line-height:1.4; resize:none}
+  .maturity-subprocess-card input:focus,.maturity-subprocess-card textarea:focus{border-bottom-color:#73c68c}
+  .maturity-subprocess-card .subprocess-remove{position:absolute; right:7px; bottom:6px; padding:0 3px;
+    border:0; background:transparent; color:#a07874; box-shadow:none; font-size:12px}
   .arch-flow-port{position:absolute; z-index:6; top:50%; width:10px; height:10px; margin-top:-5px;
                   border:1.5px solid #65b97e; border-radius:50%; background:#fff; cursor:crosshair}
   .arch-flow-port.in{left:-6px}.arch-flow-port.out{right:-6px; background:#65b97e}
@@ -2709,6 +2743,7 @@
           <span class="arch-guide-tail">Shift-click notes to group them</span>
           <div class="arch-selection-tools" id="archSelectionTools" hidden>
             <span id="archSelectionCount"></span>
+            <button class="maturity-process-toggle" id="btnMaturityProcessView" type="button" hidden></button>
             <button id="btnArchGroup" type="button">Group selected</button>
             <button id="btnArchClearSelection" type="button">Clear</button>
           </div>
@@ -8827,6 +8862,28 @@ $('btnArchPromptCopy').onclick = async () => {
 let architectureConnection = null;
 let architectureSelection = new Set();
 let architectureSelectedEdge = '';
+let maturityProcessViewNodeId = '';
+
+const ANALYSIS_SUBPROCESSES = [
+  ['Descriptive analysis','What happened?'],
+  ['Diagnostic analysis','Why did it happen?'],
+  ['Cohort analysis','How do different customer groups behave over time?'],
+  ['Funnel analysis','Where do users convert or drop off?'],
+  ['Attribution analysis','Which channels or activities produced the result?'],
+  ['Segmentation analysis','How do customer or product groups differ?'],
+  ['Retention and churn analysis','Who stays, who leaves, and why?'],
+  ['Customer lifetime-value analysis','What is each customer or segment worth over time?'],
+  ['Product and SKU performance analysis','Which products or SKUs create or lose performance?'],
+  ['Marketing-performance analysis','How effectively do campaigns and channels perform?'],
+  ['Revenue and profitability analysis','Where are revenue and profit created or lost?'],
+  ['Anomaly and trend analysis','What changed unexpectedly or over time?'],
+  ['Root-cause analysis','What underlying factors produced the outcome?'],
+  ['Comparative analysis','Period versus period, segment versus segment, or product versus product.']
+];
+
+function seededAnalysisSubProcesses(){
+  return ANALYSIS_SUBPROCESSES.map(item => ({id:uid(),name:item[0],description:item[1]}));
+}
 
 function archFlowSystem(name, height, row, width){
   return { id: uid(), name: name || 'New system', height: Math.max(230, Number(height) || 300),
@@ -9105,6 +9162,18 @@ if (tab.architectureFeaturePromptRevision !== 1){
     if (typeof node.actor !== 'string') node.actor = '';
     if (!Array.isArray(node.capabilities)) node.capabilities = [];
     node.capabilities = node.capabilities.map(value => String(value).trim()).filter(Boolean).slice(0,2);
+    if (!Array.isArray(node.subProcesses)) node.subProcesses = [];
+    node.subProcesses = node.subProcesses.map(item => typeof item === 'string' ?
+      {id:uid(),name:item,description:''} : {
+        id:item.id || uid(), name:String(item.name || '').trim(), description:String(item.description || '').trim()
+      }).filter(item => item.name);
+    const analysisContext = /ai data platform|data analytics/.test(
+      (String(state.client || '') + ' ' + String(architecture.name || '')).toLowerCase());
+    if (tabKey === MATURITY_ACCESS_TAB && analysisContext && /^analysis$/i.test(node.label.trim()) &&
+        !node.subProcesses.length){
+      node.subProcesses = seededAnalysisSubProcesses();
+      if (!readOnly()) setTimeout(markDirty,0);
+    }
     delete node.nodalBenefit;
     if (tabKey === MATURITY_ACCESS_TAB){
       if (!['supporting','pillar'].includes(node.processRole)) node.processRole = 'supporting';
@@ -9135,6 +9204,8 @@ if (tab.architectureFeaturePromptRevision !== 1){
   });
   architectureSelection = new Set([...architectureSelection].filter(id =>
     architecture.nodes.some(node => node.id === id)));
+  if (maturityProcessViewNodeId && !architecture.nodes.some(node => node.id === maturityProcessViewNodeId))
+    maturityProcessViewNodeId = '';
   return architecture;
 };
 
@@ -9453,19 +9524,112 @@ function renderArchitectureSelectionTools(architecture){
   const tools = $('archSelectionTools');
   const ids = [...architectureSelection];
   const selectedEdge = architecture.edges.find(edge => edge.id === architectureSelectedEdge);
-  tools.hidden = readOnly() || (ids.length === 0 && !selectedEdge);
+  const maturity = state.tab === MATURITY_ACCESS_TAB;
+  const activeViewNode = maturity && architecture.nodes.find(node => node.id === maturityProcessViewNodeId);
+  const selectedViewNode = maturity && ids.length === 1 && architecture.nodes.find(node =>
+    node.id === ids[0] && architecture.systems.some(system => system.id === node.systemId && system.selected));
+  const processNode = activeViewNode || selectedViewNode;
+  tools.hidden = readOnly() || (ids.length === 0 && !selectedEdge && !activeViewNode);
   if (tools.hidden) return;
-  $('archSelectionCount').textContent = selectedEdge ? 'Connector selected' : ids.length + ' selected';
+  $('archSelectionCount').textContent = processNode ? processNode.label :
+    selectedEdge ? 'Connector selected' : ids.length + ' selected';
+  const processButton = $('btnMaturityProcessView');
+  processButton.hidden = !processNode;
+  if (processNode){
+    processButton.textContent = processNode.label + (activeViewNode ? ' · Canvas view' : ' · Process view');
+    processButton.title = activeViewNode ? 'Return to the complete maturity row' :
+      'Open this process and its sub-processes across the selected maturity row';
+    processButton.onclick = () => {
+      maturityProcessViewNodeId = activeViewNode ? '' : processNode.id;
+      architectureSelection.clear(); architectureSelectedEdge = '';
+      renderProductArchitecture();
+    };
+  }
   const selected = architecture.nodes.filter(node => architectureSelection.has(node.id));
   const sameSystem = selected.length > 1 && selected.every(node => node.systemId === selected[0].systemId);
-  const groupButton = $('btnArchGroup'); groupButton.disabled = !sameSystem;
+  const groupButton = $('btnArchGroup'); groupButton.hidden = !!processNode; groupButton.disabled = !sameSystem;
   groupButton.title = sameSystem ? 'Give these notes one shared group name' : 'Select at least two notes in the same workflow';
   groupButton.onclick = () => groupArchitectureSelection(architecture);
-  $('btnArchClearSelection').onclick = () => {
+  const clearButton = $('btnArchClearSelection'); clearButton.hidden = !!processNode;
+  clearButton.onclick = () => {
     architectureSelection.clear();
     architectureSelectedEdge = '';
     renderProductArchitecture();
   };
+}
+
+function renderMaturityProcessDetail(system, node, architecture){
+  const row = document.createElement('section');
+  row.className = 'arch-flow-system maturity-process-detail'; row.dataset.systemId = system.id;
+  row.style.width = system.width + 'px'; row.style.flexBasis = system.width + 'px';
+  row.dataset.maturitySelected = system.selected ? 'true' : 'false';
+  const head = document.createElement('div'); head.className = 'arch-flow-system-head';
+  const number = document.createElement('span'); number.className = 'system-index';
+  number.textContent = 'Maturity ' + (system.row + 1) + ' · Process detail';
+  const name = document.createElement('input'); name.value = system.name; name.readOnly = true;
+  const back = document.createElement('button'); back.type = 'button'; back.textContent = '← Full process row';
+  back.onclick = () => { maturityProcessViewNodeId = ''; renderProductArchitecture(); };
+  head.append(number,name,back); row.append(head);
+
+  const body = document.createElement('div'); body.className = 'maturity-process-detail-body';
+  const focus = document.createElement('article'); focus.className = 'maturity-process-focus';
+  const kicker = document.createElement('span'); kicker.className = 'process-kicker';
+  kicker.textContent = node.processRole === 'pillar' ? 'Pillar process' : 'Supporting process';
+  const processName = document.createElement('input'); processName.className = 'process-name';
+  processName.value = node.label; processName.readOnly = readOnly();
+  processName.oninput = () => { node.label = processName.value; markDirty(); renderArchitectureSelectionTools(architecture); };
+  const ownerLabel = document.createElement('span'); ownerLabel.className = 'process-kicker'; ownerLabel.textContent = 'Who or what does it?';
+  const owner = document.createElement('textarea'); owner.value = node.actor || ''; owner.readOnly = readOnly();
+  owner.oninput = () => { node.actor = owner.value; markDirty(); };
+  const abilityLabel = document.createElement('span'); abilityLabel.className = 'process-kicker';
+  abilityLabel.textContent = node.actorType === 'people' ? 'Skills' :
+    node.actorType === 'technology_or_people' ? 'Features / skills' : 'Features';
+  const abilities = document.createElement('div'); abilities.className = 'process-meta';
+  abilities.textContent = (node.capabilities || []).join(' · ') || 'No features or skills added yet.';
+  focus.append(kicker,processName,ownerLabel,owner,abilityLabel,abilities);
+
+  const list = document.createElement('section'); list.className = 'maturity-subprocesses';
+  const listHead = document.createElement('div'); listHead.className = 'maturity-subprocesses-head';
+  const headText = document.createElement('div');
+  const listKicker = document.createElement('span'); listKicker.textContent = node.label;
+  const title = document.createElement('h4'); title.textContent = 'Sub-processes';
+  const helper = document.createElement('p'); helper.textContent = 'The specific forms of work contained inside this process.';
+  headText.append(listKicker,title,helper); listHead.append(headText);
+  if (!readOnly()){
+    const add = document.createElement('button'); add.type = 'button'; add.textContent = '+ Sub-process';
+    add.onclick = () => {
+      node.subProcesses.push({id:uid(),name:'New sub-process',description:''});
+      markDirty(); renderProductArchitecture();
+    };
+    listHead.append(add);
+  }
+  const grid = document.createElement('div'); grid.className = 'maturity-subprocess-grid';
+  (node.subProcesses || []).forEach((subProcess,index) => {
+    const card = document.createElement('article'); card.className = 'maturity-subprocess-card';
+    const number = document.createElement('span'); number.className = 'subprocess-number'; number.textContent = String(index + 1).padStart(2,'0');
+    const subName = document.createElement('input'); subName.value = subProcess.name; subName.readOnly = readOnly();
+    subName.setAttribute('aria-label','Sub-process name');
+    subName.oninput = () => { subProcess.name = subName.value; markDirty(); };
+    const description = document.createElement('textarea'); description.value = subProcess.description || '';
+    description.placeholder = 'What question does this answer?'; description.readOnly = readOnly();
+    description.setAttribute('aria-label','Sub-process description');
+    description.oninput = () => { subProcess.description = description.value; markDirty(); };
+    card.append(number,subName,description);
+    if (!readOnly()){
+      const remove = document.createElement('button'); remove.type = 'button'; remove.className = 'subprocess-remove';
+      remove.textContent = '×'; remove.title = 'Delete sub-process';
+      remove.onclick = () => { node.subProcesses.splice(index,1); markDirty(); renderProductArchitecture(); };
+      card.append(remove);
+    }
+    grid.append(card);
+  });
+  if (!node.subProcesses.length){
+    const empty = document.createElement('div'); empty.className = 'arch-flow-empty';
+    empty.textContent = readOnly() ? 'No sub-processes have been added.' : 'Add the first sub-process for this card.';
+    grid.append(empty);
+  }
+  list.append(listHead,grid); body.append(focus,list); row.append(body);
+  return row;
 }
 
 function groupArchitectureSelection(architecture){
@@ -9624,7 +9788,13 @@ function renderArchitectureSystem(system, index, architecture, siblings){
         const replaceCheckbox = document.createElement('input'); replaceCheckbox.type = 'checkbox';
         replaceCheckbox.checked = node.replacementSelected === true; replaceCheckbox.disabled = readOnly();
         replaceCheckbox.setAttribute('aria-label','Replace ' + node.label);
-        replaceCheckbox.onchange = () => { node.replacementSelected = replaceCheckbox.checked; markDirty(); };
+        replaceCheckbox.onchange = () => {
+          node.replacementSelected = replaceCheckbox.checked;
+          if (replaceCheckbox.checked){
+            architectureSelection.clear(); architectureSelection.add(node.id); architectureSelectedEdge = '';
+          } else architectureSelection.delete(node.id);
+          markDirty(); renderProductArchitecture();
+        };
         replace.append(replaceCheckbox); card.append(replace);
       }
       const badges = document.createElement('div'); badges.className = 'maturity-node-badges';
@@ -9832,9 +10002,14 @@ renderProductArchitecture = function(){
       const processRow = document.createElement('section'); processRow.className = 'arch-system-row';
       processRow.dataset.architectureRow = rowIndex;
       const rowSystems = architecture.systems.filter(system => system.row === rowIndex);
-      rowSystems.forEach((system, index) =>
-        processRow.append(renderArchitectureSystem(system, index, architecture, rowSystems)));
-      if (!ro){
+      const detailNode = maturity && architecture.nodes.find(node =>
+        node.id === maturityProcessViewNodeId && rowSystems.some(system => system.id === node.systemId));
+      if (detailNode){
+        const detailSystem = rowSystems.find(system => system.id === detailNode.systemId);
+        processRow.append(renderMaturityProcessDetail(detailSystem,detailNode,architecture));
+      } else rowSystems.forEach((system, index) =>
+        processRow.append(renderArchitectureSystem(system,index,architecture,rowSystems)));
+      if (!ro && !detailNode){
         const add = document.createElement('button'); add.type = 'button'; add.className = 'arch-add-process';
         add.textContent = '+ Add process'; add.onclick = () => addArchitectureProcessToRow(architecture, rowIndex);
         processRow.append(add);
