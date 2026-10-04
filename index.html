@@ -7800,7 +7800,7 @@ function renderMatrix(){
 
   /* Five major visual slots stay present. The row-name column occupies one slot. */
   const NUM_W = 46, RH_W = 310, COL_W = 310;
-  const contentSlots = 4;
+  const contentSlots = 5;
   const fitsViewport = m.types.length <= contentSlots;
   const spacerCount = fitsViewport ? contentSlots - m.types.length : 0;
   const matrixWidth = NUM_W + RH_W + COL_W * m.types.length;
@@ -8117,7 +8117,7 @@ function renderGridTable(v, group, table){
   const solutionAwareRepositoryMatrix = state.keywordAwareness === 'solution-aware' && isPositioningMatrix && repositoryColumnIds.size > 0;
   if (solutionAwareRepositoryMatrix) columns = columns.filter(col => repositoryColumnIds.has(col.id) || processTaxonomyColumnIds.has(col.id));
   const NUM_W = hasRowAxis ? 310 : 46, COL_W = 310;
-  const contentSlots = isValueOverview ? 2 : hasRowAxis ? 4 : 5;
+  const contentSlots = 5;
   const fitsViewport = columns.length <= contentSlots;
   const spacerCount = fitsViewport ? contentSlots - columns.length : 0;
   const gridWidth = NUM_W + COL_W * columns.length;
