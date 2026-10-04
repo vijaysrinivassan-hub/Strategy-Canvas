@@ -29,7 +29,7 @@ const other={views:{icp:{kind:'grid',rows:[],columns:[]}},articleTypes:[]};
 assert.equal(b.add(other,source,'service','aeo','Demand forecasting',[],uid).created,true);
 assert.equal(root.views.icp.rows.length,4);
 const html=fs.readFileSync('index.html','utf8');
-vm.runInContext(html.slice(html.indexOf('function cellOf('),html.indexOf('function renderArticleTypes(')),ctx);
+vm.runInContext(html.slice(html.indexOf('function normalizePageUrls('),html.indexOf('function renderArticleTypes(')),ctx);
 const result=b.find(root.views.icp,b.key(source),'service','aeo');
 ctx.setCellIn(result.row,result.column,{url:'demand-forecasting'});
 assert.equal(result.row.cells[result.column].keywordIdeas.length,3);

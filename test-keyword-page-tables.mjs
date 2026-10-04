@@ -56,7 +56,8 @@ assert.ok(html.includes("const sourceRow = row.statusFilterSources?.[col.id] || 
 assert.ok(!html.includes("status-filtered-out"));
 assert.ok(html.includes("details.contains(event.target)"));
 assert.ok(html.includes("document.addEventListener('pointerdown'"));
-assert.equal((html.match(/const contentSlots = 5;/g)||[]).length,2);
+assert.equal((html.match(/const contentSlots = 5;/g)||[]).length,1);
+assert.ok(html.includes('const contentSlots = isValueAeoProcessMatrix ? 4 : 5'));
 assert.ok(!html.includes('isValueOverview ? 2'));
 assert.ok(html.includes('contentSlots - columns.length'));
 assert.ok(html.includes("className='keyword-grid-spacer'"));

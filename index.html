@@ -1077,7 +1077,6 @@
   .sg-node span{display:block; color:#70716c; font-size:10.5px; font-weight:400; line-height:1.45}
   .sg-node.on span{color:#55705e}
   .sg-root{text-align:center}
-  .sg-oceans{position:relative; display:grid; grid-template-columns:repeat(2,220px); gap:180px; margin-top:54px}
   .sg-routes-wrap{position:relative; width:min(900px,100%); margin-top:70px}
   .sg-routes{position:relative; display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:70px}
   .sg-route{position:relative; z-index:2; min-height:132px; padding:18px 20px;
@@ -1097,7 +1096,6 @@
     .sg-question{position:relative; left:auto!important; top:auto!important; width:100%}
     .sg-about{position:relative; top:auto; right:auto; width:100%; margin-bottom:28px}
     .sg-flow{padding-top:0}
-    .sg-oceans{grid-template-columns:repeat(2,minmax(0,1fr)); gap:38px; width:100%}
     .sg-node{width:100%; min-width:0}
     .sg-routes{grid-template-columns:1fr; gap:42px}.sg-routes-wrap{margin-top:54px}
   }
@@ -1218,10 +1216,6 @@
   .product-switcher button[aria-pressed="true"]{background:#e2f4e7; border-color:#71bf88; color:#225f35; font-weight:700}
   .product-switcher button:focus-visible{outline:2px solid #328b50; outline-offset:-2px}
   .product-switcher:not([hidden]) + .acct{margin-left:10px}
-  .ocean-switcher{margin-left:4px;max-width:none}
-  #productSwitcher[hidden] ~ .ocean-switcher:not([hidden]){margin-left:auto}
-  .ocean-switcher button[data-ocean="red"][aria-pressed="true"]{background:#fff0ed;border-color:#d97868;color:#8a2f24}
-  .ocean-switcher button[data-ocean="blue"][aria-pressed="true"]{background:#edf5ff;border-color:#679bd2;color:#245b91}
   .client-product-editor{display:grid; gap:8px; margin:12px 0; max-height:40vh; overflow:auto}
   .arch-prompts{width:min(660px,calc(100vw - 40px)); max-height:85vh; padding:24px;
     border:1px solid #cfd8d1; background:#fbfcf9; color:#303b33; box-shadow:0 20px 70px #15251c30}
@@ -1717,15 +1711,6 @@
               color:#4e504a; font-size:11px; line-height:1.45}
   .radar-foot strong{color:#22663b}.radar-foot span{flex:1}
   .radar-foot button{padding:5px 8px; background:#fff; flex:none; font-size:10px}
-  .radar-market-type{position:absolute; z-index:2; top:28px; right:28px; min-width:132px;
-                     padding:10px 12px; border:1px solid #d7dad5; background:rgba(248,249,246,.94);
-                     box-shadow:0 5px 18px rgba(31,43,34,.06)}
-  .radar-market-type span{display:block; margin-bottom:4px; color:#858780; font-size:8.5px;
-                          font-weight:800; letter-spacing:.9px; text-transform:uppercase}
-  .radar-market-type strong{display:flex; align-items:center; gap:7px; color:#50534d; font-size:12px}
-  .radar-market-type strong::before{content:''; width:7px; height:7px; border-radius:50%; background:#aeb2ad}
-  .radar-market-type.red strong{color:#8a433c}.radar-market-type.red strong::before{background:#c56b61}
-  .radar-market-type.blue strong{color:#28636f}.radar-market-type.blue strong::before{background:#4e9bad}
 
   /* ================= positioning canvas ================= */
   .positioning{flex:1; min-height:0; overflow:auto; padding:30px; background:#f7f7f5}
@@ -2425,6 +2410,12 @@
   #competitorTableToolbar h3{margin:0;flex:1}
   #competitorComparison .comparison-toolbar h3{margin:0;flex:1}
   .comparison-toolbar button{flex:none}
+  .value-lens-toolbar{display:flex;align-items:center;gap:7px;padding:0 16px 10px;flex-wrap:wrap}
+  .value-lens-toolbar button{border:1px solid #cfd8d1;background:#fff;color:#455248;padding:6px 10px;font-size:10px;font-weight:750}
+  .value-lens-toolbar button[aria-pressed="true"]{background:#e2f4e7;border-color:#71bf88;color:#225f35}
+  .value-lens-toolbar .value-lens-copy{margin-left:auto}
+  .value-lens-prompt{flex-basis:100%;margin:1px 0 0;color:#69766d;font-size:10px;line-height:1.45}
+  .value-lens-copy-status{min-width:48px;color:#39704a;font-size:10px;text-align:right}
   .comparison-copy-status{font-size:12px;color:var(--muted)}
   #competitorComparison{padding:28px 0 12px;border-top:1px solid #dce4df;margin-top:28px}
   #competitorComparison h3,#competitorComparison p{margin:0 16px 12px}
@@ -2558,7 +2549,6 @@
       </select>
 
       <div id="productSwitcher" class="product-switcher" role="group" aria-label="Product" hidden></div>
-      <div id="oceanSwitcher" class="product-switcher ocean-switcher" role="group" aria-label="Market type" hidden></div>
       <!-- who you are, and which view you are looking through -->
       <div class="acct" id="acct">
         <button class="acct-btn" id="acctBtn" type="button" title="Account and view">
@@ -2658,11 +2648,9 @@
             <dl>
               <dt>Goal</dt><dd id="sgAboutGoal">Customer Acquisition</dd>
               <dt>Target product</dt><dd id="sgAboutProduct">Not selected</dd>
-              <dt>Market type</dt><dd id="sgAboutMarket">Not selected</dd>
               <dt>Industry type</dt><dd id="sgAboutIndustry">Not selected</dd>
               <dt>Sales motion</dt><dd id="sgAboutSalesMotion">Not selected</dd>
               <dt>ICP 1</dt><dd id="sgAboutIcp1">New Entrants</dd>
-              <dt>ICP 2</dt><dd id="sgAboutIcp2">Select a market type</dd>
             </dl>
           </aside>
           <div class="gtm-node gtm-company" id="gtmCompanyNode" role="button" tabindex="0" aria-expanded="false">
@@ -2819,10 +2807,6 @@
           </div>
         </div>
         <div class="radar-figure">
-          <aside class="radar-market-type" id="radarMarketType">
-            <span>Market type</span>
-            <strong>Not selected</strong>
-          </aside>
           <svg class="radar-svg" id="brandRadarSvg" viewBox="0 0 760 760" role="img" aria-label="Brand position across four evolution axes"></svg>
         </div>
         <div class="radar-foot" id="brandRadarStatus"></div>
@@ -3029,10 +3013,10 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-<script src="keyword-assignments.js"></script>
+<script src="keyword-assignments.js?v=value-lenses-v2"></script>
 <script src="keyword-page-tables.js?v=product-capabilities-v2"></script>
-<script src="keyword-columns.js?v=saras-product-pages-v17"></script>
-<script src="ai-data-icp-matrix.js?v=saras-product-pages-v8"></script>
+<script src="keyword-columns.js?v=value-lenses-v18"></script>
+<script src="ai-data-icp-matrix.js?v=value-lenses-v9"></script>
 <script src="keyword-columns-ui.js"></script>
 <script src="high-priority-links.js"></script>
 <script src="eor-provider-india-keywords.js"></script>
@@ -3149,8 +3133,6 @@ const CLIENT_TYPES = [
   { id: 'services', label: 'Services' }
 ];
 const clientTypeLabel = id => (CLIENT_TYPES.find(x => x.id === id) || {}).label || 'Not classified';
-const clientIcp2Label = marketType => marketType === 'blue' ? 'Customers from the Older Category' :
-  marketType === 'red' ? 'Customers from our Category' : 'Select a market type';
 
 /* Only one sidebar group stands open at a time. */
 function openNav(id){
@@ -3177,7 +3159,6 @@ const state = {
   companyUrlWorkspaceMigrated: false,
   clientType: '',
   clientGoal: 'Customer Acquisition',
-  clientMarketType: '',
   clientSalesMotion: '',
   clientIcp1: 'New Entrants',
   logo: '',
@@ -5098,7 +5079,6 @@ function activateProduct(productId){
 }
 function renderProductSwitcher(){
   renderKeywordModeFilter();
-  renderOceanSwitcher();
   const host = $('productSwitcher');
   const shown = state.screen !== 'settings' && state.screen !== 'clients' &&
     state.screen !== 'atypes' && state.screen !== 'mcp' && productScopedTabs().includes(state.tab);
@@ -5172,7 +5152,6 @@ function serialize(){
   return JSON.stringify({ version: 3, client: state.client, clientProduct: state.clientProduct || '',
                           clientType: state.clientType || '',
                           clientGoal: state.clientGoal || 'Customer Acquisition',
-                          clientMarketType: state.clientMarketType || '',
                           clientSalesMotion: state.clientSalesMotion || '',
                           clientIcp1: state.clientIcp1 || 'New Entrants', logo: state.logo || '',
                           extra: state.extra, brandOrder: state.brandOrder,
@@ -5239,9 +5218,6 @@ function hydrate(text){
   state.clientType = (d && CLIENT_TYPES.some(x => x.id === d.clientType)) ? d.clientType : '';
   state.clientGoal = (d && typeof d.clientGoal === 'string' && d.clientGoal.trim())
     ? d.clientGoal.trim() : 'Customer Acquisition';
-  const guideOcean = (((state.tabs[STRATEGY_ONE_TAB] || {}).guide || {}).ocean || '');
-  state.clientMarketType = (d && (d.clientMarketType === 'red' || d.clientMarketType === 'blue'))
-    ? d.clientMarketType : (guideOcean === 'red' || guideOcean === 'blue' ? guideOcean : '');
   state.clientSalesMotion = (d && (d.clientSalesMotion === 'plg' || d.clientSalesMotion === 'slg'))
     ? d.clientSalesMotion : '';
   state.clientIcp1 = (d && typeof d.clientIcp1 === 'string' && d.clientIcp1.trim())
@@ -5368,7 +5344,7 @@ async function saveBoard(quiet){
   } finally { boardSaveInFlight = false; }
 }
 
-async function newBoard(clientName, clientProduct, clientType, clientGoal, clientMarketType, clientSalesMotion, clientIcp1, products){
+async function newBoard(clientName, clientProduct, clientType, clientGoal, clientSalesMotion, clientIcp1, products){
   state.boardId = null;
   state.boardRevision = null;
   state.saveConflict = false;
@@ -5383,7 +5359,6 @@ async function newBoard(clientName, clientProduct, clientType, clientGoal, clien
   state.workspaceProductId = '';
   state.clientType = CLIENT_TYPES.some(x => x.id === clientType) ? clientType : '';
   state.clientGoal = (clientGoal || '').trim() || 'Customer Acquisition';
-  state.clientMarketType = clientMarketType === 'red' || clientMarketType === 'blue' ? clientMarketType : '';
   state.clientSalesMotion = clientSalesMotion === 'plg' || clientSalesMotion === 'slg' ? clientSalesMotion : '';
   state.clientIcp1 = (clientIcp1 || '').trim() || 'New Entrants';
   state.logo = '';
@@ -6079,18 +6054,6 @@ function openClientSettings(){
   goalIn.value = state.clientGoal || 'Customer Acquisition';
   goalIn.placeholder = 'Customer Acquisition';
 
-  const marketLabel = document.createElement('label');
-  marketLabel.className = 'fl';
-  marketLabel.style.marginTop = '16px';
-  marketLabel.textContent = 'Market type';
-  const marketIn = document.createElement('select');
-  marketIn.className = 'modal-in';
-  [['', 'Choose market type'], ['red', 'Red Ocean'], ['blue', 'Blue Ocean']].forEach(item => {
-    const option = document.createElement('option');
-    option.value = item[0]; option.textContent = item[1]; marketIn.append(option);
-  });
-  marketIn.value = state.clientMarketType || '';
-
   const salesMotionLabel = document.createElement('label');
   salesMotionLabel.className = 'fl';
   salesMotionLabel.style.marginTop = '16px';
@@ -6111,17 +6074,6 @@ function openClientSettings(){
   icp1In.className = 'modal-in';
   icp1In.value = state.clientIcp1 || 'New Entrants';
   icp1In.placeholder = 'New Entrants';
-
-  const icp2Label = document.createElement('label');
-  icp2Label.className = 'fl';
-  icp2Label.style.marginTop = '16px';
-  icp2Label.textContent = 'ICP 2 · Based on market type';
-  const icp2In = document.createElement('input');
-  icp2In.className = 'modal-in';
-  icp2In.readOnly = true;
-  const updateIcp2 = () => { icp2In.value = clientIcp2Label(marketIn.value); };
-  marketIn.onchange = updateIcp2;
-  updateIcp2();
 
   const logoLabel = document.createElement('label');
   logoLabel.className = 'fl';
@@ -6207,13 +6159,8 @@ function openClientSettings(){
     state.clientProduct = productIn.value.trim();
     state.clientType = typeIn.value;
     state.clientGoal = goalIn.value.trim() || 'Customer Acquisition';
-    state.clientMarketType = marketIn.value;
-    renderOceanSwitcher();
     state.clientSalesMotion = salesMotionIn.value;
     state.clientIcp1 = icp1In.value.trim() || 'New Entrants';
-    const guide = strategyOneState();
-    guide.ocean = state.clientMarketType;
-    if (guide.ocean) guide.opened = true;
     state.logo = pendingLogo;
     void 0;   /* the client name is edited on the Clients screen */
     renderBrand();
@@ -6226,8 +6173,8 @@ function openClientSettings(){
   foot.append(cancel, save);
 
   modal.append(h, p, nameLabel, nameIn, productLabel, productIn, typeLabel, typeIn, goalLabel, goalIn,
-    marketLabel, marketIn, salesMotionLabel, salesMotionIn,
-    icp1Label, icp1In, icp2Label, icp2In,
+    salesMotionLabel, salesMotionIn,
+    icp1Label, icp1In,
     logoLabel, row, fileIn, foot);
   overlay.append(modal);
   host.append(overlay);
@@ -6909,6 +6856,37 @@ function normalizePageUrls(rows){
     return { id: String(row.id || ('page-url-' + index)), url: String(row.url || ''), traffic: row.traffic == null ? '' : String(row.traffic) };
   });
 }
+const VALUE_MATRIX_LENSES=[
+  {id:'process',label:'Process',prompt:'Keywords for the activity at this process × department intersection, including close synonyms and search variants.'},
+  {id:'output',label:'Output',prompt:'Keywords for the concrete deliverable or artifact produced by this process.'},
+  {id:'outcome',label:'Outcome',prompt:'Keywords for the result or change created by that output.'},
+  {id:'benefits',label:'Benefits',prompt:'Keywords for the user or business benefit created by that outcome.'},
+  {id:'tools',label:'Tools',prompt:'Keywords buyers use when searching for software, platforms, or tools that perform this process.'}
+];
+function normalizeValueLensKeywordMap(value){
+  const out={};
+  if(!value||typeof value!=='object'||Array.isArray(value))return out;
+  VALUE_MATRIX_LENSES.forEach(lens=>{if(Array.isArray(value[lens.id]))out[lens.id]=value[lens.id].filter(Boolean);});
+  return out;
+}
+function activeValueMatrixLens(view){
+  return VALUE_MATRIX_LENSES.some(lens=>lens.id===view?.activeValueMatrixLens)?view.activeValueMatrixLens:'process';
+}
+function valueLensKeywordIds(cell,lens){
+  const map=normalizeValueLensKeywordMap(cell.valueLensKeywords);
+  return lens==='process'?(map.process||cell.kws||[]):(map[lens]||[]);
+}
+function valueLensExcludedIds(cell,lens){
+  const map=normalizeValueLensKeywordMap(cell.valueLensExcludedKeywords);
+  return lens==='process'?(map.process||cell.excludedKws||[]):(map[lens]||[]);
+}
+function valueLensKeywordPatch(cell,lens,ids,excluded){
+  if(lens==='process')return {kws:ids,excludedKws:excluded||cell.excludedKws||[]};
+  const keywords=normalizeValueLensKeywordMap(cell.valueLensKeywords);
+  const exclusions=normalizeValueLensKeywordMap(cell.valueLensExcludedKeywords);
+  keywords[lens]=(ids||[]).filter(Boolean);exclusions[lens]=(excluded||[]).filter(Boolean);
+  return {valueLensKeywords:keywords,valueLensExcludedKeywords:exclusions};
+}
 function normalizeRepositoryUrlOverrides(value){
   if (!value || typeof value !== 'object' || Array.isArray(value)) return {};
   const out = {};
@@ -7336,10 +7314,11 @@ function cellControls(td, o){
           KeywordAssignments.move(state.tabs,target,[row.id]);markDirty();o.rerender();return;
         }
         const cur = o.get();
-        const kws = Array.isArray(cur.kws) ? cur.kws.slice() : [];
+        if(o.keywordLens&&o.keywordLens!=='process')cur.__keywordLens=o.keywordLens;
+        const kws = o.keywordLens?valueLensKeywordIds(cur,o.keywordLens).slice():(Array.isArray(cur.kws) ? cur.kws.slice() : []);
         if (kws.map(String).indexOf(String(row.id)) === -1) kws.push(row.id);
         KeywordAssignments.move(state.tabs,cur,[row.id]);
-        o.set({ kws: kws });
+        o.set(o.keywordLens?valueLensKeywordPatch(cur,o.keywordLens,valueLensKeywordIds(cur,o.keywordLens),valueLensExcludedIds(cur,o.keywordLens)):{ kws: cur.kws });
         markDirty();
         o.rerender();
       });
@@ -7596,6 +7575,7 @@ function cellOf(row, colId, defaults){
              actorType: c.actorType || '', actor: c.actor || '',
              keywordIdeas: Array.isArray(c.keywordIdeas) ? c.keywordIdeas : [], icpSource:c.icpSource || null,
              kws: Array.isArray(c.kws) ? c.kws.filter(Boolean) : [], excludedKws:Array.isArray(c.excludedKws)?c.excludedKws.filter(Boolean):[], pageUrls: normalizePageUrls(c.pageUrls),
+             valueLensKeywords:normalizeValueLensKeywordMap(c.valueLensKeywords),valueLensExcludedKeywords:normalizeValueLensKeywordMap(c.valueLensExcludedKeywords),
              repositoryQueries: Array.isArray(c.repositoryQueries) ? c.repositoryQueries : [], repositoryUrlOverrides:normalizeRepositoryUrlOverrides(c.repositoryUrlOverrides) };
   }
   return { v: '', mode: d.mode || 'aeo', type: d.type || '', on: false, aw: d.aw || '', st: '', cfg:false, kws: [], pageUrls: [] };
@@ -7614,10 +7594,13 @@ function setCellIn(row, colId, patch, defaults){
   const pageUrls = normalizePageUrls(c.pageUrls);
   const repositoryQueries = Array.isArray(c.repositoryQueries) ? c.repositoryQueries : [];
   const excludedKws = Array.isArray(c.excludedKws) ? c.excludedKws.filter(Boolean) : [];
+  const valueLensKeywords=normalizeValueLensKeywordMap(c.valueLensKeywords),valueLensExcludedKeywords=normalizeValueLensKeywordMap(c.valueLensExcludedKeywords);
+  const valueLensCount=Object.values(valueLensKeywords).reduce((sum,ids)=>sum+ids.length,0)+Object.values(valueLensExcludedKeywords).reduce((sum,ids)=>sum+ids.length,0);
   const repositoryUrlOverrides = normalizeRepositoryUrlOverrides(c.repositoryUrlOverrides);
   const defaultMode = (defaults && defaults.mode) || 'aeo';
-  if (!c.url && !c.writtenBy && !c.actorType && !c.actor && !c.cfg && !c.v && !c.type && c.mode === defaultMode && !c.on && !c.aw && !c.st && !kws.length && !excludedKws.length && !pageUrls.length && !repositoryQueries.length && !Object.keys(repositoryUrlOverrides).length && !c.keywordIdeas?.length && !c.icpSource) delete row.cells[colId];
+  if (!c.url && !c.writtenBy && !c.actorType && !c.actor && !c.cfg && !c.v && !c.type && c.mode === defaultMode && !c.on && !c.aw && !c.st && !kws.length && !excludedKws.length && !valueLensCount && !pageUrls.length && !repositoryQueries.length && !Object.keys(repositoryUrlOverrides).length && !c.keywordIdeas?.length && !c.icpSource) delete row.cells[colId];
   else row.cells[colId] = { v: c.v, mode: c.mode, type: c.type, on: c.on, aw: c.aw, st: c.st, url: c.url || '', writtenBy: c.writtenBy || '', cfg:!!c.cfg, kws: kws, excludedKws, pageUrls: pageUrls, repositoryQueries, repositoryUrlOverrides,
+    valueLensKeywords,valueLensExcludedKeywords,
     ...(c.actorType ? {actorType:c.actorType} : {}), ...(c.actor ? {actor:c.actor} : {}),
     ...(c.keywordIdeas?.length ? {keywordIdeas:c.keywordIdeas} : {}), ...(c.icpSource ? {icpSource:c.icpSource} : {}) };
 }
@@ -7730,29 +7713,6 @@ function modeSwitch(current, disabled, onPick){
     wrap.append(btn);
   });
   return wrap;
-}
-
-function renderOceanSwitcher(){
-  const host = $('oceanSwitcher');
-  if (!host) return;
-  const selected = state.clientMarketType === 'red' || state.clientMarketType === 'blue' ? state.clientMarketType : '';
-  host.hidden = state.screen !== 'board' || !selected || !state.client;
-  host.replaceChildren();
-  if (host.hidden) return;
-  [['red','Red Ocean'],['blue','Blue Ocean']].forEach(([value,label]) => {
-    const button = document.createElement('button'); button.type = 'button';
-    button.textContent = label; button.dataset.ocean = value;
-    button.setAttribute('aria-pressed', String(selected === value));
-    button.disabled = readOnly();
-    button.onclick = () => {
-      if (readOnly() || state.clientMarketType === value) return;
-      state.clientMarketType = value;
-      const guide = strategyOneState(); guide.ocean = value; guide.opened = true;
-      markDirty(); renderOceanSwitcher();
-      if (state.tab === STRATEGY_ONE_TAB || state.tab === CHANNELS_TAB) renderStrategyGuide();
-    };
-    host.append(button);
-  });
 }
 
 let keywordMode = 'aeo';
@@ -8048,6 +8008,21 @@ function ensureSharedUrlCellMappings(){
     if ((changed || firstReadyPaint) && state.boardId === board && state.tab === CONTENT_TAB) renderContentView();
   }).catch(function(error){ console.error(error); toast('Could not load the classified URLs.', true); }).finally(function(){ sharedUrlMappingPending = null; });
 }
+function renderValueMatrixLensToolbar(section,view){
+  const active=activeValueMatrixLens(view);
+  const toolbar=document.createElement('div');toolbar.className='value-lens-toolbar';toolbar.setAttribute('role','group');toolbar.setAttribute('aria-label','Value keyword layer');
+  const prompt=document.createElement('p');prompt.className='value-lens-prompt';prompt.textContent=VALUE_MATRIX_LENSES.find(lens=>lens.id===active)?.prompt||'';
+  VALUE_MATRIX_LENSES.forEach(lens=>{
+    const button=document.createElement('button');button.type='button';button.textContent=lens.label;button.title=lens.prompt;
+    button.setAttribute('aria-pressed',String(active===lens.id));button.onclick=function(){view.activeValueMatrixLens=lens.id;if(!readOnly())markDirty();renderGrid();};toolbar.append(button);
+  });
+  const status=document.createElement('span');status.className='value-lens-copy-status';status.setAttribute('role','status');
+  const copy=document.createElement('button');copy.type='button';copy.className='value-lens-copy';copy.textContent='Copy';copy.title='Copy all keywords in the selected value layer';
+  const ids=[];(view.rows||[]).filter(row=>row.pageGroup==='matrix').forEach(row=>Object.values(row.cells||{}).forEach(cell=>ids.push(...valueLensKeywordIds(cell,active))));
+  const seen=new Set();const words=keywordRowsByIds(ids).map(row=>String(row.keyword||'').trim()).filter(word=>word&&!seen.has(word.toLowerCase())&&seen.add(word.toLowerCase()));
+  copy.disabled=!words.length;copy.onclick=async function(){copy.disabled=true;try{await navigator.clipboard.writeText(words.join('\n'));status.textContent='Copied '+words.length;}catch{status.textContent='Could not copy';}finally{copy.disabled=!words.length;}};
+  toolbar.append(status,copy,prompt);section.append(toolbar);
+}
 function renderGrid(){
   renderKeywordModeFilter();
   renderKeywordStatusFilter();
@@ -8079,6 +8054,7 @@ function renderGrid(){
       const table = document.createElement('table');table.className = 'mx-table';
       section.append(title);
       if(group.id==='matrix'){
+        if(state.contentView==='value'&&state.keywordAwareness==='solution-aware')renderValueMatrixLensToolbar(section,v);
         const prompt = document.createElement('details');prompt.className='matrix-ai-prompt';
         const summary=document.createElement('summary');summary.textContent='AI prompt';
         const editor=document.createElement('textarea');editor.value=v.matrixAiPrompt||'';editor.disabled=readOnly();editor.placeholder='Instructions for an AI classifying this matrix…';
@@ -8135,6 +8111,7 @@ function renderGridTable(v, group, table){
   $('btnAddType').hidden = ro;
 
   const isPositioningMatrix = ['icp','value'].includes(state.contentView) && group.id === 'matrix';
+  const isValueAeoProcessMatrix = state.contentView === 'value' && state.keywordAwareness === 'solution-aware' && keywordMode === 'aeo' && group.id === 'matrix';
   const isValueOverview = state.contentView === 'value' && group.id === 'value-overview';
   const isIcpMatrix = state.contentView === 'icp' && isPositioningMatrix;
   const isIcpSeoMatrix = (state.contentView === 'icp' && keywordMode === 'seo' && group.id === 'informational') || state.contentView === 'category';
@@ -8157,7 +8134,8 @@ function renderGridTable(v, group, table){
   const solutionAwareRepositoryMatrix = state.keywordAwareness === 'solution-aware' && isPositioningMatrix && repositoryColumnIds.size > 0;
   if (solutionAwareRepositoryMatrix) columns = columns.filter(col => repositoryColumnIds.has(col.id) || processTaxonomyColumnIds.has(col.id));
   const NUM_W = hasRowAxis ? 310 : 46, COL_W = 310;
-  const contentSlots = 5;
+  /* Five visible columns includes the left process/sub-process header. */
+  const contentSlots = isValueAeoProcessMatrix ? 4 : 5;
   const fitsViewport = columns.length <= contentSlots;
   const spacerCount = fitsViewport ? contentSlots - columns.length : 0;
   const gridWidth = NUM_W + COL_W * columns.length;
@@ -8367,8 +8345,20 @@ function renderGridTable(v, group, table){
       });
       if (!defaults.type && group.type) defaults.type = articleTypes().find(t => t.name.toLowerCase() === group.type.toLowerCase())?.id || '';
       const cell = cellOf(sourceRow, col.id, defaults);
-      const kws = gridCellKeywords(cell.v || cell.url, cell.kws, cell.excludedKws);
-      const removeKeyword = function(keyword){const now=cellOf(sourceRow,col.id,defaults);setCellIn(sourceRow,col.id,Object.assign(keywordRemovalPatch(now,keyword),{cfg:true}),defaults);markDirty();renderGrid();};
+      const valueLens=isValueAeoProcessMatrix?activeValueMatrixLens(v):'';
+      const keywordIds=valueLens?valueLensKeywordIds(cell,valueLens):cell.kws;
+      const excludedIds=valueLens?valueLensExcludedIds(cell,valueLens):cell.excludedKws;
+      const keywordText=valueLens&&valueLens!=='process'?'':(cell.v || cell.url);
+      const kws = gridCellKeywords(keywordText,keywordIds,excludedIds);
+      const removeKeyword = function(keyword){
+        const now=cellOf(sourceRow,col.id,defaults);
+        if(valueLens){
+          const key=keywordEvidenceKey(keyword),ids=valueLensKeywordIds(now,valueLens).filter(id=>String(id)!==key),excluded=valueLensExcludedIds(now,valueLens).slice();
+          if(key&&!excluded.map(String).includes(key))excluded.push(key);
+          setCellIn(sourceRow,col.id,Object.assign(valueLensKeywordPatch(now,valueLens,ids,excluded),{cfg:true}),defaults);
+        }else setCellIn(sourceRow,col.id,Object.assign(keywordRemovalPatch(now,keyword),{cfg:true}),defaults);
+        markDirty();renderGrid();
+      };
       const td = document.createElement('td');
       const untouched = !sourceRow.cells[col.id];
       td.className = 'gr-cell' + ((untouched || cellQuiet(cell, kws.length)) ? ' empty' : '') + (cell.on ? ' planned' : '')
@@ -8400,7 +8390,7 @@ function renderGridTable(v, group, table){
         clearTimeout(paintTimer);
         paintTimer = setTimeout(function(){
           const now = cellOf(sourceRow, col.id, defaults);
-          const rows2 = gridCellKeywords(now.v || now.url, now.kws, now.excludedKws);
+          const rows2 = valueLens?gridCellKeywords(valueLens==='process'?(now.v||now.url):'',valueLensKeywordIds(now,valueLens),valueLensExcludedIds(now,valueLens)):gridCellKeywords(now.v || now.url, now.kws, now.excludedKws);
           kwHost.innerHTML = '';
           kwHost.append(keywordBlock(rows2,ro?null:removeKeyword));
           td.classList.toggle('empty', cellQuiet(now, rows2.length));
@@ -8411,10 +8401,12 @@ function renderGridTable(v, group, table){
         ro: ro,
         get: function(){ return cellOf(sourceRow, col.id, defaults); },
         set: function(patch){ setCellIn(sourceRow, col.id, Object.assign({}, patch, { cfg:true }), defaults); },
+        keywordLens:valueLens,
         seed: function(){ return (cellOf(sourceRow, col.id, defaults).v || '').trim(); },
         refreshEmpty: function(){
           const now = cellOf(sourceRow, col.id, defaults);
-          td.classList.toggle('empty', cellQuiet(now, gridCellKeywords(now.v || now.url, now.kws, now.excludedKws).length));
+          const rows=valueLens?gridCellKeywords(valueLens==='process'?(now.v||now.url):'',valueLensKeywordIds(now,valueLens),valueLensExcludedIds(now,valueLens)):gridCellKeywords(now.v || now.url, now.kws, now.excludedKws);
+          td.classList.toggle('empty', cellQuiet(now, rows.length));
         },
         onTypeChange: renderGrid,
         rerender: renderGrid
@@ -12362,11 +12354,6 @@ function openNewClientModal(){
   });
   const goalLabel = document.createElement('label'); goalLabel.className = 'fl'; goalLabel.style.marginTop = '16px'; goalLabel.textContent = 'Goal';
   const goal = document.createElement('input'); goal.className = 'modal-in'; goal.value = 'Customer Acquisition'; goal.placeholder = 'Customer Acquisition';
-  const marketLabel = document.createElement('label'); marketLabel.className = 'fl'; marketLabel.style.marginTop = '16px'; marketLabel.textContent = 'Market type';
-  const market = document.createElement('select'); market.className = 'modal-in';
-  [['', 'Choose market type'], ['red', 'Red Ocean'], ['blue', 'Blue Ocean']].forEach(function(item){
-    const o = document.createElement('option'); o.value = item[0]; o.textContent = item[1]; market.append(o);
-  });
   const salesMotionLabel = document.createElement('label'); salesMotionLabel.className = 'fl'; salesMotionLabel.style.marginTop = '16px'; salesMotionLabel.textContent = 'Sales motion';
   const salesMotion = document.createElement('select'); salesMotion.className = 'modal-in';
   [['', 'Choose sales motion'], ['plg', 'PLG'], ['slg', 'SLG']].forEach(function(item){
@@ -12374,10 +12361,6 @@ function openNewClientModal(){
   });
   const icp1Label = document.createElement('label'); icp1Label.className = 'fl'; icp1Label.style.marginTop = '16px'; icp1Label.textContent = 'ICP 1';
   const icp1 = document.createElement('input'); icp1.className = 'modal-in'; icp1.value = 'New Entrants'; icp1.placeholder = 'New Entrants';
-  const icp2Label = document.createElement('label'); icp2Label.className = 'fl'; icp2Label.style.marginTop = '16px'; icp2Label.textContent = 'ICP 2 · Based on market type';
-  const icp2 = document.createElement('input'); icp2.className = 'modal-in'; icp2.readOnly = true;
-  const updateIcp2 = () => { icp2.value = clientIcp2Label(market.value); };
-  market.onchange = updateIcp2; updateIcp2();
   const foot = document.createElement('div'); foot.className = 'mrow';
   const cancel = document.createElement('button'); cancel.textContent = 'Cancel'; cancel.onclick = closeModal;
   const create = document.createElement('button'); create.className = 'primary'; create.textContent = 'Create client';
@@ -12387,14 +12370,14 @@ function openNewClientModal(){
     const products = productEditor.values(); if (!validProductNames(products)) return;
     if (!type.value){ toast('Choose an industry type.', true); type.focus(); return; }
     create.disabled = true; create.textContent = 'Creating…';
-    await newBoard(name.value, product.value, type.value, goal.value, market.value, salesMotion.value, icp1.value, products);
+    await newBoard(name.value, product.value, type.value, goal.value, salesMotion.value, icp1.value, products);
     closeModal();
   };
   name.onkeydown = function(ev){ if (ev.key === 'Enter') product.focus(); };
   product.onkeydown = function(ev){ if (ev.key === 'Enter') type.focus(); };
   foot.append(cancel, create);
-  modal.append(h, p, nameLabel, name, productLabel, productEditor.host, productEditor.add, typeLabel, type, goalLabel, goal, marketLabel, market,
-    salesMotionLabel, salesMotion, icp1Label, icp1, icp2Label, icp2, foot);
+  modal.append(h, p, nameLabel, name, productLabel, productEditor.host, productEditor.add, typeLabel, type, goalLabel, goal,
+    salesMotionLabel, salesMotion, icp1Label, icp1, foot);
   overlay.append(modal); host.append(overlay); name.focus();
 }
 
@@ -13865,11 +13848,6 @@ function renderBrandRadar(){
   const activeIndex = RADAR_AXES.findIndex(axis => axis.id === radar.axis);
   const categories = positioning.categories;
   const selectedIndex = categories.findIndex(category => category.id === positioning.selectedCategory);
-  const marketType = strategyOneState().ocean;
-  const marketCard = $('radarMarketType');
-  marketCard.className = 'radar-market-type' + (marketType ? ' ' + marketType : '');
-  marketCard.querySelector('strong').textContent = marketType === 'red' ? 'Red Ocean' :
-    marketType === 'blue' ? 'Blue Ocean' : 'Not selected';
   const band = (outerRadius - innerRadius) / Math.max(1, categories.length);
   const focus = radarFocusState(positioning, radar.axis || 'technology');
   const layout = radarAxisLayout(Math.max(0, activeIndex), active ? focus : { left: 45, right: 45 });
@@ -13886,14 +13864,11 @@ function renderBrandRadar(){
   for (let index = 0; activeZone && index < categories.length; index++){
     const category = categories[index];
     const selected = positioning.selectedCategory === category.id;
-    const marketReach = selectedIndex >= 0 &&
-      (marketType === 'blue' ? index === selectedIndex - 1 : index === selectedIndex);
     const sector = document.createElementNS(ns, 'path');
     sector.setAttribute('d', radarSector(innerRadius + index * band,
       innerRadius + (index + 1) * band, activeZone.start, activeZone.end));
     sector.setAttribute('class', 'radar-band' + (index % 2 ? ' alt' : '') +
-      (marketReach ? ' market-reach' : '') +
-      (selected && marketType !== 'blue' ? ' selected' : ''));
+      (selected ? ' selected' : ''));
     sector.setAttribute('aria-label', category.name.trim() || 'Untitled category');
     svg.append(sector);
   }
@@ -14100,23 +14075,18 @@ $('btnOpenCategoryPositioning').onclick = () => $('positioningCategories').scrol
 function strategyOneState(){
   const t = state.tabs[STRATEGY_ONE_TAB] ||
             (state.tabs[STRATEGY_ONE_TAB] = { nodes: [], edges: [] });
-  if (!t.guide || typeof t.guide !== 'object'){
-    t.guide = { opened: !!state.clientMarketType, ocean: state.clientMarketType || '' };
-  }
+  if (!t.guide || typeof t.guide !== 'object') t.guide = { opened:false };
   delete t.guide.goal;
   delete t.guide.posture;
-  if (typeof t.guide.opened !== 'boolean') t.guide.opened = !!t.guide.ocean;
-  if (state.clientMarketType === 'red' || state.clientMarketType === 'blue'){
-    t.guide.ocean = state.clientMarketType;
-    t.guide.opened = true;
-  }
+  delete t.guide.ocean;
+  if (typeof t.guide.opened !== 'boolean') t.guide.opened = false;
   return t.guide;
 }
 
 function strategyNode(host, value, title, detail, current){
   const b = document.createElement('button');
   b.type = 'button';
-  b.className = 'sg-node sg-ocean' + (current === value ? ' on' : '');
+  b.className = 'sg-node' + (current === value ? ' on' : '');
   b.dataset.value = value;
   b.setAttribute('aria-pressed', current === value ? 'true' : 'false');
   b.disabled = readOnly();
@@ -14127,10 +14097,7 @@ function strategyNode(host, value, title, detail, current){
   b.append(strong, small);
   b.onclick = () => {
     if (readOnly()) return;
-    strategyOneState().ocean = value;
-    state.clientMarketType = value;
     markDirty();
-    renderOceanSwitcher();
     renderStrategyGuide();
   };
   host.append(b);
@@ -14177,12 +14144,8 @@ function drawStrategyWires(){
     '<marker id="sgArrowChosen" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0L8 4L0 8Z" fill="#65c88a"/></marker>' +
     '</defs>';
 
-  const g = strategyOneState();
   const rootPoint = point(root, 'bottom');
-  Array.from(document.querySelectorAll('#sgOceans .sg-ocean')).forEach(ocean => {
-    out += path(rootPoint, point(ocean, 'top'), ocean.dataset.value === g.ocean);
-  });
-  const chosen = document.querySelector('#sgOceans .sg-ocean.on');
+  const chosen = null;
   if (chosen){
     const from = point(chosen, 'bottom');
     Array.from(document.querySelectorAll('#sgRoutes .sg-route')).forEach(route => {
@@ -14191,21 +14154,16 @@ function drawStrategyWires(){
   }
   svg.innerHTML = out;
   placeQuestion('sgQuestionObjective', [root]);
-  placeQuestion('sgQuestionMarket', Array.from(document.querySelectorAll('#sgOceans .sg-ocean')));
   placeQuestion('sgQuestionAudience', Array.from(document.querySelectorAll('#sgRoutes .sg-route')));
 }
 
 function renderStrategyGuide(){
-  const g = strategyOneState();
   $('sgAboutGoal').textContent = state.clientGoal || 'Customer Acquisition';
   $('sgAboutProduct').textContent = state.clientProduct || 'Not selected';
-  $('sgAboutMarket').textContent = g.ocean === 'red' ? 'Red Ocean' :
-    g.ocean === 'blue' ? 'Blue Ocean' : 'Not selected';
   $('sgAboutIndustry').textContent = state.clientType ? clientTypeLabel(state.clientType) : 'Not selected';
   $('sgAboutSalesMotion').textContent = state.clientSalesMotion === 'plg' ? 'PLG' :
     state.clientSalesMotion === 'slg' ? 'SLG' : 'Not selected';
   $('sgAboutIcp1').textContent = state.clientIcp1 || 'New Entrants';
-  $('sgAboutIcp2').textContent = clientIcp2Label(g.ocean);
   $('gtmCompanyName').textContent = state.client || 'Company name';
   requestAnimationFrame(drawChannelWires);
 }

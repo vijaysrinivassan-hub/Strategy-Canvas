@@ -3,7 +3,7 @@ import fs from 'node:fs';
 import Matrix from './ai-data-icp-matrix.js';
 import Columns from './keyword-columns.js';
 
-assert.equal(Matrix.data.revision,'ai-data-positioning-matrices-v8');
+assert.equal(Matrix.data.revision,'ai-data-positioning-matrices-v9');
 assert.equal(Matrix.data.icpColumns.length,12);
 assert.deepEqual([...new Set(Matrix.data.icpColumns.map(c=>c.matrixGroup))],['ind','ctry','tech']);
 assert.equal(Matrix.data.valueColumns.length,4);

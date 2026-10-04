@@ -13,13 +13,22 @@
  function assigned(body){
   const ids=new Set(),tabs=[body.tabs];
   for(const [id,w] of Object.entries(body.productWorkspaces||{}))if(id!==body.workspaceProductId)tabs.push(w.tabs);
-  for(const t of tabs)for(const cell of cells(t))for(const id of cell.kws||[])ids.add(String(id));
+  for(const t of tabs)for(const cell of cells(t)){
+   for(const id of cell.kws||[])ids.add(String(id));
+   for(const lensIds of Object.values(cell.valueLensKeywords||{}))for(const id of lensIds||[])ids.add(String(id));
+  }
   return ids;
  }
  function move(tabs,target,ids){
   const wanted=new Set(ids.map(String));
-  for(const cell of cells(tabs))if(cell!==target&&Array.isArray(cell.kws))cell.kws=cell.kws.filter(id=>!wanted.has(String(id)));
-  target.kws=[...new Set([...(target.kws||[]).map(String),...wanted])];
+  for(const cell of cells(tabs))if(cell!==target){
+   if(Array.isArray(cell.kws))cell.kws=cell.kws.filter(id=>!wanted.has(String(id)));
+   for(const [lens,lensIds] of Object.entries(cell.valueLensKeywords||{}))if(Array.isArray(lensIds))cell.valueLensKeywords[lens]=lensIds.filter(id=>!wanted.has(String(id)));
+  }
+  if(target.__keywordLens&&target.__keywordLens!=='process'){
+   target.valueLensKeywords ||= {};
+   target.valueLensKeywords[target.__keywordLens]=[...new Set([...(target.valueLensKeywords[target.__keywordLens]||[]).map(String),...wanted])];
+  }else target.kws=[...new Set([...(target.kws||[]).map(String),...wanted])];
  }
  function comparisonDefaults(root){
   root.articleTypes ||= [];
