@@ -35,6 +35,12 @@ assert.deepEqual(aiValue.pageColumns.matrix.map(column=>column.name),['Marketing
 const aiValueCells=aiValue.rows.flatMap(row=>Object.values(row.cells||{}));
 assert.equal(new Set(aiValueCells.flatMap(cell=>repo.resolve(cell.repositoryQueries||[])).map(record=>record.url)).size,12);
 assert(aiValueCells.filter(cell=>cell.repositoryQueries?.length).every(cell=>cell.st==='for_review'));
+const keywordBackedUrlCell=aiValueCells.find(cell=>cell.repositoryQueries?.length),keywordBackedTopic=keywordBackedUrlCell.repositoryQueries[0].topicGroup;
+keywordBackedUrlCell.kws=['process-keyword'];keywordBackedUrlCell.valueLensKeywords={output:['output-keyword'],outcome:['outcome-keyword'],benefits:['benefit-keyword'],tools:['tool-keyword']};
+repo.installMappings(aiRoot,types,{product:'AI Data Platform',awareness:'solution-aware',contentView:'value',mode:'aeo',activeView:aiValue,uid:()=>'ai-row-refresh-'+(++n)});
+const refreshedKeywordCell=aiValue.rows.flatMap(row=>Object.values(row.cells||{})).find(cell=>cell.repositoryQueries?.some(query=>query.topicGroup===keywordBackedTopic));
+assert.deepEqual(refreshedKeywordCell.kws,['process-keyword']);
+assert.deepEqual(refreshedKeywordCell.valueLensKeywords,{output:['output-keyword'],outcome:['outcome-keyword'],benefits:['benefit-keyword'],tools:['tool-keyword']});
 const aiProduct=aiRoot.views.product;
 repo.installMappings(aiRoot,types,{product:'AI Data Platform',awareness:'category-aware',contentView:'product',mode:'aeo',activeView:aiProduct,uid:()=>'ai-product-'+(++n)});
 assert.deepEqual(aiProduct.pageColumns.listicle.map(column=>column.name),['Capabilities','Features']);

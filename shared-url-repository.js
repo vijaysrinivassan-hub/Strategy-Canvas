@@ -133,6 +133,7 @@
     if(!cell||typeof cell!=='object')return false;
     return !!(cell.url||cell.slug||cell.st||cell.aw||cell.writtenBy||cell.actor||cell.on
       ||(Array.isArray(cell.kws)&&cell.kws.length)||(Array.isArray(cell.excludedKws)&&cell.excludedKws.length)
+      ||Object.values(cell.valueLensKeywords||{}).some(ids=>Array.isArray(ids)&&ids.length)
       ||(Array.isArray(cell.pageUrls)&&cell.pageUrls.length)||(cell.repositoryUrlOverrides&&Object.keys(cell.repositoryUrlOverrides).length));
   }
   function clearPreviousMappings(root){
@@ -372,12 +373,16 @@
   function hasScopedMappings(view,workspace,awareness,section){
     return !!view&&(view.rows||[]).some(row=>Object.values(row.cells||{}).some(cell=>(cell?.repositoryQueries||[]).some(query=>query.workspace===workspace&&query.awareness===awareness&&(!section||query.section===section))));
   }
-  function clearScopedMappings(view,workspace,awareness,section){
+  function clearScopedMappings(view,workspace,awareness,section,preserveCells=false){
     if(!view)return;
     (view.rows||[]).forEach(row=>Object.entries(row.cells||{}).forEach(([id,cell])=>{
-      if((cell?.repositoryQueries||[]).some(query=>query.workspace===workspace&&query.awareness===awareness&&(!section||query.section===section)))delete row.cells[id];
+      const queries=cell?.repositoryQueries||[];
+      if(!queries.some(query=>query.workspace===workspace&&query.awareness===awareness&&(!section||query.section===section)))return;
+      if(!preserveCells){delete row.cells[id];return;}
+      const remaining=queries.filter(query=>query.workspace!==workspace||query.awareness!==awareness||(section&&query.section!==section));
+      if(remaining.length)cell.repositoryQueries=remaining;else delete cell.repositoryQueries;
     }));
-    view.rows=(view.rows||[]).filter(row=>!row.repositoryWorkspace||row.repositoryWorkspace!==workspace||Object.values(row.cells||{}).some(hasUserContent));
+    if(!preserveCells)view.rows=(view.rows||[]).filter(row=>!row.repositoryWorkspace||row.repositoryWorkspace!==workspace||Object.values(row.cells||{}).some(hasUserContent));
   }
   function installScopedMappings(root,types,options){
     const workspace=options.workspace,viewId=options.contentView;
@@ -392,7 +397,7 @@
     const fixedAiDataValueMatrix=workspace==='ai-data-platform'&&awareness==='solution-aware'&&viewId==='value'&&mode==='aeo';
     if(fixedAiDataValueMatrix){
       const before=JSON.stringify({rows:view.rows||[],columns:view.pageColumns?.matrix||[]});
-      clearScopedMappings(view,workspace,awareness,section);
+      clearScopedMappings(view,workspace,awareness,section,true);
       view.rows=(view.rows||[]).filter(row=>row.pageGroup!=='value-overview'&&(row.pageGroup!=='matrix'||['process','subprocess'].includes(row.processLevel)));
       if(view.pageColumns){delete view.pageColumns['value-overview'];delete view.pageOrders?.['value-overview'];}
       const taxonomyColumnIds=new Set((view.rows||[]).filter(row=>row.pageGroup==='matrix').flatMap(row=>Object.keys(row.cells||{})));

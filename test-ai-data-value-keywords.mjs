@@ -3,7 +3,7 @@ import fs from 'node:fs';
 import Matrix from './ai-data-icp-matrix.js';
 import Seed from './ai-data-value-keywords.js';
 
-assert.equal(Seed.REVISION,'ai-data-value-keyword-lenses-v2');
+assert.equal(Seed.REVISION,'ai-data-value-keyword-lenses-v3');
 assert.equal(Seed.processes.length,15);
 assert.equal(Seed.departments.length,4);
 assert.deepEqual(Seed.LENSES,['process','output','outcome','benefits','tools']);
@@ -24,7 +24,7 @@ for(const lens of ['output','outcome','benefits','tools'])assert(cells.every(cel
 assert.equal(Seed.apply(content,db),false);
 
 const html=fs.readFileSync(new URL('./index.html',import.meta.url),'utf8');
-assert(html.includes('<script src="ai-data-value-keywords.js?v=value-keywords-v2"></script>'));
+assert(html.includes('<script src="ai-data-value-keywords.js?v=value-keywords-v3"></script>'));
 assert(html.includes('await ensureAiDataValueKeywordSeed();'));
 assert(html.includes("saveKeywords(missing,'ai-data-value-keyword-lenses')"));
 assert(html.includes(".range(from,from+pageSize-1)"));
