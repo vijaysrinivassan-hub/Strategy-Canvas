@@ -43,7 +43,7 @@ assert.ok(html.includes("Department ↓\\nICP dimension →"));
 assert.ok(html.includes("const isRepositoryRowAxis = isIcpSeoMatrix || isIcpMatrix || isValueSeoMatrix"));
 assert.ok(html.includes("repositoryColumnIds.has(col.id)"));
 assert.ok(html.includes("['product','category'].includes(state.contentView)"));
-assert.ok(html.includes("Department ↓\\nProduct dimension →"));
+assert.ok(!html.includes("Department ↓\\nProduct dimension →"));
 assert.ok(html.includes("Department ↓\\nCategory dimension →"));
 assert.ok(html.includes(": 'ICP axis ↓\\nContent type →'"));
 assert.ok(html.includes("num.className = 'icp-seo-row-axis'"));

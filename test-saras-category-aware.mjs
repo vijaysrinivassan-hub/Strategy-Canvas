@@ -24,7 +24,7 @@ assert(!records.filter(([,meta])=>/^Category /.test(meta.section)).some(([url])=
 
 const source=fs.readFileSync(new URL('./shared-url-repository.js',import.meta.url),'utf8');
 const appSource=fs.readFileSync(new URL('./index.html',import.meta.url),'utf8');
-assert.match(appSource,/shared-url-repository\.js\?v=product-aware-v6/);
+assert.match(appSource,/shared-url-repository\.js\?v=product-aware-top-v7/);
 assert.match(appSource,/const categoryMode = \['product','category'\]\.includes\(state\.contentView\) \? keywordMode : ''/);
 const context=vm.createContext({globalThis:{CompetitiveIntelligenceClassifications:asset},console});
 vm.runInContext(source,context);
@@ -45,6 +45,10 @@ assert.equal(mappedProduct.length,expectedAeo.filter(item=>repo.pageGroup(item.p
 assert(product.pageColumns.landing.some(column=>column.name==='Feature pages'));
 assert(product.pageColumns.landing.some(column=>column.name==='Integration pages'));
 assert(product.pageColumns.landing.some(column=>column.name==='Service pages'));
+for(const column of product.pageColumns.landing){
+  const count=product.rows.filter(row=>row.cells?.[column.id]?.repositoryQueries?.length).length;
+  if(count)assert(product.rows[0].cells?.[column.id]?.repositoryQueries?.length,`${column.name} must start in the first Product Aware row`);
+}
 
 // Category Aware AEO and SEO share one saved view. Switching to SEO must not
 // make the later AEO refresh accept SEO cells as if they were AEO cells.

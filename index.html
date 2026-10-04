@@ -3042,7 +3042,7 @@
 <script src="ask-luca-competitive-intelligence.js"></script>
 <script src="saras-analytics-competitive-intelligence.js?v=saras-taxonomy-v2"></script>
 <script src="competitive-intelligence.js"></script>
-<script src="shared-url-repository.js?v=product-aware-v6"></script>
+<script src="shared-url-repository.js?v=product-aware-top-v7"></script>
 <link rel="stylesheet" href="icp-workflows.css">
 <script src="icp-workflows.js"></script>
 <link rel="stylesheet" href="icp-table.css">
@@ -8065,9 +8065,9 @@ function renderGridTable(v, group, table){
   const isPositioningMatrix = ['icp','value'].includes(state.contentView) && group.id === 'matrix';
   const isValueOverview = state.contentView === 'value' && group.id === 'value-overview';
   const isIcpMatrix = state.contentView === 'icp' && isPositioningMatrix;
-  const isIcpSeoMatrix = (state.contentView === 'icp' && keywordMode === 'seo' && group.id === 'informational') || ['product','category'].includes(state.contentView);
+  const isIcpSeoMatrix = (state.contentView === 'icp' && keywordMode === 'seo' && group.id === 'informational') || state.contentView === 'category';
   const isValueSeoMatrix = state.contentView === 'value' && keywordMode === 'seo' && group.id === 'informational';
-  const repositoryAxisFallback = ['product','category'].includes(state.contentView) ? 'Strategy & Research' : 'General ICP';
+  const repositoryAxisFallback = state.contentView === 'category' ? 'Strategy & Research' : 'General ICP';
   const isRepositoryRowAxis = isIcpSeoMatrix || isIcpMatrix || isValueSeoMatrix;
   const hasRowAxis = isPositioningMatrix || isIcpSeoMatrix || isValueSeoMatrix;
   const sortedColumns = state.contentView === 'icp' && !isIcpMatrix && !isIcpSeoMatrix ? KeywordColumns.sortIcpColumns(v.columns) : v.columns;
@@ -8129,7 +8129,7 @@ function renderGridTable(v, group, table){
     const corner = matrixCornerActions(() => addGridColumn(group.id), () => addGridRow(group.id), 'Add column', 'Add row');
     if (isIcpSeoMatrix){
       corner.classList.add('icp-matrix-corner');
-      const label = document.createElement('span'); label.className = 'matrix-corner-label'; label.textContent = state.contentView === 'product' ? 'Department ↓\nProduct dimension →' : state.contentView === 'category' ? 'Department ↓\nCategory dimension →' : 'ICP axis ↓\nContent type →'; corner.append(label);
+      const label = document.createElement('span'); label.className = 'matrix-corner-label'; label.textContent = state.contentView === 'category' ? 'Department ↓\nCategory dimension →' : 'ICP axis ↓\nContent type →'; corner.append(label);
     }
     hr.append(corner);
   }
