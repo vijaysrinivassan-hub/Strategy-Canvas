@@ -24,10 +24,12 @@ vm.runInContext(html.slice(html.indexOf('function cellControls('),html.indexOf('
 const sharedControls=ctx.cellControls;ctx.cellControls=(td,o)=>{td.options=o;sharedControls(td,o);};
 vm.runInContext(fs.readFileSync(new URL('./competitor-comparison.js',import.meta.url),'utf8'),ctx);
 const all=(e=host)=>[e,...e.children.flatMap(all)],checks=()=>all().filter(e=>e.type==='checkbox');
+m.comparisonCells={[ctx.comparisonKey('A','B')]:{st:'for_review'}};
 ctx.renderCompetitorComparison(m);
 assert.equal(all().filter(e=>e.className==='comparison-null').length,15);
 assert.equal(checks().length,10);
 const firstCell=all().find(e=>e.options);assert.equal(firstCell.options.get().v,'B vs A');
+assert.equal(firstCell.dataset.status,'for_review');
 assert.equal(firstCell.options.get().aw,'Competitor aware');assert.equal(firstCell.options.get().type,'competitor');
 ctx.keywordRowsByIds=()=>[{volume:10}];assert.equal(firstCell.options.get().st,'for_review');ctx.keywordRowsByIds=()=>[];
 checks()[0].checked=true;checks()[0].onchange();

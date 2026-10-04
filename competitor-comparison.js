@@ -192,7 +192,7 @@ function renderCompetitorComparison(m){
     if(cellBucket.cells[key]?.v===undefined)value.v=title;
     return value;
    };
-   const updateFlags=()=>{const c=get();td.classList.toggle('planned',!!c.on);td.classList.toggle('written',c.st==='written');};
+   const updateFlags=()=>{const c=get();td.classList.toggle('planned',!!c.on);td.classList.toggle('written',c.st==='written');td.dataset.status=c.st||'';};
    const set=patch=>{
     if(readOnly()||!valid())return;
     setCellState(cellBucket,key,{...get(),...patch,cfg:true});
