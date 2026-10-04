@@ -8,7 +8,7 @@ import { db, loadBoard, ok, ToolError } from '../lib.js';
 const TAB = 'Strategy 1 — Product Architecture';
 const MATURITY_TAB = 'Strategy 1 — Maturity Axis';
 type PromptSection = 'product_architecture' | 'maturity_axis' | 'positioning_canvas' | 'positioning_document' | 'keywords';
-const MATURITY_INDUSTRY_AXIS_PROMPT='INDUSTRY COLUMN RULE: Show department columns once, then industry columns. Single Industry adds exactly one activeIndustry column. Multi-industry adds exactly one column per named industry. Do not repeat the department set beneath any industry; this rule replaces any older industry-group instruction.';
+const MATURITY_INDUSTRY_AXIS_PROMPT='INDUSTRY ROUTING RULE: Industries belong in Solution Aware ICP AEO under Industry Pages. Keep Solution Aware Value AEO department-only and show the Single Industry / Multi-industry mode there only as a read-only label. Never add industry columns to Value AEO; this rule replaces older industry-column or industry-group instructions.';
 export async function architecturePrompts(body?: {tabs: Record<string, any>}, section: PromptSection = 'product_architecture') {
   if(section==='keywords')return {title:'Keyword strategy',prompt:body?.tabs['Content Strategy']?.routingInstruction || KeywordColumns.strategyPrompt+'\n\n'+KeywordColumns.comparisonRouting};
   const defaults = JSON.parse(await readFile(new URL('../../../ai-prompts.json', import.meta.url), 'utf8'))[section];
@@ -92,7 +92,7 @@ export function registerArchitectureTools(server:McpServer) {
   });
   server.registerTool('maturity_axis_set', {
     title:'Save maturity axis',
-    description:'Save the complete active-product Maturity Axis. Read first and supply its revision. Preserve Departments and Industries as simple name lists, plus industryMode and activeIndustry. The solution matrix shows department columns once, followed by industry columns. Single Industry adds activeIndustry as one column; Multi-industry adds one column per listed industry. Never duplicate department columns for an industry. Do not add raw material, input types, descriptions or nested maps. Each system is one maturity row. Supporting nodes do not directly transform the input. Pillars do; mark the newest pillar current and repeated earlier pillars inherited. Record T/P ownership, actor, exactly two features for technology or two skills for people, and preserve any editable subProcesses attached to a process node. Omitted prior nodes are removed.',
+    description:'Save the complete active-product Maturity Axis. Read first and supply its revision. Preserve Departments and Industries as simple name lists, plus industryMode and activeIndustry. Departments define Solution Aware Value AEO columns. Industries belong in Solution Aware ICP AEO under Industry Pages. Value AEO shows industryMode only as a read-only label and never receives industry columns. Do not add raw material, input types, descriptions or nested maps. Each system is one maturity row. Supporting nodes do not directly transform the input. Pillars do; mark the newest pillar current and repeated earlier pillars inherited. Record T/P ownership, actor, exactly two features for technology or two skills for people, and preserve any editable subProcesses attached to a process node. Omitted prior nodes are removed.',
     inputSchema:{board_id:z.string(),revision:z.string(),architecture:architectureSchema},
     annotations:{readOnlyHint:false,destructiveHint:true,idempotentHint:false}
   }, async({board_id,revision,architecture})=>{

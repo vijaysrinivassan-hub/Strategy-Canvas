@@ -10,12 +10,10 @@ assert(html.includes("renderMatrixTopicCell(th,col,ro,isValueAeoProcessMatrix?ac
 assert(html.includes("renderMatrixTopicCell(num,topicRow,ro || !!keywordStatusFilter.size,isValueAeoProcessMatrix?activeValueMatrixLens(v):'')"));
 assert(html.includes("state.contentView==='value'&&state.keywordAwareness==='solution-aware'"));
 assert(html.includes('const contentSlots = isValueAeoProcessMatrix ? 4 : 5'));
-assert(html.includes('function valueIndustryMatrixColumns(baseColumns)'));
-assert(html.includes("const industries=config.mode==='single'?[config.active]:config.industries"));
-assert(html.includes("{label:'Departments',count:departments.length,kind:'departments'}"));
-assert(html.includes("{label:'Industries',count:industryColumns.length,kind:'industries'}"));
-assert(html.includes("columns:[...departments,...industryColumns]"));
-assert(html.includes("matrixGroup:'industry'"));
+assert(!html.includes('function valueIndustryMatrixColumns(baseColumns)'));
+assert(html.includes("industryIndicator.textContent=industryConfig.mode==='multi'?'Multi-industry':'Single Industry'"));
+assert(html.includes("industryIndicator.title='Industry mode is controlled in Maturity Axis'"));
+assert(html.includes("className='value-industry-indicator'"));
 assert(html.includes("copy.title='Copy all keywords in the selected value layer'"));
 assert(html.includes("navigator.clipboard.writeText(words.join('\\n'))"));
 assert(html.includes('valueLensKeywords'));

@@ -14,7 +14,7 @@ assert.match(html, /function maturityIndustriesFor\(architecture\)/);
 assert.match(html, /function isAiDataIndustryContext\(architecture\)/);
 assert.match(html, /function maturityIndustryConfiguration\(\)/);
 assert.match(html, /const MATURITY_INDUSTRY_PROMPT/);
-assert.match(html, /architecture\.industryPromptRevision = 2/);
+assert.match(html, /architecture\.industryPromptRevision = 3/);
 assert.match(html, /function renderMaturityDepartments\(architecture, ro\)/);
 for (const department of ['Marketing','Inventory Management','Technical SEO / AEO','Incident Response','GRC'])
   assert.ok(html.includes("'" + department + "'"), 'missing department ' + department);
@@ -56,8 +56,8 @@ assert.match(tools, /industryMode:z\.enum\(\['single','multi'\]\)\.optional\(\)/
 assert.match(tools, /activeIndustry:z\.string\(\)\.optional\(\)/);
 assert.match(tools, /departments:architecture\.departments/);
 assert.match(tools, /Preserve Departments and Industries as simple name lists/);
-assert.match(tools, /Show department columns once, then industry columns/);
-assert.match(tools, /Never duplicate department columns for an industry/);
+assert.match(tools, /Industries belong in Solution Aware ICP AEO under Industry Pages/);
+assert.match(tools, /never receives industry columns/);
 assert.match(tools, /A replacement process can only be selected inside a selected maturity row/);
 assert.match(tools, /section === 'maturity_axis' \? MATURITY_TAB/);
 console.log('maturity axis tests passed');

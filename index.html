@@ -1334,8 +1334,8 @@
   .maturity-industry-mode{display:flex; align-items:center; gap:2px; margin-left:auto; padding:2px; border:1px solid #d4d9d4; background:#f4f6f3}
   .maturity-industry-mode button{padding:5px 9px; border:0; background:transparent; color:#646963; font:inherit; font-size:9px; font-weight:750}
   .maturity-industry-mode button[aria-pressed="true"]{background:#fff; color:#28683d; box-shadow:0 0 0 1px #85bd96}
-  .value-industry-axis{background:#152019!important; color:#e9f6ec!important; border-top-color:#5aa774!important}
-  .value-industry-axis small{display:block; margin-bottom:2px; color:#8bd09d; font-size:7px; letter-spacing:.12em; text-transform:uppercase}
+  .value-industry-indicator{display:inline-flex; align-items:center; width:max-content; margin:8px 12px 0; padding:5px 9px;
+    border:1px solid #9ec7aa; background:#eff8f1; color:#28683d; font-size:9px; font-weight:800; letter-spacing:.04em}
   .arch-selection-tools{display:flex; align-items:center; gap:6px; margin-left:auto; padding-left:12px;
                         border-left:1px solid #d9dfd9}
   .arch-selection-tools span{color:#39744d; font-weight:750}
@@ -8131,6 +8131,10 @@ function ensureSharedUrlCellMappings(){
 }
 function renderValueMatrixLensToolbar(section,view){
   const active=activeValueMatrixLens(view);
+  const industryConfig=maturityIndustryConfiguration();
+  const industryIndicator=document.createElement('span');industryIndicator.className='value-industry-indicator';
+  industryIndicator.textContent=industryConfig.mode==='multi'?'Multi-industry':'Single Industry';
+  industryIndicator.title='Industry mode is controlled in Maturity Axis';section.append(industryIndicator);
   const toolbar=document.createElement('div');toolbar.className='value-lens-toolbar';toolbar.setAttribute('role','group');toolbar.setAttribute('aria-label','Value keyword layer');
   const prompt=document.createElement('p');prompt.className='value-lens-prompt';prompt.textContent=VALUE_MATRIX_LENSES.find(lens=>lens.id===active)?.prompt||'';
   VALUE_MATRIX_LENSES.forEach(lens=>{
@@ -8225,30 +8229,6 @@ function renderMatrixTopicCell(host,holder,ro,keywordLens){
 const KEYWORD_GRID_PAGE_SIZE = 40;
 const keywordGridPages = new Map();
 function keywordGridPageKey(group){ return [state.boardId,state.clientProduct,state.tabs[CONTENT_TAB]?.activeKeywordNodeId || '',state.contentView,keywordMode,group.id].join('|'); }
-function valueIndustryMatrixColumns(baseColumns){
-  const config=maturityIndustryConfiguration();
-  const root=matrixState();
-  const departments=baseColumns.filter(column=>column.matrixGroup==='use');
-  if(!departments.length)return {columns:baseColumns,config,groups:[]};
-  root.industryMatrixColumns ||= [];
-  const industries=config.mode==='single'?[config.active]:config.industries;
-  const industryColumns=industries.map(industry=>{
-    const industryKey=encodeURIComponent(String(industry).trim().toLowerCase());
-    const id='industry:'+industryKey;
-    let column=root.industryMatrixColumns.find(item=>item.id===id);
-    if(!column){
-      column={id,name:industry,matrixGroup:'industry',industry,keywordIdeas:[],local:true};
-      root.industryMatrixColumns.push(column);
-      if(!readOnly())markDirty();
-    }
-    column.name=industry;column.industry=industry;column.matrixGroup='industry';
-    return column;
-  });
-  return {columns:[...departments,...industryColumns],config,groups:[
-    {label:'Departments',count:departments.length,kind:'departments'},
-    {label:'Industries',count:industryColumns.length,kind:'industries'}
-  ]};
-}
 function renderGridTable(v, group, table){
   $('competitorComparison').hidden = true;
   const vd = viewDef(state.contentView);
@@ -8286,8 +8266,6 @@ function renderGridTable(v, group, table){
   if (awarenessSeoMatrix) columns = columns.filter(col => awarenessSeoHeaders.has(String(col.name || '').trim().toLowerCase()));
   const solutionAwareRepositoryMatrix = state.keywordAwareness === 'solution-aware' && isPositioningMatrix && repositoryColumnIds.size > 0;
   if (solutionAwareRepositoryMatrix) columns = columns.filter(col => repositoryColumnIds.has(col.id) || processTaxonomyColumnIds.has(col.id));
-  let valueIndustryLayout={columns,config:maturityIndustryConfiguration(),groups:[]};
-  if(isValueAeoProcessMatrix){valueIndustryLayout=valueIndustryMatrixColumns(columns);columns=valueIndustryLayout.columns;}
   const NUM_W = hasRowAxis ? 310 : 46, COL_W = 310;
   /* Five visible columns includes the left process/sub-process header. */
   const contentSlots = isValueAeoProcessMatrix ? 4 : 5;
@@ -8316,11 +8294,10 @@ function renderGridTable(v, group, table){
     axisRow.className = 'icp-axis-row';
     const corner = matrixCornerActions(() => addGridColumn(group.id), () => addGridRow(group.id), 'Add column', 'Add row');
     corner.rowSpan = 2; corner.classList.add('icp-axis-corner');
-    if(isPositioningMatrix||isValueSeoMatrix){corner.classList.add('icp-matrix-corner');const label=document.createElement('span');label.className='matrix-corner-label';label.textContent=isValueSeoMatrix?'Value topic ↓\nAwareness stage →':isValueAeoProcessMatrix?'Process / sub-process ↓\nDepartment & industry →':state.contentView==='value'&&processTaxonomyRows.length?'Process / sub-process ↓\nDepartment →':state.contentView==='value'?'Process ↓\nValue dimension →':'Department ↓\nICP dimension →';corner.append(label);}
+    if(isPositioningMatrix||isValueSeoMatrix){corner.classList.add('icp-matrix-corner');const label=document.createElement('span');label.className='matrix-corner-label';label.textContent=isValueSeoMatrix?'Value topic ↓\nAwareness stage →':state.contentView==='value'&&processTaxonomyRows.length?'Process / sub-process ↓\nDepartment →':state.contentView==='value'?'Process ↓\nValue dimension →':'Department ↓\nICP dimension →';corner.append(label);}
     axisRow.append(corner);
     const axes = isPositioningMatrix ? (state.contentView==='value' ? (processTaxonomyRows.length?[['use','Departments'],['benefit','Features'],['cap','Capabilities']]:[['use','Processes / Use cases'],['benefit','Nodal benefits'],['cap','Capabilities']]) : [['ind','Industry Pages'],['size','Company Size'],['process','Process / Use Case'],['ctry','Country'],['tech','Technology'],['role','Role / Team']]) : isValueSeoMatrix ? [['problem','Problem-aware'],['solution','Solution-aware'],['product','Product-aware']] : KeywordColumns.ICP_AXIS_ORDER.map(axis=>[axis,KeywordColumns.ICP_AXIS_LABELS[axis]]);
-    if(isValueAeoProcessMatrix)valueIndustryLayout.groups.forEach(item=>{const th=document.createElement('th');th.className='icp-axis-head icp-matrix-axis '+(item.kind==='industries'?'value-industry-axis':'icp-matrix-use');th.colSpan=item.count;th.textContent=item.label;axisRow.append(th);});
-    else for (const [axis, label] of axes){
+    for (const [axis, label] of axes){
         const count = columns.filter(col => isPositioningMatrix ? col.matrixGroup === axis : isValueSeoMatrix ? col.awarenessGroup === axis : (col.axis || KeywordColumns.inferIcpAxis(col.name)) === axis).length;
         if (!count) continue;
         const th = document.createElement('th'); th.className = 'icp-axis-head' + (isPositioningMatrix || isValueSeoMatrix ? ' icp-matrix-axis icp-matrix-' + axis : ''); th.colSpan = count;
@@ -9648,8 +9625,8 @@ dataPlatformArchitecture = function(){
     ], [['model','agent','Governed business context'],['decisionApi','router','Approved decision']]);
 };
 
-const MATURITY_DEPARTMENT_PROMPT = 'Above the maturity rows, add separate Departments and Industries rows. Departments list the operating teams used by the solution matrix. Industries list the markets served. Store whether the product is Single Industry or Multi-industry. The solution matrix shows department columns once, then industry columns: one active industry column in Single Industry mode, or one column per named industry in Multi-industry mode. Do not duplicate department columns for each industry. Do not add raw material, input types, descriptions, maps or nested product sections. AI Data Platform uses E-commerce as its single industry.';
-const MATURITY_INDUSTRY_PROMPT = 'INDUSTRY AXIS: Maturity Axis owns the industry list and the Single Industry / Multi-industry setting. The solution matrix shows department columns once, followed by industry columns. Single Industry adds only the activeIndustry column. Multi-industry adds one column per listed industry. Never repeat the department set for each industry and never invent an industry. AI Data Platform uses E-commerce.';
+const MATURITY_DEPARTMENT_PROMPT = 'Above the maturity rows, add separate Departments and Industries rows. Departments define the horizontal columns in Solution Aware Value AEO. Industries belong in Solution Aware ICP AEO under Industry Pages, not in the Value matrix. Store whether the product is Single Industry or Multi-industry; Value AEO shows that mode only as a read-only label above its department matrix. Do not add raw material, input types, descriptions, maps or nested product sections. AI Data Platform uses E-commerce as its single industry.';
+const MATURITY_INDUSTRY_PROMPT = 'INDUSTRY AXIS: Maturity Axis owns the industry list and the Single Industry / Multi-industry setting. Route the named industries to Solution Aware ICP AEO under Industry Pages. Keep Solution Aware Value AEO department-only and show only a read-only Single Industry or Multi-industry label above it; never add industry columns to Value AEO. AI Data Platform uses E-commerce.';
 const LEGACY_MATURITY_DEPARTMENT_PROMPT = 'Before the maturity rows, define department maps. Each map must name the product or operating model, the core raw material/input, the major input types, and the ordered departments through which that material flows. Keep departments distinct from maturity levels: departments describe where the material moves; maturity rows describe increasingly advanced transformations within a department. For the supplied examples preserve Platform, Agency and SOC Platform maps unless the user requests different maps.';
 const MATURITY_DEPARTMENT_TEMPLATES = {
   platform:['Marketing','Sales / Revenue','Merchandising','Inventory Management','Operations / Fulfilment','Finance','Customer Support'],
@@ -9876,11 +9853,11 @@ if (tab.architectureFeaturePromptRevision !== 1){
       architecture.industryFeatureRevision = 1;
       if (!readOnly()) setTimeout(markDirty,0);
     }
-    if (architecture.industryPromptRevision !== 2){
+    if (architecture.industryPromptRevision !== 3){
       if (typeof tab.aiPrompt === 'string' && !tab.aiPrompt.includes(MATURITY_INDUSTRY_PROMPT)){
         tab.aiPrompt = tab.aiPrompt.trim() + '\n\n' + MATURITY_INDUSTRY_PROMPT;
       }
-      architecture.industryPromptRevision = 2;
+      architecture.industryPromptRevision = 3;
       if (!readOnly()) setTimeout(markDirty,0);
     }
     if (architecture.departmentsVersion !== 2){
