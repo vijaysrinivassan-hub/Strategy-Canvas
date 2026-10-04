@@ -397,7 +397,10 @@
     const mode=viewId==='product'?'aeo':viewId==='category'?(options.mode||'aeo'):(awareness==='solution-aware'?'aeo':'seo');
     const section=sectionFor(viewId,mode);
     const scope=[workspace,awareness,viewId,mode].join(':');
-    const revision=(data().classifiedAt||'classification')+':'+scope+':v14';
+    // Include overlay imports in the persisted migration key. Otherwise a
+    // board that already installed the Saras/base repository incorrectly
+    // treats a newly shipped represented-company import as already applied.
+    const revision=(data().classifiedAt||'classification')+':'+(global.AskLucaKeywordImport?.REVISION||'base')+':'+scope+':v15';
     root.sharedUrlRepositoryRevisions ||= {};
     const view=options.activeView,uid=options.uid||(()=>Math.random().toString(36).slice(2));
     const fixedAiDataValueMatrix=workspace==='ai-data-platform'&&awareness==='solution-aware'&&viewId==='value'&&mode==='aeo';
@@ -412,7 +415,9 @@
       const taxonomyRows=new Map((view.rows||[]).filter(row=>row.pageGroup==='matrix').map(row=>[normalizeName(row.name||row.topicCell?.v),row]));
       const taxonomyColumns=new Map((view.pageColumns?.matrix||[]).map(column=>[normalizeName(column.name),column]));
       let linked=0;
-      records().filter(record=>record.workspace===workspace&&record.awareness===awareness&&record.section===section).forEach(record=>{
+      records().filter(record=>record.workspace===workspace&&record.awareness===awareness&&record.section===section)
+        .sort((a,b)=>Number(b.represented)-Number(a.represented)||a.groupOrder-b.groupOrder)
+        .forEach(record=>{
         const row=taxonomyRows.get(normalizeName(record.hierarchy));
         const column=taxonomyColumns.get(normalizeName(record.axis));
         if(!row||!column)return;
@@ -437,7 +442,9 @@
     clearScopedMappings(view,workspace,awareness,section);
     let linked=0;
     const mappedSlots=new Map();
-    records().filter(record=>record.workspace===workspace&&record.awareness===awareness&&record.section===section).forEach(record=>{
+    records().filter(record=>record.workspace===workspace&&record.awareness===awareness&&record.section===section)
+      .sort((a,b)=>Number(b.represented)-Number(a.represented)||a.groupOrder-b.groupOrder)
+      .forEach(record=>{
       if(record.section==='Corporate & Non-SEO')return;
       const format=pageGroup(record.pageType);if(!format)return;
       const productAwareListicle=['capabilities','features'].includes(normalizeName(record.axis));

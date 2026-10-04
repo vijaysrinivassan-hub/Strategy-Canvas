@@ -66,6 +66,21 @@ assert.equal(routed.size,140);
 assert.equal(routed.get('https://ask-luca.com/blogs/what-is-luca-ai-the-ai-co-founder-for-e-commerce-explained').v,'What Is Luca AI? The AI Co-Founder for E-commerce Explained');
 assert.equal(routed.get('https://ask-luca.com/blogs/luca-ai-vs-wayflyer').st,'written');
 
+// Existing boards may already contain the Saras/base repository revision.
+// The Luca overlay must invalidate that old migration and put represented
+// pages ahead of competitor evidence rather than hiding them on later pages.
+const existingBoard=makeRoot('AI Data Platform');
+existingBoard.sharedUrlRepositoryRevisions={
+  'ai-data-platform:category-aware:product:aeo':`${base.classifiedAt}:ai-data-platform:category-aware:product:aeo:v14`
+};
+repo.installMappings(existingBoard,types,{product:'AI Data Platform',contentView:'product',awareness:'category-aware',mode:'aeo',activeView:existingBoard.views.product,uid:()=>`existing-${++nextId}`,categoryTaxonomy:{primary:['E-commerce Data Analytics'],supporting:['Data Integration & ETL']}});
+const productColumn=existingBoard.views.product.pageColumns.landing.find(column=>column.name==='Product pages');
+const firstProductCell=existingBoard.views.product.rows.filter(row=>row.pageGroup==='landing').map(row=>row.cells?.[productColumn.id]).find(Boolean);
+assert(firstProductCell,'Expected a populated Product pages cell.');
+assert.equal(firstProductCell.url,'https://ask-luca.com/blogs/what-is-luca-ai-the-ai-co-founder-for-e-commerce-explained');
+assert.equal(firstProductCell.st,'written');
+assert(repo.resolve(firstProductCell.repositoryQueries).every(record=>record.represented));
+
 const html=fs.readFileSync(new URL('./index.html',import.meta.url),'utf8');
 assert(html.includes('ask-luca-keyword-import.js?v=represented-content-v1'));
 assert(html.includes("return row?.represented === true"));
