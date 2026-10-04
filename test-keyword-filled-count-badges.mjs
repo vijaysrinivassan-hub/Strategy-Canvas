@@ -45,7 +45,7 @@ vm.runInContext(html.slice(start,end),context);
 const counts = context.keywordFilledCounts();
 assert.deepEqual(JSON.parse(JSON.stringify(counts['problem-unaware'])),{icp:2,value:0,total:2});
 assert.deepEqual(JSON.parse(JSON.stringify(counts['problem-aware'])),{icp:1,value:1,total:2});
-assert.deepEqual(JSON.parse(JSON.stringify(counts['solution-aware'])),{icp:1,value:1,total:2});
+assert.deepEqual(JSON.parse(JSON.stringify(counts['solution-aware'])),{icp:1,value:0,total:1});
 assert.equal(counts.category.total,2);
 assert.equal(counts.competitor.total,2);
 

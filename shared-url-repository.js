@@ -372,10 +372,21 @@
     const mode=viewId==='category'?(options.mode||'aeo'):(awareness==='solution-aware'?'aeo':'seo');
     const section=sectionFor(viewId,mode);
     const scope=[workspace,awareness,viewId,mode].join(':');
-    const revision=(data().classifiedAt||'classification')+':'+scope+':v7';
+    const revision=(data().classifiedAt||'classification')+':'+scope+':v8';
     root.sharedUrlRepositoryRevisions ||= {};
-    if(root.sharedUrlRepositoryRevisions[scope]===revision&&hasScopedMappings(options.activeView,workspace,awareness,section))return false;
     const view=options.activeView,uid=options.uid||(()=>Math.random().toString(36).slice(2));
+    const fixedAiDataValueMatrix=workspace==='ai-data-platform'&&awareness==='solution-aware'&&viewId==='value'&&mode==='aeo';
+    if(fixedAiDataValueMatrix){
+      const before=JSON.stringify({rows:view.rows||[],columns:view.pageColumns?.matrix||[]});
+      clearScopedMappings(view,workspace,awareness,section);
+      view.rows=(view.rows||[]).filter(row=>row.pageGroup!=='matrix'||['process','subprocess'].includes(row.processLevel));
+      const taxonomyColumnIds=new Set((view.rows||[]).filter(row=>row.pageGroup==='matrix').flatMap(row=>Object.keys(row.cells||{})));
+      if(Array.isArray(view.pageColumns?.matrix))view.pageColumns.matrix=view.pageColumns.matrix.filter(column=>taxonomyColumnIds.has(column.id));
+      if(Array.isArray(view.pageOrders?.matrix))view.pageOrders.matrix=view.pageOrders.matrix.filter(id=>taxonomyColumnIds.has(id));
+      root.sharedUrlRepositoryRevisions[scope]=revision;
+      return before!==JSON.stringify({rows:view.rows||[],columns:view.pageColumns?.matrix||[]});
+    }
+    if(root.sharedUrlRepositoryRevisions[scope]===revision&&hasScopedMappings(options.activeView,workspace,awareness,section))return false;
     // Problem Unaware starts as an editable copy of the SEO view. Remove the
     // copied Problem Aware repository cells before installing its own URLs.
     if(awareness==='problem-unaware')clearScopedMappings(view,workspace,'problem-aware',section);

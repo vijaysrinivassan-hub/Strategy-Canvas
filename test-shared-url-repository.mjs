@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import vm from 'node:vm';
 import assert from 'node:assert/strict';
+import Matrix from './ai-data-icp-matrix.js';
 const asset=JSON.parse(fs.readFileSync(new URL('./competitive-intelligence-classifications.json',import.meta.url),'utf8'));
 const source=fs.readFileSync(new URL('./shared-url-repository.js',import.meta.url),'utf8');
 const html=fs.readFileSync(new URL('./index.html',import.meta.url),'utf8');
@@ -21,6 +22,16 @@ assert.equal(repo.resolve([{topicGroup:grouped.topicGroup}],{[grouped.id]:{url:'
 assert.equal(repo.resolve([{topicGroup:grouped.topicGroup}],{[grouped.id]:{deleted:true}}).length,grouped.groupSize-1);
 const root={views:{category:{columns:[],rows:[]},icp:{columns:[],rows:[]},value:{columns:[],rows:[]}}};let n=0;
 const types=[{id:'list',name:'Listicle'},{id:'land',name:'Landing page'},{id:'info',name:'Informational'}];
+
+const aiRoot={views:{category:{columns:[],rows:[]},icp:{columns:[],pageColumns:{matrix:structuredClone(Matrix.data.columns)},pageOrders:{},rows:[]},value:{columns:[],rows:[]}}};
+assert.equal(Matrix.ensure(aiRoot,'AI Data Platform','0jgsw8bx554d'),true);
+const aiValue=aiRoot.views.value;
+aiValue.rows.push({id:'old-repository-topic',pageGroup:'matrix',repositoryWorkspace:'ai-data-platform',cells:{old:{v:'Old URL topic',repositoryQueries:[{workspace:'ai-data-platform',awareness:'solution-aware',section:'Value AEO'}]}}});
+repo.installMappings(aiRoot,types,{product:'AI Data Platform',awareness:'solution-aware',contentView:'value',mode:'aeo',activeView:aiValue,uid:()=>'ai-row-'+(++n)});
+assert.equal(aiValue.rows.filter(row=>row.pageGroup==='matrix').length,15);
+assert(aiValue.rows.filter(row=>row.pageGroup==='matrix').every(row=>['process','subprocess'].includes(row.processLevel)));
+assert.deepEqual(aiValue.pageColumns.matrix.map(column=>column.name),['Marketing','Product','Sales','Finance','Features','Capabilities']);
+
 assert.equal(repo.installMappings(root,types,{product:'Answer Engine Optimization Agency',uid:()=>'row-'+(++n)}),true);
 assert.equal(repo.installMappings(root,types,{product:'Answer Engine Optimization Agency',uid:()=>'row-'+(++n)}),false);
 const cells=Object.values(root.views).flatMap(view=>(view.rows||[]).flatMap(row=>Object.values(row.cells||{})));
