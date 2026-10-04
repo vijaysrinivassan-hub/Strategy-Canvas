@@ -12,8 +12,8 @@ assert.equal(manifest.reviewed,770);
 assert.equal(manifest.read,768);
 assert.equal(manifest.failed.length,2);
 assert.equal(manifest.selected.length,220);
-assert.equal(records.filter(([,meta])=>meta.section==='Category AEO').length,218);
-assert.equal(records.filter(([,meta])=>meta.section==='Category SEO').length,2);
+assert.equal(records.filter(([,meta])=>meta.section==='Category AEO').length,223);
+assert.equal(records.filter(([,meta])=>meta.section==='Category SEO').length,3);
 assert(records.filter(([,meta])=>/^Category /.test(meta.section)).every(([,meta])=>meta.awareness==='category-aware'&&meta.auditStatus==='read'&&meta.auditTitle));
 assert.equal(asset.classifications['https://www.sarasanalytics.com/blog/ecommerce-analytics-software'].axis,'Category name');
 assert.equal(asset.classifications['https://www.sarasanalytics.com/blog/ecommerce-reporting-tools'].axis,'Category synonyms');
@@ -24,7 +24,7 @@ assert(!records.filter(([,meta])=>/^Category /.test(meta.section)).some(([url])=
 
 const source=fs.readFileSync(new URL('./shared-url-repository.js',import.meta.url),'utf8');
 const appSource=fs.readFileSync(new URL('./index.html',import.meta.url),'utf8');
-assert.match(appSource,/shared-url-repository\.js\?v=solution-aware-category-axis-v1/);
+assert.match(appSource,/shared-url-repository\.js\?v=saras-taxonomy-v2/);
 assert.match(appSource,/const categoryMode = state\.contentView === 'category' \? keywordMode : ''/);
 const context=vm.createContext({globalThis:{CompetitiveIntelligenceClassifications:asset},console});
 vm.runInContext(source,context);
@@ -36,7 +36,7 @@ assert.equal(repo.installMappings(rootAeo,types,{product:'AI Data Platform',uid:
 const aeoCells=aeo.rows.flatMap(row=>Object.values(row.cells||{}));
 const mappedAeo=aeoCells.flatMap(cell=>repo.resolve(cell.repositoryQueries||[]));
 const expectedAeo=repo.query({workspace:'ai-data-platform',awareness:'category-aware',section:'Category AEO'});
-assert.equal(mappedAeo.length,218,'Missing: '+expectedAeo.filter(item=>!mappedAeo.some(mapped=>mapped.url===item.url)).map(item=>item.url).join(', '));
+assert.equal(mappedAeo.length,223,'Missing: '+expectedAeo.filter(item=>!mappedAeo.some(mapped=>mapped.url===item.url)).map(item=>item.url).join(', '));
 assert(aeo.pageColumns.listicle.some(column=>column.name==='Category name'));
 assert(aeo.pageColumns.listicle.some(column=>column.name==='Category synonyms'));
 assert(aeo.pageColumns.landing.some(column=>column.name==='Feature pages'));
@@ -50,15 +50,15 @@ assert.equal(repo.installMappings(rootAeo,types,{product:'AI Data Platform',uid:
 const toggledCells=aeo.rows.flatMap(row=>Object.values(row.cells||{}));
 const toggledAeo=toggledCells.filter(cell=>cell.mode==='aeo').flatMap(cell=>repo.resolve(cell.repositoryQueries||[]));
 const toggledSeo=toggledCells.filter(cell=>cell.mode==='seo').flatMap(cell=>repo.resolve(cell.repositoryQueries||[]));
-assert.equal(toggledAeo.length,218);
-assert.equal(toggledSeo.length,2);
+assert.equal(toggledAeo.length,223);
+assert.equal(toggledSeo.length,3);
 assert(toggledAeo.every(item=>item.section==='Category AEO'));
 assert(toggledSeo.every(item=>item.section==='Category SEO'));
 
 const seo=make(),rootSeo={views:{category:seo,icp:make(),value:make()}};
 assert.equal(repo.installMappings(rootSeo,types,{product:'AI Data Platform',uid:()=>`seo-${++n}`,contentView:'category',mode:'seo',activeView:seo}),true);
 const seoCells=seo.rows.flatMap(row=>Object.values(row.cells||{}));
-assert.equal(seoCells.flatMap(cell=>repo.resolve(cell.repositoryQueries||[])).length,2);
+assert.equal(seoCells.flatMap(cell=>repo.resolve(cell.repositoryQueries||[])).length,3);
 assert.match(KeywordColumns.strategyPrompt,/Read each source page itself/);
 
 console.log('PASS: all 770 Saras pages were audited and 220 genuine category pages populate AI Data Platform Category Aware without competitor leakage.');

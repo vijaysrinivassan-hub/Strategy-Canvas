@@ -4,7 +4,7 @@ import KeywordColumns from './keyword-columns.js';
 const prompt = KeywordColumns.strategyPrompt;
 const seeded = KeywordColumns.seed();
 
-assert.equal(KeywordColumns.PROMPT_REVISION, 'keyword-taxonomy-v10');
+assert.equal(KeywordColumns.PROMPT_REVISION, 'keyword-taxonomy-v11');
 for (const phrase of [
   'ICP SEO MATRIX — ALL CLIENTS AND PRODUCTS',
   'true two-axis matrix',
@@ -30,5 +30,8 @@ assert.ok(prompt.includes('Category synonyms contains equivalent category roundu
 assert.ok(prompt.includes('SOLUTION AWARE MATRICES'));
 assert.ok(prompt.includes('actual flagship category'));
 assert.ok(prompt.includes('never copy an AI Layer product into Capital Layer'));
+assert.ok(prompt.includes('ICP AEO and Value AEO accept only genuine listicles and commercial landing pages'));
+assert.ok(prompt.includes('agencies are Role / Team, enterprise is Company Size'));
+assert.ok(prompt.includes('thank-you, confirmation, utility'));
 
 console.log('PASS: every client inherits the hierarchical two-axis ICP SEO matrix prompt.');

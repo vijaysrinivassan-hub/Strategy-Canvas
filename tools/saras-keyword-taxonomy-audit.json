@@ -1,0 +1,29 @@
+{
+  "revision": "saras-keyword-taxonomy-v1",
+  "auditedAt": "2026-10-04T00:49:23.364Z",
+  "reviewed": 770,
+  "read": 768,
+  "moves": [
+    {
+      "url": "https://www.sarasanalytics.com/blog/saras-pulse-vs-triple-whale",
+      "before": "Competitor AEO|Comparison|Triple Whale|Competitor vs Competitor|",
+      "after": "Competitor AEO|Comparison|Triple Whale / Moby AI|Competitor vs Competitor|"
+    }
+  ],
+  "counts": {
+    "Category AEO": 223,
+    "Corporate & Non-SEO": 15,
+    "Value AEO": 8,
+    "Competitor AEO": 47,
+    "ICP AEO": 12,
+    "Value SEO": 142,
+    "ICP SEO": 320,
+    "Category SEO": 3
+  },
+  "rules": {
+    "comparison": "Direct vendor-vendor URLs live only in Competitor vs Competitor.",
+    "utility": "Thank-you and utility pages are Corporate & Non-SEO.",
+    "aeo": "ICP AEO and Value AEO accept only Listicle or Landing page.",
+    "icp": "Industry, Company size, Role / Team and Technology are independent; every ICP AEO URL has an explicit segment."
+  }
+}

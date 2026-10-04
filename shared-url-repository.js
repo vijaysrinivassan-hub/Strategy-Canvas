@@ -364,7 +364,7 @@
     const mode=viewId==='category'?(options.mode||'aeo'):(awareness==='solution-aware'?'aeo':'seo');
     const section=sectionFor(viewId,mode);
     const scope=[workspace,awareness,viewId,mode].join(':');
-    const revision=(data().classifiedAt||'classification')+':'+scope+':v5';
+    const revision=(data().classifiedAt||'classification')+':'+scope+':v6';
     root.sharedUrlRepositoryRevisions ||= {};
     if(root.sharedUrlRepositoryRevisions[scope]===revision&&hasScopedMappings(options.activeView,workspace,awareness,section))return false;
     const view=options.activeView,uid=options.uid||(()=>Math.random().toString(36).slice(2));
@@ -373,7 +373,7 @@
     if(awareness==='problem-unaware')clearScopedMappings(view,workspace,'problem-aware',section);
     clearScopedMappings(view,workspace,awareness,section);
     let linked=0;
-    const solutionSlots=new Map();
+    const mappedSlots=new Map();
     records().filter(record=>record.workspace===workspace&&record.awareness===awareness&&record.section===section).forEach(record=>{
       if(record.section==='Corporate & Non-SEO')return;
       const format=pageGroup(record.pageType);if(!format)return;
@@ -388,8 +388,11 @@
       const rowSuperHierarchy=isAiDataSolution?'Category':
         viewId==='icp'&&mode==='seo'?(record.hierarchy||'General ICP'):(viewId==='icp'?record.hierarchy:undefined);
       const slotKey=[group,rowHierarchy,column.id].join('|');
-      const rowSlot=isAiDataSolution?(solutionSlots.get(slotKey)||0):record.groupOrder;
-      if(isAiDataSolution)solutionSlots.set(slotKey,rowSlot+1);
+      // Source groupOrder can restart when several source dimensions collapse
+      // into the same rendered axis. Allocate after projection so one URL can
+      // never overwrite another at the same row/column intersection.
+      const rowSlot=mappedSlots.get(slotKey)||0;
+      mappedSlots.set(slotKey,rowSlot+1);
       const row=ensureRow(view,group,rowHierarchy,rowSlot,uid,rowSuperHierarchy);
       row.repositoryWorkspace=workspace;
       const current=row.cells[column.id]&&typeof row.cells[column.id]==='object'?row.cells[column.id]:{};

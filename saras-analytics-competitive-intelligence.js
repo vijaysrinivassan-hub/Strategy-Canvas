@@ -1,7 +1,7 @@
 /* Board-scoped Saras Analytics sitemap import for Competitive Intelligence. */
 (function(root){
   'use strict';
-  const REVISION='saras-analytics-sitemap-2026-10-04-v5';
+  const REVISION='saras-analytics-sitemap-2026-10-04-v6';
   const FOCAL_COMPETITOR='Saras Analytics';
   const normalize=value=>String(value||'').trim().toLowerCase().replace(/\/$/,'');
   const comparisonName=value=>normalize(value)==='triple whale / moby ai'?'Triple Whale':String(value||'').trim();
