@@ -34,12 +34,13 @@ assert.deepEqual(aiValue.pageColumns['value-overview'].map(column=>column.name),
 assert.deepEqual(aiValue.pageColumns.matrix.map(column=>column.name),['Marketing','Product','Sales','Finance']);
 assert(aiValue.rows.findIndex(row=>row.pageGroup==='value-overview')<aiValue.rows.findIndex(row=>row.pageGroup==='matrix'));
 const aiValueCells=aiValue.rows.flatMap(row=>Object.values(row.cells||{}));
-assert.equal(new Set(aiValueCells.flatMap(cell=>repo.resolve(cell.repositoryQueries||[])).map(record=>record.url)).size,16);
+assert.equal(new Set(aiValueCells.flatMap(cell=>repo.resolve(cell.repositoryQueries||[])).map(record=>record.url)).size,17);
 assert(aiValueCells.filter(cell=>cell.repositoryQueries?.length).every(cell=>cell.st==='for_review'));
 const overviewUrls=aiValue.rows.filter(row=>row.pageGroup==='value-overview').flatMap(row=>Object.values(row.cells||{})).flatMap(cell=>repo.resolve(cell.repositoryQueries||[]));
 assert.equal(new Set(overviewUrls.map(record=>record.url)).size,5);
 
-assert.equal(repo.installMappings(root,types,{product:'Answer Engine Optimization Agency',uid:()=>'row-'+(++n)}),true);
+const categoryTaxonomy={primary:['Technical SEO / AEO'],supporting:['Content','Digital PR / Authority','Analytics & Reporting']};
+assert.equal(repo.installMappings(root,types,{product:'Answer Engine Optimization Agency',uid:()=>'row-'+(++n),categoryTaxonomy}),true);
 assert.equal(repo.installMappings(root,types,{product:'Answer Engine Optimization Agency',uid:()=>'row-'+(++n)}),false);
 const cells=Object.values(root.views).flatMap(view=>(view.rows||[]).flatMap(row=>Object.values(row.cells||{})));
 assert(cells.length>0);assert(cells.every(cell=>cell.repositoryQueries?.length));
@@ -70,10 +71,17 @@ assert.equal(new Set(linkedUrls.filter(row=>row.section==='ICP AEO').map(row=>ro
 const icpTopicRoutes=new Map();
 for(const row of root.views.icp.rows)for(const [columnId,cell] of Object.entries(row.cells||{}))for(const query of cell.repositoryQueries||[]){if(!query.section?.startsWith('ICP '))continue;if(!icpTopicRoutes.has(query.topicGroup))icpTopicRoutes.set(query.topicGroup,new Set());icpTopicRoutes.get(query.topicGroup).add([query.section,row.repositorySuperHierarchy||row.repositoryHierarchy,row.repositoryHierarchy,columnId].join('|'));}
 assert([...icpTopicRoutes.values()].every(routes=>routes.size===1));
-const categoryDepartments=['Strategy & Research','Account Management','Technical SEO / AEO','Content','Digital PR / Authority','Analytics & Reporting','Client Success'];
+const processDepartments=['Strategy & Research','Account Management','Technical SEO / AEO','Content','Digital PR / Authority','Analytics & Reporting','Client Success'];
+const categoryDepartments=['Technical SEO / AEO','Analytics & Reporting','Content','Digital PR / Authority'];
 const icpAeoRows=root.views.icp.rows.filter(row=>row.pageGroup==='matrix'&&row.repositoryHierarchy);
-assert.deepEqual([...new Set(icpAeoRows.map(row=>row.repositoryHierarchy))],categoryDepartments);
-for(const group of ['listicle','informational'])assert.deepEqual([...new Set(root.views.category.rows.filter(row=>row.pageGroup===group).map(row=>row.repositoryHierarchy))],categoryDepartments);
+assert.deepEqual([...new Set(icpAeoRows.map(row=>row.repositoryHierarchy))],processDepartments);
+for(const group of ['listicle','informational']){
+ const categoryRows=root.views.category.rows.filter(row=>row.pageGroup===group&&row.repositoryHierarchy);
+ assert.equal(categoryRows[0].repositorySuperHierarchy,'Prime category');
+ assert.equal(categoryRows[0].repositoryHierarchy,'Technical SEO / AEO');
+ assert(categoryRows.every(row=>categoryDepartments.includes(row.repositoryHierarchy)));
+ assert(categoryRows.every(row=>row.repositoryHierarchy!=='Strategy & Research'));
+}
 assert(root.views.product.rows.some(row=>row.pageGroup==='landing'&&row.repositoryHierarchy));
 assert(root.views.product.rows.filter(row=>row.pageGroup==='landing').every(row=>categoryDepartments.includes(row.repositoryHierarchy)));
 const categoryUrls=root.views.category.rows.flatMap(row=>Object.values(row.cells||{})).flatMap(cell=>repo.resolve(cell.repositoryQueries||[]));
@@ -104,13 +112,13 @@ for(const view of [root.views.icp,root.views.value])assert((view.pageColumns?.ma
 const editedCell=cells.find(cell=>cell.repositoryQueries?.[0]?.topicGroup),editedGroup=editedCell.repositoryQueries[0].topicGroup;
 const editedRows=repo.resolve(editedCell.repositoryQueries),editedExpectedStatus=editedRows.some(row=>row.covered)?'written':editedRows.length>2?'plus_2':'for_review';
 editedCell.v='Edited title';editedCell.st='planned';editedCell.repositoryUrlOverrides={[repo.resolve(editedCell.repositoryQueries)[0].id]:{url:'https://edited.example/preserved',traffic:'7'}};
-root.sharedUrlRepositoryRevision='force-repack';assert.equal(repo.installMappings(root,types,{product:'Answer Engine Optimization Agency',uid:()=>'repack-'+(++n)}),true);
+root.sharedUrlRepositoryRevision='force-repack';assert.equal(repo.installMappings(root,types,{product:'Answer Engine Optimization Agency',uid:()=>'repack-'+(++n),categoryTaxonomy}),true);
 const repacked=Object.values(root.views).flatMap(view=>(view.rows||[]).flatMap(row=>Object.values(row.cells||{}))).find(cell=>cell.repositoryQueries?.some(query=>query.topicGroup===editedGroup));
 assert.equal(repacked.v,'Edited title');assert.equal(repacked.st,editedExpectedStatus);assert.equal(Object.values(repacked.repositoryUrlOverrides)[0].url,'https://edited.example/preserved');
 assert(root.views.value.rows.filter(row=>row.pageGroup==='matrix').every(row=>Object.values(row.cells).every(cell=>cell.mode==='aeo')));
 assert(root.views.value.rows.filter(row=>row.pageGroup==='informational').every(row=>Object.values(row.cells).every(cell=>cell.mode==='seo')));
 const aliasRoot={views:{product:{columns:[],rows:[]},category:{columns:[],pageColumns:{listicle:[{id:'existing-category',name:'Category Names'}]},rows:[{id:'blank',pageGroup:'listicle',cells:{}}]},icp:{columns:[],rows:[]},value:{columns:[],rows:[]}},sharedUrlRepositoryRevision:'old:existing-cells-v1'};
-assert.equal(repo.installMappings(aliasRoot,types,{product:'Answer Engine Optimization Agency',uid:()=>'alias-'+(++n)}),true);
+assert.equal(repo.installMappings(aliasRoot,types,{product:'Answer Engine Optimization Agency',uid:()=>'alias-'+(++n),categoryTaxonomy}),true);
 assert(aliasRoot.views.category.rows.find(row=>row.pageGroup==='listicle'&&row.repositoryHierarchy).cells['existing-category']?.repositoryQueries?.length);
 assert.equal(aliasRoot.views.category.pageColumns.listicle.some(column=>column.id==='shared-url-col-category-listicle-category-name'),false);
 assert(!html.includes('Corporate & Non-SEO\', noun: \'URL\', kind: \'shared'));

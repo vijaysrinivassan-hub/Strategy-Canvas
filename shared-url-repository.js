@@ -161,17 +161,29 @@
     })));
     return saved;
   }
-  const CATEGORY_DEPARTMENT_ORDER=['Strategy & Research','Account Management','Technical SEO / AEO','Content','Digital PR / Authority','Analytics & Reporting','Client Success'];
-  const categoryDepartment=record=>{
-    const name=normalizeName(record.hierarchy);
-    if(/digital pr|link building|backlink|authority/.test(name))return 'Digital PR / Authority';
-    if(/analytics|measurement|conversion rate|reporting/.test(name))return 'Analytics & Reporting';
-    if(/content marketing|seo content|copywriting|editorial/.test(name))return 'Content';
-    if(/revops|crm|account management/.test(name))return 'Account Management';
-    if(/answer engine|aeo|technical seo|programmatic seo|seo and aeo tools|search engine optimization/.test(name))return 'Technical SEO / AEO';
-    if(/client success|customer success/.test(name))return 'Client Success';
-    return 'Strategy & Research';
+  const PROCESS_DEPARTMENT_ORDER=['Strategy & Research','Account Management','Technical SEO / AEO','Content','Digital PR / Authority','Analytics & Reporting','Client Success'];
+  const categoryTerms=value=>new Set(normalizeName(value).split(' ').filter(word=>word.length>2&&!['and','the','for','with'].includes(word)));
+  const categoryMatch=(left,right)=>{
+    const a=normalizeName(left),b=normalizeName(right);if(!a||!b)return false;
+    if(a===b||a.includes(b)||b.includes(a))return true;
+    const at=categoryTerms(a),bt=categoryTerms(b),shared=[...at].filter(word=>bt.has(word));
+    return shared.length>=Math.min(2,at.size,bt.size);
   };
+  const categoryPlacement=(record,options,workspace)=>{
+    const source=String(record.hierarchy||'').trim()||'Category';
+    const taxonomy=options?.categoryTaxonomy||{};
+    const primary=(taxonomy.primary||[]).map(String).map(value=>value.trim()).filter(Boolean);
+    const supporting=(taxonomy.supporting||[]).map(String).map(value=>value.trim()).filter(Boolean);
+    if(workspace==='ai-data-platform'){
+      if(/data integration|\betl\b|ingestion/.test(normalizeName(source)))return {hierarchy:'Data Integration & ETL',superHierarchy:'Supporting process'};
+      return {hierarchy:primary[0]||'Data Analysis',superHierarchy:'Prime category'};
+    }
+    const support=supporting.find(value=>categoryMatch(source,value));
+    if(support)return {hierarchy:support,superHierarchy:'Supporting process'};
+    const prime=primary.find(value=>categoryMatch(source,value))||primary[0];
+    return {hierarchy:prime||source,superHierarchy:'Prime category'};
+  };
+  const categoryRowRank=row=>row.repositorySuperHierarchy==='Prime category'?0:row.repositorySuperHierarchy==='Supporting process'?1:2;
   const usesRepositoryAxis=(viewId,group)=>viewId==='category'||(viewId==='icp'&&(group==='informational'||group==='matrix'))||(viewId==='value'&&group==='informational');
   const ICP_DIMENSION_ORDER=['Industry','Company size','Process / Use case','Country','Technology','Role / Team','General ICP'];
   const ICP_MATRIX_GROUP_ORDER=['ind','size','process','ctry','tech','role'];
@@ -215,7 +227,7 @@
     return 'Strategy & Research';
   };
   const icpDimensionValue=(record,dimension)=>{const name=normalizeName(dimension);if(/industry/.test(name))return industryValue(record);if(/company size/.test(name))return companySizeValue(record);if(/process|use case/.test(name))return processDepartment(record);return dimension||'General ICP';};
-  const childOrder=(group,value)=>{if(group==='size')return ['SMB','Mid-market','Enterprise'].indexOf(value);if(group==='process')return CATEGORY_DEPARTMENT_ORDER.indexOf(value);if(group==='ind'){const index=INDUSTRY_ORDER.indexOf(value);return index<0?INDUSTRY_ORDER.length:index;}return 0;};
+  const childOrder=(group,value)=>{if(group==='size')return ['SMB','Mid-market','Enterprise'].indexOf(value);if(group==='process')return PROCESS_DEPARTMENT_ORDER.indexOf(value);if(group==='ind'){const index=INDUSTRY_ORDER.indexOf(value);return index<0?INDUSTRY_ORDER.length:index;}return 0;};
   const valueSeoAwarenessGroup=axis=>{const name=normalizeName(axis);if(/topic vs topic|topic versus topic/.test(name))return 'product';if(/guide|how to/.test(name))return 'solution';return 'problem';};
   const awarenessForGroup=group=>group==='product'?'Product aware':group==='solution'?'Solution aware':'Problem aware';
   function mappedRowsFirst(view,viewId){
@@ -234,11 +246,10 @@
         if(mapped)return mapped;
         if(usesRepositoryAxis(viewId,group)&&a.repositoryHierarchy&&b.repositoryHierarchy){
           if(viewId==='category'||viewId==='product'){
-            const ar=CATEGORY_DEPARTMENT_ORDER.indexOf(a.repositoryHierarchy),br=CATEGORY_DEPARTMENT_ORDER.indexOf(b.repositoryHierarchy);
-            return (ar<0?999:ar)-(br<0?999:br)||Number(a.repositoryRowSlot||0)-Number(b.repositoryRowSlot||0);
+            return categoryRowRank(a)-categoryRowRank(b)||String(a.repositoryHierarchy).localeCompare(String(b.repositoryHierarchy))||Number(a.repositoryRowSlot||0)-Number(b.repositoryRowSlot||0);
           }
           if(viewId==='value')return String(a.repositoryHierarchy).localeCompare(String(b.repositoryHierarchy))||Number(a.repositoryRowSlot||0)-Number(b.repositoryRowSlot||0);
-          if(group==='matrix'){const ar=CATEGORY_DEPARTMENT_ORDER.indexOf(a.repositoryHierarchy),br=CATEGORY_DEPARTMENT_ORDER.indexOf(b.repositoryHierarchy);return (ar<0?999:ar)-(br<0?999:br)||Number(a.repositoryRowSlot||0)-Number(b.repositoryRowSlot||0);}
+          if(group==='matrix'){const ar=PROCESS_DEPARTMENT_ORDER.indexOf(a.repositoryHierarchy),br=PROCESS_DEPARTMENT_ORDER.indexOf(b.repositoryHierarchy);return (ar<0?999:ar)-(br<0?999:br)||Number(a.repositoryRowSlot||0)-Number(b.repositoryRowSlot||0);}
           const ag=a.repositorySuperHierarchy||a.repositoryHierarchy,bg=b.repositorySuperHierarchy||b.repositoryHierarchy;
           const ar=ICP_DIMENSION_ORDER.indexOf(ag),br=ICP_DIMENSION_ORDER.indexOf(bg);
           if(ar!==br)return (ar<0?999:ar)-(br<0?999:br);
@@ -330,8 +341,9 @@
       const column=ensureColumn(viewId,view,group,columnName,mode,types);
       if(viewId==='icp'&&group==='matrix'){column.matrixGroup=matrixGroup('icp',sourceDimension);column.repositoryDimension=sourceDimension;}
       if(viewId==='value'&&mode==='seo'){column.awarenessGroup=valueSeoAwarenessGroup(record.axis);column.repositoryAwareness=awarenessForGroup(column.awarenessGroup);}
-      const rowHierarchy=(viewId==='category'||viewId==='product')?categoryDepartment(record):viewId==='icp'&&mode==='aeo'?processDepartment(record):viewId==='icp'&&mode==='seo'?dimensionValue:record.hierarchy;
-      const rowSuperHierarchy=viewId==='icp'&&mode==='seo'?sourceDimension:undefined;
+      const category=categoryPlacement(record,options,workspace);
+      const rowHierarchy=(viewId==='category'||viewId==='product')?category.hierarchy:viewId==='icp'&&mode==='aeo'?processDepartment(record):viewId==='icp'&&mode==='seo'?dimensionValue:record.hierarchy;
+      const rowSuperHierarchy=(viewId==='category'||viewId==='product')?category.superHierarchy:viewId==='icp'&&mode==='seo'?sourceDimension:undefined;
       const row=ensureRow(view,group,rowHierarchy,record.groupOrder,uid,rowSuperHierarchy);
       const current=row.cells[column.id]&&typeof row.cells[column.id]==='object'?row.cells[column.id]:{};
       const saved=preserved.get(record.topicGroup)||{};
@@ -343,18 +355,13 @@
       row.cells[column.id]={...current,...saved,v:saved.v||current.v||record.topic||record.hierarchy,url:saved.url||current.url||maximusUrl,mode,type:saved.type||current.type||typeId(types,format),aw:saved.aw||current.aw||awareness,cfg:true,repositoryQueries:queries};linked++;
     });
     Object.entries(root.views).forEach(([viewId,view])=>compactRepositoryCells(view,viewId));
-    const categoryView=root.views.category;
-    if(categoryView)for(const group of ['listicle','landing','informational']){
-      if(!(categoryView.rows||[]).some(row=>row.pageGroup===group&&row.repositoryHierarchy))continue;
-      CATEGORY_DEPARTMENT_ORDER.forEach(department=>ensureRow(categoryView,group,department,0,uid));
-    }
     const icpView=root.views.icp;
     if(icpView){
       ['SMB','Mid-market','Enterprise'].forEach(value=>ensureRow(icpView,'informational',value,0,uid,'Company size'));
-      CATEGORY_DEPARTMENT_ORDER.forEach(value=>ensureRow(icpView,'informational',value,0,uid,'Process / Use case'));
-      CATEGORY_DEPARTMENT_ORDER.forEach(value=>ensureRow(icpView,'matrix',value,0,uid));
+      PROCESS_DEPARTMENT_ORDER.forEach(value=>ensureRow(icpView,'informational',value,0,uid,'Process / Use case'));
+      PROCESS_DEPARTMENT_ORDER.forEach(value=>ensureRow(icpView,'matrix',value,0,uid));
       for(const value of ['SMB','Mid-market','Enterprise']){const column=ensureColumn('icp',icpView,'matrix',value,'aeo',types);column.matrixGroup='size';column.repositoryDimension='Company size';}
-      for(const value of CATEGORY_DEPARTMENT_ORDER){const column=ensureColumn('icp',icpView,'matrix',value,'aeo',types);column.matrixGroup='process';column.repositoryDimension='Process / Use case';}
+      for(const value of PROCESS_DEPARTMENT_ORDER){const column=ensureColumn('icp',icpView,'matrix',value,'aeo',types);column.matrixGroup='process';column.repositoryDimension='Process / Use case';}
       sortIcpMatrixColumns(icpView);
     }
     if(root.views.value)sortValueSeoColumns(root.views.value);
@@ -379,7 +386,7 @@
     const mode=viewId==='product'?'aeo':viewId==='category'?(options.mode||'aeo'):(awareness==='solution-aware'?'aeo':'seo');
     const section=sectionFor(viewId,mode);
     const scope=[workspace,awareness,viewId,mode].join(':');
-    const revision=(data().classifiedAt||'classification')+':'+scope+':v11';
+    const revision=(data().classifiedAt||'classification')+':'+scope+':v12';
     root.sharedUrlRepositoryRevisions ||= {};
     const view=options.activeView,uid=options.uid||(()=>Math.random().toString(36).slice(2));
     const fixedAiDataValueMatrix=workspace==='ai-data-platform'&&awareness==='solution-aware'&&viewId==='value'&&mode==='aeo';
@@ -442,9 +449,10 @@
         isAiDataSolution&&viewId==='value'?'Capabilities':(record.axis||'General');
       const column=ensureColumn(viewId,view,group,columnName,mode,types);
       if(group==='matrix')column.matrixGroup=isAiDataSolution&&viewId==='value'?'cap':matrixGroup(viewId,record.hierarchy);
-      const rowHierarchy=viewId==='product'?categoryDepartment(record):isAiDataSolution?'E-commerce Data Analytics':
+      const category=categoryPlacement(record,options,workspace);
+      const rowHierarchy=(viewId==='product'||viewId==='category')?category.hierarchy:isAiDataSolution?'E-commerce Data Analytics':
         viewId==='icp'&&mode==='seo'?(record.icpSegment||record.hierarchy||'General ICP'):(record.hierarchy||'General');
-      const rowSuperHierarchy=isAiDataSolution?'Category':
+      const rowSuperHierarchy=(viewId==='product'||viewId==='category')?category.superHierarchy:isAiDataSolution?'Category':
         viewId==='icp'&&mode==='seo'?(record.hierarchy||'General ICP'):(viewId==='icp'?record.hierarchy:undefined);
       const slotKey=[group,rowHierarchy,column.id].join('|');
       // Source groupOrder can restart when several source dimensions collapse

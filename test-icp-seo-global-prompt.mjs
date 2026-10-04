@@ -4,7 +4,7 @@ import KeywordColumns from './keyword-columns.js';
 const prompt = KeywordColumns.strategyPrompt;
 const seeded = KeywordColumns.seed();
 
-assert.equal(KeywordColumns.PROMPT_REVISION, 'keyword-taxonomy-v12');
+assert.equal(KeywordColumns.PROMPT_REVISION, 'keyword-taxonomy-v15');
 for (const phrase of [
   'ICP SEO MATRIX — ALL CLIENTS AND PRODUCTS',
   'true two-axis matrix',
@@ -25,8 +25,11 @@ assert.ok(KeywordColumns.comparisonRouting.includes('move that URL and its metad
 assert.ok(KeywordColumns.comparisonRouting.includes('without content keeps the empty Status placeholder and remains white'));
 assert.ok(prompt.includes('CATEGORY AWARE'));
 assert.ok(prompt.includes('never decide from the URL slug alone'));
-assert.ok(prompt.includes('Category name contains roundups using the primary category wording'));
+assert.ok(prompt.includes('Category name contains roundups using the prime category wording'));
 assert.ok(prompt.includes('Category synonyms contains equivalent category roundups'));
+assert.ok(prompt.includes('selected pillar-process card is the Prime category'));
+assert.ok(prompt.includes('label it Supporting process'));
+assert.ok(prompt.includes('Strategy & Research is not a category'));
 assert.ok(prompt.includes('SOLUTION AWARE MATRICES'));
 assert.ok(prompt.includes('actual flagship category'));
 assert.ok(prompt.includes('never copy an AI Layer product into Capital Layer'));

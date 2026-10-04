@@ -3031,7 +3031,7 @@
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="keyword-assignments.js"></script>
 <script src="keyword-page-tables.js"></script>
-<script src="keyword-columns.js?v=product-page-routing-v14"></script>
+<script src="keyword-columns.js?v=maturity-category-taxonomy-v15"></script>
 <script src="ai-data-icp-matrix.js?v=value-aeo-process-routing-v5"></script>
 <script src="keyword-columns-ui.js"></script>
 <script src="high-priority-links.js"></script>
@@ -3042,7 +3042,7 @@
 <script src="ask-luca-competitive-intelligence.js"></script>
 <script src="saras-analytics-competitive-intelligence.js?v=saras-taxonomy-v2"></script>
 <script src="competitive-intelligence.js"></script>
-<script src="shared-url-repository.js?v=product-aware-top-v7"></script>
+<script src="shared-url-repository.js?v=maturity-category-taxonomy-v12"></script>
 <link rel="stylesheet" href="icp-workflows.css">
 <script src="icp-workflows.js"></script>
 <link rel="stylesheet" href="icp-table.css">
@@ -6724,6 +6724,38 @@ function selectedMaturityKeywordNodes(){
     order:(systemOrder.get(node.systemId) ?? 999) * 1000 + index
   })).sort((a,b) => a.order - b.order);
 }
+function selectedMaturityCategoryTaxonomy(){
+  const architecture = state.tabs[MATURITY_ACCESS_TAB]?.architecture;
+  if (!architecture || !Array.isArray(architecture.nodes)) return {primary:[],supporting:[]};
+  const context = (String(state.client || '') + ' ' + String(state.clientProduct || '') + ' ' +
+    String(architecture.name || '')).toLowerCase();
+  const canonicalName = node => {
+    const name = String((typeof maturityProcessName === 'function' ? maturityProcessName(node) : node?.label) || '').trim();
+    if (/ai data platform|data analytics/.test(context)){
+      if (/^analysis$/i.test(name)) return 'Data Analysis';
+      if (/ingestion|\betl\b|data integration/i.test(name)) return 'Data Integration & ETL';
+    }
+    return name;
+  };
+  const systems = (architecture.systems || []).filter(system => system.selected === true);
+  const activeNodeId = String(state.tabs[CONTENT_TAB]?.activeKeywordNodeId || '');
+  const activeNode = architecture.nodes.find(node => String(node.id) === activeNodeId && node.replacementSelected === true);
+  const systemIds = new Set(activeNode ? [activeNode.systemId] : systems.map(system => system.id));
+  const inScope = architecture.nodes.filter(node => systemIds.has(node.systemId));
+  const checked = activeNode ? [activeNode] : inScope.filter(node => node.replacementSelected === true);
+  let primeNodes = checked.filter(node => node.processRole === 'pillar');
+  if (!primeNodes.length) primeNodes = inScope.filter(node => node.processRole === 'pillar' && node.pillarState === 'current');
+  if (!primeNodes.length) primeNodes = checked;
+  const unique = values => [...new Set(values.map(value => String(value || '').trim()).filter(Boolean))];
+  const primary = unique(primeNodes.map(canonicalName));
+  const supporting = unique(inScope.filter(node => node.processRole === 'supporting').map(canonicalName))
+    .filter(name => !primary.includes(name));
+  if (/ai data platform|data analytics/.test(context)){
+    if (!primary.length) primary.push('Data Analysis');
+    if (!supporting.includes('Data Integration & ETL')) supporting.unshift('Data Integration & ETL');
+  }
+  return {primary,supporting};
+}
 function cloneKeywordNodeProjection(source){
   return JSON.parse(JSON.stringify({
     views:source?.views && typeof source.views === 'object' ? source.views : {},
@@ -7969,7 +8001,7 @@ function ensureSharedUrlCellMappings(){
   sharedUrlMappingPending = window.SharedUrlRepository.load().then(function(){
     const board = state.boardId;
     const activeView = ['product','category','icp','value'].includes(state.contentView) ? matrixState() : null;
-    const changed = window.SharedUrlRepository.installMappings(contentRoot(), articleTypes(), {product:repositoryContext,uid,awareness:state.keywordAwareness||'problem-aware',contentView:state.contentView,mode:keywordMode,activeView});
+    const changed = window.SharedUrlRepository.installMappings(contentRoot(), articleTypes(), {product:repositoryContext,uid,awareness:state.keywordAwareness||'problem-aware',contentView:state.contentView,mode:keywordMode,activeView,categoryTaxonomy:selectedMaturityCategoryTaxonomy()});
     const firstReadyPaint = sharedUrlRepositoryReadyFor !== mappingKey;
     sharedUrlRepositoryReadyFor = mappingKey;
     if (changed && !readOnly()) markDirty();
@@ -8067,7 +8099,7 @@ function renderGridTable(v, group, table){
   const isIcpMatrix = state.contentView === 'icp' && isPositioningMatrix;
   const isIcpSeoMatrix = (state.contentView === 'icp' && keywordMode === 'seo' && group.id === 'informational') || state.contentView === 'category';
   const isValueSeoMatrix = state.contentView === 'value' && keywordMode === 'seo' && group.id === 'informational';
-  const repositoryAxisFallback = state.contentView === 'category' ? 'Strategy & Research' : 'General ICP';
+  const repositoryAxisFallback = state.contentView === 'category' ? 'Primary category' : 'General ICP';
   const isRepositoryRowAxis = isIcpSeoMatrix || isIcpMatrix || isValueSeoMatrix;
   const hasRowAxis = isPositioningMatrix || isIcpSeoMatrix || isValueSeoMatrix;
   const sortedColumns = state.contentView === 'icp' && !isIcpMatrix && !isIcpSeoMatrix ? KeywordColumns.sortIcpColumns(v.columns) : v.columns;
@@ -8129,7 +8161,7 @@ function renderGridTable(v, group, table){
     const corner = matrixCornerActions(() => addGridColumn(group.id), () => addGridRow(group.id), 'Add column', 'Add row');
     if (isIcpSeoMatrix){
       corner.classList.add('icp-matrix-corner');
-      const label = document.createElement('span'); label.className = 'matrix-corner-label'; label.textContent = state.contentView === 'category' ? 'Department ↓\nCategory dimension →' : 'ICP axis ↓\nContent type →'; corner.append(label);
+      const label = document.createElement('span'); label.className = 'matrix-corner-label'; label.textContent = state.contentView === 'category' ? 'Category type ↓\nCategory dimension →' : 'ICP axis ↓\nContent type →'; corner.append(label);
     }
     hr.append(corner);
   }

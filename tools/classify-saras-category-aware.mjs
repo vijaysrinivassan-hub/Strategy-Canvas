@@ -14,21 +14,21 @@ if(!profile)throw new Error('Saras Analytics profile is missing.');
 const routeFor=url=>{
   const pathname=new URL(url).pathname.replace(/\/$/,'')||'/';
   const seo={
-    '/blog/ecommerce-analytics':['Category SEO','Informational','E-commerce Data Analytics','Category name'],
-    '/blog/why-ootb-ecommerce-analytics-tools-break-at-scale':['Category SEO','Informational','E-commerce Data Analytics','Features & buying criteria']
+    '/blog/ecommerce-analytics':['Category SEO','Informational','Data Analysis','Category name'],
+    '/blog/why-ootb-ecommerce-analytics-tools-break-at-scale':['Category SEO','Informational','Data Analysis','Features & buying criteria']
   };
   const listicles={
-    '/blog/ecommerce-analytics-software':['E-commerce Data Analytics','Category name'],
-    '/blog/ecommerce-analytics-dashboard':['E-commerce Data Analytics','Category synonyms'],
-    '/blog/ecommerce-analytics-tools':['E-commerce Data Analytics','Category synonyms'],
-    '/blog/ecommerce-reporting-tools':['E-commerce Data Analytics','Category synonyms']
+    '/blog/ecommerce-analytics-software':['Data Analysis','Category name'],
+    '/blog/ecommerce-analytics-dashboard':['Data Analysis','Category synonyms'],
+    '/blog/ecommerce-analytics-tools':['Data Analysis','Category synonyms'],
+    '/blog/ecommerce-reporting-tools':['Data Analysis','Category synonyms']
   };
   if(seo[pathname])return seo[pathname];
   if(listicles[pathname])return ['Category AEO','Listicle',...listicles[pathname]];
   if(/^\/(daton|connectors)\//.test(pathname)||['/saras-daton/sources','/claude-bigquery'].includes(pathname))return ['Category AEO','Landing page','Data Integration & ETL','Integration pages'];
-  if(['/products','/saras-daton','/saras-ad'].includes(pathname))return ['Category AEO','Landing page','E-commerce Data Analytics','Product pages'];
-  if(pathname==='/saras-iq-mcp')return ['Category AEO','Landing page','E-commerce Data Analytics','Feature pages'];
-  if(['/saras-consulting','/saras-data-engineering','/talk-to-data-consultants'].includes(pathname))return ['Category AEO','Landing page','E-commerce Data Analytics Services','Service pages'];
+  if(['/products','/saras-daton','/saras-ad'].includes(pathname))return ['Category AEO','Landing page','Data Analysis','Product pages'];
+  if(pathname==='/saras-iq-mcp')return ['Category AEO','Landing page','Data Analysis','Feature pages'];
+  if(['/saras-consulting','/saras-data-engineering','/talk-to-data-consultants'].includes(pathname))return ['Category AEO','Landing page','Data Analysis','Service pages'];
   return null;
 };
 const selected=[],failed=[];let reviewed=0;
@@ -53,7 +53,7 @@ for(const item of selected){const key=[item.section,item.pageType,item.hierarchy
 source.version=Math.max(Number(source.version)||1,6);
 source.classifiedAt=new Date().toISOString();
 fs.writeFileSync(target,JSON.stringify(source)+'\n');
-const manifest={revision:'saras-category-aware-v1',auditedAt:audit.auditedAt,totalUrls:(profile.urls||[]).length,reviewed,read:reviewed-failed.length,failed,criteria:{category:'E-commerce Data Analytics',rule:'Actual page title, H1, description and body were fetched before classification. Category intent must be primary.',precedence:['Competitor Aware','Category Aware','ICP','Value','Corporate & Non-SEO']},selected};
+const manifest={revision:'saras-category-aware-v2',auditedAt:audit.auditedAt,totalUrls:(profile.urls||[]).length,reviewed,read:reviewed-failed.length,failed,criteria:{category:'Data Analysis',supportingProcess:'Data Integration & ETL',rule:'The selected Maturity Axis pillar is the Prime category. Only actual supporting-process cards may create secondary category rows.',precedence:['Competitor Aware','Category Aware','ICP','Value','Corporate & Non-SEO']},selected};
 fs.writeFileSync(path.join(root,'tools','saras-category-aware-audit.json'),JSON.stringify(manifest,null,2)+'\n');
 const counts=Object.groupBy(selected,item=>item.section);
 console.log(JSON.stringify({reviewed,read:reviewed-failed.length,failed:failed.length,selected:selected.length,counts:Object.fromEntries(Object.entries(counts).map(([key,items])=>[key,items.length]))},null,2));

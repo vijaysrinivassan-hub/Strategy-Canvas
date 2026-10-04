@@ -31,7 +31,7 @@ assert(icpAeo.every(([,meta])=>meta.icpSegment&&['Industry','Company size','Role
 assert(icpAeo.filter(([,meta])=>meta.hierarchy==='Company size').every(([,meta])=>meta.icpSegment==='Enterprise'));
 assert(icpAeo.filter(([,meta])=>meta.hierarchy==='Role / Team').every(([,meta])=>['Agencies','Data & Analytics'].includes(meta.icpSegment)));
 assert(icpAeo.filter(([,meta])=>meta.hierarchy==='Technology').every(([,meta])=>['Snowflake','Shopify','NetSuite','MySQL'].includes(meta.icpSegment)));
-assert.equal(records.filter(([,meta])=>meta.section==='Value AEO').length,16);
+assert.equal(records.filter(([,meta])=>meta.section==='Value AEO').length,17);
 assert.deepEqual(records.find(([url])=>url==='https://www.sarasanalytics.com/blog/cohort-analysis-software')?.[1],asset.classifications['https://www.sarasanalytics.com/blog/cohort-analysis-software']);
 assert.equal(asset.classifications['https://www.sarasanalytics.com/blog/cohort-analysis-software'].hierarchy,'Cohort analysis');
 assert.equal(asset.classifications['https://www.sarasanalytics.com/blog/customer-segmentation-software'].hierarchy,'Segmentation analysis');
@@ -101,9 +101,11 @@ assert.equal(repo.installMappings(valueSolutionRoot,types,{product:'AI Data Plat
 const valueSolutionRows=valueSolution.rows.filter(row=>Object.values(row.cells||{}).some(cell=>(cell.repositoryQueries||[]).some(query=>query.awareness==='solution-aware')));
 assert(valueSolutionRows.filter(row=>row.pageGroup==='matrix').every(row=>['process','subprocess'].includes(row.processLevel)));
 const valueSolutionCells=valueSolutionRows.flatMap(row=>Object.values(row.cells||{}));
-assert.equal(valueSolutionCells.flatMap(cell=>repo.resolve(cell.repositoryQueries||[])).length,16);
+assert.equal(valueSolutionCells.flatMap(cell=>repo.resolve(cell.repositoryQueries||[])).length,17);
 const cohortCell=valueSolutionCells.find(cell=>repo.resolve(cell.repositoryQueries||[]).some(record=>record.url==='https://www.sarasanalytics.com/blog/cohort-analysis-software'));
 const segmentationCell=valueSolutionCells.find(cell=>repo.resolve(cell.repositoryQueries||[]).some(record=>record.url==='https://www.sarasanalytics.com/blog/customer-segmentation-software'));
+const behaviorCell=valueSolutionCells.find(cell=>repo.resolve(cell.repositoryQueries||[]).some(record=>record.url==='https://www.sarasanalytics.com/blog/customer-behavior-analysis-tools'));
+assert(behaviorCell);
 assert.equal(cohortCell?.type,'list');assert.equal(segmentationCell?.type,'list');
 assert.equal(valueSolution.rows.filter(row=>row.pageGroup==='matrix').length,15);
 assert.deepEqual(Array.from(valueSolution.pageColumns.matrix,column=>column.name),['Marketing','Product','Sales','Finance']);

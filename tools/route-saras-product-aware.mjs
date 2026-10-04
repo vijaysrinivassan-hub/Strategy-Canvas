@@ -14,7 +14,7 @@ const routes={
 for(const [url,axis] of Object.entries(routes)){
   const meta=source.classifications?.[url];
   if(!meta)throw new Error('Missing Saras Analytics classification: '+url);
-  Object.assign(meta,{workspace:'ai-data-platform',awareness:'category-aware',section:'Category AEO',pageType:'Landing page',hierarchy:'E-commerce Data Analytics',axis});
+  Object.assign(meta,{workspace:'ai-data-platform',awareness:'category-aware',section:'Category AEO',pageType:'Landing page',hierarchy:'Data Analysis',axis});
 }
 const counters=new Map();
 for(const meta of Object.values(source.classifications||{})){

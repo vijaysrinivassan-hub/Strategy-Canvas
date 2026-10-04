@@ -44,7 +44,7 @@ assert.ok(html.includes("const isRepositoryRowAxis = isIcpSeoMatrix || isIcpMatr
 assert.ok(html.includes("repositoryColumnIds.has(col.id)"));
 assert.ok(html.includes("['product','category'].includes(state.contentView)"));
 assert.ok(!html.includes("Department ↓\\nProduct dimension →"));
-assert.ok(html.includes("Department ↓\\nCategory dimension →"));
+assert.ok(html.includes("Category type ↓\\nCategory dimension →"));
 assert.ok(html.includes(": 'ICP axis ↓\\nContent type →'"));
 assert.ok(html.includes("num.className = 'icp-seo-row-axis'"));
 assert.match(html,/\.mx-table tbody th\.icp-seo-row-axis\{/);

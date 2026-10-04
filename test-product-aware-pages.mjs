@@ -10,7 +10,8 @@ assert(html.includes("const moved=(category.rows||[]).filter(row=>row.pageGroup=
 assert(html.includes("category.rows=(category.rows||[]).filter(row=>row.pageGroup!=='landing')"));
 assert(html.includes("if (id === 'product') keywordMode = 'aeo'"));
 assert(html.includes("state.contentView === 'product' ||"));
-assert(html.includes("shared-url-repository.js?v=product-aware-top-v7"));
+assert(html.includes("shared-url-repository.js?v=maturity-category-taxonomy-v12"));
+assert(html.includes("categoryTaxonomy:selectedMaturityCategoryTaxonomy()"));
 
 const research=html.indexOf("{ kind: 'label',  text: 'Research' }");
 const frames=html.indexOf("{ kind: 'group',  id: 'frames'",research);

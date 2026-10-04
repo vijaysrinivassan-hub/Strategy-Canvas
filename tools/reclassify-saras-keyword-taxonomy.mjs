@@ -47,11 +47,11 @@ const categoryRoutes={
   '/blog/10-benefits-of-using-etl-tools':['Category SEO','Informational','Data Integration & ETL','Features & buying criteria'],
   '/blog/10-best-etl-tools-for-data-warehousing':['Category AEO','Listicle','Data Integration & ETL','Category name'],
   '/blog/best-etl-tools':['Category AEO','Listicle','Data Integration & ETL','Category name'],
-  '/blog/customer-behavior-analysis-tools':['Category AEO','Listicle','Customer Analytics Software','Category synonyms'],
 };
 const ownValueListicle={
   '/blog/cohort-analysis-software':['Cohort analysis','Product'],
-  '/blog/customer-segmentation-software':['Segmentation analysis','Marketing']
+  '/blog/customer-segmentation-software':['Segmentation analysis','Marketing'],
+  '/blog/customer-behavior-analysis-tools':['Segmentation analysis','Marketing']
 };
 const valueSeoRoutes={
   '/glossary/pricing-strategy':['problem-unaware','General Value','Explainers'],
