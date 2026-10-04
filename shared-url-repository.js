@@ -3,7 +3,7 @@
   const normalizeUrl=value=>String(value||'').trim().replace(/\/$/,'');
   const normalizeName=value=>String(value||'').trim().toLowerCase().replace(/[^a-z0-9]+/g,' ');
   const slug=value=>normalizeName(value).trim().replace(/\s+/g,'-')||'general';
-  const workspaceFor=product=>/\bai data platform\b/i.test(String(product||''))?'ai-data-platform':/answer engine optimization agency|\baeo agency\b/i.test(String(product||''))?'aeo-agency':'';
+  const workspaceFor=product=>/^capital layer$/i.test(String(product||'').trim())?'ai-data-capital':/\bai data platform\b/i.test(String(product||''))?'ai-data-platform':/answer engine optimization agency|\baeo agency\b/i.test(String(product||''))?'aeo-agency':'';
   const productMatches=product=>!!workspaceFor(product);
   const pageGroup=value=>{
     const text=String(value||'').toLowerCase();
@@ -14,20 +14,24 @@
   };
   const sectionFor=(view,mode)=>({product:'Category',category:'Category',icp:'ICP',value:'Value'}[view]||'')+' '+String(mode||'aeo').toUpperCase();
   const SEO_TOPIC_COLUMNS=['Guides','How To Articles','Explainers','Trends','Topic vs Topic'];
-  let loadPromise=null,indexedSource=null,indexedRecords=[];
+  let loadPromise=null,indexedSource=null,indexedOverlayRevision='',indexedRecords=[];
   function data(){return global.CompetitiveIntelligenceClassifications||null;}
   function buildIndex(source){
-    if(!source||indexedSource===source)return indexedRecords;
+    const overlay=global.AskLucaKeywordImport,overlayRevision=overlay?.REVISION||'';
+    if(!source||(indexedSource===source&&indexedOverlayRevision===overlayRevision))return indexedRecords;
     const owners=new Map();
-    (source.profiles||[]).forEach(profile=>(profile.urls||[]).forEach(url=>owners.set(normalizeUrl(url),{competitorId:profile.id||'',competitor:profile.name||'',workspace:profile.workspace||'aeo-agency'})));
-    indexedRecords=Object.entries(source.classifications||{}).map(([url,meta])=>{
+    const profiles=[...(source.profiles||[]),...(overlay?.PROFILE?[overlay.PROFILE]:[])];
+    profiles.forEach(profile=>(profile.urls||[]).forEach(url=>owners.set(normalizeUrl(url),{competitorId:profile.id||'',competitor:profile.name||'',workspace:profile.workspace||'aeo-agency'})));
+    const classifications=new Map(Object.entries(source.classifications||{}));
+    Object.entries(overlay?.classifications||{}).forEach(([url,meta])=>classifications.set(url,meta));
+    indexedRecords=[...classifications].map(([url,meta])=>{
       const owner=owners.get(normalizeUrl(url))||{};
       const measuredTraffic=owner.competitorId==='saras-analytics'?global.SarasAnalyticsOrganicTraffic?.trafficFor(url):null;
       return {id:normalizeUrl(url),url,traffic:measuredTraffic==null?(meta.traffic||''):String(measuredTraffic),shared:true,competitorId:owner.competitorId||'',competitor:owner.competitor||'',workspace:meta.workspace||owner.workspace||'aeo-agency',awareness:meta.awareness||'',
         section:meta.section||'',pageType:meta.pageType||'',hierarchy:meta.hierarchy||'General',axis:meta.axis||'General',icpSegment:meta.icpSegment||'',
         topicGroup:meta.topicGroup||normalizeUrl(url),topic:meta.topic||meta.hierarchy||'URL topic',groupOrder:Number(meta.groupOrder)||0,
-        groupSize:Number(meta.groupSize)||1,covered:!!meta.covered,sourceSheet:meta.sourceSheet||'',sourceCell:meta.sourceCell||''};
-    });indexedSource=source;return indexedRecords;
+        groupSize:Number(meta.groupSize)||1,covered:!!meta.covered,represented:owner.competitorId==='maximus-labs'||!!meta.representedCompany,representedCompany:meta.representedCompany||'',comparison:Array.isArray(meta.comparison)?meta.comparison:[],sourceSheet:meta.sourceSheet||'',sourceCell:meta.sourceCell||''};
+    });indexedSource=source;indexedOverlayRevision=overlayRevision;return indexedRecords;
   }
   function load(){
     if(data())return Promise.resolve(buildIndex(data()));
@@ -126,8 +130,9 @@
       column.defaults.mode=mode;
     }
     if(group==='matrix'&&!column.matrixGroup)column.matrixGroup=matrixGroup(viewId,axis);
-    const guidance='Workbook URL grouping: create one content cell per URL unless the source workbook explicitly groups URLs between separator lines. Keep every separator-delimited URL group in one cell. A group containing a Maximus Labs URL is already covered and appears red. Store the Maximus Labs URL in the Slug field and keep only competitor URLs in the URL evidence list. Keep URL and keyword evidence editable and removable.';
-    if(!String(column.instruction||'').includes('Workbook URL grouping:'))column.instruction=(String(column.instruction||'').trim()+' '+guidance).trim();
+    const guidance='Workbook URL grouping: create one content cell per URL unless the source workbook explicitly groups URLs between separator lines. Keep every separator-delimited URL group in one cell. A URL published by the represented company is already covered: use its published article title as Title, store its URL in Slug, remove it from competitor URL evidence, set status to Already written, and show the cell in red. Keep competitor URL and keyword evidence editable and removable.';
+    const priorInstruction=String(column.instruction||'').trim(),guidanceAt=priorInstruction.indexOf('Workbook URL grouping:');
+    column.instruction=((guidanceAt>=0?priorInstruction.slice(0,guidanceAt):priorInstruction)+' '+guidance).trim();
     return column;
   }
   function hasUserContent(cell){
@@ -353,8 +358,8 @@
       const queries=Array.isArray(current.repositoryQueries)?current.repositoryQueries.slice():[];
       if(!queries.some(item=>JSON.stringify(item)===JSON.stringify(spec)))queries.push(spec);
       const awareness=viewId==='value'&&mode==='seo'?awarenessForGroup(valueSeoAwarenessGroup(record.axis)):'';
-      const maximusUrl=normalizeName(record.competitor)==='maximus labs'?record.url:'';
-      row.cells[column.id]={...current,...saved,v:saved.v||current.v||record.topic||record.hierarchy,url:saved.url||current.url||maximusUrl,mode,type:saved.type||current.type||typeId(types,format),aw:saved.aw||current.aw||awareness,cfg:true,repositoryQueries:queries};linked++;
+      const representedUrl=record.represented?record.url:'';
+      row.cells[column.id]={...current,...saved,v:record.represented?record.topic:(saved.v||current.v||record.topic||record.hierarchy),url:saved.url||current.url||representedUrl,mode,type:saved.type||current.type||typeId(types,format),aw:saved.aw||current.aw||awareness,cfg:true,repositoryQueries:queries};linked++;
     });
     Object.entries(root.views).forEach(([viewId,view])=>compactRepositoryCells(view,viewId));
     const icpView=root.views.icp;
@@ -416,7 +421,7 @@
         const spec={workspace,awareness,section:record.section,pageType:record.pageType,hierarchy:record.hierarchy,axis:record.axis,topicGroup:record.topicGroup};
         const queries=Array.isArray(current.repositoryQueries)?current.repositoryQueries.slice():[];
         if(!queries.some(query=>query.topicGroup===record.topicGroup))queries.push(spec);
-        row.cells[column.id]={...current,v:String(current.v||'').trim()?current.v:record.topic,url:current.url||'',mode:'aeo',type:current.type||typeId(types,pageGroup(record.pageType)||'landing'),cfg:true,repositoryQueries:queries};
+        row.cells[column.id]={...current,v:record.represented?record.topic:(String(current.v||'').trim()?current.v:record.topic),url:current.url||(record.represented?record.url:''),mode:'aeo',type:current.type||typeId(types,pageGroup(record.pageType)||'landing'),cfg:true,repositoryQueries:queries};
         linked++;
       });
       applyRepositoryStatuses({views:{value:view}});
@@ -460,7 +465,7 @@
       const current=row.cells[column.id]&&typeof row.cells[column.id]==='object'?row.cells[column.id]:{};
       const saved=preserved.get(record.topicGroup)||{};
       const spec={workspace,awareness,section:record.section,pageType:record.pageType,hierarchy:record.hierarchy,axis:record.axis,topicGroup:record.topicGroup};
-      row.cells[column.id]={...current,...saved,v:saved.v||current.v||record.topic||record.hierarchy,url:saved.url||current.url||'',mode,type:saved.type||current.type||typeId(types,format),cfg:true,repositoryQueries:[spec]};
+      row.cells[column.id]={...current,...saved,v:record.represented?record.topic:(saved.v||current.v||record.topic||record.hierarchy),url:saved.url||current.url||(record.represented?record.url:''),mode,type:saved.type||current.type||typeId(types,format),cfg:true,repositoryQueries:[spec]};
       linked++;
     });
     if(mode==='seo'&&(viewId==='icp'||viewId==='value')){
@@ -490,6 +495,40 @@
     root.sharedUrlLinkedCount=(root.sharedUrlLinkedCount||0)+linked;
     return true;
   }
-  global.SharedUrlRepository={load,records,query,resolve,installMappings,productMatches,workspaceFor,pageGroup,sectionFor};
+  function ensureNamed(items,name,uid){
+    let item=(items||[]).find(value=>normalizeName(value.name)===normalizeName(name));
+    if(item)return item;
+    item={id:uid(),name};items.push(item);return item;
+  }
+  function installCompetitorMappings(root,types,options={}){
+    const matrix=root?.views?.competitor,workspace=workspaceFor(options.product);if(!matrix||!workspace)return false;
+    const imported=records().filter(record=>record.workspace===workspace&&record.awareness==='competitor-aware'&&record.section==='Competitor AEO');
+    if(!imported.length)return false;
+    const scope=workspace+':competitor-aware',revision=(data()?.classifiedAt||'classification')+':'+(global.AskLucaKeywordImport?.REVISION||'base')+':competitor-v1';
+    root.sharedCompetitorUrlRepositoryRevisions ||= {};
+    if(root.sharedCompetitorUrlRepositoryRevisions[scope]===revision)return false;
+    const uid=options.uid||(()=>Math.random().toString(36).slice(2));matrix.rows ||= [];matrix.types ||= [];matrix.cells ||= {};matrix.comparisonCells ||= {};
+    const typeByName=new Map(['Alternatives','Reviews','Pricing','Features'].map(name=>[normalizeName(name),ensureNamed(matrix.types,name,uid)]));
+    const articleType=(types||[]).find(item=>normalizeName(item.name)==='competitor')?.id||'';
+    const merge=(current,record,spec)=>{
+      current=current&&typeof current==='object'?current:{};
+      const queries=Array.isArray(current.repositoryQueries)?current.repositoryQueries.slice():[];
+      if(!queries.some(query=>query.topicGroup===spec.topicGroup))queries.push(spec);
+      return {...current,v:record.represented?record.topic:(current.v||record.topic),url:current.url||(record.represented?record.url:''),mode:'aeo',type:current.type||articleType,aw:'Competitor aware',st:record.covered?'written':(current.st||'for_review'),cfg:true,repositoryQueries:queries,repositoryUrlOverrides:current.repositoryUrlOverrides||{}};
+    };
+    for(const record of imported){
+      const spec={workspace,awareness:record.awareness,section:record.section,pageType:record.pageType,hierarchy:record.hierarchy,axis:record.axis,topicGroup:record.topicGroup};
+      if(record.axis==='Competitor vs Competitor'){
+        const pair=record.comparison.length===2?record.comparison:['Ask Luca',record.hierarchy];
+        const rows=pair.map(name=>ensureNamed(matrix.rows,name,uid)),key=JSON.stringify(rows.map(row=>row.id).sort());
+        matrix.comparisonCells[key]=merge(matrix.comparisonCells[key],record,spec);
+      }else{
+        const row=ensureNamed(matrix.rows,record.hierarchy,uid),type=typeByName.get(normalizeName(record.axis))||typeByName.get('alternatives');
+        matrix.cells[row.id+'|'+type.id]=merge(matrix.cells[row.id+'|'+type.id],record,spec);
+      }
+    }
+    root.sharedCompetitorUrlRepositoryRevisions[scope]=revision;return true;
+  }
+  global.SharedUrlRepository={load,records,query,resolve,installMappings,installCompetitorMappings,productMatches,workspaceFor,pageGroup,sectionFor};
   if(typeof module!=='undefined')module.exports=global.SharedUrlRepository;
 })(typeof globalThis!=='undefined'?globalThis:this);

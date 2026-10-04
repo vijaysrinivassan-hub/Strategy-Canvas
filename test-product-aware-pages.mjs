@@ -14,7 +14,7 @@ assert(html.includes("name:'Capabilities'"));
 assert(html.includes("name:'Features'"));
 assert(html.includes("if (id === 'product') keywordMode = 'aeo'"));
 assert(html.includes("state.contentView === 'product' ||"));
-assert(html.includes("shared-url-repository.js?v=saras-product-pages-v14"));
+assert(/shared-url-repository\.js\?v=[^"']+/.test(html));
 assert(html.includes("categoryTaxonomy:selectedMaturityCategoryTaxonomy()"));
 
 const research=html.indexOf("{ kind: 'label',  text: 'Research' }");

@@ -23,7 +23,8 @@
     return classificationLoad;
   }
   function classificationOf(value){
-    return global.CompetitiveIntelligenceClassifications?.classifications?.[String(value || '').replace(/\/$/,'')] || null;
+    const key=String(value || '').replace(/\/$/,'');
+    return global.AskLucaKeywordImport?.classifications?.[key] || global.CompetitiveIntelligenceClassifications?.classifications?.[key] || null;
   }
   const snapshotDates = item => Object.keys(item?.trafficSnapshots || {}).sort();
   function snapshotTraffic(item,date,url){
