@@ -6,6 +6,8 @@ const html = fs.readFileSync(new URL('./index.html', import.meta.url), 'utf8');
 
 for (const source of [
   'function keywordCountCellFilled(cell)',
+  'function keywordColumnFilledCount(view,pageGroup,columnId)',
+  'function keywordColumnCountBadge(view,pageGroup,columnId)',
   'function keywordFilledCounts()',
   'function appendKeywordCount(button, count)',
   'function ensureKeywordCountRepository()'
@@ -48,6 +50,14 @@ assert.deepEqual(JSON.parse(JSON.stringify(counts['problem-aware'])),{icp:1,valu
 assert.deepEqual(JSON.parse(JSON.stringify(counts['solution-aware'])),{icp:1,value:0,total:1});
 assert.equal(counts.category.total,2);
 assert.equal(counts.competitor.total,2);
+assert.equal(context.keywordColumnFilledCount(root.views.icp,'informational','mapped'),1);
+assert.equal(context.keywordColumnFilledCount(root.views.icp,'matrix','solution'),1);
+assert.equal(context.keywordColumnFilledCount(root.views.icp,'matrix','missing'),0);
+
+assert.ok(html.includes("lab.append(b,keywordColumnCountBadge(v,group.id,col.id),columnTools"));
+assert.ok(html.includes("heading.append(titleInput,keywordColumnCountBadge(v,group.id,col.id))"));
+assert.ok(html.includes("badge.title=count+' filled '+(count===1?'cell':'cells')"));
+assert.ok(html.includes('.keyword-column-count{'));
 
 const scripts = [...html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/g)]
   .map(match => match[1]).filter(source => source.trim());

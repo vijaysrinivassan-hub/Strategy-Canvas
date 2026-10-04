@@ -669,6 +669,9 @@
              opacity:0; transition:opacity .12s}
   .mx-lab .x:hover{color:var(--danger); background:var(--danger-bg); border-color:transparent}
   th:hover .mx-lab .x, .mx-lab .x:focus{opacity:1}
+  .keyword-column-count{display:inline-flex;align-items:center;justify-content:center;min-width:20px;height:18px;box-sizing:border-box;padding:0 6px;border:1px solid #79b88c;border-radius:9px;background:#eaf7ee;color:#24643a !important;-webkit-text-fill-color:#24643a !important;font-size:9px;font-weight:800;line-height:1;flex:none;font-variant-numeric:tabular-nums}
+  .matrix-column-heading{display:flex;align-items:center;gap:7px;width:100%;min-width:0}
+  .matrix-column-heading>input[type=text]{flex:1;width:auto !important;min-width:0}
   .col-tools{display:flex; align-items:center; gap:2px; margin-left:auto; flex:none}
   .col-tools button{width:20px; height:20px; display:grid; place-items:center; padding:0;
                     border:0; border-radius:3px; background:transparent; color:#858983;
@@ -3561,6 +3564,15 @@ function keywordCountGrid(view, pageGroup, omitRepository){
     });
   });
   return count;
+}
+function keywordColumnFilledCount(view,pageGroup,columnId){
+  if(!view||!Array.isArray(view.rows))return 0;
+  return view.rows.reduce((count,row)=>count+(row.pageGroup===pageGroup&&keywordCountCellFilled(row.cells?.[columnId])?1:0),0);
+}
+function keywordColumnCountBadge(view,pageGroup,columnId){
+  const badge=document.createElement('span');badge.className='keyword-column-count';badge.dataset.columnId=columnId;
+  const count=keywordColumnFilledCount(view,pageGroup,columnId);badge.textContent=String(count);badge.title=count+' filled '+(count===1?'cell':'cells');
+  return badge;
 }
 function keywordCountCompetitor(view){
   if (!view) return 0;
@@ -8095,6 +8107,8 @@ function renderGridTable(v, group, table){
     const th = document.createElement('th');
     if(isPositioningMatrix){
       th.classList.add('icp-matrix-column-topic','icp-matrix-'+col.matrixGroup);renderMatrixTopicCell(th,col,ro);
+      const titleInput=th.firstElementChild,heading=document.createElement('div');heading.className='matrix-column-heading';
+      th.insertBefore(heading,titleInput);heading.append(titleInput,keywordColumnCountBadge(v,group.id,col.id));
       const tools=columnTools(col,col.name,renderGrid);tools.classList.add('matrix-topic-tools');th.append(tools);hr.append(th);return;
     }
     if(isValueSeoMatrix) th.classList.add('value-seo-column','icp-matrix-'+(col.awarenessGroup||'problem'));
@@ -8111,7 +8125,7 @@ function renderGridTable(v, group, table){
         col.name = nv || 'Column'; col.local = true; markDirty(); renderGrid();
       });
     };
-    lab.append(b, columnTools(col, col.name, renderGrid));
+    lab.append(b,keywordColumnCountBadge(v,group.id,col.id),columnTools(col, col.name, renderGrid));
     if (!ro && !col.universalId && v.columns.length > 1){
       const x = document.createElement('button');
       x.className = 'x';
@@ -8278,6 +8292,8 @@ function renderGridTable(v, group, table){
       inp.oninput = function(){
         setCellIn(sourceRow, col.id, { v: inp.value }, defaults);
         markDirty();
+        const badge=Array.from(table.querySelectorAll('.keyword-column-count')).find(item=>item.dataset.columnId===col.id);
+        if(badge){const count=keywordColumnFilledCount(v,group.id,col.id);badge.textContent=String(count);badge.title=count+' filled '+(count===1?'cell':'cells');}
         clearTimeout(paintTimer);
         paintTimer = setTimeout(function(){
           const now = cellOf(sourceRow, col.id, defaults);
