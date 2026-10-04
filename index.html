@@ -3015,11 +3015,12 @@
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="keyword-assignments.js?v=value-lenses-v2"></script>
 <script src="keyword-page-tables.js?v=product-capabilities-v2"></script>
-<script src="keyword-columns.js?v=value-lenses-v18"></script>
-<script src="ai-data-icp-matrix.js?v=value-lenses-v9"></script>
+<script src="keyword-columns.js?v=value-keywords-v19"></script>
+<script src="ai-data-icp-matrix.js?v=value-keywords-v10"></script>
 <script src="keyword-columns-ui.js"></script>
 <script src="high-priority-links.js"></script>
 <script src="eor-provider-india-keywords.js"></script>
+<script src="ai-data-value-keywords.js?v=value-keywords-v1"></script>
 <script src="competitor-comparison.js?v=status-color-v2"></script>
 <link rel="stylesheet" href="competitive-intelligence.css">
 <script src="competitive-intelligence-seed.js"></script>
@@ -5266,6 +5267,7 @@ async function openBoard(id, location){
   state.dirty = false;
   const migratedOnOpen = globalThis.AiDataIcpMatrix?.ensure(state.tabs[CONTENT_TAB] || (state.tabs[CONTENT_TAB] = {}), state.client, state.workspaceProductId);
   if (migratedOnOpen && !readOnly()){ markDirty(); await saveBoard(true); }
+  await ensureAiDataValueKeywordSeed();
   await ensureEorProviderIndiaKeywordSeed();
   await ensureAskLucaCompetitiveIntelligenceSeed();
   await ensureSarasAnalyticsCompetitiveIntelligenceSeed();
@@ -6317,6 +6319,27 @@ async function saveKeywords(rows, source){
 }
 
 let eorProviderIndiaSeedPending = null;
+let aiDataValueKeywordSeedPending = null;
+async function ensureAiDataValueKeywordSeed(){
+  const api=globalThis.AiDataValueKeywords;
+  if(!api?.matches(state.client,state.workspaceProductId)||readOnly())return false;
+  const root=contentRoot(),view=root.views?.value;
+  if(!view||view.aiDataValueKeywordRevision===api.REVISION)return false;
+  if(aiDataValueKeywordSeedPending)return aiDataValueKeywordSeedPending;
+  const targetBoard=state.boardId,targetProduct=state.workspaceProductId;
+  aiDataValueKeywordSeedPending=(async function(){
+    const saved=await saveKeywords(api.keywordRows(),'ai-data-value-keyword-lenses');
+    if(!saved||state.boardId!==targetBoard||state.workspaceProductId!==targetProduct)return false;
+    const changed=api.apply(root,kwRows);
+    view.aiDataValueKeywordRevision=api.REVISION;
+    markDirty();
+    await saveBoard(true);
+    return changed;
+  })();
+  try{return await aiDataValueKeywordSeedPending;}
+  catch(error){console.error(error);toast('Could not populate the Value AEO keyword layers: '+(error.message||error),true);return false;}
+  finally{aiDataValueKeywordSeedPending=null;}
+}
 async function ensureEorProviderIndiaKeywordSeed(){
   const api = globalThis.EorProviderIndiaKeywords;
   const board = state.boards.find(item => item.id === state.boardId);
@@ -6853,7 +6876,8 @@ function normalizePageUrls(rows){
   if (!Array.isArray(rows)) return [];
   return rows.filter(Boolean).map(function(row, index){
     if (typeof row === 'string') return { id: 'legacy-url-' + index, url: row, traffic: '' };
-    return { id: String(row.id || ('page-url-' + index)), url: String(row.url || ''), traffic: row.traffic == null ? '' : String(row.traffic) };
+    const lens=['process','output','outcome','benefits','tools'].includes(row.lens)?row.lens:'';
+    return { id: String(row.id || ('page-url-' + index)), url: String(row.url || ''), traffic: row.traffic == null ? '' : String(row.traffic), ...(lens?{lens}: {}) };
   });
 }
 const VALUE_MATRIX_LENSES=[
@@ -6886,6 +6910,19 @@ function valueLensKeywordPatch(cell,lens,ids,excluded){
   const exclusions=normalizeValueLensKeywordMap(cell.valueLensExcludedKeywords);
   keywords[lens]=(ids||[]).filter(Boolean);exclusions[lens]=(excluded||[]).filter(Boolean);
   return {valueLensKeywords:keywords,valueLensExcludedKeywords:exclusions};
+}
+function valueLensForPageUrl(row,cell){
+  const explicit=String(row?.lens||cell?.valueLensUrlLens||'').toLowerCase();
+  if(VALUE_MATRIX_LENSES.some(lens=>lens.id===explicit))return explicit;
+  const text=[row?.title,row?.url,row?.pageType,row?.axis].filter(Boolean).join(' ').toLowerCase();
+  if(/\b(tool|tools|software|platform|system|systems|app|apps|solution|solutions)\b/.test(text))return 'tools';
+  if(/\b(benefit|benefits|advantage|advantages|roi|save|saving|efficiency|efficient|faster)\b/.test(text))return 'benefits';
+  if(/\b(outcome|outcomes|result|results|growth|increase|improve|improvement|revenue|profit|conversion)\b/.test(text))return 'outcome';
+  if(/\b(report|reports|reporting|dashboard|dashboards|scorecard|summary|template|templates|forecast|forecasts|alert|alerts)\b/.test(text))return 'output';
+  return 'process';
+}
+function valueLensPageUrls(cell,lens){
+  return normalizePageUrls(cell?.pageUrls).filter(row=>valueLensForPageUrl(row,cell)===lens);
 }
 function normalizeRepositoryUrlOverrides(value){
   if (!value || typeof value !== 'object' || Array.isArray(value)) return {};
@@ -7144,10 +7181,13 @@ function renderPageUrlEvidence(td, o){
     if (keywordHost) keywordHost.after(host); else td.append(host);
   }
   host.replaceChildren();
-  const manualRows = normalizePageUrls(o.get().pageUrls);
-  const overrides = normalizeRepositoryUrlOverrides(o.get().repositoryUrlOverrides);
-  const sharedRows = window.SharedUrlRepository?.resolve(o.get().repositoryQueries, overrides) || [];
-  const manualIds = new Set(manualRows.map(row => String(row.url || '').replace(/\/$/,'')));
+  const currentCell=o.get();
+  const manualRowsAll = normalizePageUrls(currentCell.pageUrls);
+  const manualRows = o.keywordLens?valueLensPageUrls(currentCell,o.keywordLens):manualRowsAll;
+  const overrides = normalizeRepositoryUrlOverrides(currentCell.repositoryUrlOverrides);
+  const sharedRowsAll = window.SharedUrlRepository?.resolve(currentCell.repositoryQueries, overrides) || [];
+  const sharedRows = o.keywordLens?sharedRowsAll.filter(row=>valueLensForPageUrl(row,currentCell)===o.keywordLens):sharedRowsAll;
+  const manualIds = new Set(manualRowsAll.map(row => String(row.url || '').replace(/\/$/,'')));
   const visibleSharedRows = sharedRows.filter(row => !isMaximusLabsUrl(row) && !manualIds.has(String(row.url || '').replace(/\/$/,'')));
   const rows = visibleSharedRows.concat(manualRows);
   td.classList.toggle('maximus-covered', sharedRows.some(row => row.covered));
@@ -7171,20 +7211,21 @@ function renderPageUrlEvidence(td, o){
         const nextOverrides = normalizeRepositoryUrlOverrides(o.get().repositoryUrlOverrides);
         nextOverrides[row.id] = {url:url.value,traffic:traffic.value,deleted:false};
         o.set({repositoryUrlOverrides:nextOverrides});o.refreshEmpty();markDirty();
-        const updated=(window.SharedUrlRepository?.resolve(o.get().repositoryQueries,nextOverrides)||[]).filter(item=>!isMaximusLabsUrl(item));
+        const updated=(window.SharedUrlRepository?.resolve(o.get().repositoryQueries,nextOverrides)||[]).filter(item=>!isMaximusLabsUrl(item)&&(!o.keywordLens||valueLensForPageUrl(item,o.get())===o.keywordLens));
         const total=host.querySelector('.gr-url-total em');if(total)total.textContent=pageTrafficTotal(updated.concat(manualRows)).toLocaleString()+' traffic total';return;
       }
-      const next = manualRows.map(function(item){ return item.id === row.id ? { id:item.id, url:url.value, traffic:traffic.value } : item; });
+      const next = manualRowsAll.map(function(item){ return item.id === row.id ? { id:item.id, url:url.value, traffic:traffic.value, ...(item.lens?{lens:item.lens}:{}) } : item; });
       saveRows(next);
+      const visibleNext=o.keywordLens?next.filter(item=>valueLensForPageUrl(item,o.get())===o.keywordLens):next;
       const total = host.querySelector('.gr-url-total em');
-      if (total) total.textContent = pageTrafficTotal(visibleSharedRows.concat(next)).toLocaleString() + ' traffic total';
+      if (total) total.textContent = pageTrafficTotal(visibleSharedRows.concat(visibleNext)).toLocaleString() + ' traffic total';
     };
     url.oninput = update; traffic.oninput = update;
     const remove = document.createElement('button'); remove.type = 'button'; remove.className = 'gr-page-remove';
     remove.innerHTML = '&times;'; remove.title = 'Remove URL'; remove.disabled = o.ro;
     remove.onclick = function(){
       if(row.shared){const nextOverrides=normalizeRepositoryUrlOverrides(o.get().repositoryUrlOverrides);nextOverrides[row.id]={...(nextOverrides[row.id]||{}),deleted:true};o.set({repositoryUrlOverrides:nextOverrides});o.refreshEmpty();markDirty();}
-      else saveRows(manualRows.filter(function(item){ return item.id !== row.id; }));
+      else saveRows(manualRowsAll.filter(function(item){ return item.id !== row.id; }));
       renderPageUrlEvidence(td, o);
     };
     line.append(url, traffic, remove);
@@ -7210,7 +7251,8 @@ function cellControls(td, o){
     return;
   }
   renderIcpKeywordIdeas(td, cell);
-  if (!td.querySelector(':scope > .gr-url')){
+  const slugBelongsToLens=!o.keywordLens||!cell.url||valueLensForPageUrl({url:cell.url,lens:cell.valueLensUrlLens},cell)===o.keywordLens;
+  if (slugBelongsToLens&&!td.querySelector(':scope > .gr-url')){
     const urlRow = document.createElement('label'); urlRow.className = 'gr-url';
     const url = document.createElement('input'); url.type = 'text'; url.placeholder = 'Slug';
     url.value = cell.url || ''; url.disabled = o.ro; url.setAttribute('aria-label', 'Slug');
@@ -7225,7 +7267,7 @@ function cellControls(td, o){
     };
     url.oninput = function(){
       if(o.ro || readOnly()) return;
-      o.set({url:url.value}); o.refreshEmpty(); markDirty(); paintStar();
+      o.set({url:url.value,...(o.keywordLens?{valueLensUrlLens:o.keywordLens}:{})}); o.refreshEmpty(); markDirty(); paintStar();
     };
     star.disabled = o.ro;
     star.onpointerdown = function(event){ event.stopPropagation(); };
@@ -7326,7 +7368,7 @@ function cellControls(td, o){
     foot.append(add);
     const addUrl = document.createElement('button');
     addUrl.className = 'gr-kwadd gr-urladd';
-    const importedUrlCount = (window.SharedUrlRepository?.resolve(o.get().repositoryQueries, o.get().repositoryUrlOverrides) || []).filter(row => !isMaximusLabsUrl(row)).length;
+    const importedUrlCount = (window.SharedUrlRepository?.resolve(o.get().repositoryQueries, o.get().repositoryUrlOverrides) || []).filter(row => !isMaximusLabsUrl(row)&&(!o.keywordLens||valueLensForPageUrl(row,o.get())===o.keywordLens)).length;
     addUrl.textContent = importedUrlCount ? '+ URL (' + importedUrlCount + ')' : '+ URL';
     addUrl.title = importedUrlCount
       ? importedUrlCount + ' imported URLs are shown; add a manual URL'
@@ -7334,7 +7376,7 @@ function cellControls(td, o){
     addUrl.onclick = function(){
       const current = o.get();
       const pageUrls = normalizePageUrls(current.pageUrls);
-      pageUrls.push({ id: uid(), url: '', traffic: '' });
+      pageUrls.push({ id: uid(), url: '', traffic: '', ...(o.keywordLens?{lens:o.keywordLens}:{}) });
       o.set({ pageUrls: pageUrls });
       o.refreshEmpty();
       markDirty();
@@ -7576,6 +7618,7 @@ function cellOf(row, colId, defaults){
              keywordIdeas: Array.isArray(c.keywordIdeas) ? c.keywordIdeas : [], icpSource:c.icpSource || null,
              kws: Array.isArray(c.kws) ? c.kws.filter(Boolean) : [], excludedKws:Array.isArray(c.excludedKws)?c.excludedKws.filter(Boolean):[], pageUrls: normalizePageUrls(c.pageUrls),
              valueLensKeywords:normalizeValueLensKeywordMap(c.valueLensKeywords),valueLensExcludedKeywords:normalizeValueLensKeywordMap(c.valueLensExcludedKeywords),
+             valueLensUrlLens:VALUE_MATRIX_LENSES.some(lens=>lens.id===c.valueLensUrlLens)?c.valueLensUrlLens:'',
              repositoryQueries: Array.isArray(c.repositoryQueries) ? c.repositoryQueries : [], repositoryUrlOverrides:normalizeRepositoryUrlOverrides(c.repositoryUrlOverrides) };
   }
   return { v: '', mode: d.mode || 'aeo', type: d.type || '', on: false, aw: d.aw || '', st: '', cfg:false, kws: [], pageUrls: [] };
@@ -7600,7 +7643,7 @@ function setCellIn(row, colId, patch, defaults){
   const defaultMode = (defaults && defaults.mode) || 'aeo';
   if (!c.url && !c.writtenBy && !c.actorType && !c.actor && !c.cfg && !c.v && !c.type && c.mode === defaultMode && !c.on && !c.aw && !c.st && !kws.length && !excludedKws.length && !valueLensCount && !pageUrls.length && !repositoryQueries.length && !Object.keys(repositoryUrlOverrides).length && !c.keywordIdeas?.length && !c.icpSource) delete row.cells[colId];
   else row.cells[colId] = { v: c.v, mode: c.mode, type: c.type, on: c.on, aw: c.aw, st: c.st, url: c.url || '', writtenBy: c.writtenBy || '', cfg:!!c.cfg, kws: kws, excludedKws, pageUrls: pageUrls, repositoryQueries, repositoryUrlOverrides,
-    valueLensKeywords,valueLensExcludedKeywords,
+    valueLensKeywords,valueLensExcludedKeywords,...(VALUE_MATRIX_LENSES.some(lens=>lens.id===c.valueLensUrlLens)?{valueLensUrlLens:c.valueLensUrlLens}:{}),
     ...(c.actorType ? {actorType:c.actorType} : {}), ...(c.actor ? {actor:c.actor} : {}),
     ...(c.keywordIdeas?.length ? {keywordIdeas:c.keywordIdeas} : {}), ...(c.icpSource ? {icpSource:c.icpSource} : {}) };
 }
@@ -12646,7 +12689,7 @@ async function loadKeywords(force = false){
       try {
         const {data,error} = await sb.from('keywords')
           .select('id,keyword,selected,volume,kd,cpc,traffic_potential,parent_topic,intent,country')
-          .eq('board_id', board).order('volume', {ascending:false,nullsFirst:false}).limit(2000);
+          .eq('board_id', board).order('volume', {ascending:false,nullsFirst:false}).limit(5000);
         if (error) throw error;
         entry.rows = data || [];
         entry.loadedAt = Date.now();

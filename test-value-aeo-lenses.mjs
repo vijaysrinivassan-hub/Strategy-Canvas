@@ -11,6 +11,9 @@ assert(html.includes("copy.title='Copy all keywords in the selected value layer'
 assert(html.includes("navigator.clipboard.writeText(words.join('\\n'))"));
 assert(html.includes('valueLensKeywords'));
 assert(html.includes('valueLensExcludedKeywords'));
+assert(html.includes('function valueLensForPageUrl(row,cell)'));
+assert(html.includes('function valueLensPageUrls(cell,lens)'));
+assert(html.includes("pageUrls.push({ id: uid(), url: '', traffic: '', ...(o.keywordLens?{lens:o.keywordLens}:{}) })"));
 assert(!html.includes('Red Ocean'));
 assert(!html.includes('Blue Ocean'));
 assert(!html.includes('id="oceanSwitcher"'));
