@@ -1,7 +1,7 @@
 /* Board-scoped Saras Analytics sitemap import for Competitive Intelligence. */
 (function(root){
   'use strict';
-  const REVISION='saras-analytics-sitemap-2026-10-04-v3';
+  const REVISION='saras-analytics-sitemap-2026-10-04-v4';
   const FOCAL_COMPETITOR='Saras Analytics';
   const normalize=value=>String(value||'').trim().toLowerCase().replace(/\/$/,'');
   const comparisonName=value=>normalize(value)==='triple whale / moby ai'?'Triple Whale':String(value||'').trim();
@@ -31,6 +31,8 @@
     return Object.entries(source?.classifications||{}).filter(([,meta])=>meta.workspace==='ai-data-platform'&&meta.section==='Competitor AEO')
       .map(([url,meta])=>({url,name:String(meta.hierarchy||'').trim(),meta})).filter(item=>item.name);
   }
+  const isDirectComparison=item=>/(?:^|\/)vs\/|(?:^|[-/])vs(?:[-/?#]|$)|\bversus\b/i.test(String(item.url||'').replace(/^https?:\/\/[^/]+/i,''));
+  const repositoryQuery=item=>({workspace:'ai-data-platform',awareness:'competitor-aware',section:'Competitor AEO',pageType:item.meta.pageType,hierarchy:item.meta.hierarchy,axis:item.meta.axis,topicGroup:item.meta.topicGroup});
   function applyStrategy(positioningTab,content,source,uid){
     if(!positioningTab||!content?.views?.competitor)return false;
     const records=competitorRecords(source),names=[FOCAL_COMPETITOR,...new Set(records.map(item=>item.name).filter(name=>normalize(name)!==normalize(FOCAL_COMPETITOR)))];
@@ -64,8 +66,8 @@
       const row=priorRows.get(normalize(competitor.name))||{id:uid(),name:competitor.name};
       row.name=competitor.name;row.positioningCompetitorId=competitor.id;row.positioningCategoryId=category.id;competitor.contentRowId=row.id;
       const grouped=new Map();
-      for(const item of records.filter(item=>normalize(item.name)===normalize(competitor.name))){const axis=item.meta.axis||'Alternatives';if(!grouped.has(axis))grouped.set(axis,[]);grouped.get(axis).push(item);}
-      for(const [axis,items] of grouped){const type=typeByName.get(normalize(axis))||typeByName.get('alternatives');const queries=items.map(item=>({workspace:'ai-data-platform',awareness:'competitor-aware',section:'Competitor AEO',pageType:item.meta.pageType,hierarchy:item.meta.hierarchy,axis:item.meta.axis,topicGroup:item.meta.topicGroup}));matrix.cells[row.id+'|'+type.id]={...(matrix.cells[row.id+'|'+type.id]||{}),v:competitor.name+' '+axis.toLowerCase(),url:'',mode:'aeo',type:'',on:false,aw:'',st:'for_review',writtenBy:'',cfg:true,kws:[],repositoryQueries:queries,repositoryUrlOverrides:{}};}
+      for(const item of records.filter(item=>normalize(item.name)===normalize(competitor.name)&&!isDirectComparison(item))){const axis=item.meta.axis||'Alternatives';if(!grouped.has(axis))grouped.set(axis,[]);grouped.get(axis).push(item);}
+      for(const [axis,items] of grouped){const type=typeByName.get(normalize(axis))||typeByName.get('alternatives');const queries=items.map(repositoryQuery);matrix.cells[row.id+'|'+type.id]={...(matrix.cells[row.id+'|'+type.id]||{}),v:competitor.name+' '+axis.toLowerCase(),url:'',mode:'aeo',type:'',on:false,aw:'',st:'for_review',writtenBy:'',cfg:true,kws:[],repositoryQueries:queries,repositoryUrlOverrides:{}};}
       return row;
     });
     matrix.rows=[...canonical,...retained];
@@ -78,7 +80,8 @@
       if(opponent.id===focalRow.id)continue;
       const key=JSON.stringify([focalRow.id,opponent.id].sort());
       const existing=matrix.comparisonCells[key]&&typeof matrix.comparisonCells[key]==='object'?matrix.comparisonCells[key]:{};
-      matrix.comparisonCells[key]={v:existing.v===undefined?FOCAL_COMPETITOR+' vs '+comparisonName(opponent.name):existing.v,mode:existing.mode||'aeo',type:existing.type||competitorType.id,aw:existing.aw||'Competitor aware',st:existing.st||'for_review',on:existing.on||false,writtenBy:existing.writtenBy||'',url:existing.url||'',kws:Array.isArray(existing.kws)?existing.kws:[],cfg:true,...existing};
+      const queries=records.filter(item=>normalize(item.name)===normalize(opponent.name)&&isDirectComparison(item)).map(repositoryQuery);
+      matrix.comparisonCells[key]={v:existing.v===undefined?FOCAL_COMPETITOR+' vs '+comparisonName(opponent.name):existing.v,mode:existing.mode||'aeo',type:existing.type||competitorType.id,aw:existing.aw||'Competitor aware',st:existing.st||'for_review',on:existing.on||false,writtenBy:existing.writtenBy||'',url:existing.url||'',kws:Array.isArray(existing.kws)?existing.kws:[],cfg:true,...existing,repositoryQueries:queries,repositoryUrlOverrides:existing.repositoryUrlOverrides||{}};
     }
 
     const categoryView=content.views.category;

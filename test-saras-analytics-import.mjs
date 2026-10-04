@@ -62,7 +62,7 @@ assert.equal(afterSolution.flatMap(cell=>repo.resolve(cell.repositoryQueries||[]
 assert.equal(repo.installMappings(root,types,{product:'AI Data Platform',uid:()=>`return-${++n}`,awareness:'problem-aware',contentView:'icp',mode:'seo',activeView:active}),false);
 
 const seedSource=fs.readFileSync(new URL('./saras-analytics-competitive-intelligence.js',import.meta.url),'utf8');
-assert(seedSource.includes("REVISION='saras-analytics-sitemap-2026-10-04-v3'"));
+assert(seedSource.includes("REVISION='saras-analytics-sitemap-2026-10-04-v4'"));
 const seedContext=vm.createContext({globalThis:{CompetitiveIntelligenceClassifications:asset},console});
 vm.runInContext(seedSource,seedContext);
 const importer=seedContext.globalThis.SarasAnalyticsCompetitiveIntelligence;
@@ -77,7 +77,7 @@ assert(!canonical.some(item=>item.name==='Random Company'));
 assert.deepEqual(Array.from(strategyRoot.views.competitor.rows.slice(0,canonical.length),row=>row.name),Array.from(canonical,item=>item.name));
 assert.equal(strategyRoot.views.category.rows[0].cells.company,undefined);
 const competitorCells=Object.values(strategyRoot.views.competitor.cells);
-assert.equal(competitorCells.flatMap(cell=>repo.resolve(cell.repositoryQueries||[])).length,42);
+assert.equal(competitorCells.flatMap(cell=>repo.resolve(cell.repositoryQueries||[])).length,34);
 assert(competitorCells.every(cell=>cell.st==='for_review'));
 const focal=canonical.find(item=>item.name==='Saras Analytics');
 const tripleWhale=canonical.find(item=>item.name==='Triple Whale / Moby AI');
@@ -87,6 +87,11 @@ const focalPair=JSON.stringify([focal.contentRowId,tripleWhale.contentRowId].sor
 assert.equal(strategyRoot.views.competitor.comparisonCells[focalPair].v,'Saras Analytics vs Triple Whale');
 assert.equal(strategyRoot.views.competitor.comparisonCells[focalPair].aw,'Competitor aware');
 assert.equal(strategyRoot.views.competitor.comparisonCells[focalPair].st,'for_review');
+assert.equal(repo.resolve(strategyRoot.views.competitor.comparisonCells[focalPair].repositoryQueries).length,2);
+const comparisonUrls=Object.values(strategyRoot.views.competitor.comparisonCells).flatMap(cell=>repo.resolve(cell.repositoryQueries||[]));
+assert.equal(comparisonUrls.length,8);
+assert(comparisonUrls.every(item=>/(?:^|\/)vs\/|(?:^|[-/])vs(?:[-/]|$)/i.test(new URL(item.url).pathname)));
+assert.equal(new Set([...competitorCells.flatMap(cell=>repo.resolve(cell.repositoryQueries||[])),...comparisonUrls].map(item=>item.url)).size,42);
 strategyRoot.views.competitor.comparisonCells[focalPair].v='Preserved custom comparison title';
 strategyRoot.views.competitor.comparisonCells[focalPair].url='/custom-comparison';
 strategyRoot.views.competitor.comparisonCells[focalPair].st='selected';
