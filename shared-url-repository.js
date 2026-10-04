@@ -341,13 +341,13 @@
     applyRepositoryStatuses(root);
     root.sharedUrlRepositoryRevision=revision;root.sharedUrlLinkedCount=linked;return true;
   }
-  function hasScopedMappings(view,workspace,awareness){
-    return !!view&&(view.rows||[]).some(row=>Object.values(row.cells||{}).some(cell=>(cell?.repositoryQueries||[]).some(query=>query.workspace===workspace&&query.awareness===awareness)));
+  function hasScopedMappings(view,workspace,awareness,section){
+    return !!view&&(view.rows||[]).some(row=>Object.values(row.cells||{}).some(cell=>(cell?.repositoryQueries||[]).some(query=>query.workspace===workspace&&query.awareness===awareness&&(!section||query.section===section))));
   }
-  function clearScopedMappings(view,workspace,awareness){
+  function clearScopedMappings(view,workspace,awareness,section){
     if(!view)return;
     (view.rows||[]).forEach(row=>Object.entries(row.cells||{}).forEach(([id,cell])=>{
-      if((cell?.repositoryQueries||[]).some(query=>query.workspace===workspace&&query.awareness===awareness))delete row.cells[id];
+      if((cell?.repositoryQueries||[]).some(query=>query.workspace===workspace&&query.awareness===awareness&&(!section||query.section===section)))delete row.cells[id];
     }));
     view.rows=(view.rows||[]).filter(row=>!row.repositoryWorkspace||row.repositoryWorkspace!==workspace||Object.values(row.cells||{}).some(hasUserContent));
   }
@@ -356,17 +356,18 @@
     if(!['category','icp','value'].includes(viewId)||!options.activeView)return false;
     const awareness=viewId==='category'?'category-aware':(options.awareness||'problem-aware');
     const mode=viewId==='category'?(options.mode||'aeo'):(awareness==='solution-aware'?'aeo':'seo');
+    const section=sectionFor(viewId,mode);
     const scope=[workspace,awareness,viewId,mode].join(':');
-    const revision=(data().classifiedAt||'classification')+':'+scope+':v3';
+    const revision=(data().classifiedAt||'classification')+':'+scope+':v4';
     root.sharedUrlRepositoryRevisions ||= {};
-    if(root.sharedUrlRepositoryRevisions[scope]===revision&&hasScopedMappings(options.activeView,workspace,awareness))return false;
+    if(root.sharedUrlRepositoryRevisions[scope]===revision&&hasScopedMappings(options.activeView,workspace,awareness,section))return false;
     const view=options.activeView,uid=options.uid||(()=>Math.random().toString(36).slice(2));
     // Problem Unaware starts as an editable copy of the SEO view. Remove the
     // copied Problem Aware repository cells before installing its own URLs.
-    if(awareness==='problem-unaware')clearScopedMappings(view,workspace,'problem-aware');
-    clearScopedMappings(view,workspace,awareness);
+    if(awareness==='problem-unaware')clearScopedMappings(view,workspace,'problem-aware',section);
+    clearScopedMappings(view,workspace,awareness,section);
     let linked=0;
-    records().filter(record=>record.workspace===workspace&&record.awareness===awareness&&record.section===sectionFor(viewId,mode)).forEach(record=>{
+    records().filter(record=>record.workspace===workspace&&record.awareness===awareness&&record.section===section).forEach(record=>{
       if(record.section==='Corporate & Non-SEO')return;
       const format=pageGroup(record.pageType);if(!format)return;
       const group=viewId==='category'?format:(mode==='aeo'?'matrix':'informational');

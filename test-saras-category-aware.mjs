@@ -40,6 +40,18 @@ assert(aeo.pageColumns.landing.some(column=>column.name==='Feature pages'));
 assert(aeo.pageColumns.landing.some(column=>column.name==='Integration pages'));
 assert(aeo.pageColumns.landing.some(column=>column.name==='Service pages'));
 
+// Category Aware AEO and SEO share one saved view. Switching to SEO must not
+// make the later AEO refresh accept SEO cells as if they were AEO cells.
+assert.equal(repo.installMappings(rootAeo,types,{product:'AI Data Platform',uid:()=>`toggle-seo-${++n}`,contentView:'category',mode:'seo',activeView:aeo}),true);
+assert.equal(repo.installMappings(rootAeo,types,{product:'AI Data Platform',uid:()=>`toggle-aeo-${++n}`,contentView:'category',mode:'aeo',activeView:aeo}),false);
+const toggledCells=aeo.rows.flatMap(row=>Object.values(row.cells||{}));
+const toggledAeo=toggledCells.filter(cell=>cell.mode==='aeo').flatMap(cell=>repo.resolve(cell.repositoryQueries||[]));
+const toggledSeo=toggledCells.filter(cell=>cell.mode==='seo').flatMap(cell=>repo.resolve(cell.repositoryQueries||[]));
+assert.equal(toggledAeo.length,218);
+assert.equal(toggledSeo.length,2);
+assert(toggledAeo.every(item=>item.section==='Category AEO'));
+assert(toggledSeo.every(item=>item.section==='Category SEO'));
+
 const seo=make(),rootSeo={views:{category:seo,icp:make(),value:make()}};
 assert.equal(repo.installMappings(rootSeo,types,{product:'AI Data Platform',uid:()=>`seo-${++n}`,contentView:'category',mode:'seo',activeView:seo}),true);
 const seoCells=seo.rows.flatMap(row=>Object.values(row.cells||{}));
