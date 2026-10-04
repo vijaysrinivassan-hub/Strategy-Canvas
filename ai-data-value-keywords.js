@@ -4,7 +4,7 @@
   if(typeof module==='object'&&module.exports)module.exports=api;
   else root.AiDataValueKeywords=api;
 })(typeof globalThis!=='undefined'?globalThis:this,function(){
-  const REVISION='ai-data-value-keyword-lenses-v1';
+  const REVISION='ai-data-value-keyword-lenses-v2';
   const CLIENT='AI Data Platform';
   const PRODUCT_ID='0jgsw8bx554d';
   const COUNTRY='us';

@@ -3020,7 +3020,7 @@
 <script src="keyword-columns-ui.js"></script>
 <script src="high-priority-links.js"></script>
 <script src="eor-provider-india-keywords.js"></script>
-<script src="ai-data-value-keywords.js?v=value-keywords-v1"></script>
+<script src="ai-data-value-keywords.js?v=value-keywords-v2"></script>
 <script src="competitor-comparison.js?v=status-color-v2"></script>
 <link rel="stylesheet" href="competitive-intelligence.css">
 <script src="competitive-intelligence-seed.js"></script>
@@ -6328,8 +6328,13 @@ async function ensureAiDataValueKeywordSeed(){
   if(aiDataValueKeywordSeedPending)return aiDataValueKeywordSeedPending;
   const targetBoard=state.boardId,targetProduct=state.workspaceProductId;
   aiDataValueKeywordSeedPending=(async function(){
-    const saved=await saveKeywords(api.keywordRows(),'ai-data-value-keyword-lenses');
-    if(!saved||state.boardId!==targetBoard||state.workspaceProductId!==targetProduct)return false;
+    const loadError=await loadKeywords(true);
+    if(loadError)return false;
+    const existing=new Set(kwRows.map(row=>String(row.keyword||'').trim().toLowerCase()+'|'+String(row.country||'us').toLowerCase()));
+    const missing=api.keywordRows().filter(row=>!existing.has(String(row.keyword||'').trim().toLowerCase()+'|'+String(row.country||'us').toLowerCase()));
+    if(missing.length&&!await saveKeywords(missing,'ai-data-value-keyword-lenses'))return false;
+    if(!missing.length&&await loadKeywords(true))return false;
+    if(state.boardId!==targetBoard||state.workspaceProductId!==targetProduct)return false;
     const changed=api.apply(root,kwRows);
     view.aiDataValueKeywordRevision=api.REVISION;
     markDirty();
@@ -12687,11 +12692,17 @@ async function loadKeywords(force = false){
     keywordCache.set(key, entry);
     entry.pending = (async () => {
       try {
-        const {data,error} = await sb.from('keywords')
-          .select('id,keyword,selected,volume,kd,cpc,traffic_potential,parent_topic,intent,country')
-          .eq('board_id', board).order('volume', {ascending:false,nullsFirst:false}).limit(5000);
-        if (error) throw error;
-        entry.rows = data || [];
+        const rows=[],pageSize=1000,maxRows=10000;
+        for(let from=0;from<maxRows;from+=pageSize){
+          const {data,error} = await sb.from('keywords')
+            .select('id,keyword,selected,volume,kd,cpc,traffic_potential,parent_topic,intent,country')
+            .eq('board_id', board).order('volume', {ascending:false,nullsFirst:false}).order('id',{ascending:true})
+            .range(from,from+pageSize-1);
+          if(error)throw error;
+          const page=data||[];rows.push(...page);
+          if(page.length<pageSize)break;
+        }
+        entry.rows = rows;
         entry.loadedAt = Date.now();
         return null;
       } catch(error){
