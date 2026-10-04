@@ -2494,6 +2494,7 @@
 .awareness-picker-card:hover{border-color:#56b875;box-shadow:0 8px 24px rgba(27,69,40,.08);transform:translateY(-1px)}
 .awareness-picker-card strong{display:block;margin-bottom:10px;font-size:21px}
 .awareness-picker-card span{display:block;color:#718077;font-size:12px;line-height:1.55}
+.awareness-picker-card .awareness-picker-count{display:inline-flex;align-items:center;width:max-content;margin:0 0 13px;padding:3px 8px;border-radius:999px;background:#eef7f1;color:#287343;font-size:10px;font-weight:800;letter-spacing:.03em}
 @media(max-width:760px){.awareness-picker{padding:32px 20px}.awareness-picker-cards{grid-template-columns:1fr}}
 .keyword-grid-pager{display:flex;align-items:center;justify-content:flex-end;gap:8px;padding:8px 16px;border-top:1px solid #dce4df;border-bottom:1px solid #dce4df;background:#f7faf8;color:#5f6e64;font-size:11px}
 .keyword-grid-pager strong{margin-right:auto;color:#26342b;font-size:11px;font-weight:700}
@@ -3536,6 +3537,111 @@ function tabIcon(name){
   return svg;
 }
 
+/* A filled-cell count is content-aware rather than row-aware: blank padding
+   rows do not count, while a cell with a title, slug, keyword, URL evidence,
+   or a shared-repository query counts once. */
+function keywordCountCellFilled(cell){
+  if (typeof cell === 'string') return !!cell.trim();
+  if (!cell || typeof cell !== 'object') return false;
+  return !!(
+    String(cell.v || '').trim() || String(cell.url || cell.slug || '').trim() ||
+    (Array.isArray(cell.kws) && cell.kws.some(item => String(item?.keyword || item?.value || item || '').trim())) ||
+    (Array.isArray(cell.pageUrls) && cell.pageUrls.some(item => String(item?.url || item || '').trim())) ||
+    (Array.isArray(cell.repositoryQueries) && cell.repositoryQueries.length)
+  );
+}
+function keywordCountGrid(view, pageGroup, omitRepository){
+  if (!view || !Array.isArray(view.rows)) return 0;
+  let count = 0;
+  view.rows.forEach(row => {
+    if (pageGroup && row.pageGroup !== pageGroup) return;
+    Object.values(row.cells || {}).forEach(cell => {
+      if (omitRepository && Array.isArray(cell?.repositoryQueries) && cell.repositoryQueries.length) return;
+      if (keywordCountCellFilled(cell)) count++;
+    });
+  });
+  return count;
+}
+function keywordCountCompetitor(view){
+  if (!view) return 0;
+  const cells = [
+    ...Object.values(view.cells || {}),
+    ...Object.values(view.comparisonCells || {})
+  ];
+  return cells.filter(keywordCountCellFilled).length;
+}
+function keywordCountCompetitorRepository(records, workspace){
+  const cells = new Set();
+  records.filter(record => record.workspace === workspace && record.awareness === 'competitor-aware' && record.section === 'Competitor AEO').forEach(record => {
+    const path = String(record.url || '').replace(/^https?:\/\/[^/]+/i, '');
+    const comparison = /(?:^|\/)vs\/|(?:^|[-/])vs(?:[-/?#]|$)|\bversus\b/i.test(path);
+    cells.add(comparison
+      ? 'comparison|' + String(record.hierarchy || record.topicGroup || record.url)
+      : 'standard|' + String(record.hierarchy || '') + '|' + String(record.axis || 'Alternatives'));
+  });
+  return cells.size;
+}
+function keywordRepositoryCount(records, workspace, awareness, section){
+  if (!workspace) return 0;
+  return records.filter(record => record.workspace === workspace && record.awareness === awareness && record.section === section).length;
+}
+function keywordFilledCounts(){
+  const blank = () => ({ icp:0, value:0, total:0 });
+  const result = {
+    'problem-unaware':blank(), 'problem-aware':blank(), 'solution-aware':blank(),
+    category:{total:0}, competitor:{total:0}
+  };
+  const root = contentRoot();
+  const repository = globalThis.SharedUrlRepository;
+  const context = typeof sharedUrlBoardContext === 'function' ? sharedUrlBoardContext() : '';
+  const workspace = repository?.workspaceFor(context) || '';
+  const records = repository?.records?.() || [];
+  const hasScopedRepository = !!records.some(record => record.workspace === workspace && record.awareness);
+  const stages = [
+    { id:'problem-unaware', mode:'SEO', group:'informational' },
+    { id:'problem-aware', mode:'SEO', group:'informational' },
+    { id:'solution-aware', mode:'AEO', group:'matrix' }
+  ];
+  stages.forEach(stage => {
+    ['icp','value'].forEach(viewId => {
+      const view = stage.id === 'problem-unaware'
+        ? root.awarenessViews?.['problem-unaware:' + viewId]
+        : root.views?.[viewId];
+      const sectionName = viewId === 'icp' ? 'ICP' : 'Value';
+      const repositoryCount = keywordRepositoryCount(records, workspace, stage.id, sectionName + ' ' + stage.mode);
+      const manualCount = keywordCountGrid(view, stage.group, hasScopedRepository && repositoryCount > 0);
+      result[stage.id][viewId] = repositoryCount + manualCount;
+    });
+    result[stage.id].total = result[stage.id].icp + result[stage.id].value;
+  });
+  const categoryRepositoryCount = records.filter(record =>
+    record.workspace === workspace && record.awareness === 'category-aware' && /^Category (AEO|SEO)$/.test(record.section)
+  ).length;
+  result.category.total = categoryRepositoryCount + keywordCountGrid(root.views?.category, '', hasScopedRepository && categoryRepositoryCount > 0);
+  result.competitor.total = keywordCountCompetitor(root.views?.competitor) || keywordCountCompetitorRepository(records, workspace);
+  return result;
+}
+function appendKeywordCount(button, count){
+  const badge = document.createElement('span');
+  badge.className = 'n keyword-filled-count';
+  badge.textContent = String(Number(count) || 0);
+  badge.title = (Number(count) || 0) + ' filled cells';
+  badge.setAttribute('aria-label', badge.title);
+  button.append(badge);
+}
+let keywordCountRepositoryPending = null;
+function ensureKeywordCountRepository(){
+  const repository = globalThis.SharedUrlRepository;
+  const context = typeof sharedUrlBoardContext === 'function' ? sharedUrlBoardContext() : '';
+  if (!repository?.productMatches(context) || globalThis.CompetitiveIntelligenceClassifications || keywordCountRepositoryPending) return;
+  const board = state.boardId;
+  keywordCountRepositoryPending = repository.load().then(() => {
+    if (state.boardId !== board) return;
+    renderTabs();
+    if (state.tab === CONTENT_TAB && state.keywordAwarenessPicker) renderAwarenessPicker();
+  }).catch(error => console.error(error)).finally(() => { keywordCountRepositoryPending = null; });
+}
+
 function renderTabs(){
   const box = $('tabs');
   box.innerHTML = '';
@@ -3643,6 +3749,8 @@ function renderTabs(){
     /* Awareness is the first navigation layer. Each awareness destination
        opens a full-page ICP / Value choice rather than nesting sidebar rows. */
     if (item.kind === 'keywords-tabs'){
+      ensureKeywordCountRepository();
+      const counts = keywordFilledCounts();
       const awarenessLayers = [
         { id:'problem-unaware', label:'Problem Unaware' },
         { id:'problem-aware', label:'Problem Aware' },
@@ -3653,6 +3761,7 @@ function renderTabs(){
         button.replaceChild(tabIcon(layer.label), button.firstChild);
         button.classList.toggle('active', onBoard && state.tab === CONTENT_TAB && state.keywordAwareness === layer.id);
         button.onclick = () => openAwarenessLayer(layer.id);
+        appendKeywordCount(button, counts[layer.id].total);
         box.append(button);
       });
       ['category','competitor'].forEach(viewId => {
@@ -3661,6 +3770,7 @@ function renderTabs(){
         b.replaceChild(tabIcon(v.label), b.firstChild);
         b.classList.toggle('active', onBoard && state.tab === CONTENT_TAB && state.contentView === viewId && !state.keywordAwareness);
         b.onclick = () => switchContentView(viewId);
+        appendKeywordCount(b, counts[viewId].total);
         box.append(b);
       });
       return;
@@ -8274,14 +8384,17 @@ function renderAwarenessPicker(){
   const title = document.createElement('h2'); title.textContent = awarenessLabel(state.keywordAwareness);
   const intro = document.createElement('p'); intro.textContent = 'Choose the matrix you want to open.';
   const cards = document.createElement('div'); cards.className = 'awareness-picker-cards';
+  const filledCounts = keywordFilledCounts()[state.keywordAwareness] || {icp:0,value:0};
   [
     {id:'icp', title:'ICP', text:keywordMode === 'seo' ? 'Open the ICP SEO matrix.' : 'Open the ICP AEO matrix.'},
     {id:'value', title:'Value', text:keywordMode === 'seo' ? 'Open the Value SEO matrix.' : 'Open the Value AEO matrix.'}
   ].forEach(function(option){
     const button = document.createElement('button'); button.type = 'button'; button.className = 'awareness-picker-card';
     const strong = document.createElement('strong'); strong.textContent = option.title;
+    const count = document.createElement('span'); count.className = 'awareness-picker-count';
+    count.textContent = String(filledCounts[option.id] || 0) + ' filled cells';
     const detail = document.createElement('span'); detail.textContent = option.text;
-    button.append(strong, detail);
+    button.append(strong, count, detail);
     button.onclick = function(){ switchAwarenessContent(state.keywordAwareness, option.id); };
     cards.append(button);
   });
