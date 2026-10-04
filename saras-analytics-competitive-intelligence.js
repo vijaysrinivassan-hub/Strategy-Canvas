@@ -1,8 +1,10 @@
 /* Board-scoped Saras Analytics sitemap import for Competitive Intelligence. */
 (function(root){
   'use strict';
-  const REVISION='saras-analytics-sitemap-2026-10-03-v2';
+  const REVISION='saras-analytics-sitemap-2026-10-04-v3';
+  const FOCAL_COMPETITOR='Saras Analytics';
   const normalize=value=>String(value||'').trim().toLowerCase().replace(/\/$/,'');
+  const comparisonName=value=>normalize(value)==='triple whale / moby ai'?'Triple Whale':String(value||'').trim();
   const clone=value=>JSON.parse(JSON.stringify(value));
   let pending;
   function matchesBoard(values){return (values||[]).some(value=>normalize(value)==='ai data platform');}
@@ -31,7 +33,7 @@
   }
   function applyStrategy(positioningTab,content,source,uid){
     if(!positioningTab||!content?.views?.competitor)return false;
-    const records=competitorRecords(source),names=[...new Set(records.map(item=>item.name))];
+    const records=competitorRecords(source),names=[FOCAL_COMPETITOR,...new Set(records.map(item=>item.name).filter(name=>normalize(name)!==normalize(FOCAL_COMPETITOR)))];
     if(!names.length)return false;
     const before=JSON.stringify({positioning:positioningTab.positioning,category:content.views.category,competitor:content.views.competitor});
     const positioning=positioningTab.positioning&&typeof positioningTab.positioning==='object'?positioningTab.positioning:(positioningTab.positioning={selectedIcp:'',selectedCategory:'',icps:[],categories:[]});
@@ -67,6 +69,17 @@
       return row;
     });
     matrix.rows=[...canonical,...retained];
+    matrix.comparisonCells=matrix.comparisonCells&&typeof matrix.comparisonCells==='object'?matrix.comparisonCells:{};
+    content.articleTypes=Array.isArray(content.articleTypes)?content.articleTypes:[];
+    let competitorType=content.articleTypes.find(item=>normalize(item.name)==='competitor');
+    if(!competitorType){competitorType={id:'competitor',name:'Competitor'};while(content.articleTypes.some(item=>item.id===competitorType.id))competitorType.id+='_';content.articleTypes.push(competitorType);}
+    const focalRow=canonical.find(row=>normalize(row.name)===normalize(FOCAL_COMPETITOR));
+    if(focalRow)for(const opponent of canonical){
+      if(opponent.id===focalRow.id)continue;
+      const key=JSON.stringify([focalRow.id,opponent.id].sort());
+      const existing=matrix.comparisonCells[key]&&typeof matrix.comparisonCells[key]==='object'?matrix.comparisonCells[key]:{};
+      matrix.comparisonCells[key]={v:existing.v===undefined?FOCAL_COMPETITOR+' vs '+comparisonName(opponent.name):existing.v,mode:existing.mode||'aeo',type:existing.type||competitorType.id,aw:existing.aw||'Competitor aware',st:existing.st||'for_review',on:existing.on||false,writtenBy:existing.writtenBy||'',url:existing.url||'',kws:Array.isArray(existing.kws)?existing.kws:[],cfg:true,...existing};
+    }
 
     const categoryView=content.views.category;
     if(categoryView)for(const row of categoryView.rows||[])for(const [id,cell] of Object.entries(row.cells||{})){
@@ -75,5 +88,5 @@
     }
     return before!==JSON.stringify({positioning:positioningTab.positioning,category:content.views.category,competitor:content.views.competitor});
   }
-  root.SarasAnalyticsCompetitiveIntelligence={REVISION,matchesBoard,loadProfile,apply,competitorRecords,applyStrategy};
+  root.SarasAnalyticsCompetitiveIntelligence={REVISION,FOCAL_COMPETITOR,matchesBoard,loadProfile,apply,competitorRecords,applyStrategy};
 })(typeof globalThis!=='undefined'?globalThis:this);
