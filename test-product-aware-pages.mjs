@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 
 const html=fs.readFileSync(new URL('./index.html',import.meta.url),'utf8');
 assert(html.includes("{ id: 'product', label: 'Product Aware'"));
-assert(html.includes("['product','category','competitor'].forEach(viewId =>"));
+assert(html.includes("['category','product','competitor'].forEach(viewId =>"));
 assert(html.includes("const PRODUCT_AWARE_MIGRATION='category-aware-landing-pages-v1'"));
 assert(html.includes("const moved=(category.rows||[]).filter(row=>row.pageGroup==='landing')"));
 assert(html.includes("category.rows=(category.rows||[]).filter(row=>row.pageGroup!=='landing')"));

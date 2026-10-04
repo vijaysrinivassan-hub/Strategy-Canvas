@@ -3783,7 +3783,7 @@ function renderTabs(){
         appendKeywordCount(button, counts[layer.id].total);
         box.append(button);
       });
-      ['product','category','competitor'].forEach(viewId => {
+      ['category','product','competitor'].forEach(viewId => {
         const v = viewDef(viewId);
         const b = tabButton(CONTENT_TAB, v.label);
         b.replaceChild(tabIcon(v.label), b.firstChild);
