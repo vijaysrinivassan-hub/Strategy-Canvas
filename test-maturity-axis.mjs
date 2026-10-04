@@ -11,9 +11,10 @@ assert.ok(html.includes("if (tabKey === MATURITY_ACCESS_TAB && (!architecture ||
 assert.match(html, /const MATURITY_DEPARTMENT_TEMPLATES/);
 assert.match(html, /function maturityDepartmentsFor\(architecture\)/);
 assert.match(html, /function maturityIndustriesFor\(architecture\)/);
+assert.match(html, /function isAiDataIndustryContext\(architecture\)/);
 assert.match(html, /function maturityIndustryConfiguration\(\)/);
 assert.match(html, /const MATURITY_INDUSTRY_PROMPT/);
-assert.match(html, /architecture\.industryPromptRevision = 1/);
+assert.match(html, /architecture\.industryPromptRevision = 2/);
 assert.match(html, /function renderMaturityDepartments\(architecture, ro\)/);
 for (const department of ['Marketing','Inventory Management','Technical SEO / AEO','Incident Response','GRC'])
   assert.ok(html.includes("'" + department + "'"), 'missing department ' + department);
@@ -23,6 +24,8 @@ assert.ok(html.includes('Single Industry'));
 assert.ok(html.includes('Multi-industry'));
 assert.ok(html.includes("return ['E-commerce']"));
 assert.ok(html.includes("if (!ro && architecture.industryMode==='multi')"));
+assert.ok(html.includes("architecture.industries=['E-commerce']"));
+assert.ok(html.includes("architecture.aiDataIndustryCleanupRevision=1"));
 assert.ok(html.includes('Do not add raw material, input types, descriptions, maps or nested product sections.'));
 for (const stage of ['L1 - Reporting', 'L2 - Analysis', 'L3 - Forecasting', 'L4 - Optimization'])
   assert.ok(html.includes(stage), 'missing maturity row ' + stage);
@@ -53,6 +56,8 @@ assert.match(tools, /industryMode:z\.enum\(\['single','multi'\]\)\.optional\(\)/
 assert.match(tools, /activeIndustry:z\.string\(\)\.optional\(\)/);
 assert.match(tools, /departments:architecture\.departments/);
 assert.match(tools, /Preserve Departments and Industries as simple name lists/);
+assert.match(tools, /Show department columns once, then industry columns/);
+assert.match(tools, /Never duplicate department columns for an industry/);
 assert.match(tools, /A replacement process can only be selected inside a selected maturity row/);
 assert.match(tools, /section === 'maturity_axis' \? MATURITY_TAB/);
 console.log('maturity axis tests passed');

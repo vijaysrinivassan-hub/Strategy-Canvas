@@ -12,8 +12,10 @@ assert(html.includes("state.contentView==='value'&&state.keywordAwareness==='sol
 assert(html.includes('const contentSlots = isValueAeoProcessMatrix ? 4 : 5'));
 assert(html.includes('function valueIndustryMatrixColumns(baseColumns)'));
 assert(html.includes("const industries=config.mode==='single'?[config.active]:config.industries"));
-assert(html.includes("th.textContent='Departments'"));
-assert(html.includes("valueIndustryLayout.config.mode==='single'?'Single industry':'Industry'"));
+assert(html.includes("{label:'Departments',count:departments.length,kind:'departments'}"));
+assert(html.includes("{label:'Industries',count:industryColumns.length,kind:'industries'}"));
+assert(html.includes("columns:[...departments,...industryColumns]"));
+assert(html.includes("matrixGroup:'industry'"));
 assert(html.includes("copy.title='Copy all keywords in the selected value layer'"));
 assert(html.includes("navigator.clipboard.writeText(words.join('\\n'))"));
 assert(html.includes('valueLensKeywords'));
