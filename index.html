@@ -1320,14 +1320,22 @@
                  border-left:3px solid #76c890; background:rgba(247,251,247,.92); color:#62655f;
                  font-size:9.5px; line-height:1.4}
   .arch-v2-guide b{color:#276c3e}.arch-v2-guide .arch-guide-tail{margin-left:auto; color:#898b85}
-  .maturity-departments{display:flex; align-items:center; gap:12px; margin:0 0 14px; padding:10px 12px;
+  .maturity-departments{display:flex; flex-direction:column; align-items:stretch; gap:0; margin:0 0 14px;
     border:1px solid #d4d9d4; background:rgba(255,255,255,.92)}
-  .maturity-departments h4{flex:none; margin:0; color:#454a45; font-size:10px; font-weight:850;
+  .maturity-dimension-row{display:flex; align-items:center; gap:12px; min-height:45px; padding:9px 12px}
+  .maturity-dimension-row + .maturity-dimension-row{border-top:1px solid #e0e5e0}
+  .maturity-departments h4{flex:0 0 88px; margin:0; color:#454a45; font-size:10px; font-weight:850;
     letter-spacing:.08em; text-transform:uppercase}
   .maturity-department-buttons{display:flex; align-items:center; gap:6px; flex-wrap:wrap}
   .maturity-department-chip,.maturity-add-department{padding:6px 9px; border:1px solid #c5d8ca;
     background:#eff8f1; color:#2f6540; font:inherit; font-size:9px; font-weight:700}
   .maturity-add-department{border-style:dashed; background:#fff; font-weight:600}
+  .maturity-industry-chip.active{border-color:#3d9b5d; background:#dff3e5; box-shadow:inset 0 0 0 1px #3d9b5d}
+  .maturity-industry-mode{display:flex; align-items:center; gap:2px; margin-left:auto; padding:2px; border:1px solid #d4d9d4; background:#f4f6f3}
+  .maturity-industry-mode button{padding:5px 9px; border:0; background:transparent; color:#646963; font:inherit; font-size:9px; font-weight:750}
+  .maturity-industry-mode button[aria-pressed="true"]{background:#fff; color:#28683d; box-shadow:0 0 0 1px #85bd96}
+  .value-industry-axis{background:#152019!important; color:#e9f6ec!important; border-top-color:#5aa774!important}
+  .value-industry-axis small{display:block; margin-bottom:2px; color:#8bd09d; font-size:7px; letter-spacing:.12em; text-transform:uppercase}
   .arch-selection-tools{display:flex; align-items:center; gap:6px; margin-left:auto; padding-left:12px;
                         border-left:1px solid #d9dfd9}
   .arch-selection-tools span{color:#39744d; font-weight:750}
@@ -8217,6 +8225,36 @@ function renderMatrixTopicCell(host,holder,ro,keywordLens){
 const KEYWORD_GRID_PAGE_SIZE = 40;
 const keywordGridPages = new Map();
 function keywordGridPageKey(group){ return [state.boardId,state.clientProduct,state.tabs[CONTENT_TAB]?.activeKeywordNodeId || '',state.contentView,keywordMode,group.id].join('|'); }
+function valueIndustryMatrixColumns(baseColumns){
+  const config=maturityIndustryConfiguration();
+  const root=matrixState();
+  const departments=baseColumns.filter(column=>column.matrixGroup==='use');
+  if(!departments.length)return {columns:baseColumns,config,groups:[]};
+  root.industryMatrixColumns ||= [];
+  const industries=config.mode==='single'?[config.active]:config.industries;
+  const output=[];
+  industries.forEach((industry,industryIndex)=>{
+    const industryKey=encodeURIComponent(String(industry).trim().toLowerCase());
+    departments.forEach(department=>{
+      if(industryIndex===0){
+        Object.defineProperty(department,'_matrixIndustry',{value:industry,writable:true,configurable:true,enumerable:false});
+        output.push(department);return;
+      }
+      const id='industry:'+industryKey+':'+department.id;
+      let column=root.industryMatrixColumns.find(item=>item.id===id);
+      if(!column){
+        column={id,name:department.name,matrixGroup:'use',industry,baseDepartmentId:department.id,keywordIdeas:[],local:true};
+        root.industryMatrixColumns.push(column);
+        if(!readOnly())markDirty();
+      }
+      column.name=department.name;column.industry=industry;column.baseDepartmentId=department.id;column.matrixGroup='use';
+      Object.defineProperty(column,'_matrixIndustry',{value:industry,writable:true,configurable:true,enumerable:false});
+      output.push(column);
+    });
+  });
+  const groups=industries.map(industry=>({industry,count:departments.length}));
+  return {columns:output,config,groups};
+}
 function renderGridTable(v, group, table){
   $('competitorComparison').hidden = true;
   const vd = viewDef(state.contentView);
@@ -8254,6 +8292,8 @@ function renderGridTable(v, group, table){
   if (awarenessSeoMatrix) columns = columns.filter(col => awarenessSeoHeaders.has(String(col.name || '').trim().toLowerCase()));
   const solutionAwareRepositoryMatrix = state.keywordAwareness === 'solution-aware' && isPositioningMatrix && repositoryColumnIds.size > 0;
   if (solutionAwareRepositoryMatrix) columns = columns.filter(col => repositoryColumnIds.has(col.id) || processTaxonomyColumnIds.has(col.id));
+  let valueIndustryLayout={columns,config:maturityIndustryConfiguration(),groups:[]};
+  if(isValueAeoProcessMatrix){valueIndustryLayout=valueIndustryMatrixColumns(columns);columns=valueIndustryLayout.columns;}
   const NUM_W = hasRowAxis ? 310 : 46, COL_W = 310;
   /* Five visible columns includes the left process/sub-process header. */
   const contentSlots = isValueAeoProcessMatrix ? 4 : 5;
@@ -8278,19 +8318,32 @@ function renderGridTable(v, group, table){
   const thead = document.createElement('thead');
   const showAxisSuperHeaders = isPositioningMatrix || isValueSeoMatrix || (state.contentView === 'icp' && !isIcpSeoMatrix);
   if (showAxisSuperHeaders){
+    if(isValueAeoProcessMatrix){
+      const industryRow=document.createElement('tr');industryRow.className='icp-axis-row value-industry-row';
+      const corner=matrixCornerActions(() => addGridColumn(group.id), () => addGridRow(group.id), 'Add column', 'Add row');
+      corner.rowSpan=3;corner.classList.add('icp-axis-corner','icp-matrix-corner');
+      const label=document.createElement('span');label.className='matrix-corner-label';
+      label.textContent=(valueIndustryLayout.config.mode==='single'?valueIndustryLayout.config.active:'Industries')+' ↓\nProcess / sub-process →';corner.append(label);industryRow.append(corner);
+      valueIndustryLayout.groups.forEach(item=>{const th=document.createElement('th');th.className='icp-axis-head value-industry-axis';th.colSpan=item.count;const kind=document.createElement('small');kind.textContent=valueIndustryLayout.config.mode==='single'?'Single industry':'Industry';const name=document.createElement('span');name.textContent=item.industry;th.append(kind,name);industryRow.append(th);});
+      if(spacerCount){const spacer=document.createElement('th');spacer.className='keyword-grid-spacer';spacer.colSpan=spacerCount;spacer.setAttribute('aria-hidden','true');industryRow.append(spacer);}
+      thead.append(industryRow);
+    }
     const axisRow = document.createElement('tr');
     axisRow.className = 'icp-axis-row';
-    const corner = matrixCornerActions(() => addGridColumn(group.id), () => addGridRow(group.id), 'Add column', 'Add row');
-    corner.rowSpan = 2; corner.classList.add('icp-axis-corner');
-    if(isPositioningMatrix||isValueSeoMatrix){corner.classList.add('icp-matrix-corner');const label=document.createElement('span');label.className='matrix-corner-label';label.textContent=isValueSeoMatrix?'Value topic ↓\nAwareness stage →':state.contentView==='value'&&processTaxonomyRows.length?'Process / sub-process ↓\nDepartment →':state.contentView==='value'?'Process ↓\nValue dimension →':'Department ↓\nICP dimension →';corner.append(label);}
-    axisRow.append(corner);
-    const axes = isPositioningMatrix ? (state.contentView==='value' ? (processTaxonomyRows.length?[['use','Departments'],['benefit','Features'],['cap','Capabilities']]:[['use','Processes / Use cases'],['benefit','Nodal benefits'],['cap','Capabilities']]) : [['ind','Industry Pages'],['size','Company Size'],['process','Process / Use Case'],['ctry','Country'],['tech','Technology'],['role','Role / Team']]) : isValueSeoMatrix ? [['problem','Problem-aware'],['solution','Solution-aware'],['product','Product-aware']] : KeywordColumns.ICP_AXIS_ORDER.map(axis=>[axis,KeywordColumns.ICP_AXIS_LABELS[axis]]);
-    for (const [axis, label] of axes){
-      const count = columns.filter(col => isPositioningMatrix ? col.matrixGroup === axis : isValueSeoMatrix ? col.awarenessGroup === axis : (col.axis || KeywordColumns.inferIcpAxis(col.name)) === axis).length;
-      if (!count) continue;
-      const th = document.createElement('th'); th.className = 'icp-axis-head' + (isPositioningMatrix || isValueSeoMatrix ? ' icp-matrix-axis icp-matrix-' + axis : ''); th.colSpan = count;
-      th.textContent = label; axisRow.append(th);
+    if(!isValueAeoProcessMatrix){
+      const corner = matrixCornerActions(() => addGridColumn(group.id), () => addGridRow(group.id), 'Add column', 'Add row');
+      corner.rowSpan = 2; corner.classList.add('icp-axis-corner');
+      if(isPositioningMatrix||isValueSeoMatrix){corner.classList.add('icp-matrix-corner');const label=document.createElement('span');label.className='matrix-corner-label';label.textContent=isValueSeoMatrix?'Value topic ↓\nAwareness stage →':state.contentView==='value'&&processTaxonomyRows.length?'Process / sub-process ↓\nDepartment →':state.contentView==='value'?'Process ↓\nValue dimension →':'Department ↓\nICP dimension →';corner.append(label);}
+      axisRow.append(corner);
     }
+    const axes = isPositioningMatrix ? (state.contentView==='value' ? (processTaxonomyRows.length?[['use','Departments'],['benefit','Features'],['cap','Capabilities']]:[['use','Processes / Use cases'],['benefit','Nodal benefits'],['cap','Capabilities']]) : [['ind','Industry Pages'],['size','Company Size'],['process','Process / Use Case'],['ctry','Country'],['tech','Technology'],['role','Role / Team']]) : isValueSeoMatrix ? [['problem','Problem-aware'],['solution','Solution-aware'],['product','Product-aware']] : KeywordColumns.ICP_AXIS_ORDER.map(axis=>[axis,KeywordColumns.ICP_AXIS_LABELS[axis]]);
+    if(isValueAeoProcessMatrix)valueIndustryLayout.groups.forEach(item=>{const th=document.createElement('th');th.className='icp-axis-head icp-matrix-axis icp-matrix-use';th.colSpan=item.count;th.textContent='Departments';axisRow.append(th);});
+    else for (const [axis, label] of axes){
+        const count = columns.filter(col => isPositioningMatrix ? col.matrixGroup === axis : isValueSeoMatrix ? col.awarenessGroup === axis : (col.axis || KeywordColumns.inferIcpAxis(col.name)) === axis).length;
+        if (!count) continue;
+        const th = document.createElement('th'); th.className = 'icp-axis-head' + (isPositioningMatrix || isValueSeoMatrix ? ' icp-matrix-axis icp-matrix-' + axis : ''); th.colSpan = count;
+        th.textContent = label; axisRow.append(th);
+      }
     if(spacerCount){const spacer=document.createElement('th');spacer.className='keyword-grid-spacer';spacer.colSpan=spacerCount;spacer.setAttribute('aria-hidden','true');axisRow.append(spacer);}
     thead.append(axisRow);
   }
@@ -9613,7 +9666,8 @@ dataPlatformArchitecture = function(){
     ], [['model','agent','Governed business context'],['decisionApi','router','Approved decision']]);
 };
 
-const MATURITY_DEPARTMENT_PROMPT = 'Above the maturity rows, add a Departments heading and list only the relevant department names as simple buttons. Do not add raw material, input types, descriptions, maps or nested product sections. AI Data Platform, Agency and SOC Platform each use only their own department list.';
+const MATURITY_DEPARTMENT_PROMPT = 'Above the maturity rows, add separate Departments and Industries rows. Departments list the operating teams used by the solution matrix. Industries list the markets served. Store whether the product is Single Industry or Multi-industry; a single-industry matrix uses the chosen industry, while a multi-industry matrix groups the same department columns beneath every industry. Do not add raw material, input types, descriptions, maps or nested product sections. AI Data Platform uses E-commerce as its single industry.';
+const MATURITY_INDUSTRY_PROMPT = 'INDUSTRY AXIS: Maturity Axis owns the industry list and the Single Industry / Multi-industry setting. Single Industry uses only activeIndustry. Multi-industry groups the solution matrix by every listed industry and repeats the department columns beneath each group. Never invent an industry. AI Data Platform uses E-commerce.';
 const LEGACY_MATURITY_DEPARTMENT_PROMPT = 'Before the maturity rows, define department maps. Each map must name the product or operating model, the core raw material/input, the major input types, and the ordered departments through which that material flows. Keep departments distinct from maturity levels: departments describe where the material moves; maturity rows describe increasingly advanced transformations within a department. For the supplied examples preserve Platform, Agency and SOC Platform maps unless the user requests different maps.';
 const MATURITY_DEPARTMENT_TEMPLATES = {
   platform:['Marketing','Sales / Revenue','Merchandising','Inventory Management','Operations / Fulfilment','Finance','Customer Support'],
@@ -9629,6 +9683,24 @@ function maturityDepartmentsFor(architecture){
   if (/data-maturity|data platform|analytics platform/.test(architectureContext)) return [...MATURITY_DEPARTMENT_TEMPLATES.platform];
   if (/agency/.test(product + ' ' + name)) return [...MATURITY_DEPARTMENT_TEMPLATES.agency];
   return [...MATURITY_DEPARTMENT_TEMPLATES.platform];
+}
+function maturityIndustriesFor(architecture){
+  const context = [architecture?.sample,architecture?.name,state.client,state.clientProduct]
+    .map(value=>String(value||'').toLowerCase()).join(' ');
+  if (/ai data platform|data-maturity|saras analytics/.test(context)) return ['E-commerce'];
+  return ['Industry'];
+}
+function maturityIndustryConfiguration(){
+  const architecture = state.tabs?.[MATURITY_ACCESS_TAB]?.architecture;
+  const industries = Array.isArray(architecture?.industries)
+    ? architecture.industries.map(value=>String(value||'').trim()).filter(Boolean)
+    : maturityIndustriesFor(architecture||{});
+  const active = String(architecture?.activeIndustry||'').trim();
+  return {
+    mode: architecture?.industryMode === 'multi' ? 'multi' : 'single',
+    industries: industries.length ? industries : ['Industry'],
+    active: active && industries.includes(active) ? active : (industries[0]||'Industry')
+  };
 }
 
 function dataPlatformMaturityArchitecture(){
@@ -9785,6 +9857,29 @@ if (tab.architectureFeaturePromptRevision !== 1){
     if (knownDepartmentTemplate && architecture.departmentFeatureRevision !== 1){
       architecture.departments = maturityDepartmentsFor(architecture);
       architecture.departmentFeatureRevision = 1;
+      if (!readOnly()) setTimeout(markDirty,0);
+    }
+    const simpleIndustries = Array.isArray(architecture.industries) &&
+      architecture.industries.every(value => typeof value === 'string');
+    if (!simpleIndustries) architecture.industries = maturityIndustriesFor(architecture);
+    architecture.industries = architecture.industries.map(value => String(value).trim()).filter(Boolean);
+    if (!architecture.industries.length) architecture.industries = maturityIndustriesFor(architecture);
+    architecture.industryMode = architecture.industryMode === 'multi' ? 'multi' : 'single';
+    if (!architecture.activeIndustry || !architecture.industries.includes(architecture.activeIndustry)){
+      architecture.activeIndustry = architecture.industries[0];
+    }
+    if (knownDepartmentTemplate && architecture.industryFeatureRevision !== 1){
+      architecture.industries = maturityIndustriesFor(architecture);
+      architecture.industryMode = 'single';
+      architecture.activeIndustry = architecture.industries[0];
+      architecture.industryFeatureRevision = 1;
+      if (!readOnly()) setTimeout(markDirty,0);
+    }
+    if (architecture.industryPromptRevision !== 1){
+      if (typeof tab.aiPrompt === 'string' && !tab.aiPrompt.includes(MATURITY_INDUSTRY_PROMPT)){
+        tab.aiPrompt = tab.aiPrompt.trim() + '\n\n' + MATURITY_INDUSTRY_PROMPT;
+      }
+      architecture.industryPromptRevision = 1;
       if (!readOnly()) setTimeout(markDirty,0);
     }
     if (architecture.departmentsVersion !== 2){
@@ -10641,6 +10736,7 @@ function renderMaturityDepartments(architecture, ro){
   host.hidden = !maturity;
   host.replaceChildren();
   if (!maturity) return;
+  const departmentRow = document.createElement('div'); departmentRow.className = 'maturity-dimension-row';
   const title = document.createElement('h4'); title.textContent = 'Departments';
   const buttons = document.createElement('div'); buttons.className = 'maturity-department-buttons';
   (architecture.departments || []).forEach((department, index) => {
@@ -10663,7 +10759,49 @@ function renderMaturityDepartments(architecture, ro){
     };
     buttons.append(add);
   }
-  host.append(title,buttons);
+  departmentRow.append(title,buttons); host.append(departmentRow);
+
+  const industryRow = document.createElement('div'); industryRow.className = 'maturity-dimension-row';
+  const industryTitle = document.createElement('h4'); industryTitle.textContent = 'Industries';
+  const industryButtons = document.createElement('div'); industryButtons.className = 'maturity-department-buttons';
+  (architecture.industries || []).forEach((industry,index) => {
+    const button = document.createElement('button'); button.type = 'button';
+    button.className = 'maturity-department-chip maturity-industry-chip' + (architecture.activeIndustry===industry?' active':'');
+    button.textContent = industry; button.disabled = ro;
+    button.title = ro ? industry : (architecture.industryMode==='single'?'Click to use this as the single industry; double-click to rename':'Double-click to rename industry');
+    button.onclick = () => {
+      if (ro || architecture.industryMode!=='single') return;
+      architecture.activeIndustry = industry; markDirty(); renderProductArchitecture();
+    };
+    button.ondblclick = () => {
+      if (ro) return;
+      const next = String(prompt('Industry name',industry) || '').trim();
+      if (!next) return;
+      architecture.industries[index] = next;
+      if (architecture.activeIndustry===industry) architecture.activeIndustry=next;
+      markDirty(); renderProductArchitecture();
+    };
+    industryButtons.append(button);
+  });
+  if (!ro){
+    const add = document.createElement('button'); add.type = 'button'; add.className = 'maturity-add-department'; add.textContent = '+ Industry';
+    add.onclick = () => {
+      const name = String(prompt('Industry name') || '').trim();
+      if (!name) return;
+      architecture.industries.push(name);
+      if (!architecture.activeIndustry) architecture.activeIndustry=name;
+      markDirty(); renderProductArchitecture();
+    };
+    industryButtons.append(add);
+  }
+  const mode = document.createElement('div'); mode.className = 'maturity-industry-mode'; mode.setAttribute('role','group'); mode.setAttribute('aria-label','Industry model');
+  [['single','Single Industry'],['multi','Multi-industry']].forEach(([value,label]) => {
+    const button=document.createElement('button');button.type='button';button.textContent=label;button.disabled=ro;
+    button.setAttribute('aria-pressed',String(architecture.industryMode===value));
+    button.onclick=()=>{if(ro)return;architecture.industryMode=value;if(!architecture.activeIndustry)architecture.activeIndustry=architecture.industries[0]||'Industry';markDirty();renderProductArchitecture();};
+    mode.append(button);
+  });
+  industryRow.append(industryTitle,industryButtons,mode);host.append(industryRow);
 }
 
 renderProductArchitecture = function(){

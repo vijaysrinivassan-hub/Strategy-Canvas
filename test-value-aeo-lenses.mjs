@@ -10,6 +10,10 @@ assert(html.includes("renderMatrixTopicCell(th,col,ro,isValueAeoProcessMatrix?ac
 assert(html.includes("renderMatrixTopicCell(num,topicRow,ro || !!keywordStatusFilter.size,isValueAeoProcessMatrix?activeValueMatrixLens(v):'')"));
 assert(html.includes("state.contentView==='value'&&state.keywordAwareness==='solution-aware'"));
 assert(html.includes('const contentSlots = isValueAeoProcessMatrix ? 4 : 5'));
+assert(html.includes('function valueIndustryMatrixColumns(baseColumns)'));
+assert(html.includes("const industries=config.mode==='single'?[config.active]:config.industries"));
+assert(html.includes("th.textContent='Departments'"));
+assert(html.includes("valueIndustryLayout.config.mode==='single'?'Single industry':'Industry'"));
 assert(html.includes("copy.title='Copy all keywords in the selected value layer'"));
 assert(html.includes("navigator.clipboard.writeText(words.join('\\n'))"));
 assert(html.includes('valueLensKeywords'));
