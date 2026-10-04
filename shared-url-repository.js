@@ -55,6 +55,15 @@
       out.push(patch?{...record,url:patch.url==null?record.url:String(patch.url),traffic:patch.traffic==null?record.traffic:String(patch.traffic)}:record);
     }));return out;
   }
+  function repositoryTitle(record,current={},saved={}){
+    if(record.represented)return record.topic||record.hierarchy||'';
+    const priorQueries=[...(saved.repositoryQueries||[]),...(current.repositoryQueries||[])];
+    if(priorQueries.length&&resolve(priorQueries).some(item=>item.represented))return saved.v||current.v||'';
+    // Saras is research evidence for the Luca board. Its published headline
+    // belongs with the evidence URL, not in the represented company's Title.
+    if(record.competitorId==='saras-analytics')return '';
+    return saved.v||current.v||record.topic||record.hierarchy||'';
+  }
   const matrixGroup=(view,axis)=>{
     const name=normalizeName(axis);
     if(view==='value')return /benefit/.test(name)?'benefit':/capabilit/.test(name)?'cap':'use';
@@ -326,7 +335,7 @@
     if(!root?.views||!productMatches(options.product)||!data())return false;
     const workspace=workspaceFor(options.product);
     if(workspace==='ai-data-platform')return installScopedMappings(root,types,{...options,workspace});
-    const revision=(data().classifiedAt||'classification')+':maximus-url-to-slug-v1';
+    const revision=(data().classifiedAt||'classification')+':'+(global.AskLucaKeywordImport?.REVISION||'base')+':represented-title-v2';
     if(root.sharedUrlRepositoryRevision===revision)return false;
     const preserved=captureRepositoryState(root);
     clearPreviousMappings(root);
@@ -359,7 +368,7 @@
       if(!queries.some(item=>JSON.stringify(item)===JSON.stringify(spec)))queries.push(spec);
       const awareness=viewId==='value'&&mode==='seo'?awarenessForGroup(valueSeoAwarenessGroup(record.axis)):'';
       const representedUrl=record.represented?record.url:'';
-      row.cells[column.id]={...current,...saved,v:record.represented?record.topic:(saved.v||current.v||record.topic||record.hierarchy),url:saved.url||current.url||representedUrl,mode,type:saved.type||current.type||typeId(types,format),aw:saved.aw||current.aw||awareness,cfg:true,repositoryQueries:queries};linked++;
+      row.cells[column.id]={...current,...saved,v:repositoryTitle(record,current,saved),url:saved.url||current.url||representedUrl,mode,type:saved.type||current.type||typeId(types,format),aw:saved.aw||current.aw||awareness,cfg:true,repositoryQueries:queries};linked++;
     });
     Object.entries(root.views).forEach(([viewId,view])=>compactRepositoryCells(view,viewId));
     const icpView=root.views.icp;
@@ -400,7 +409,7 @@
     // Include overlay imports in the persisted migration key. Otherwise a
     // board that already installed the Saras/base repository incorrectly
     // treats a newly shipped represented-company import as already applied.
-    const revision=(data().classifiedAt||'classification')+':'+(global.AskLucaKeywordImport?.REVISION||'base')+':'+scope+':v15';
+    const revision=(data().classifiedAt||'classification')+':'+(global.AskLucaKeywordImport?.REVISION||'base')+':'+scope+':v16';
     root.sharedUrlRepositoryRevisions ||= {};
     const view=options.activeView,uid=options.uid||(()=>Math.random().toString(36).slice(2));
     const fixedAiDataValueMatrix=workspace==='ai-data-platform'&&awareness==='solution-aware'&&viewId==='value'&&mode==='aeo';
@@ -426,7 +435,7 @@
         const spec={workspace,awareness,section:record.section,pageType:record.pageType,hierarchy:record.hierarchy,axis:record.axis,topicGroup:record.topicGroup};
         const queries=Array.isArray(current.repositoryQueries)?current.repositoryQueries.slice():[];
         if(!queries.some(query=>query.topicGroup===record.topicGroup))queries.push(spec);
-        row.cells[column.id]={...current,v:record.represented?record.topic:(String(current.v||'').trim()?current.v:record.topic),url:current.url||(record.represented?record.url:''),mode:'aeo',type:current.type||typeId(types,pageGroup(record.pageType)||'landing'),cfg:true,repositoryQueries:queries};
+        row.cells[column.id]={...current,v:repositoryTitle(record,current),url:current.url||(record.represented?record.url:''),mode:'aeo',type:current.type||typeId(types,pageGroup(record.pageType)||'landing'),cfg:true,repositoryQueries:queries};
         linked++;
       });
       applyRepositoryStatuses({views:{value:view}});
@@ -472,7 +481,7 @@
       const current=row.cells[column.id]&&typeof row.cells[column.id]==='object'?row.cells[column.id]:{};
       const saved=preserved.get(record.topicGroup)||{};
       const spec={workspace,awareness,section:record.section,pageType:record.pageType,hierarchy:record.hierarchy,axis:record.axis,topicGroup:record.topicGroup};
-      row.cells[column.id]={...current,...saved,v:record.represented?record.topic:(saved.v||current.v||record.topic||record.hierarchy),url:saved.url||current.url||(record.represented?record.url:''),mode,type:saved.type||current.type||typeId(types,format),cfg:true,repositoryQueries:[spec]};
+      row.cells[column.id]={...current,...saved,v:repositoryTitle(record,current,saved),url:saved.url||current.url||(record.represented?record.url:''),mode,type:saved.type||current.type||typeId(types,format),cfg:true,repositoryQueries:[spec]};
       linked++;
     });
     if(mode==='seo'&&(viewId==='icp'||viewId==='value')){
@@ -521,7 +530,7 @@
       current=current&&typeof current==='object'?current:{};
       const queries=Array.isArray(current.repositoryQueries)?current.repositoryQueries.slice():[];
       if(!queries.some(query=>query.topicGroup===spec.topicGroup))queries.push(spec);
-      return {...current,v:record.represented?record.topic:(current.v||record.topic),url:current.url||(record.represented?record.url:''),mode:'aeo',type:current.type||articleType,aw:'Competitor aware',st:record.covered?'written':(current.st||'for_review'),cfg:true,repositoryQueries:queries,repositoryUrlOverrides:current.repositoryUrlOverrides||{}};
+      return {...current,v:repositoryTitle(record,current),url:current.url||(record.represented?record.url:''),mode:'aeo',type:current.type||articleType,aw:'Competitor aware',st:record.covered?'written':(current.st||'for_review'),cfg:true,repositoryQueries:queries,repositoryUrlOverrides:current.repositoryUrlOverrides||{}};
     };
     for(const record of imported){
       const spec={workspace,awareness:record.awareness,section:record.section,pageType:record.pageType,hierarchy:record.hierarchy,axis:record.axis,topicGroup:record.topicGroup};

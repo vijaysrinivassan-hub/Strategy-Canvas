@@ -80,6 +80,11 @@ assert(firstProductCell,'Expected a populated Product pages cell.');
 assert.equal(firstProductCell.url,'https://ask-luca.com/blogs/what-is-luca-ai-the-ai-co-founder-for-e-commerce-explained');
 assert.equal(firstProductCell.st,'written');
 assert(repo.resolve(firstProductCell.repositoryQueries).every(record=>record.represented));
+const featureColumn=existingBoard.views.product.pageColumns.landing.find(column=>column.name==='Feature pages');
+const firstSarasFeature=existingBoard.views.product.rows.filter(row=>row.pageGroup==='landing').map(row=>row.cells?.[featureColumn.id]).find(cell=>repo.resolve(cell?.repositoryQueries||[]).some(record=>record.competitorId==='saras-analytics'));
+assert(firstSarasFeature,'Expected Saras competitor evidence in Feature pages.');
+assert.equal(firstSarasFeature.v,'','Saras evidence must not occupy the represented company Title field.');
+assert.equal(firstSarasFeature.url,'','Saras evidence must not occupy the represented company Slug field.');
 
 const html=fs.readFileSync(new URL('./index.html',import.meta.url),'utf8');
 assert(html.includes('ask-luca-keyword-import.js?v=represented-content-v1'));
