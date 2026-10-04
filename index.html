@@ -10783,7 +10783,7 @@ function renderMaturityDepartments(architecture, ro){
     };
     industryButtons.append(button);
   });
-  if (!ro){
+  if (!ro && architecture.industryMode==='multi'){
     const add = document.createElement('button'); add.type = 'button'; add.className = 'maturity-add-department'; add.textContent = '+ Industry';
     add.onclick = () => {
       const name = String(prompt('Industry name') || '').trim();

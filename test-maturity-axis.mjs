@@ -22,6 +22,7 @@ assert.ok(html.includes('maturity-department-buttons'));
 assert.ok(html.includes('Single Industry'));
 assert.ok(html.includes('Multi-industry'));
 assert.ok(html.includes("return ['E-commerce']"));
+assert.ok(html.includes("if (!ro && architecture.industryMode==='multi')"));
 assert.ok(html.includes('Do not add raw material, input types, descriptions, maps or nested product sections.'));
 for (const stage of ['L1 - Reporting', 'L2 - Analysis', 'L3 - Forecasting', 'L4 - Optimization'])
   assert.ok(html.includes(stage), 'missing maturity row ' + stage);
