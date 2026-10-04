@@ -102,7 +102,21 @@ source.profiles.push({
   sitemaps:[sitemapUrl], urls, source:'Published sitemap.xml', fetchedAt:new Date().toISOString(), status:'complete',
   note:'Complete URL inventory from the sitemap declared by Saras Analytics. URLs are classified by awareness and ICP-versus-value intent.'
 });
-source.version = Math.max(Number(source.version) || 1, 4);
+const categoryAuditPath=path.join(root,'tools','saras-category-aware-audit.json');
+if(fs.existsSync(categoryAuditPath)){
+  const audit=JSON.parse(fs.readFileSync(categoryAuditPath,'utf8'));
+  for(const item of audit.selected||[]){
+    const meta=source.classifications[item.url];if(!meta)continue;
+    Object.assign(meta,{workspace,awareness:'category-aware',section:item.section,pageType:item.pageType,hierarchy:item.hierarchy,axis:item.axis,topicGroup:item.url,topic:item.h1||item.title||meta.topic,groupSize:1,covered:false,auditStatus:'read',auditTitle:item.title,auditH1:item.h1,auditDescription:item.description,auditedAt:audit.auditedAt});
+    delete meta.icpSegment;
+  }
+  for(const item of audit.failed||[]){
+    const meta=source.classifications[item.url];if(meta)Object.assign(meta,{workspace,awareness:'non-seo',section:'Corporate & Non-SEO',pageType:'Corporate',hierarchy:'Broken / 404',axis:'404',auditStatus:'unreadable',auditedAt:audit.auditedAt});
+  }
+  const categoryCounters=new Map();
+  for(const item of audit.selected||[]){const meta=source.classifications[item.url];if(!meta)continue;const key=[meta.section,meta.pageType,meta.hierarchy,meta.axis].join('|');meta.groupOrder=categoryCounters.get(key)||0;categoryCounters.set(key,meta.groupOrder+1);}
+}
+source.version = Math.max(Number(source.version) || 1, 6);
 source.classifiedAt = new Date().toISOString();
 source.source = `${source.source || 'URL classification repository'}; Saras Analytics published sitemap`;
 fs.writeFileSync(target, JSON.stringify(source) + '\n');

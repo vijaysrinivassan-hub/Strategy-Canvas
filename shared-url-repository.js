@@ -70,7 +70,7 @@
   }
   const columnAliases={
     category:{
-      'category name':['category name','category names','category synonyms listicle','category and synonyms listicle','category synonyms'],
+      'category name':['category name','category names','category and synonyms listicle'],
       'category synonyms':['category synonyms','category synonym'],
       'capability':['capability','capabilities','feature','features','feature pages'],
       'benefit':['benefit','benefits','outcome','outcomes'],
@@ -352,9 +352,10 @@
     view.rows=(view.rows||[]).filter(row=>!row.repositoryWorkspace||row.repositoryWorkspace!==workspace||Object.values(row.cells||{}).some(hasUserContent));
   }
   function installScopedMappings(root,types,options){
-    const workspace=options.workspace,awareness=options.awareness||'problem-aware',viewId=options.contentView;
-    if(!['icp','value'].includes(viewId)||!options.activeView)return false;
-    const mode=awareness==='solution-aware'?'aeo':'seo';
+    const workspace=options.workspace,viewId=options.contentView;
+    if(!['category','icp','value'].includes(viewId)||!options.activeView)return false;
+    const awareness=viewId==='category'?'category-aware':(options.awareness||'problem-aware');
+    const mode=viewId==='category'?(options.mode||'aeo'):(awareness==='solution-aware'?'aeo':'seo');
     const scope=[workspace,awareness,viewId,mode].join(':');
     const revision=(data().classifiedAt||'classification')+':'+scope+':v3';
     root.sharedUrlRepositoryRevisions ||= {};
@@ -368,7 +369,7 @@
     records().filter(record=>record.workspace===workspace&&record.awareness===awareness&&record.section===sectionFor(viewId,mode)).forEach(record=>{
       if(record.section==='Corporate & Non-SEO')return;
       const format=pageGroup(record.pageType);if(!format)return;
-      const group=mode==='aeo'?'matrix':'informational';
+      const group=viewId==='category'?format:(mode==='aeo'?'matrix':'informational');
       const column=ensureColumn(viewId,view,group,record.axis||'General',mode,types);
       if(group==='matrix')column.matrixGroup=matrixGroup(viewId,record.hierarchy);
       const rowHierarchy=viewId==='icp'&&mode==='seo'?(record.icpSegment||record.hierarchy||'General ICP'):(record.hierarchy||'General');

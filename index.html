@@ -7809,7 +7809,7 @@ function ensureSharedUrlCellMappings(){
   if (sharedUrlMappingPending || sharedUrlRepositoryReadyFor === mappingKey) return;
   sharedUrlMappingPending = window.SharedUrlRepository.load().then(function(){
     const board = state.boardId;
-    const activeView = ['icp','value'].includes(state.contentView) ? matrixState() : null;
+    const activeView = ['category','icp','value'].includes(state.contentView) ? matrixState() : null;
     const changed = window.SharedUrlRepository.installMappings(contentRoot(), articleTypes(), {product:repositoryContext,uid,awareness:state.keywordAwareness||'problem-aware',contentView:state.contentView,mode:keywordMode,activeView});
     const firstReadyPaint = sharedUrlRepositoryReadyFor !== mappingKey;
     sharedUrlRepositoryReadyFor = mappingKey;

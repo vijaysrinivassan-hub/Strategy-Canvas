@@ -12,16 +12,16 @@ assert(saras.urls.every(url=>url==='https://www.sarasanalytics.com'||url.startsW
 
 const records=Object.entries(asset.classifications).filter(([,meta])=>meta.workspace==='ai-data-platform');
 assert.equal(records.length,770);
-assert.equal(records.filter(([,meta])=>meta.section==='Corporate & Non-SEO').length,12);
+assert.equal(records.filter(([,meta])=>meta.section==='Corporate & Non-SEO').length,14);
 assert(records.every(([,meta])=>meta.awareness&&meta.topicGroup&&meta.topic));
-assert(records.filter(([,meta])=>meta.section!=='Corporate & Non-SEO').every(([,meta])=>/^(ICP|Value|Competitor) (SEO|AEO)$/.test(meta.section)));
-assert(records.filter(([,meta])=>meta.section!=='Corporate & Non-SEO').every(([,meta])=>['problem-unaware','problem-aware','solution-aware','competitor-aware'].includes(meta.awareness)));
+assert(records.filter(([,meta])=>meta.section!=='Corporate & Non-SEO').every(([,meta])=>/^(Category|ICP|Value|Competitor) (SEO|AEO)$/.test(meta.section)));
+assert(records.filter(([,meta])=>meta.section!=='Corporate & Non-SEO').every(([,meta])=>['problem-unaware','problem-aware','solution-aware','category-aware','competitor-aware'].includes(meta.awareness)));
 assert.equal(records.filter(([,meta])=>meta.section==='Competitor AEO').length,42);
 assert.equal(new Set(records.filter(([,meta])=>meta.section==='Competitor AEO').map(([,meta])=>meta.hierarchy)).size,23);
 const icpSeo=records.filter(([,meta])=>meta.section==='ICP SEO');
-assert.equal(icpSeo.length,365);
+assert.equal(icpSeo.length,321);
 assert.equal(icpSeo.filter(([,meta])=>meta.awareness==='problem-unaware').length,9);
-assert.equal(icpSeo.filter(([,meta])=>meta.awareness==='problem-aware').length,356);
+assert.equal(icpSeo.filter(([,meta])=>meta.awareness==='problem-aware').length,312);
 assert(icpSeo.every(([,meta])=>meta.icpSegment&&meta.hierarchy&&meta.axis));
 assert(icpSeo.some(([,meta])=>meta.hierarchy==='Industry'&&meta.icpSegment==='E-commerce & Retail'));
 assert(icpSeo.some(([,meta])=>meta.hierarchy==='Technology'&&meta.icpSegment==='BigQuery'));
@@ -57,8 +57,8 @@ assert(unaware.rows.filter(row=>row.repositoryWorkspace==='ai-data-platform').ev
 
 assert.equal(repo.installMappings(root,types,{product:'AI Data Platform',uid:()=>`solution-${++n}`,awareness:'solution-aware',contentView:'icp',mode:'aeo',activeView:active}),true);
 const afterSolution=active.rows.flatMap(row=>Object.values(row.cells||{}));
-assert.equal(afterSolution.flatMap(cell=>repo.resolve(cell.repositoryQueries||[])).filter(row=>row.awareness==='problem-aware').length,356);
-assert.equal(afterSolution.flatMap(cell=>repo.resolve(cell.repositoryQueries||[])).filter(row=>row.awareness==='solution-aware').length,18);
+assert.equal(afterSolution.flatMap(cell=>repo.resolve(cell.repositoryQueries||[])).filter(row=>row.awareness==='problem-aware').length,312);
+assert.equal(afterSolution.flatMap(cell=>repo.resolve(cell.repositoryQueries||[])).filter(row=>row.awareness==='solution-aware').length,12);
 assert.equal(repo.installMappings(root,types,{product:'AI Data Platform',uid:()=>`return-${++n}`,awareness:'problem-aware',contentView:'icp',mode:'seo',activeView:active}),false);
 
 const seedSource=fs.readFileSync(new URL('./saras-analytics-competitive-intelligence.js',import.meta.url),'utf8');

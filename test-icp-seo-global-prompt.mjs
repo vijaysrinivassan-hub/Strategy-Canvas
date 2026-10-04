@@ -4,7 +4,7 @@ import KeywordColumns from './keyword-columns.js';
 const prompt = KeywordColumns.strategyPrompt;
 const seeded = KeywordColumns.seed();
 
-assert.equal(KeywordColumns.PROMPT_REVISION, 'keyword-taxonomy-v8');
+assert.equal(KeywordColumns.PROMPT_REVISION, 'keyword-taxonomy-v9');
 for (const phrase of [
   'ICP SEO MATRIX — ALL CLIENTS AND PRODUCTS',
   'true two-axis matrix',
@@ -23,5 +23,9 @@ assert.ok(KeywordColumns.comparisonRouting.includes('exactly one unordered compa
 assert.ok(KeywordColumns.comparisonRouting.includes('every other named player'));
 assert.ok(KeywordColumns.comparisonRouting.includes('move that URL and its metadata into the matching pair cell'));
 assert.ok(KeywordColumns.comparisonRouting.includes('without content keeps the empty Status placeholder and remains white'));
+assert.ok(prompt.includes('CATEGORY AWARE'));
+assert.ok(prompt.includes('never decide from the URL slug alone'));
+assert.ok(prompt.includes('Category name contains roundups using the primary category wording'));
+assert.ok(prompt.includes('Category synonyms contains equivalent category roundups'));
 
 console.log('PASS: every client inherits the hierarchical two-axis ICP SEO matrix prompt.');
