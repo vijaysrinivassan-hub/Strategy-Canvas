@@ -1073,11 +1073,29 @@ data.valueRows=[{
 data.icpPrompt=ICP_PROMPT;data.valuePrompt=VALUE_PROMPT;data.routingPrompt=DATA_IMPORT_PROMPT+'\n\n'+ROUTING_PROMPT;
 const blankCell=(sourceRow,sourceCell,column,kind)=>({v:sourceCell.title,url:'',mode:'aeo',type:'',on:false,aw:'',st:'',writtenBy:'',cfg:true,kws:[],keywordIdeas:copy(sourceCell.keywordIdeas),actorType:sourceCell.actorType,actor:sourceCell.actor,icpSource:{kind:kind||'sample-matrix',row:sourceRow.name,column:column.name}});
 const matrixRows=view=>(view.rows||[]).filter(row=>row.pageGroup==='matrix');
-const mergeColumns=(seed,existing)=>{const ids=new Set(seed.map(column=>column.id)),byId=new Map(existing.map(column=>[column.id,column]));return [...seed.map(column=>byId.get(column.id)||({...copy(column),local:true,defaults:{mode:'aeo',type:'',aw:''}})),...existing.filter(column=>!ids.has(column.id)&&column.matrixGroup!=='use')];};
+const columnKey=value=>String(value||'').trim().toLowerCase().replace(/[^a-z0-9]+/g,' ');
+const mergeColumns=(seed,existing)=>{const ids=new Set(seed.map(column=>column.id)),names=new Set(seed.map(column=>columnKey(column.name))),byId=new Map(existing.map(column=>[column.id,column]));return [...seed.map(column=>byId.get(column.id)||({...copy(column),local:true,defaults:{mode:'aeo',type:'',aw:''}})),...existing.filter(column=>!ids.has(column.id)&&column.matrixGroup!=='use'&&!names.has(columnKey(column.name)))];};
+function migrateDuplicateColumns(rows,seed,existing){
+ const targets=new Map(seed.map(column=>[columnKey(column.name),column]));
+ existing.forEach(source=>{const target=targets.get(columnKey(source.name));if(!target||target.id===source.id)return;
+  rows.forEach(row=>{const sourceCell=row.cells?.[source.id];if(!sourceCell)return;const targetCell=row.cells[target.id];
+   if(!targetCell)row.cells[target.id]=sourceCell;
+   else if(typeof targetCell==='object'&&typeof sourceCell==='object'){
+    const mergeUnique=(a,b,key)=>[...new Map([...(a||[]),...(b||[])].map(item=>[key(item),item])).values()];
+    targetCell.repositoryQueries=mergeUnique(targetCell.repositoryQueries,sourceCell.repositoryQueries,item=>JSON.stringify(item));
+    targetCell.pageUrls=mergeUnique(targetCell.pageUrls,sourceCell.pageUrls,item=>String(item?.id||item?.url||item));
+    if(!String(targetCell.v||'').trim()&&String(sourceCell.v||'').trim())targetCell.v=sourceCell.v;
+   }
+   delete row.cells[source.id];
+  });
+ });
+}
 function ensure(content,client,productId){
  if(String(client||'').trim().toLowerCase()!==data.client.toLowerCase()||String(productId||'')!==data.productId)return false;
  content.views ||= {};const icp=content.views.icp;if(!icp)return false;const value=content.views.value ||= {kind:'grid',columns:[],rows:[],pageColumns:{},pageOrders:{}};
- if(icp.icpMatrixRevision===data.revision&&value.valueMatrixRevision===data.revision)return false;
+ const valueMatrixComplete=data.valueColumns.every(column=>(value.pageColumns?.matrix||[]).some(item=>item.id===column.id))&&
+  data.valueRows.every(sourceRow=>(value.rows||[]).some(row=>row.pageGroup==='matrix'&&row.id===sourceRow.id));
+ if(icp.icpMatrixRevision===data.revision&&value.valueMatrixRevision===data.revision&&valueMatrixComplete)return false;
  content.routingInstruction=DATA_IMPORT_PROMPT+'\n\n'+ROUTING_PROMPT;icp.pageColumns ||= {};icp.pageOrders ||= {};value.pageColumns ||= {};value.pageOrders ||= {};
  icp.icpMatrixArchive ||= [];value.valueMatrixArchive ||= [];
  const oldIcpColumns=Array.isArray(icp.pageColumns.matrix)?icp.pageColumns.matrix:[];const oldIcpRows=matrixRows(icp);
@@ -1086,6 +1104,7 @@ function ensure(content,client,productId){
  const clearedAeo=[];
  for(const row of (value.rows||[]).filter(row=>row.pageGroup!=='matrix'))for(const [id,cell] of Object.entries(row.cells||{})){const mode=typeof cell==='object'?cell.mode||'aeo':'aeo';if(mode!=='seo'){clearedAeo.push({rowId:row.id,columnId:id,cell:copy(cell)});delete row.cells[id];}}
  value.valueMatrixArchive.push({revision:data.revision,previousRevision:value.valueMatrixRevision||'',at:new Date().toISOString(),pageColumns:copy(oldValueColumns),rows:copy(oldValueRows),clearedAeo});
+ migrateDuplicateColumns(oldValueRows,data.valueColumns,oldValueColumns);
  icp.pageColumns.matrix=mergeColumns(data.icpColumns,oldIcpColumns.filter(column=>column.matrixGroup!=='use'));icp.pageOrders.matrix=icp.pageColumns.matrix.map(column=>column.id);icp.matrixAiPrompt=ICP_PROMPT;
  value.pageColumns.matrix=mergeColumns(data.valueColumns,oldValueColumns);value.pageOrders.matrix=value.pageColumns.matrix.map(column=>column.id);value.matrixAiPrompt=VALUE_PROMPT;
  const oldIcpById=new Map(oldIcpRows.map(row=>[row.id,row])),oldValueById=new Map(oldValueRows.map(row=>[row.id,row]));

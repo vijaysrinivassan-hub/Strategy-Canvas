@@ -217,6 +217,13 @@
     groups.forEach(group=>{
       const positions=[];rows.forEach((row,index)=>{if(row.pageGroup===group)positions.push(index);});
       const ordered=positions.map(index=>rows[index]).sort((a,b)=>{
+        // Value AEO owns a deliberate process taxonomy. Keep its parent
+        // process and sub-process rows ahead of imported URL-only rows so the
+        // matrix never hides the architecture behind repository pagination.
+        if(viewId==='value'&&group==='matrix'){
+          const rank=row=>row.processLevel==='process'?0:row.processLevel==='subprocess'?1:2;
+          const taxonomyOrder=rank(a)-rank(b);if(taxonomyOrder)return taxonomyOrder;
+        }
         const mapped=Number(!!b.repositoryHierarchy)-Number(!!a.repositoryHierarchy);
         if(mapped)return mapped;
         if(usesRepositoryAxis(viewId,group)&&a.repositoryHierarchy&&b.repositoryHierarchy){

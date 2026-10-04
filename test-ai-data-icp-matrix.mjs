@@ -39,6 +39,21 @@ assert.equal(content.views.value.rows.find(r=>r.id==='legacy').cells.aeo,undefin
 assert.ok(content.views.category.pageColumns.landing.some(c=>c.name==='Integration pages'));
 assert.match(content.views.icp.matrixAiPrompt,/E-commerce Data Analytics/);assert.match(content.views.value.matrixAiPrompt,/capabilities and features/);
 assert.equal(Matrix.ensure(content,'AI Data Platform','0jgsw8bx554d'),false);
+// Repair a previously seeded board whose saved Value AEO column projection
+// was later reduced to one visible column while its subprocess cells survived.
+content.views.value.pageColumns.matrix=content.views.value.pageColumns.matrix.filter(column=>column.id==='ai-value-capabilities');
+assert.equal(Matrix.ensure(content,'AI Data Platform','0jgsw8bx554d'),true);
+assert.deepEqual(content.views.value.pageColumns.matrix.slice(0,6).map(column=>column.id),Matrix.data.valueColumns.map(column=>column.id));
+assert.equal(Matrix.ensure(content,'AI Data Platform','0jgsw8bx554d'),false);
+// A repository-created alias must be folded into the canonical Capabilities
+// column so repair does not expose a duplicate or strand imported URLs.
+const aliasId='shared-url-col-value-matrix-capabilities';
+content.views.value.pageColumns.matrix=[{id:aliasId,name:'Capabilities',matrixGroup:'cap'}];
+content.views.value.rows.push({id:'imported-capability',pageGroup:'matrix',cells:{[aliasId]:{v:'Imported capability',repositoryQueries:[{topicGroup:'one'}]}}});
+assert.equal(Matrix.ensure(content,'AI Data Platform','0jgsw8bx554d'),true);
+assert.equal(content.views.value.pageColumns.matrix.filter(column=>column.name==='Capabilities').length,1);
+assert.equal(content.views.value.rows.find(row=>row.id==='imported-capability').cells['ai-value-capabilities'].v,'Imported capability');
+assert.equal(content.views.value.rows.find(row=>row.id==='imported-capability').cells[aliasId],undefined);
 const html=fs.readFileSync(new URL('./index.html',import.meta.url),'utf8');
 for(const marker of ['Value matrix','matrix-ai-prompt','Nodal benefits','Capabilities','isPositioningMatrix','value-process-parent','Sub-process','ai-data-icp-matrix.js'])assert.ok(html.includes(marker),marker);
 console.log('PASS: ICP audience-fit matrix retained, process/use-case cells moved to Value with nodal benefits and capabilities, old Value AEO cleared, SEO preserved, category integration added, prompts embedded.');
