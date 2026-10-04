@@ -3015,13 +3015,13 @@
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="keyword-assignments.js?v=value-lenses-v2"></script>
 <script src="keyword-page-tables.js?v=product-capabilities-v2"></script>
-<script src="keyword-columns.js?v=value-keywords-v20"></script>
-<script src="ai-data-icp-matrix.js?v=value-keywords-v11"></script>
+<script src="keyword-columns.js?v=value-keywords-v21"></script>
+<script src="ai-data-icp-matrix.js?v=value-keywords-v12"></script>
 <script src="keyword-columns-ui.js"></script>
 <script src="high-priority-links.js"></script>
 <script src="eor-provider-india-keywords.js"></script>
 <script src="ai-data-value-keywords.js?v=value-keywords-v3"></script>
-<script src="ai-data-search-metrics.js?v=search-metrics-v2"></script>
+<script src="ai-data-search-metrics.js?v=search-metrics-v3"></script>
 <script src="competitor-comparison.js?v=status-color-v2"></script>
 <link rel="stylesheet" href="competitive-intelligence.css">
 <script src="competitive-intelligence-seed.js"></script>
@@ -8099,7 +8099,12 @@ function renderValueMatrixLensToolbar(section,view){
   });
   const status=document.createElement('span');status.className='value-lens-copy-status';status.setAttribute('role','status');
   const copy=document.createElement('button');copy.type='button';copy.className='value-lens-copy';copy.textContent='Copy';copy.title='Copy all keywords in the selected value layer';
-  const ids=[];(view.rows||[]).filter(row=>row.pageGroup==='matrix').forEach(row=>Object.values(row.cells||{}).forEach(cell=>ids.push(...valueLensKeywordIds(cell,active))));
+  const ids=[];
+  (view.pageColumns?.matrix||view.columns||[]).forEach(column=>ids.push(...valueLensKeywordIds(matrixTopicCell(column),active)));
+  (view.rows||[]).filter(row=>row.pageGroup==='matrix').forEach(row=>{
+    ids.push(...valueLensKeywordIds(matrixTopicCell(row),active));
+    Object.values(row.cells||{}).forEach(cell=>ids.push(...valueLensKeywordIds(cell,active)));
+  });
   const seen=new Set();const words=keywordRowsByIds(ids).map(row=>String(row.keyword||'').trim()).filter(word=>word&&!seen.has(word.toLowerCase())&&seen.add(word.toLowerCase()));
   copy.disabled=!words.length;copy.onclick=async function(){copy.disabled=true;try{await navigator.clipboard.writeText(words.join('\n'));status.textContent='Copied '+words.length;}catch{status.textContent='Could not copy';}finally{copy.disabled=!words.length;}};
   toolbar.append(status,copy,prompt);section.append(toolbar);
@@ -8164,14 +8169,15 @@ function setMatrixTopicCell(holder,patch){
   setCellIn(proxy,'topic',Object.assign({},patch,{cfg:true}),{mode:'aeo'});holder.topicCell=proxy.cells.topic;
   if(Object.prototype.hasOwnProperty.call(patch,'v')&&String(patch.v).trim())holder.name=String(patch.v).trim();
 }
-function renderMatrixTopicCell(host,holder,ro){
+function renderMatrixTopicCell(host,holder,ro,keywordLens){
   host.classList.add('gr-cell','icp-matrix-topic-cell');
   const get=()=>matrixTopicCell(holder),cell=get();
   const title=document.createElement('input');title.type='text';title.value=cell.v;title.placeholder='Title....';title.disabled=ro;title.setAttribute('aria-label','Title');host.append(title);
-  const removeKeyword=row=>{const now=get();setMatrixTopicCell(holder,keywordRemovalPatch(now,row));markDirty();renderGrid();};
-  const kwHost=document.createElement('div');kwHost.className='gr-kws';kwHost.append(keywordBlock(gridCellKeywords(cell.v||cell.url,cell.kws,cell.excludedKws),ro?null:removeKeyword));host.append(kwHost);
-  let timer=null;title.oninput=function(){setMatrixTopicCell(holder,{v:title.value});markDirty();clearTimeout(timer);timer=setTimeout(()=>{const now=get();kwHost.replaceChildren(keywordBlock(gridCellKeywords(now.v||now.url,now.kws,now.excludedKws),ro?null:removeKeyword));},250);};
-  cellControls(host,{ro,get,set:patch=>setMatrixTopicCell(holder,patch),seed:()=>get().v.trim(),refreshEmpty:()=>{},onTypeChange:renderGrid,rerender:renderGrid});
+  const rowsFor=now=>keywordLens?gridCellKeywords('',valueLensKeywordIds(now,keywordLens),valueLensExcludedIds(now,keywordLens)):gridCellKeywords(now.v||now.url,now.kws,now.excludedKws);
+  const removeKeyword=row=>{const now=get();if(keywordLens){const key=keywordEvidenceKey(row),ids=valueLensKeywordIds(now,keywordLens).filter(id=>String(id)!==key),excluded=valueLensExcludedIds(now,keywordLens).slice();if(key&&!excluded.map(String).includes(key))excluded.push(key);setMatrixTopicCell(holder,valueLensKeywordPatch(now,keywordLens,ids,excluded));}else setMatrixTopicCell(holder,keywordRemovalPatch(now,row));markDirty();renderGrid();};
+  const kwHost=document.createElement('div');kwHost.className='gr-kws';kwHost.append(keywordBlock(rowsFor(cell),ro?null:removeKeyword));host.append(kwHost);
+  let timer=null;title.oninput=function(){setMatrixTopicCell(holder,{v:title.value});markDirty();clearTimeout(timer);timer=setTimeout(()=>{kwHost.replaceChildren(keywordBlock(rowsFor(get()),ro?null:removeKeyword));},250);};
+  cellControls(host,{ro,get,set:patch=>setMatrixTopicCell(holder,patch),keywordLens:keywordLens||'',seed:()=>get().v.trim(),refreshEmpty:()=>{},onTypeChange:renderGrid,rerender:renderGrid});
 }
 
 const KEYWORD_GRID_PAGE_SIZE = 40;
@@ -8268,7 +8274,7 @@ function renderGridTable(v, group, table){
   columns.forEach(function(col){
     const th = document.createElement('th');
     if(isPositioningMatrix){
-      th.classList.add('icp-matrix-column-topic','icp-matrix-'+col.matrixGroup);renderMatrixTopicCell(th,col,ro);
+      th.classList.add('icp-matrix-column-topic','icp-matrix-'+col.matrixGroup);renderMatrixTopicCell(th,col,ro,isValueAeoProcessMatrix?activeValueMatrixLens(v):'');
       const titleInput=th.firstElementChild,heading=document.createElement('div');heading.className='matrix-column-heading';
       th.insertBefore(heading,titleInput);heading.append(titleInput,keywordColumnCountBadge(v,group.id,col.id));
       const tools=columnTools(col,col.name,renderGrid);tools.classList.add('matrix-topic-tools');th.append(tools);hr.append(th);return;
@@ -8398,7 +8404,7 @@ function renderGridTable(v, group, table){
         const kind=document.createElement('small');kind.className='matrix-row-kind';
         kind.textContent=topicRow.processLevel==='process'?'Process':'Sub-process';num.append(kind);
       }
-      renderMatrixTopicCell(num,topicRow,ro || !!keywordStatusFilter.size);
+      renderMatrixTopicCell(num,topicRow,ro || !!keywordStatusFilter.size,isValueAeoProcessMatrix?activeValueMatrixLens(v):'');
       if(!ro && !keywordStatusFilter.size){const del=document.createElement('button');del.className='matrix-topic-delete';del.innerHTML='&times;';del.title='Delete row';del.onclick=function(){if(Object.keys(row.cells||{}).length&&!confirm('Delete this row and its contents?'))return;v.rows.splice(v.rows.indexOf(row),1);markDirty();renderGrid();};num.append(del);}
     }else{
       num.className='gr-num';const wrap=document.createElement('div');wrap.className='gr-numwrap';const idx=document.createElement('span');idx.textContent=String(rowOffset+i+1);wrap.append(idx);

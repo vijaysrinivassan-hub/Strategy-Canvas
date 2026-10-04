@@ -7,7 +7,7 @@ from collections import defaultdict
 
 CLIENT = "AI Data Platform"
 PRODUCT_ID = "0jgsw8bx554d"
-REVISION = "ai-data-search-suggestions-v2"
+REVISION = "ai-data-search-suggestions-v3"
 
 PROCESSES = [
     "Analysis", "Descriptive analysis", "Diagnostic analysis", "Cohort analysis",
@@ -142,12 +142,19 @@ const normalize=value=>String(value||'').trim().toLowerCase().replace(/[^a-z0-9]
 const key=(keyword,country)=>String(keyword||'').trim().toLowerCase()+'|'+String(country||'us').trim().toLowerCase();
 function keywordRows(){{return records.map(record=>({{keyword:record.keyword,country:record.country,volume:record.volume,kd:record.kd,cpc:record.cpc,traffic_potential:record.traffic_potential,parent_topic:record.parent_topic,intent:record.intent,data:record.data}}));}}
 function matches(client,productId){{return normalize(client)===normalize(CLIENT)&&String(productId||'')===PRODUCT_ID;}}
+function lensIds(cell,lens){{const map=cell?.valueLensKeywords&&typeof cell.valueLensKeywords==='object'?cell.valueLensKeywords:{{}};return lens==='process'?(map.process||cell?.kws||[]):(map[lens]||[]);}}
+function topicCell(holder){{return holder.topicCell||=( {{v:String(holder.name||''),url:'',mode:'aeo',type:'',on:false,aw:'',st:'',writtenBy:'',cfg:true,kws:[],valueLensKeywords:{{}}}} );}}
+function putLens(cell,lens,ids){{const unique=[...new Set((ids||[]).map(String))].slice(0,5);if(lens==='process')cell.kws=unique;else{{cell.valueLensKeywords||={{}};cell.valueLensKeywords[lens]=unique;}}}}
 function apply(root,keywordRowsFromDb){{
  const view=root?.views?.value;if(!view)return false;const rows=(view.rows||[]).filter(row=>row.pageGroup==='matrix'),columns=view.pageColumns?.matrix||view.columns||[];
  const rowByName=new Map(rows.map(row=>[normalize(row.name),row])),columnByName=new Map(columns.map(column=>[normalize(column.name),column])),byKeyword=new Map((keywordRowsFromDb||[]).map(row=>[key(row.keyword,row.country),row]));
  const imported=new Set(records.map(record=>String(byKeyword.get(key(record.keyword,record.country))?.id||'')).filter(Boolean));let changed=false;
  for(const row of rows)for(const cell of Object.values(row.cells||{{}})){{const before=JSON.stringify([cell.kws,cell.valueLensKeywords]);cell.kws=(cell.kws||[]).filter(id=>!imported.has(String(id)));for(const lens of Object.keys(cell.valueLensKeywords||{{}}))cell.valueLensKeywords[lens]=(cell.valueLensKeywords[lens]||[]).filter(id=>!imported.has(String(id)));if(before!==JSON.stringify([cell.kws,cell.valueLensKeywords]))changed=true;}}
  for(const record of records){{const row=rowByName.get(normalize(record.process)),column=columnByName.get(normalize(record.department)),keyword=byKeyword.get(key(record.keyword,record.country));if(!row||!column||keyword?.id==null)continue;row.cells||={{}};const cell=row.cells[column.id]&&typeof row.cells[column.id]==='object'?row.cells[column.id]:(row.cells[column.id]={{mode:'aeo',cfg:true,kws:[],pageUrls:[]}});const target=record.lens==='process'?(cell.kws||=[]):((cell.valueLensKeywords||={{}})[record.lens]||=[]);if(!target.map(String).includes(String(keyword.id))){{target.push(keyword.id);changed=true;}}}}
+ /* Row and column headers are independent lens-aware keyword buckets. Each
+    receives five examples from its own intersections for the active lens. */
+ for(const row of rows){{const cell=topicCell(row);for(const lens of {json.dumps(LENSES)}){{const ids=[];for(const value of Object.values(row.cells||{{}}))ids.push(...lensIds(value,lens));putLens(cell,lens,ids);}}}}
+ for(const column of columns){{const cell=topicCell(column);for(const lens of {json.dumps(LENSES)}){{const ids=[];for(const row of rows)ids.push(...lensIds(row.cells?.[column.id],lens));putLens(cell,lens,ids);}}}}
  return changed;
 }}
 return {{REVISION,CLIENT,PRODUCT_ID,records,keywordRows,matches,apply}};

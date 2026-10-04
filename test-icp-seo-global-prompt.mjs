@@ -4,7 +4,7 @@ import KeywordColumns from './keyword-columns.js';
 const prompt = KeywordColumns.strategyPrompt;
 const seeded = KeywordColumns.seed();
 
-assert.equal(KeywordColumns.PROMPT_REVISION, 'keyword-taxonomy-v20');
+assert.equal(KeywordColumns.PROMPT_REVISION, 'keyword-taxonomy-v21');
 for (const phrase of [
   'ICP SEO MATRIX — ALL CLIENTS AND PRODUCTS',
   'true two-axis matrix',
