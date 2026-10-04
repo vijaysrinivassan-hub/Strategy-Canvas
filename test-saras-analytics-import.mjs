@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import vm from 'node:vm';
+import Matrix from './ai-data-icp-matrix.js';
 
 const asset=JSON.parse(fs.readFileSync(new URL('./competitive-intelligence-classifications.json',import.meta.url),'utf8'));
 const taxonomyAudit=JSON.parse(fs.readFileSync(new URL('./tools/saras-keyword-taxonomy-audit.json',import.meta.url),'utf8'));
@@ -30,7 +31,7 @@ assert(icpAeo.every(([,meta])=>meta.icpSegment&&['Industry','Company size','Role
 assert(icpAeo.filter(([,meta])=>meta.hierarchy==='Company size').every(([,meta])=>meta.icpSegment==='Enterprise'));
 assert(icpAeo.filter(([,meta])=>meta.hierarchy==='Role / Team').every(([,meta])=>['Agencies','Data & Analytics'].includes(meta.icpSegment)));
 assert(icpAeo.filter(([,meta])=>meta.hierarchy==='Technology').every(([,meta])=>['Snowflake','Shopify','NetSuite','MySQL'].includes(meta.icpSegment)));
-assert.equal(records.filter(([,meta])=>meta.section==='Value AEO').length,8);
+assert.equal(records.filter(([,meta])=>meta.section==='Value AEO').length,14);
 assert.equal(asset.classifications['https://www.sarasanalytics.com/lp/thank-you'].section,'Corporate & Non-SEO');
 assert.equal(asset.classifications['https://www.sarasanalytics.com/blog/triple-whale-pricing'].axis,'Pricing');
 assert.equal(asset.classifications['https://www.sarasanalytics.com/blog/triple-whale-pricing'].section,'Competitor AEO');
@@ -89,12 +90,15 @@ assert(solutionColumns.some(column=>column.name==='Enterprise'&&column.matrixGro
 assert(solutionColumns.some(column=>column.name==='Snowflake'&&column.matrixGroup==='tech'));
 assert(!solutionColumns.some(column=>/country/i.test(column.name)));
 
-const valueSolution={columns:[],rows:[]};
-assert.equal(repo.installMappings(root,types,{product:'AI Data Platform',uid:()=>`value-solution-${++n}`,awareness:'solution-aware',contentView:'value',mode:'aeo',activeView:valueSolution}),true);
+const valueSolutionRoot={views:{category:{columns:[],rows:[]},icp:{columns:[],rows:[]},value:{columns:[],rows:[]}}};
+assert.equal(Matrix.ensure(valueSolutionRoot,'AI Data Platform','0jgsw8bx554d'),true);
+const valueSolution=valueSolutionRoot.views.value;
+assert.equal(repo.installMappings(valueSolutionRoot,types,{product:'AI Data Platform',uid:()=>`value-solution-${++n}`,awareness:'solution-aware',contentView:'value',mode:'aeo',activeView:valueSolution}),true);
 const valueSolutionRows=valueSolution.rows.filter(row=>Object.values(row.cells||{}).some(cell=>(cell.repositoryQueries||[]).some(query=>query.awareness==='solution-aware')));
-assert(valueSolutionRows.every(row=>row.repositorySuperHierarchy==='Category'&&row.repositoryHierarchy==='E-commerce Data Analytics'));
+assert(valueSolutionRows.every(row=>['process','subprocess'].includes(row.processLevel)));
 const valueSolutionCells=valueSolutionRows.flatMap(row=>Object.values(row.cells||{}));
-assert.equal(valueSolutionCells.flatMap(cell=>repo.resolve(cell.repositoryQueries||[])).length,8);
+assert.equal(valueSolutionCells.flatMap(cell=>repo.resolve(cell.repositoryQueries||[])).length,14);
+assert.equal(valueSolution.rows.filter(row=>row.pageGroup==='matrix').length,15);
 assert(valueSolution.pageColumns.matrix.some(column=>column.name==='Capabilities'&&column.matrixGroup==='cap'&&column.defaults.mode==='aeo'));
 assert.equal(repo.installMappings(root,types,{product:'AI Data Platform',uid:()=>`return-${++n}`,awareness:'problem-aware',contentView:'icp',mode:'seo',activeView:active}),false);
 

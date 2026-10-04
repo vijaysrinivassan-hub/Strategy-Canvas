@@ -1,5 +1,5 @@
 {
-  "revision": "saras-keyword-taxonomy-v1",
+  "revision": "saras-keyword-taxonomy-v2",
   "auditedAt": "2026-10-04T00:49:23.364Z",
   "reviewed": 770,
   "read": 768,
@@ -1606,9 +1606,9 @@
     }
   ],
   "counts": {
-    "Category AEO": 223,
+    "Category AEO": 217,
     "Corporate & Non-SEO": 15,
-    "Value AEO": 8,
+    "Value AEO": 14,
     "Competitor AEO": 47,
     "ICP AEO": 12,
     "Value SEO": 142,
@@ -1619,6 +1619,7 @@
     "comparison": "Direct vendor-vendor URLs live only in Competitor vs Competitor.",
     "utility": "Thank-you and utility pages are Corporate & Non-SEO.",
     "aeo": "ICP AEO and Value AEO accept only Listicle or Landing page.",
-    "icp": "Industry, Company size, Role / Team and Technology are independent; every ICP AEO URL has an explicit segment."
+    "icp": "Industry, Company size, Role / Team and Technology are independent; every ICP AEO URL has an explicit segment.",
+    "valueAeo": "Read every commercial page. Route product-specific capabilities, features, use cases and outcomes into the existing process-by-department Value AEO matrix; keep category definitions and integrations in Category AEO."
   }
 }

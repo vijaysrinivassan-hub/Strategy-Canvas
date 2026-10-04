@@ -31,6 +31,9 @@ repo.installMappings(aiRoot,types,{product:'AI Data Platform',awareness:'solutio
 assert.equal(aiValue.rows.filter(row=>row.pageGroup==='matrix').length,15);
 assert(aiValue.rows.filter(row=>row.pageGroup==='matrix').every(row=>['process','subprocess'].includes(row.processLevel)));
 assert.deepEqual(aiValue.pageColumns.matrix.map(column=>column.name),['Marketing','Product','Sales','Finance','Features','Capabilities']);
+const aiValueCells=aiValue.rows.flatMap(row=>Object.values(row.cells||{}));
+assert.equal(new Set(aiValueCells.flatMap(cell=>repo.resolve(cell.repositoryQueries||[])).map(record=>record.url)).size,14);
+assert(aiValueCells.filter(cell=>cell.repositoryQueries?.length).every(cell=>cell.st==='for_review'));
 
 assert.equal(repo.installMappings(root,types,{product:'Answer Engine Optimization Agency',uid:()=>'row-'+(++n)}),true);
 assert.equal(repo.installMappings(root,types,{product:'Answer Engine Optimization Agency',uid:()=>'row-'+(++n)}),false);

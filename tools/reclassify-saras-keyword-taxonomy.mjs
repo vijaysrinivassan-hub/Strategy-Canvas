@@ -55,10 +55,22 @@ const valueSeoRoutes={
   '/glossary/pricing-strategy':['problem-unaware','General Value','Explainers'],
   '/blog/how-returns-distort-contribution-margin-pricing':['problem-aware','Revenue & Profitability','Explainers']
 };
-const ownValueLanding=new Set([
-  '/saras-daton/pricing','/lp/what-is-saras-iq','/lp/saras-iq-demo','/lp/ltv-audit',
-  '/saras-iq/pricing','/lp/saras-iq-essentials','/lp/q4-plan','/lp/saras-iq-24-questions'
-]);
+const ownValueLanding={
+  '/saras-daton/pricing':['Revenue and profitability analysis','Sales'],
+  '/lp/what-is-saras-iq':['Analysis','Features'],
+  '/lp/saras-iq-demo':['Product and SKU performance analysis','Features'],
+  '/lp/ltv-audit':['Customer lifetime-value analysis','Marketing'],
+  '/saras-iq/pricing':['Revenue and profitability analysis','Features'],
+  '/lp/saras-iq-essentials':['Analysis','Capabilities'],
+  '/lp/q4-plan':['Comparative analysis','Finance'],
+  '/lp/saras-iq-24-questions':['Diagnostic analysis','Finance'],
+  '/saras-iq/customer-analytics':['Cohort analysis','Marketing'],
+  '/saras-iq/contribution-margin':['Revenue and profitability analysis','Finance'],
+  '/saras-iq/sales-and-marketing-analytics':['Marketing-performance analysis','Marketing'],
+  '/saras-iq/inventory-product-planning':['Product and SKU performance analysis','Product'],
+  '/saras-iq':['Descriptive analysis','Capabilities'],
+  '/ai-ready-data-foundation':['Analysis','Product']
+};
 const competitorFromPath=pathname=>{
   const leaf=pathname.split('/').filter(Boolean).pop()||'';
   return leaf.replace(/^saras-(?:iq|pulse)-vs-/i,'').replace(/-(?:pricing|reviews?|alternatives?)$/i,'').split('-').map(word=>word[0]?.toUpperCase()+word.slice(1)).join(' ')
@@ -95,10 +107,9 @@ for(const raw of profile.urls){
   }else if(valueSeoRoutes[pathname]){
     const [awareness,hierarchy,axis]=valueSeoRoutes[pathname];
     apply(meta,{awareness,section:'Value SEO',pageType:'Informational',hierarchy,axis});delete meta.icpSegment;
-  }else if(ownValueLanding.has(pathname)){
-    const text=clean([page.title,page.h1,page.description,pathname].join(' '));
-    const hierarchy=/ltv|lifetime value/.test(text)?'Customer Analytics':/pricing/.test(text)?'Revenue & Profitability':'Product Capabilities';
-    apply(meta,{awareness:'solution-aware',section:'Value AEO',pageType:'Landing page',hierarchy,axis:'Capabilities'});delete meta.icpSegment;
+  }else if(ownValueLanding[pathname]){
+    const [hierarchy,axis]=ownValueLanding[pathname];
+    apply(meta,{awareness:'solution-aware',section:'Value AEO',pageType:'Landing page',hierarchy,axis});delete meta.icpSegment;
   }
   if(meta.section==='ICP SEO')meta.axis=seoTopicAxis(pathname,page);
   // AEO is commercial/list-led only. Any residual informational AEO record is
