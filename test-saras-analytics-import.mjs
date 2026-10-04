@@ -18,6 +18,13 @@ assert(records.filter(([,meta])=>meta.section!=='Corporate & Non-SEO').every(([,
 assert(records.filter(([,meta])=>meta.section!=='Corporate & Non-SEO').every(([,meta])=>['problem-unaware','problem-aware','solution-aware','competitor-aware'].includes(meta.awareness)));
 assert.equal(records.filter(([,meta])=>meta.section==='Competitor AEO').length,42);
 assert.equal(new Set(records.filter(([,meta])=>meta.section==='Competitor AEO').map(([,meta])=>meta.hierarchy)).size,23);
+const icpSeo=records.filter(([,meta])=>meta.section==='ICP SEO');
+assert.equal(icpSeo.length,365);
+assert.equal(icpSeo.filter(([,meta])=>meta.awareness==='problem-unaware').length,9);
+assert.equal(icpSeo.filter(([,meta])=>meta.awareness==='problem-aware').length,356);
+assert(icpSeo.every(([,meta])=>meta.icpSegment&&meta.hierarchy&&meta.axis));
+assert(icpSeo.some(([,meta])=>meta.hierarchy==='Industry'&&meta.icpSegment==='E-commerce & Retail'));
+assert(icpSeo.some(([,meta])=>meta.hierarchy==='Technology'&&meta.icpSegment==='BigQuery'));
 
 const source=fs.readFileSync(new URL('./shared-url-repository.js',import.meta.url),'utf8');
 const context=vm.createContext({globalThis:{CompetitiveIntelligenceClassifications:asset},console});
@@ -34,6 +41,19 @@ assert(cells.every(cell=>cell.repositoryQueries.length===1));
 const urls=cells.flatMap(cell=>repo.resolve(cell.repositoryQueries));
 assert.equal(urls.length,repo.query({workspace:'ai-data-platform',awareness:'problem-aware',section:'ICP SEO'}).length);
 assert(cells.every(cell=>repo.resolve(cell.repositoryQueries).length===1));
+const problemAwareRows=active.rows.filter(row=>row.repositoryWorkspace==='ai-data-platform'&&row.pageGroup==='informational');
+assert(problemAwareRows.every(row=>row.repositorySuperHierarchy&&row.repositoryHierarchy));
+assert(problemAwareRows.some(row=>row.repositorySuperHierarchy==='Industry'&&row.repositoryHierarchy==='E-commerce & Retail'));
+assert(problemAwareRows.some(row=>row.repositorySuperHierarchy==='Technology'&&row.repositoryHierarchy==='BigQuery'));
+assert(active.pageColumns.informational.some(column=>column.name==='Data Integration & Ingestion'));
+assert(active.pageColumns.informational.some(column=>column.name==='Data Analysis'));
+
+const unaware=structuredClone(active);
+assert.equal(repo.installMappings(root,types,{product:'AI Data Platform',uid:()=>`unaware-${++n}`,awareness:'problem-unaware',contentView:'icp',mode:'seo',activeView:unaware}),true);
+const unawareCells=unaware.rows.flatMap(row=>Object.values(row.cells||{}));
+assert.equal(unawareCells.flatMap(cell=>repo.resolve(cell.repositoryQueries||[])).length,9);
+assert.equal(unawareCells.flatMap(cell=>repo.resolve(cell.repositoryQueries||[])).filter(row=>row.awareness==='problem-aware').length,0);
+assert(unaware.rows.filter(row=>row.repositoryWorkspace==='ai-data-platform').every(row=>row.repositorySuperHierarchy&&row.repositoryHierarchy));
 
 assert.equal(repo.installMappings(root,types,{product:'AI Data Platform',uid:()=>`solution-${++n}`,awareness:'solution-aware',contentView:'icp',mode:'aeo',activeView:active}),true);
 const afterSolution=active.rows.flatMap(row=>Object.values(row.cells||{}));

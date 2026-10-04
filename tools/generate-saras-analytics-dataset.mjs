@@ -87,14 +87,14 @@ for (const url of urls) {
   const icp = isIcp(text);
   const [dimension, dimensionValue] = icp ? icpDimension(text) : ['', ''];
   const hierarchy = icp ? dimension : valueHierarchy(text);
-  const axis = icp ? dimensionValue : valueAxis(text);
+  const axis = icp ? valueHierarchy(text) : valueAxis(text);
   const mode = awareness === 'solution-aware' ? 'AEO' : 'SEO';
   const section = `${icp ? 'ICP' : 'Value'} ${mode}`;
   const format = pageType(pathname, text, awareness);
   const key = [awareness, section, hierarchy, axis].join('|');
   const groupOrder = counters.get(key) || 0;
   counters.set(key, groupOrder + 1);
-  source.classifications[url] = {workspace, awareness, section, pageType:format, hierarchy, axis, topicGroup:url, topic:title(url), groupOrder, groupSize:1, covered:false, traffic:''};
+  source.classifications[url] = {workspace, awareness, section, pageType:format, hierarchy, axis, ...(icp?{icpSegment:dimensionValue}:{}), topicGroup:url, topic:title(url), groupOrder, groupSize:1, covered:false, traffic:''};
 }
 
 source.profiles.push({

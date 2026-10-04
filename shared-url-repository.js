@@ -22,7 +22,7 @@
     indexedRecords=Object.entries(source.classifications||{}).map(([url,meta])=>{
       const owner=owners.get(normalizeUrl(url))||{};
       return {id:normalizeUrl(url),url,traffic:meta.traffic||'',shared:true,competitorId:owner.competitorId||'',competitor:owner.competitor||'',workspace:meta.workspace||owner.workspace||'aeo-agency',awareness:meta.awareness||'',
-        section:meta.section||'',pageType:meta.pageType||'',hierarchy:meta.hierarchy||'General',axis:meta.axis||'General',
+        section:meta.section||'',pageType:meta.pageType||'',hierarchy:meta.hierarchy||'General',axis:meta.axis||'General',icpSegment:meta.icpSegment||'',
         topicGroup:meta.topicGroup||normalizeUrl(url),topic:meta.topic||meta.hierarchy||'URL topic',groupOrder:Number(meta.groupOrder)||0,
         groupSize:Number(meta.groupSize)||1,covered:!!meta.covered,sourceSheet:meta.sourceSheet||'',sourceCell:meta.sourceCell||''};
     });indexedSource=source;return indexedRecords;
@@ -356,10 +356,13 @@
     if(!['icp','value'].includes(viewId)||!options.activeView)return false;
     const mode=awareness==='solution-aware'?'aeo':'seo';
     const scope=[workspace,awareness,viewId,mode].join(':');
-    const revision=(data().classifiedAt||'classification')+':'+scope+':v2';
+    const revision=(data().classifiedAt||'classification')+':'+scope+':v3';
     root.sharedUrlRepositoryRevisions ||= {};
     if(root.sharedUrlRepositoryRevisions[scope]===revision&&hasScopedMappings(options.activeView,workspace,awareness))return false;
     const view=options.activeView,uid=options.uid||(()=>Math.random().toString(36).slice(2));
+    // Problem Unaware starts as an editable copy of the SEO view. Remove the
+    // copied Problem Aware repository cells before installing its own URLs.
+    if(awareness==='problem-unaware')clearScopedMappings(view,workspace,'problem-aware');
     clearScopedMappings(view,workspace,awareness);
     let linked=0;
     records().filter(record=>record.workspace===workspace&&record.awareness===awareness&&record.section===sectionFor(viewId,mode)).forEach(record=>{
@@ -368,7 +371,9 @@
       const group=mode==='aeo'?'matrix':'informational';
       const column=ensureColumn(viewId,view,group,record.axis||'General',mode,types);
       if(group==='matrix')column.matrixGroup=matrixGroup(viewId,record.hierarchy);
-      const row=ensureRow(view,group,record.hierarchy||'General',record.groupOrder,uid,viewId==='icp'?record.hierarchy:undefined);
+      const rowHierarchy=viewId==='icp'&&mode==='seo'?(record.icpSegment||record.hierarchy||'General ICP'):(record.hierarchy||'General');
+      const rowSuperHierarchy=viewId==='icp'&&mode==='seo'?(record.hierarchy||'General ICP'):(viewId==='icp'?record.hierarchy:undefined);
+      const row=ensureRow(view,group,rowHierarchy,record.groupOrder,uid,rowSuperHierarchy);
       row.repositoryWorkspace=workspace;
       const current=row.cells[column.id]&&typeof row.cells[column.id]==='object'?row.cells[column.id]:{};
       const spec={workspace,awareness,section:record.section,pageType:record.pageType,hierarchy:record.hierarchy,axis:record.axis,topicGroup:record.topicGroup};
