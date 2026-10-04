@@ -20,7 +20,7 @@
   // every matrix and preserves the original import for audit purposes.
   const AI_DATA_ICP_OVERRIDES={
     'https://www.sarasanalytics.com/solutions/amazon-agencies':{hierarchy:'Industry',icpSegment:'Agencies',axis:'Agencies'},
-    'https://www.sarasanalytics.com/solutions/amazon-brands':{hierarchy:'Industry',icpSegment:'Amazon',axis:'Amazon'},
+    'https://www.sarasanalytics.com/solutions/amazon-brands':{hierarchy:'Technology',icpSegment:'Amazon',axis:'Amazon'},
     'https://www.sarasanalytics.com/lp/saras-iq-ai-analyst':{awareness:'category-aware',section:'Category AEO',pageType:'Landing page',hierarchy:'Saras iQ',axis:'Product pages',icpSegment:''}
   };
   let loadPromise=null,indexedSource=null,indexedOverlayRevision='',indexedRecords=[];
@@ -80,6 +80,8 @@
     if(/countr/.test(name))return 'ctry';
     if(/tech/.test(name))return 'tech';
     if(/company size|size/.test(name))return 'size';
+    if(/^people$/.test(name))return 'people';
+    if(/^input$/.test(name))return 'input';
     if(/role|team|people/.test(name))return 'role';
     if(/process|use case/.test(name))return 'process';
     return 'ind';
@@ -213,7 +215,7 @@
   const categoryRowRank=row=>row.repositorySuperHierarchy==='Prime category'?0:row.repositorySuperHierarchy==='Supporting process'?1:2;
   const usesRepositoryAxis=(viewId,group)=>viewId==='category'||(viewId==='icp'&&(group==='informational'||group==='matrix'))||(viewId==='value'&&group==='informational');
   const ICP_DIMENSION_ORDER=['Industry','Company size','Process / Use case','Country','Technology','Role / Team','General ICP'];
-  const ICP_MATRIX_GROUP_ORDER=['ind','size','process','ctry','tech','role'];
+  const ICP_MATRIX_GROUP_ORDER=['ind','size','process','ctry','tech','role','people','input'];
   const INDUSTRY_ORDER=['B2B SaaS','Fintech & Financial Services','Healthcare & Life Sciences','E-commerce & Retail','Cybersecurity','HR Tech','MarTech & AdTech','Technology & Software','Aerospace & Aviation','Agriculture & AgTech','Automotive','Construction & Home Services','Education & EdTech','Energy, Environment & Utilities','Manufacturing & Industrial','Real Estate & PropTech','Logistics & Transportation','Crypto & Web3','Telecom & IT Services','Media & Entertainment','Professional Services','Consumer','B2B Services','Other Industry'];
   const industryValue=record=>{
     const name=normalizeName(record.topic||record.url);
@@ -420,7 +422,7 @@
     // Include overlay imports in the persisted migration key. Otherwise a
     // board that already installed the Saras/base repository incorrectly
     // treats a newly shipped represented-company import as already applied.
-    const revision=(data().classifiedAt||'classification')+':'+(global.AskLucaKeywordImport?.REVISION||'base')+':'+scope+':v17';
+    const revision=(data().classifiedAt||'classification')+':'+(global.AskLucaKeywordImport?.REVISION||'base')+':'+scope+':v18';
     root.sharedUrlRepositoryRevisions ||= {};
     const view=options.activeView,uid=options.uid||(()=>Math.random().toString(36).slice(2));
     const fixedAiDataValueMatrix=workspace==='ai-data-platform'&&awareness==='solution-aware'&&viewId==='value'&&mode==='aeo';
@@ -497,13 +499,15 @@
     });
     if(workspace==='ai-data-platform'&&awareness==='solution-aware'&&viewId==='icp'&&mode==='aeo'){
       const required=[
-        {name:'E-commerce',group:'ind'},
-        {name:'Agencies',group:'ind'},
-        {name:'Amazon',group:'ind'},
-        {name:'SMB',group:'size'},
-        {name:'Enterprise',group:'size'}
+        {name:'E-commerce',group:'ind',dimension:'Industry'},
+        {name:'Agencies',group:'ind',dimension:'Industry'},
+        {name:'Amazon',group:'tech',dimension:'Technology'},
+        {name:'SMB',group:'size',dimension:'Company size'},
+        {name:'Enterprise',group:'size',dimension:'Company size'},
+        {name:'People',group:'people',dimension:'People'},
+        {name:'Input',group:'input',dimension:'Input'}
       ];
-      required.forEach(item=>{const column=ensureColumn('icp',view,'matrix',item.name,'aeo',types);column.matrixGroup=item.group;column.repositoryDimension=item.group==='ind'?'Industry':'Company size';});
+      required.forEach(item=>{const column=ensureColumn('icp',view,'matrix',item.name,'aeo',types);column.matrixGroup=item.group;column.repositoryDimension=item.dimension;});
       const retired=new Set(['data analytics','data and analytics']);
       const retiredIds=new Set((view.pageColumns?.matrix||[]).filter(column=>retired.has(normalizeName(column.name))).map(column=>column.id));
       if(retiredIds.size){

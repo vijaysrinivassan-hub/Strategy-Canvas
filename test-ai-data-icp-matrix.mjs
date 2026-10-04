@@ -3,12 +3,13 @@ import fs from 'node:fs';
 import Matrix from './ai-data-icp-matrix.js';
 import Columns from './keyword-columns.js';
 
-assert.equal(Matrix.data.revision,'ai-data-positioning-matrices-v15');
-assert.equal(Matrix.data.icpColumns.length,9);
-assert.deepEqual([...new Set(Matrix.data.icpColumns.map(c=>c.matrixGroup))],['ind','size','tech']);
+assert.equal(Matrix.data.revision,'ai-data-positioning-matrices-v16');
+assert.equal(Matrix.data.icpColumns.length,11);
+assert.deepEqual([...new Set(Matrix.data.icpColumns.map(c=>c.matrixGroup))],['ind','tech','size','people','input']);
 assert.deepEqual(Matrix.data.icpColumns.slice(0,5).map(c=>[c.name,c.matrixGroup]),[
- ['E-commerce','ind'],['Agencies','ind'],['Amazon','ind'],['SMB','size'],['Enterprise','size']
+ ['E-commerce','ind'],['Agencies','ind'],['Amazon','tech'],['SMB','size'],['Enterprise','size']
 ]);
+assert.deepEqual(Matrix.data.icpColumns.slice(-2).map(c=>[c.name,c.matrixGroup]),[['People','people'],['Input','input']]);
 assert(!Matrix.data.icpColumns.some(c=>/data\s*(?:&|and)?\s*analytics/i.test(c.name)||c.matrixGroup==='ctry'));
 assert.equal(Matrix.data.valueColumns.length,4);
 assert.deepEqual(Matrix.data.valueColumns.map(c=>c.matrixGroup),['use','use','use','use']);
@@ -16,7 +17,7 @@ assert.deepEqual(Matrix.data.valueColumns.map(c=>c.name),['Marketing','Product',
 assert.deepEqual(Matrix.data.productListicleColumns.map(c=>c.name),['Capabilities','Features']);
 assert.deepEqual(Matrix.data.productLandingColumns.map(c=>c.name),['Capabilities','Features']);
 assert.equal(Matrix.data.icpRows.length,5);assert.equal(Matrix.data.valueRows.length,15);
-assert.equal(Matrix.data.icpRows.flatMap(r=>r.cells).length,45);assert.equal(Matrix.data.valueRows.flatMap(r=>r.cells).length,60);
+assert.equal(Matrix.data.icpRows.flatMap(r=>r.cells).length,55);assert.equal(Matrix.data.valueRows.flatMap(r=>r.cells).length,60);
 assert.equal(Matrix.data.valueRows[0].name,'Analysis');
 assert.equal(Matrix.data.valueRows[0].processLevel,'process');
 assert.deepEqual(Matrix.data.valueRows.slice(1).map(r=>r.name),Matrix.data.analysisTaxonomy.subProcesses.map(r=>r.name));
@@ -29,6 +30,7 @@ assert.match(Columns.strategyPrompt,/actual flagship category/);
 assert.match(Columns.strategyPrompt,/never copy an AI Layer product into Capital Layer/);
 assert.match(Columns.strategyPrompt,/Agency-fit pages belong under Industry Pages/);
 assert.match(Columns.strategyPrompt,/Enterprise and SMB belong under Company Size/);
+assert.match(Columns.strategyPrompt,/Amazon belongs under Technology/);
 assert.ok(Columns.names.category.includes('Integration pages'));
 
 const use=Matrix.data.columns.slice(0,4),rest=Matrix.data.columns.slice(4);
@@ -37,7 +39,7 @@ icpRows[0].cells[use[0].id].v='Preserved moved use case';icpRows[0].cells[rest[0
 const seoCell={v:'Preserve SEO',mode:'seo',cfg:true};const aeoCell={v:'Clear old Value AEO',mode:'aeo',cfg:true};
 const content={views:{product:{kind:'grid',columns:[],pageColumns:{},pageOrders:{},rows:[]},icp:{kind:'grid',columns:[],pageColumns:{matrix:structuredClone(Matrix.data.columns)},pageOrders:{},rows:icpRows},value:{kind:'grid',columns:[],pageColumns:{informational:[{id:'guide'}]},pageOrders:{},rows:[{id:'legacy',pageGroup:'informational',cells:{seo:seoCell,aeo:aeoCell}},{id:'url-topic-row',pageGroup:'matrix',name:'Choose the right plan for you',cells:{repository:{v:'Choose the right plan for you',repositoryQueries:[{}]}}}]},category:{kind:'grid',columns:[],pageColumns:{landing:[]},pageOrders:{},rows:[]}}};
 assert.equal(Matrix.ensure(content,'AI Data Platform','0jgsw8bx554d'),true);
-assert.equal(content.views.icp.pageColumns.matrix.length,9);
+assert.equal(content.views.icp.pageColumns.matrix.length,11);
 assert.equal(content.views.value.pageColumns.matrix.length,4);
 assert.deepEqual(content.views.product.pageColumns.listicle.map(column=>column.name),['Capabilities','Features']);
 assert(content.views.product.pageColumns.landing.some(column=>column.name==='Capabilities'));
@@ -53,7 +55,7 @@ assert.equal(content.views.value.rows.some(r=>r.id==='url-topic-row'),false);
 assert.equal(content.views.value.rows.find(r=>r.id==='legacy').cells.seo,seoCell);
 assert.equal(content.views.value.rows.find(r=>r.id==='legacy').cells.aeo,undefined);
 assert.ok(content.views.category.pageColumns.landing.some(c=>c.name==='Integration pages'));
-assert.match(content.views.icp.matrixAiPrompt,/Agencies, and Amazon under Industry Pages/);assert.match(content.views.value.matrixAiPrompt,/Product Aware/);
+assert.match(content.views.icp.matrixAiPrompt,/Amazon under Technology/);assert.match(content.views.value.matrixAiPrompt,/Product Aware/);
 assert.equal(Matrix.ensure(content,'AI Data Platform','0jgsw8bx554d'),false);
 // Upgrade an already-saved Value AEO matrix: seeded/competitor titles are
 // removed, while the represented company's Luca title and slug survive.

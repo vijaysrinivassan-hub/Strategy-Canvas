@@ -62,7 +62,7 @@ const repo=context.globalThis.SharedUrlRepository;
 const effectiveIcpAeo=repo.query({workspace:'ai-data-platform',awareness:'solution-aware',section:'ICP AEO'});
 assert.equal(effectiveIcpAeo.length,11);
 assert(effectiveIcpAeo.some(record=>record.url==='https://www.sarasanalytics.com/solutions/amazon-agencies'&&record.hierarchy==='Industry'&&record.icpSegment==='Agencies'));
-assert(effectiveIcpAeo.some(record=>record.url==='https://www.sarasanalytics.com/solutions/amazon-brands'&&record.hierarchy==='Industry'&&record.icpSegment==='Amazon'));
+assert(effectiveIcpAeo.some(record=>record.url==='https://www.sarasanalytics.com/solutions/amazon-brands'&&record.hierarchy==='Technology'&&record.icpSegment==='Amazon'));
 assert(effectiveIcpAeo.filter(record=>record.hierarchy==='Company size').every(record=>record.icpSegment==='Enterprise'));
 assert(!effectiveIcpAeo.some(record=>/data\s*(?:&|and)?\s*analytics/i.test(record.icpSegment)));
 const analystLanding=repo.query({workspace:'ai-data-platform',awareness:'category-aware',section:'Category AEO'}).find(record=>record.url==='https://www.sarasanalytics.com/lp/saras-iq-ai-analyst');
@@ -105,11 +105,13 @@ const solutionColumnIds=new Set(solutionRows.flatMap(row=>Object.keys(row.cells|
 const solutionColumns=active.pageColumns.matrix.filter(column=>solutionColumnIds.has(column.id));
 assert(solutionColumns.some(column=>column.name==='E-commerce'&&column.matrixGroup==='ind'));
 assert(solutionColumns.some(column=>column.name==='Agencies'&&column.matrixGroup==='ind'));
-assert(solutionColumns.some(column=>column.name==='Amazon'&&column.matrixGroup==='ind'));
+assert(solutionColumns.some(column=>column.name==='Amazon'&&column.matrixGroup==='tech'));
 assert(solutionColumns.some(column=>column.name==='Enterprise'&&column.matrixGroup==='size'));
 assert(solutionColumns.some(column=>column.name==='Snowflake'&&column.matrixGroup==='tech'));
 assert(!solutionColumns.some(column=>/country/i.test(column.name)));
 assert(active.pageColumns.matrix.some(column=>column.name==='SMB'&&column.matrixGroup==='size'));
+assert(active.pageColumns.matrix.some(column=>column.name==='People'&&column.matrixGroup==='people'));
+assert(active.pageColumns.matrix.some(column=>column.name==='Input'&&column.matrixGroup==='input'));
 assert(!active.pageColumns.matrix.some(column=>/data\s*(?:&|and)?\s*analytics/i.test(column.name)));
 
 const valueSolutionRoot={views:{product:{columns:[],rows:[]},category:{columns:[],rows:[]},icp:{columns:[],rows:[]},value:{columns:[],rows:[]}}};
