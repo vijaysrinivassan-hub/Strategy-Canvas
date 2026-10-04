@@ -3038,7 +3038,7 @@
 <script src="ask-luca-competitive-intelligence.js"></script>
 <script src="saras-analytics-competitive-intelligence.js"></script>
 <script src="competitive-intelligence.js"></script>
-<script src="shared-url-repository.js"></script>
+<script src="shared-url-repository.js?v=category-aware-hydration-v2"></script>
 <link rel="stylesheet" href="icp-workflows.css">
 <script src="icp-workflows.js"></script>
 <link rel="stylesheet" href="icp-table.css">
@@ -8102,9 +8102,13 @@ function renderGridTable(v, group, table){
         return;
       }
       const configuredDefaults = Object.assign({}, defaultsFor(col));
+      // Category Aware already separates AEO (listicle/landing) from SEO
+      // (informational) at the page-group level. Old saved column defaults can
+      // therefore never be allowed to blank the currently selected group.
+      const categoryMode = state.contentView === 'category' ? keywordMode : '';
       const defaults = Object.assign({}, configuredDefaults, {
-        mode: configuredDefaults.mode || keywordMode,
-        forceMode: !!configuredDefaults.mode
+        mode: categoryMode || configuredDefaults.mode || keywordMode,
+        forceMode: !!categoryMode || !!configuredDefaults.mode
       });
       if (!defaults.type && group.type) defaults.type = articleTypes().find(t => t.name.toLowerCase() === group.type.toLowerCase())?.id || '';
       const cell = cellOf(sourceRow, col.id, defaults);
