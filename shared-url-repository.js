@@ -22,7 +22,8 @@
     (source.profiles||[]).forEach(profile=>(profile.urls||[]).forEach(url=>owners.set(normalizeUrl(url),{competitorId:profile.id||'',competitor:profile.name||'',workspace:profile.workspace||'aeo-agency'})));
     indexedRecords=Object.entries(source.classifications||{}).map(([url,meta])=>{
       const owner=owners.get(normalizeUrl(url))||{};
-      return {id:normalizeUrl(url),url,traffic:meta.traffic||'',shared:true,competitorId:owner.competitorId||'',competitor:owner.competitor||'',workspace:meta.workspace||owner.workspace||'aeo-agency',awareness:meta.awareness||'',
+      const measuredTraffic=owner.competitorId==='saras-analytics'?global.SarasAnalyticsOrganicTraffic?.trafficFor(url):null;
+      return {id:normalizeUrl(url),url,traffic:measuredTraffic==null?(meta.traffic||''):String(measuredTraffic),shared:true,competitorId:owner.competitorId||'',competitor:owner.competitor||'',workspace:meta.workspace||owner.workspace||'aeo-agency',awareness:meta.awareness||'',
         section:meta.section||'',pageType:meta.pageType||'',hierarchy:meta.hierarchy||'General',axis:meta.axis||'General',icpSegment:meta.icpSegment||'',
         topicGroup:meta.topicGroup||normalizeUrl(url),topic:meta.topic||meta.hierarchy||'URL topic',groupOrder:Number(meta.groupOrder)||0,
         groupSize:Number(meta.groupSize)||1,covered:!!meta.covered,sourceSheet:meta.sourceSheet||'',sourceCell:meta.sourceCell||''};

@@ -1,7 +1,7 @@
 /* Board-scoped Saras Analytics sitemap import for Competitive Intelligence. */
 (function(root){
   'use strict';
-  const REVISION='saras-analytics-sitemap-2026-10-04-v6';
+  const REVISION='saras-analytics-sitemap-2026-10-04-v7';
   const FOCAL_COMPETITOR='Saras Analytics';
   const normalize=value=>String(value||'').trim().toLowerCase().replace(/\/$/,'');
   const comparisonName=value=>normalize(value)==='triple whale / moby ai'?'Triple Whale':String(value||'').trim();
@@ -19,6 +19,8 @@
   }
   function apply(tab,profile){
     if(!tab||!profile)return false;
+    profile=clone(profile);
+    root.SarasAnalyticsOrganicTraffic?.applyProfile(profile);
     tab.competitors=Array.isArray(tab.competitors)?tab.competitors:[];
     const before=JSON.stringify(tab);
     const index=tab.competitors.findIndex(item=>normalize(item.domain)===normalize(profile.domain)||normalize(item.name)===normalize(profile.name));

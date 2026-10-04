@@ -127,10 +127,15 @@ assert.equal(productSolution.rows.filter(row=>row.pageGroup==='landing').flatMap
 assert.equal(repo.installMappings(root,types,{product:'AI Data Platform',uid:()=>`return-${++n}`,awareness:'problem-aware',contentView:'icp',mode:'seo',activeView:active}),false);
 
 const seedSource=fs.readFileSync(new URL('./saras-analytics-competitive-intelligence.js',import.meta.url),'utf8');
-assert(seedSource.includes("REVISION='saras-analytics-sitemap-2026-10-04-v6'"));
-const seedContext=vm.createContext({globalThis:{CompetitiveIntelligenceClassifications:asset},console});
+assert(seedSource.includes("REVISION='saras-analytics-sitemap-2026-10-04-v7'"));
+const trafficSource=fs.readFileSync(new URL('./saras-analytics-organic-traffic.js',import.meta.url),'utf8');
+const seedContext=vm.createContext({globalThis:{CompetitiveIntelligenceClassifications:asset},console,URL});
+vm.runInContext(trafficSource,seedContext);
 vm.runInContext(seedSource,seedContext);
 const importer=seedContext.globalThis.SarasAnalyticsCompetitiveIntelligence;
+const intelligenceTab={competitors:[]};
+assert.equal(importer.apply(intelligenceTab,saras),true);
+assert.equal(intelligenceTab.competitors[0].trafficSnapshots['2026-10-04']['https://www.sarasanalytics.com/blog/cohort-analysis-software'],20);
 const positioningTab={positioning:{selectedCategory:'category-1',categories:[{id:'category-1',name:'AI data analytics platform',competitors:[{id:'old-1',name:'Random Company',contentRowId:'old-row'}]}]}};
 const strategyRoot={views:{category:{rows:[{id:'category-row',cells:{company:{v:'Random Company'}}}]},competitor:{rows:[{id:'old-row',name:'Random Company',positioningCompetitorId:'old-1'}],types:[{id:'alternatives',name:'Alternatives'}],cells:{'old-row|alternatives':{v:'Random Company alternatives'}}}}};
 let strategyId=0;
@@ -168,7 +173,8 @@ assert.equal(strategyRoot.views.competitor.comparisonCells[focalPair].v,'Preserv
 assert.equal(strategyRoot.views.competitor.comparisonCells[focalPair].url,'/custom-comparison');
 assert.equal(strategyRoot.views.competitor.comparisonCells[focalPair].st,'selected');
 const html=fs.readFileSync(new URL('./index.html',import.meta.url),'utf8');
-assert(html.includes('<script src="saras-analytics-competitive-intelligence.js?v=saras-taxonomy-v2"></script>'));
+assert(html.includes('<script src="saras-analytics-organic-traffic.js?v=2026-10-04"></script>'));
+assert(html.includes('<script src="saras-analytics-competitive-intelligence.js?v=organic-traffic-v1"></script>'));
 assert(html.includes('await ensureSarasAnalyticsCompetitiveIntelligenceSeed();'));
 assert(html.includes("const solutionAwareRepositoryMatrix = state.keywordAwareness === 'solution-aware'"));
 assert(html.includes("query.awareness === 'solution-aware'"));

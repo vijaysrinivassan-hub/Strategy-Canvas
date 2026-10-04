@@ -25,6 +25,14 @@
   function classificationOf(value){
     return global.CompetitiveIntelligenceClassifications?.classifications?.[String(value || '').replace(/\/$/,'')] || null;
   }
+  const snapshotDates = item => Object.keys(item?.trafficSnapshots || {}).sort();
+  function snapshotTraffic(item,date,url){
+    const snapshot = item?.trafficSnapshots?.[date];
+    if (!snapshot || typeof snapshot !== 'object') return null;
+    const key = String(url || '').trim().replace(/\/$/,'').toLowerCase();
+    if (Object.prototype.hasOwnProperty.call(snapshot,key)) return snapshot[key];
+    return null;
+  }
   function normalize(tab){
     global.HighPriorityLinks?.normalize(tab);
     if (!Array.isArray(tab.competitors)) tab.competitors = [];
@@ -164,7 +172,10 @@
     tools.append(search,addUrl,copy); detail.append(tools);
     const wrap = document.createElement('div'); wrap.className = 'ci-url-wrap';
     const table = document.createElement('table'); table.className = 'ci-url-table';
+    const trafficDates = snapshotDates(active);
     const thead = document.createElement('thead'); thead.innerHTML = '<tr><th>Priority</th><th>#</th><th>URL</th><th>Strategic section</th><th>Page type</th><th>Classification</th></tr>';
+    const headRow = thead.querySelector('tr');
+    trafficDates.forEach(date => { const th = document.createElement('th'); th.className = 'ci-traffic-date'; th.textContent = date; th.title = 'Current organic traffic fetched on ' + date; headRow.append(th); });
     const body = document.createElement('tbody'); table.append(thead,body); wrap.append(table); detail.append(wrap);
     const draw = () => {
       const query = search.value.trim().toLowerCase(); body.innerHTML = '';
@@ -198,7 +209,15 @@
         const pageTypeCode = document.createElement('code'); pageTypeCode.textContent = meta?.pageType || 'Unclassified';
         const classificationCode = document.createElement('code'); classificationCode.textContent = [meta?.hierarchy,meta?.axis].filter(Boolean).join(' · ') || 'Unclassified';
         cell.append(link); section.append(sectionCode); pageType.append(pageTypeCode); classification.append(classificationCode);
-        row.append(priority,num,cell,section,pageType,classification); body.append(row);
+        row.append(priority,num,cell,section,pageType,classification);
+        trafficDates.forEach(date => {
+          const traffic = snapshotTraffic(active,date,url), trafficCell = document.createElement('td');
+          trafficCell.className = 'ci-organic-traffic';
+          trafficCell.textContent = traffic == null ? '—' : Number(traffic).toLocaleString();
+          trafficCell.title = traffic == null ? 'No measurement in this snapshot' : 'Current organic traffic';
+          row.append(trafficCell);
+        });
+        body.append(row);
       });
     };
     search.oninput = draw; draw(); board.append(list,detail); host.append(board);

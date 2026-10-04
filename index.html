@@ -3023,12 +3023,13 @@
 <script src="ai-data-value-keywords.js?v=value-keywords-v4"></script>
 <script src="ai-data-search-metrics.js?v=search-metrics-v4"></script>
 <script src="competitor-comparison.js?v=status-color-v2"></script>
-<link rel="stylesheet" href="competitive-intelligence.css">
+<link rel="stylesheet" href="competitive-intelligence.css?v=organic-traffic-v1">
 <script src="competitive-intelligence-seed.js"></script>
 <script src="ask-luca-competitive-intelligence.js"></script>
-<script src="saras-analytics-competitive-intelligence.js?v=saras-taxonomy-v2"></script>
-<script src="competitive-intelligence.js"></script>
-<script src="shared-url-repository.js?v=value-keywords-v15"></script>
+<script src="saras-analytics-organic-traffic.js?v=2026-10-04"></script>
+<script src="saras-analytics-competitive-intelligence.js?v=organic-traffic-v1"></script>
+<script src="competitive-intelligence.js?v=organic-traffic-v1"></script>
+<script src="shared-url-repository.js?v=organic-traffic-v16"></script>
 <link rel="stylesheet" href="icp-workflows.css">
 <script src="icp-workflows.js"></script>
 <link rel="stylesheet" href="icp-table.css">
@@ -7267,7 +7268,9 @@ function renderPageUrlEvidence(td, o){
       renderPageUrlEvidence(td, o);
     };
     line.append(url, traffic, remove);
-    if (row.shared){ const source = document.createElement('small'); source.className = 'gr-page-source'; source.textContent = row.competitor || 'Competitive Intelligence'; line.append(source); }
+    if (row.shared && String(row.competitor || '').trim().toLowerCase() !== 'saras analytics'){
+      const source = document.createElement('small'); source.className = 'gr-page-source'; source.textContent = row.competitor || 'Competitive Intelligence'; line.append(source);
+    }
     host.append(line);
   });
   const total = document.createElement('div'); total.className = 'gr-url-total';
@@ -7406,7 +7409,9 @@ function cellControls(td, o){
     foot.append(add);
     const addUrl = document.createElement('button');
     addUrl.className = 'gr-kwadd gr-urladd';
-    const importedUrlCount = (window.SharedUrlRepository?.resolve(o.get().repositoryQueries, o.get().repositoryUrlOverrides) || []).filter(row => !isMaximusLabsUrl(row)&&(!o.keywordLens||valueLensForPageUrl(row,o.get())===o.keywordLens)).length;
+    const importedRowsForCount = (window.SharedUrlRepository?.resolve(o.get().repositoryQueries, o.get().repositoryUrlOverrides) || [])
+      .filter(row => !o.keywordLens || valueLensForPageUrl(row,o.get()) === o.keywordLens);
+    const importedUrlCount = importedRowsForCount.filter(row => !isMaximusLabsUrl(row)).length;
     addUrl.textContent = importedUrlCount ? '+ URL (' + importedUrlCount + ')' : '+ URL';
     addUrl.title = importedUrlCount
       ? importedUrlCount + ' imported URLs are shown; add a manual URL'

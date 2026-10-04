@@ -1,0 +1,25 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import vm from 'node:vm';
+
+const source=fs.readFileSync(new URL('./saras-analytics-organic-traffic.js',import.meta.url),'utf8');
+const context=vm.createContext({globalThis:{},URL});
+vm.runInContext(source,context);
+const traffic=context.globalThis.SarasAnalyticsOrganicTraffic;
+assert.equal(traffic.FETCH_DATE,'2026-10-04');
+assert.equal(Object.keys(traffic.TRAFFIC).length,409);
+assert.equal(traffic.trafficFor('https://www.sarasanalytics.com'),16184);
+assert.equal(traffic.trafficFor('https://www.sarasanalytics.com/blog/cohort-analysis-software/'),20);
+assert.equal(traffic.trafficFor('https://www.sarasanalytics.com/blog/best-etl-tools'),6);
+assert.equal(traffic.trafficFor('https://www.sarasanalytics.com/not-in-the-export'),null);
+const profile={id:'saras-analytics'};
+assert.equal(traffic.applyProfile(profile),true);
+assert.equal(profile.trafficSnapshots['2026-10-04']['https://www.sarasanalytics.com/blog/amazon-vendor-central-guide'],3653);
+const classifications=JSON.parse(fs.readFileSync(new URL('./competitive-intelligence-classifications.json',import.meta.url),'utf8'));
+context.globalThis.CompetitiveIntelligenceClassifications=classifications;
+vm.runInContext(fs.readFileSync(new URL('./shared-url-repository.js',import.meta.url),'utf8'),context);
+const cohort=context.globalThis.SharedUrlRepository.records().find(record=>record.url==='https://www.sarasanalytics.com/blog/cohort-analysis-software');
+assert.equal(cohort.traffic,'20');
+const html=fs.readFileSync(new URL('./index.html',import.meta.url),'utf8');
+assert(html.includes("String(row.competitor || '').trim().toLowerCase() !== 'saras analytics'"));
+console.log('PASS: Saras Analytics organic traffic snapshot is normalized, deduplicated and date-stamped.');

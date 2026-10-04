@@ -53,6 +53,8 @@ assert(html.includes('COMPETITIVE_INTELLIGENCE_TAB, BRAND_RADAR_TAB'));
 assert(html.includes("'btnCiAddCompetitor'"));
 assert(source.includes('Strategic section'));
 assert(source.includes('Page type'));
+assert(source.includes("th.textContent = date"));
+assert(source.includes("trafficCell.className = 'ci-organic-traffic'"));
 assert(!source.includes('sectionOf(url)'));
 assert(mcp.includes("competitive_intelligence_get"));
 assert(mcp.includes("competitive_intelligence_set"));

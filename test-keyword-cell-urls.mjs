@@ -21,6 +21,7 @@ assert(html.includes('.filter(row => !isMaximusLabsUrl(row)).length'));
 assert(html.includes("importedUrlCount + ' imported URLs are shown; add a manual URL'"));
 assert(html.includes("url.placeholder = 'Page URL'"));
 assert(html.includes("traffic.placeholder = 'Traffic'"));
+assert(html.includes("String(row.competitor || '').trim().toLowerCase() !== 'saras analytics'"));
 assert(html.includes("sum.textContent = pageTrafficTotal(rows).toLocaleString() + ' traffic total'"));
 assert(html.includes('renderPageUrlEvidence(td, o);'));
 assert(html.includes('const firstReadyPaint = sharedUrlRepositoryReadyFor !== mappingKey'));
