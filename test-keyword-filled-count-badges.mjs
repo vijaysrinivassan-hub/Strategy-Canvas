@@ -28,6 +28,7 @@ const root = {
   views:{
     icp:{rows:[{pageGroup:'informational',cells:{mapped:{v:'Mapped',repositoryQueries:[{}]}}},{pageGroup:'matrix',cells:{solution:{v:'Solution'}}}]},
     value:{rows:[{pageGroup:'informational',cells:{manual:{pageUrls:[{url:'https://example.com'}]}}}]},
+    product:{rows:[{pageGroup:'landing',cells:{manual:{slug:'product-page'}}}]},
     category:{rows:[{pageGroup:'landing',cells:{manual:{slug:'category-page'}}}]},
     competitor:{cells:{standard:{v:'Reviews'}},comparisonCells:{pair:{repositoryQueries:[{}]}}}
   }
@@ -36,12 +37,13 @@ const records = [
   {workspace:'ai-data-platform',awareness:'problem-unaware',section:'ICP SEO'},
   {workspace:'ai-data-platform',awareness:'problem-aware',section:'ICP SEO'},
   {workspace:'ai-data-platform',awareness:'solution-aware',section:'Value AEO'},
-  {workspace:'ai-data-platform',awareness:'category-aware',section:'Category AEO'}
+  {workspace:'ai-data-platform',awareness:'category-aware',section:'Category AEO',pageType:'Landing page'},
+  {workspace:'ai-data-platform',awareness:'category-aware',section:'Category AEO',pageType:'Listicle'}
 ];
 const context = vm.createContext({
   contentRoot:()=>root,
   sharedUrlBoardContext:()=> 'AI Data Platform',
-  globalThis:{SharedUrlRepository:{workspaceFor:()=> 'ai-data-platform',records:()=>records}}
+  globalThis:{SharedUrlRepository:{workspaceFor:()=> 'ai-data-platform',records:()=>records,pageGroup:type=>type==='Landing page'?'landing':'listicle'}}
 });
 vm.runInContext(html.slice(start,end),context);
 const counts = context.keywordFilledCounts();
@@ -49,6 +51,7 @@ assert.deepEqual(JSON.parse(JSON.stringify(counts['problem-unaware'])),{icp:2,va
 assert.deepEqual(JSON.parse(JSON.stringify(counts['problem-aware'])),{icp:1,value:1,total:2});
 assert.deepEqual(JSON.parse(JSON.stringify(counts['solution-aware'])),{icp:1,value:0,total:1});
 assert.equal(counts.category.total,2);
+assert.equal(counts.product.total,2);
 assert.equal(counts.competitor.total,2);
 assert.equal(context.keywordColumnFilledCount(root.views.icp,'informational','mapped'),1);
 assert.equal(context.keywordColumnFilledCount(root.views.icp,'matrix','solution'),1);

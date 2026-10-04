@@ -3042,7 +3042,7 @@
 <script src="ask-luca-competitive-intelligence.js"></script>
 <script src="saras-analytics-competitive-intelligence.js?v=saras-taxonomy-v2"></script>
 <script src="competitive-intelligence.js"></script>
-<script src="shared-url-repository.js?v=value-aeo-process-routing-v5"></script>
+<script src="shared-url-repository.js?v=product-aware-v6"></script>
 <link rel="stylesheet" href="icp-workflows.css">
 <script src="icp-workflows.js"></script>
 <link rel="stylesheet" href="icp-table.css">
@@ -3131,8 +3131,6 @@ const isBrandTab = name => brandTabs().indexOf(name) > -1;
 const NAV = [
   { kind: 'label',  text: 'Strategy' },
   { kind: 'strategy1-tabs' },
-  { kind: 'label',  text: 'Canvas' },
-  { kind: 'canvas-tabs' },
   { kind: 'label',  text: 'Keywords' },
   { kind: 'keywords-tabs' },
   { kind: 'label',  text: 'Research' },
@@ -3140,6 +3138,7 @@ const NAV = [
   { kind: 'tab',    name: 'Keyword Repo' },
   { kind: 'tab',    name: 'Grounded Evidences' },
   { kind: 'group',  id: 'frames',   label: 'Frames' },
+  { kind: 'canvas-tabs', id: 'canvas', label: 'Canvas' },
   { kind: 'spacer' }
 ];
 
@@ -3194,7 +3193,7 @@ const state = {
   contentView: 'competitor',      /* which axis the content matrix is showing */
   keywordAwareness: '',          /* problem-unaware | problem-aware | solution-aware */
   keywordAwarenessPicker: false, /* the full-page ICP / Value choice is open */
-  navOpen: { strategy1: false, brand: false, content: false, settings: false, frames: false },
+  navOpen: { strategy1: false, brand: false, content: false, settings: false, frames: false, canvas: false },
   frames: [],                     /* the Obsidian Frames folder, loaded once */
   frameEdits: {},                 /* frame name -> your edited copy, saved with the board */
   frameIndex: -1,                 /* which frame is open, -1 for none */
@@ -3509,6 +3508,7 @@ const TAB_ICONS = {
   'Category': '<path d="M4 5h16v14H4zM4 10h16M10 5v14"/>',
   'Category Aware': '<path d="M4 5h16v14H4zM4 10h16M10 5v14"/>',
   'Category-aware': '<path d="M4 5h16v14H4zM4 10h16M10 5v14"/>',
+  'Product Aware': '<path d="M5 4h14v16H5z"/><path d="M8 8h8M8 12h8M8 16h5"/>',
   'Competitor': '<circle cx="8" cy="9" r="3"/><circle cx="16" cy="9" r="3"/><path d="M3 19c.5-3 2.2-5 5-5s4.5 2 5 5M11 19c.5-3 2.2-5 5-5s4.5 2 5 5"/>',
   'Competitor-aware': '<circle cx="8" cy="9" r="3"/><circle cx="16" cy="9" r="3"/><path d="M3 19c.5-3 2.2-5 5-5s4.5 2 5 5M11 19c.5-3 2.2-5 5-5s4.5 2 5 5"/>',
   'Competitor Aware': '<circle cx="8" cy="9" r="3"/><circle cx="16" cy="9" r="3"/><path d="M3 19c.5-3 2.2-5 5-5s4.5 2 5 5M11 19c.5-3 2.2-5 5-5s4.5 2 5 5"/>',
@@ -3601,7 +3601,7 @@ function keywordFilledCounts(){
   const blank = () => ({ icp:0, value:0, total:0 });
   const result = {
     'problem-unaware':blank(), 'problem-aware':blank(), 'solution-aware':blank(),
-    category:{total:0}, competitor:{total:0}
+    product:{total:0}, category:{total:0}, competitor:{total:0}
   };
   const root = contentRoot();
   const repository = globalThis.SharedUrlRepository;
@@ -3627,9 +3627,15 @@ function keywordFilledCounts(){
     });
     result[stage.id].total = result[stage.id].icp + result[stage.id].value;
   });
-  const categoryRepositoryCount = records.filter(record =>
-    record.workspace === workspace && record.awareness === 'category-aware' && /^Category (AEO|SEO)$/.test(record.section)
+  const productRepositoryCount = records.filter(record =>
+    record.workspace === workspace && record.awareness === 'category-aware' && record.section === 'Category AEO' &&
+    (repository?.pageGroup?.(record.pageType) || '') === 'landing'
   ).length;
+  const categoryRepositoryCount = records.filter(record =>
+    record.workspace === workspace && record.awareness === 'category-aware' && /^Category (AEO|SEO)$/.test(record.section) &&
+    !(record.section === 'Category AEO' && (repository?.pageGroup?.(record.pageType) || '') === 'landing')
+  ).length;
+  result.product.total = productRepositoryCount + keywordCountGrid(root.views?.product, 'landing', hasScopedRepository && productRepositoryCount > 0);
   result.category.total = categoryRepositoryCount + keywordCountGrid(root.views?.category, '', hasScopedRepository && categoryRepositoryCount > 0);
   result.competitor.total = keywordCountCompetitor(root.views?.competitor) || keywordCountCompetitorRepository(records, workspace);
   return result;
@@ -3777,7 +3783,7 @@ function renderTabs(){
         appendKeywordCount(button, counts[layer.id].total);
         box.append(button);
       });
-      ['category','competitor'].forEach(viewId => {
+      ['product','category','competitor'].forEach(viewId => {
         const v = viewDef(viewId);
         const b = tabButton(CONTENT_TAB, v.label);
         b.replaceChild(tabIcon(v.label), b.firstChild);
@@ -3789,9 +3795,13 @@ function renderTabs(){
       return;
     }
 
-    /* Canvas is also flat: each canvas is a full sidebar destination rather
-       than a child hidden behind a Brand Strategy parent row. */
+    /* Canvas lives below Research > Frames and expands just like Frames. */
     if (item.kind === 'canvas-tabs'){
+      const open=!!state.navOpen.canvas;
+      box.append(groupButton(item.label||'Canvas','New Canvas',open,()=>{
+        if(open)closeNav();else openNav('canvas');renderTabs();
+      }));
+      if(!open)return;
       brandTabs().forEach(name => {
         const b = tabButton(name);
         b.classList.add('canvas-tab');
@@ -6576,6 +6586,8 @@ const GRID_ROWS = 20;
 const GRID_MAX_COLS = 10;
 
 const CONTENT_VIEWS = [
+  { id: 'product', label: 'Product Aware', noun: 'product page', kind: 'grid',
+    columns: ['Feature pages', 'Integration pages', 'Service pages', 'Product pages'] },
   { id: 'category', label: 'Category Aware', noun: 'category', kind: 'grid',
     columns: ['Category name', 'Category synonyms', 'Features', 'Reviews', 'Pricing'] },
   { id: 'competitor', label: 'Competitor Aware', noun: 'competitor', kind: 'matrix',
@@ -6601,6 +6613,23 @@ function normalizeColumnMeta(col){
   return col;
 }
 function defaultsFor(col){ return normalizeColumnMeta(col).defaults; }
+
+const PRODUCT_AWARE_MIGRATION='category-aware-landing-pages-v1';
+function ensureProductAwarePages(root){
+  const category=root.views?.category,product=root.views?.product;
+  if(!category||!product||product.productAwareMigration===PRODUCT_AWARE_MIGRATION)return false;
+  category.pageColumns ||= {};category.pageOrders ||= {};product.pageColumns ||= {};product.pageOrders ||= {};
+  const sourceColumns=category.pageColumns.landing||category.columns||[];
+  product.pageColumns.landing=JSON.parse(JSON.stringify(sourceColumns));
+  product.pageOrders.landing=(category.pageOrders.landing||sourceColumns.map(column=>column.id)).slice();
+  const moved=(category.rows||[]).filter(row=>row.pageGroup==='landing');
+  category.rows=(category.rows||[]).filter(row=>row.pageGroup!=='landing');
+  const existing=(product.rows||[]).filter(row=>row.pageGroup==='landing'&&Object.values(row.cells||{}).some(keywordCountCellFilled));
+  const seen=new Set(existing.map(row=>row.id));
+  product.rows=[...existing,...moved.filter(row=>!seen.has(row.id))];
+  product.productAwareMigration=PRODUCT_AWARE_MIGRATION;
+  return !!moved.length||!existing.length;
+}
 
 function contentRoot(){
   const t = state.tabs[CONTENT_TAB] || (state.tabs[CONTENT_TAB] = { nodes: [], edges: [] });
@@ -6650,10 +6679,11 @@ function contentRoot(){
     }
     if (!Array.isArray(cur.rows)) cur.rows = [];
     cur.columns.forEach(normalizeColumnMeta);
-    while (cur.rows.length < GRID_ROWS) cur.rows.push({ id: uid(), cells: {} });
+    if(v.id!=='product')while (cur.rows.length < GRID_ROWS) cur.rows.push({ id: uid(), cells: {} });
   });
   KeywordColumns.sync(t, activeUniversalColumns());
   if (globalThis.AiDataIcpMatrix?.ensure(t, state.client, state.workspaceProductId) && !readOnly()) setTimeout(markDirty, 0);
+  if(ensureProductAwarePages(t)&&!readOnly())setTimeout(markDirty,0);
   for (const v of Object.values(t.views)) if(v.kind === 'grid' && v.columnOrder){
     const order = KeywordColumns.order(v); v.columns.sort((a,b) => order.indexOf(a.id)-order.indexOf(b.id));
   }
@@ -7664,6 +7694,7 @@ function renderKeywordModeFilter(){
     $('productSwitcher').after(host);
   }
   host.hidden = state.tab !== CONTENT_TAB || state.contentView === 'competitor' ||
+    state.contentView === 'product' ||
     (!!state.keywordAwareness && ['icp','value'].includes(state.contentView)) ||
     ['settings','clients','atypes','mcp'].includes(state.screen);
   host.replaceChildren();
@@ -7937,7 +7968,7 @@ function ensureSharedUrlCellMappings(){
   if (sharedUrlMappingPending || sharedUrlRepositoryReadyFor === mappingKey) return;
   sharedUrlMappingPending = window.SharedUrlRepository.load().then(function(){
     const board = state.boardId;
-    const activeView = ['category','icp','value'].includes(state.contentView) ? matrixState() : null;
+    const activeView = ['product','category','icp','value'].includes(state.contentView) ? matrixState() : null;
     const changed = window.SharedUrlRepository.installMappings(contentRoot(), articleTypes(), {product:repositoryContext,uid,awareness:state.keywordAwareness||'problem-aware',contentView:state.contentView,mode:keywordMode,activeView});
     const firstReadyPaint = sharedUrlRepositoryReadyFor !== mappingKey;
     sharedUrlRepositoryReadyFor = mappingKey;
@@ -8034,9 +8065,9 @@ function renderGridTable(v, group, table){
   const isPositioningMatrix = ['icp','value'].includes(state.contentView) && group.id === 'matrix';
   const isValueOverview = state.contentView === 'value' && group.id === 'value-overview';
   const isIcpMatrix = state.contentView === 'icp' && isPositioningMatrix;
-  const isIcpSeoMatrix = (state.contentView === 'icp' && keywordMode === 'seo' && group.id === 'informational') || state.contentView === 'category';
+  const isIcpSeoMatrix = (state.contentView === 'icp' && keywordMode === 'seo' && group.id === 'informational') || ['product','category'].includes(state.contentView);
   const isValueSeoMatrix = state.contentView === 'value' && keywordMode === 'seo' && group.id === 'informational';
-  const repositoryAxisFallback = state.contentView === 'category' ? 'Strategy & Research' : 'General ICP';
+  const repositoryAxisFallback = ['product','category'].includes(state.contentView) ? 'Strategy & Research' : 'General ICP';
   const isRepositoryRowAxis = isIcpSeoMatrix || isIcpMatrix || isValueSeoMatrix;
   const hasRowAxis = isPositioningMatrix || isIcpSeoMatrix || isValueSeoMatrix;
   const sortedColumns = state.contentView === 'icp' && !isIcpMatrix && !isIcpSeoMatrix ? KeywordColumns.sortIcpColumns(v.columns) : v.columns;
@@ -8098,7 +8129,7 @@ function renderGridTable(v, group, table){
     const corner = matrixCornerActions(() => addGridColumn(group.id), () => addGridRow(group.id), 'Add column', 'Add row');
     if (isIcpSeoMatrix){
       corner.classList.add('icp-matrix-corner');
-      const label = document.createElement('span'); label.className = 'matrix-corner-label'; label.textContent = state.contentView === 'category' ? 'Department ↓\nCategory dimension →' : 'ICP axis ↓\nContent type →'; corner.append(label);
+      const label = document.createElement('span'); label.className = 'matrix-corner-label'; label.textContent = state.contentView === 'product' ? 'Department ↓\nProduct dimension →' : state.contentView === 'category' ? 'Department ↓\nCategory dimension →' : 'ICP axis ↓\nContent type →'; corner.append(label);
     }
     hr.append(corner);
   }
@@ -8254,10 +8285,10 @@ function renderGridTable(v, group, table){
         return;
       }
       const configuredDefaults = Object.assign({}, defaultsFor(col));
-      // Category Aware already separates AEO (listicle/landing) from SEO
+      // Product and Category Aware separate their visible page groups from SEO.
       // (informational) at the page-group level. Old saved column defaults can
       // therefore never be allowed to blank the currently selected group.
-      const categoryMode = state.contentView === 'category' ? keywordMode : '';
+      const categoryMode = ['product','category'].includes(state.contentView) ? keywordMode : '';
       const defaults = Object.assign({}, configuredDefaults, {
         mode: categoryMode || configuredDefaults.mode || keywordMode,
         forceMode: !!categoryMode || !!configuredDefaults.mode
@@ -8454,6 +8485,7 @@ function repaintKeywordViews(){
 function switchContentView(id){
   captureFrame();
   state.contentView = id;
+  if (id === 'product') keywordMode = 'aeo';
   state.keywordAwarenessPicker = false;
   if (!['icp','value'].includes(id)){
     state.keywordAwareness = '';

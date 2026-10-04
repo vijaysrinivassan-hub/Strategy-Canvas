@@ -13,7 +13,8 @@
     return fallback;
   }
   function visibleGroups(view,mode){
-    if(view==='category') return groups.filter(group=>mode==='seo' ? group.id==='informational' : group.id!=='informational');
+    if(view==='product') return groups.filter(group=>group.id==='landing');
+    if(view==='category') return groups.filter(group=>mode==='seo' ? group.id==='informational' : group.id==='listicle');
     if(view==='icp') return groups.filter(group=>mode==='seo' ? group.id==='informational' : false);
     if(view==='value') return groups.filter(group=>mode==='seo' ? group.id==='informational' : group.id!=='informational');
     return groups;

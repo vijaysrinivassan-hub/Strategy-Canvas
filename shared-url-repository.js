@@ -12,7 +12,7 @@
     if(text.includes('informational'))return 'informational';
     return '';
   };
-  const sectionFor=(view,mode)=>({category:'Category',icp:'ICP',value:'Value'}[view]||'')+' '+String(mode||'aeo').toUpperCase();
+  const sectionFor=(view,mode)=>({product:'Category',category:'Category',icp:'ICP',value:'Value'}[view]||'')+' '+String(mode||'aeo').toUpperCase();
   const SEO_TOPIC_COLUMNS=['Guides','How To Articles','Explainers','Trends','Topic vs Topic'];
   let loadPromise=null,indexedSource=null,indexedRecords=[];
   function data(){return global.CompetitiveIntelligenceClassifications||null;}
@@ -70,6 +70,12 @@
     return view.pageColumns[group];
   }
   const columnAliases={
+    product:{
+      'feature pages':['feature pages','feature','features','capability','capabilities'],
+      'integration pages':['integration pages','integration','integrations'],
+      'service pages':['service pages','service','services'],
+      'product pages':['product pages','product page','product']
+    },
     category:{
       'category name':['category name','category names','category and synonyms listicle'],
       'category synonyms':['category synonyms','category synonym'],
@@ -166,7 +172,7 @@
     if(/client success|customer success/.test(name))return 'Client Success';
     return 'Strategy & Research';
   };
-  const usesRepositoryAxis=(viewId,group)=>viewId==='category'||(viewId==='icp'&&(group==='informational'||group==='matrix'))||(viewId==='value'&&group==='informational');
+  const usesRepositoryAxis=(viewId,group)=>viewId==='product'||viewId==='category'||(viewId==='icp'&&(group==='informational'||group==='matrix'))||(viewId==='value'&&group==='informational');
   const ICP_DIMENSION_ORDER=['Industry','Company size','Process / Use case','Country','Technology','Role / Team','General ICP'];
   const ICP_MATRIX_GROUP_ORDER=['ind','size','process','ctry','tech','role'];
   const INDUSTRY_ORDER=['B2B SaaS','Fintech & Financial Services','Healthcare & Life Sciences','E-commerce & Retail','Cybersecurity','HR Tech','MarTech & AdTech','Technology & Software','Aerospace & Aviation','Agriculture & AgTech','Automotive','Construction & Home Services','Education & EdTech','Energy, Environment & Utilities','Manufacturing & Industrial','Real Estate & PropTech','Logistics & Transportation','Crypto & Web3','Telecom & IT Services','Media & Entertainment','Professional Services','Consumer','B2B Services','Other Industry'];
@@ -227,7 +233,7 @@
         const mapped=Number(!!b.repositoryHierarchy)-Number(!!a.repositoryHierarchy);
         if(mapped)return mapped;
         if(usesRepositoryAxis(viewId,group)&&a.repositoryHierarchy&&b.repositoryHierarchy){
-          if(viewId==='category'){
+          if(viewId==='category'||viewId==='product'){
             const ar=CATEGORY_DEPARTMENT_ORDER.indexOf(a.repositoryHierarchy),br=CATEGORY_DEPARTMENT_ORDER.indexOf(b.repositoryHierarchy);
             return (ar<0?999:ar)-(br<0?999:br)||Number(a.repositoryRowSlot||0)-Number(b.repositoryRowSlot||0);
           }
@@ -312,7 +318,8 @@
     records().filter(record=>record.workspace===workspace).forEach(record=>{
       if(record.section==='Corporate & Non-SEO')return;
       const match=/^(Category|ICP|Value) (AEO|SEO)$/.exec(record.section);if(!match)return;
-      const viewId=match[1].toLowerCase(),mode=match[2].toLowerCase(),format=pageGroup(record.pageType);if(!format)return;
+      let viewId=match[1].toLowerCase();const mode=match[2].toLowerCase(),format=pageGroup(record.pageType);if(!format)return;
+      if(viewId==='category'&&mode==='aeo'&&format==='landing')viewId='product';
       const view=root.views[viewId];if(!view)return;
       const group=mode==='aeo'&&(viewId==='icp'||viewId==='value')?'matrix':format;
       const sourceDimension=viewId==='icp'?(mode==='aeo'?record.axis:record.hierarchy):'';
@@ -323,7 +330,7 @@
       const column=ensureColumn(viewId,view,group,columnName,mode,types);
       if(viewId==='icp'&&group==='matrix'){column.matrixGroup=matrixGroup('icp',sourceDimension);column.repositoryDimension=sourceDimension;}
       if(viewId==='value'&&mode==='seo'){column.awarenessGroup=valueSeoAwarenessGroup(record.axis);column.repositoryAwareness=awarenessForGroup(column.awarenessGroup);}
-      const rowHierarchy=viewId==='category'?categoryDepartment(record):viewId==='icp'&&mode==='aeo'?processDepartment(record):viewId==='icp'&&mode==='seo'?dimensionValue:record.hierarchy;
+      const rowHierarchy=(viewId==='category'||viewId==='product')?categoryDepartment(record):viewId==='icp'&&mode==='aeo'?processDepartment(record):viewId==='icp'&&mode==='seo'?dimensionValue:record.hierarchy;
       const rowSuperHierarchy=viewId==='icp'&&mode==='seo'?sourceDimension:undefined;
       const row=ensureRow(view,group,rowHierarchy,record.groupOrder,uid,rowSuperHierarchy);
       const current=row.cells[column.id]&&typeof row.cells[column.id]==='object'?row.cells[column.id]:{};
@@ -367,9 +374,9 @@
   }
   function installScopedMappings(root,types,options){
     const workspace=options.workspace,viewId=options.contentView;
-    if(!['category','icp','value'].includes(viewId)||!options.activeView)return false;
-    const awareness=viewId==='category'?'category-aware':(options.awareness||'problem-aware');
-    const mode=viewId==='category'?(options.mode||'aeo'):(awareness==='solution-aware'?'aeo':'seo');
+    if(!['product','category','icp','value'].includes(viewId)||!options.activeView)return false;
+    const awareness=['product','category'].includes(viewId)?'category-aware':(options.awareness||'problem-aware');
+    const mode=viewId==='product'?'aeo':viewId==='category'?(options.mode||'aeo'):(awareness==='solution-aware'?'aeo':'seo');
     const section=sectionFor(viewId,mode);
     const scope=[workspace,awareness,viewId,mode].join(':');
     const revision=(data().classifiedAt||'classification')+':'+scope+':v10';
@@ -419,6 +426,7 @@
     if(root.sharedUrlRepositoryRevisions[scope]===revision&&hasScopedMappings(options.activeView,workspace,awareness,section))return false;
     // Problem Unaware starts as an editable copy of the SEO view. Remove the
     // copied Problem Aware repository cells before installing its own URLs.
+    const preserved=captureRepositoryState({views:{active:view}});
     if(awareness==='problem-unaware')clearScopedMappings(view,workspace,'problem-aware',section);
     clearScopedMappings(view,workspace,awareness,section);
     let linked=0;
@@ -426,13 +434,15 @@
     records().filter(record=>record.workspace===workspace&&record.awareness===awareness&&record.section===section).forEach(record=>{
       if(record.section==='Corporate & Non-SEO')return;
       const format=pageGroup(record.pageType);if(!format)return;
-      const group=viewId==='category'?format:(mode==='aeo'?'matrix':'informational');
+      if(viewId==='product'&&format!=='landing')return;
+      if(viewId==='category'&&mode==='aeo'&&format==='landing')return;
+      const group=(viewId==='product'||viewId==='category')?format:(mode==='aeo'?'matrix':'informational');
       const isAiDataSolution=workspace==='ai-data-platform'&&awareness==='solution-aware'&&mode==='aeo';
       const columnName=isAiDataSolution&&viewId==='icp'?(record.icpSegment||record.axis||'General ICP'):
         isAiDataSolution&&viewId==='value'?'Capabilities':(record.axis||'General');
       const column=ensureColumn(viewId,view,group,columnName,mode,types);
       if(group==='matrix')column.matrixGroup=isAiDataSolution&&viewId==='value'?'cap':matrixGroup(viewId,record.hierarchy);
-      const rowHierarchy=isAiDataSolution?'E-commerce Data Analytics':
+      const rowHierarchy=viewId==='product'?categoryDepartment(record):isAiDataSolution?'E-commerce Data Analytics':
         viewId==='icp'&&mode==='seo'?(record.icpSegment||record.hierarchy||'General ICP'):(record.hierarchy||'General');
       const rowSuperHierarchy=isAiDataSolution?'Category':
         viewId==='icp'&&mode==='seo'?(record.hierarchy||'General ICP'):(viewId==='icp'?record.hierarchy:undefined);
@@ -445,8 +455,9 @@
       const row=ensureRow(view,group,rowHierarchy,rowSlot,uid,rowSuperHierarchy);
       row.repositoryWorkspace=workspace;
       const current=row.cells[column.id]&&typeof row.cells[column.id]==='object'?row.cells[column.id]:{};
+      const saved=preserved.get(record.topicGroup)||{};
       const spec={workspace,awareness,section:record.section,pageType:record.pageType,hierarchy:record.hierarchy,axis:record.axis,topicGroup:record.topicGroup};
-      row.cells[column.id]={...current,v:record.topic||record.hierarchy,url:'',mode,type:current.type||typeId(types,format),cfg:true,repositoryQueries:[spec]};
+      row.cells[column.id]={...current,...saved,v:saved.v||current.v||record.topic||record.hierarchy,url:saved.url||current.url||'',mode,type:saved.type||current.type||typeId(types,format),cfg:true,repositoryQueries:[spec]};
       linked++;
     });
     if(mode==='seo'&&(viewId==='icp'||viewId==='value')){

@@ -20,10 +20,10 @@ assert(grouped?.topicGroup);assert(covered?.topicGroup);
 assert.equal(repo.query({topicGroup:grouped.topicGroup}).length,grouped.groupSize);
 assert.equal(repo.resolve([{topicGroup:grouped.topicGroup}],{[grouped.id]:{url:'https://edited.example/topic',traffic:'12'}})[0].url,'https://edited.example/topic');
 assert.equal(repo.resolve([{topicGroup:grouped.topicGroup}],{[grouped.id]:{deleted:true}}).length,grouped.groupSize-1);
-const root={views:{category:{columns:[],rows:[]},icp:{columns:[],rows:[]},value:{columns:[],rows:[]}}};let n=0;
+const root={views:{product:{columns:[],rows:[]},category:{columns:[],rows:[]},icp:{columns:[],rows:[]},value:{columns:[],rows:[]}}};let n=0;
 const types=[{id:'list',name:'Listicle'},{id:'land',name:'Landing page'},{id:'info',name:'Informational'}];
 
-const aiRoot={views:{category:{columns:[],rows:[]},icp:{columns:[],pageColumns:{matrix:structuredClone(Matrix.data.columns)},pageOrders:{},rows:[]},value:{columns:[],rows:[]}}};
+const aiRoot={views:{product:{columns:[],rows:[]},category:{columns:[],rows:[]},icp:{columns:[],pageColumns:{matrix:structuredClone(Matrix.data.columns)},pageOrders:{},rows:[]},value:{columns:[],rows:[]}}};
 assert.equal(Matrix.ensure(aiRoot,'AI Data Platform','0jgsw8bx554d'),true);
 const aiValue=aiRoot.views.value;
 aiValue.rows.push({id:'old-repository-topic',pageGroup:'matrix',repositoryWorkspace:'ai-data-platform',cells:{old:{v:'Old URL topic',repositoryQueries:[{workspace:'ai-data-platform',awareness:'solution-aware',section:'Value AEO'}]}}});
@@ -73,9 +73,13 @@ assert([...icpTopicRoutes.values()].every(routes=>routes.size===1));
 const categoryDepartments=['Strategy & Research','Account Management','Technical SEO / AEO','Content','Digital PR / Authority','Analytics & Reporting','Client Success'];
 const icpAeoRows=root.views.icp.rows.filter(row=>row.pageGroup==='matrix'&&row.repositoryHierarchy);
 assert.deepEqual([...new Set(icpAeoRows.map(row=>row.repositoryHierarchy))],categoryDepartments);
-for(const group of ['listicle','landing','informational'])assert.deepEqual([...new Set(root.views.category.rows.filter(row=>row.pageGroup===group).map(row=>row.repositoryHierarchy))],categoryDepartments);
+for(const group of ['listicle','informational'])assert.deepEqual([...new Set(root.views.category.rows.filter(row=>row.pageGroup===group).map(row=>row.repositoryHierarchy))],categoryDepartments);
+assert(root.views.product.rows.some(row=>row.pageGroup==='landing'&&row.repositoryHierarchy));
+assert(root.views.product.rows.filter(row=>row.pageGroup==='landing').every(row=>categoryDepartments.includes(row.repositoryHierarchy)));
 const categoryUrls=root.views.category.rows.flatMap(row=>Object.values(row.cells||{})).flatMap(cell=>repo.resolve(cell.repositoryQueries||[]));
-assert.equal(new Set(categoryUrls.filter(row=>row.section==='Category AEO').map(row=>row.url)).size,321);
+const productUrls=root.views.product.rows.flatMap(row=>Object.values(row.cells||{})).flatMap(cell=>repo.resolve(cell.repositoryQueries||[]));
+assert.equal(new Set(categoryUrls.filter(row=>row.section==='Category AEO').map(row=>row.url)).size,289);
+assert.equal(new Set(productUrls.filter(row=>row.section==='Category AEO').map(row=>row.url)).size,32);
 assert.equal(new Set(categoryUrls.filter(row=>row.section==='Category SEO').map(row=>row.url)).size,89);
 for(const row of icpSeoRows)for(const cell of Object.values(row.cells||{}))for(const query of cell.repositoryQueries||[])assert.equal(query.hierarchy,row.repositorySuperHierarchy||row.repositoryHierarchy);
 assert(cells.some(cell=>repo.resolve(cell.repositoryQueries).length===1));
@@ -93,7 +97,7 @@ assert(Object.values(root.views).flatMap(view=>Object.values(view.pageColumns||{
 assert(Object.values(root.views).flatMap(view=>Object.values(view.pageColumns||{}).flat()).filter(column=>column.instruction).every(column=>column.instruction.includes('Store the Maximus Labs URL in the Slug field')));
 for(const [viewId,view] of Object.entries(root.views))for(const group of ['listicle','landing','informational','matrix']){
   const rows=(view.rows||[]).filter(row=>row.pageGroup===group&&row.repositoryHierarchy);if(!rows.length)continue;
-  const batches=(viewId==='category'||(viewId==='icp'&&(group==='informational'||group==='matrix'))||(viewId==='value'&&group==='informational'))?[...new Set(rows.map(row=>(row.repositorySuperHierarchy||'')+'|'+row.repositoryHierarchy))].map(key=>rows.filter(row=>(row.repositorySuperHierarchy||'')+'|'+row.repositoryHierarchy===key)):[rows];
+  const batches=(viewId==='product'||viewId==='category'||(viewId==='icp'&&(group==='informational'||group==='matrix'))||(viewId==='value'&&group==='informational'))?[...new Set(rows.map(row=>(row.repositorySuperHierarchy||'')+'|'+row.repositoryHierarchy))].map(key=>rows.filter(row=>(row.repositorySuperHierarchy||'')+'|'+row.repositoryHierarchy===key)):[rows];
   for(const batch of batches){const ids=[...new Set(batch.flatMap(row=>Object.keys(row.cells||{})))];for(const id of ids)assert(batch[0].cells[id]?.repositoryQueries?.length,`Expected ${group}/${batch[0].repositoryHierarchy}/${id} to start in its first row`);}
 }
 for(const view of [root.views.icp,root.views.value])assert((view.pageColumns?.matrix||[]).every(column=>column.matrixGroup));
@@ -105,7 +109,7 @@ const repacked=Object.values(root.views).flatMap(view=>(view.rows||[]).flatMap(r
 assert.equal(repacked.v,'Edited title');assert.equal(repacked.st,editedExpectedStatus);assert.equal(Object.values(repacked.repositoryUrlOverrides)[0].url,'https://edited.example/preserved');
 assert(root.views.value.rows.filter(row=>row.pageGroup==='matrix').every(row=>Object.values(row.cells).every(cell=>cell.mode==='aeo')));
 assert(root.views.value.rows.filter(row=>row.pageGroup==='informational').every(row=>Object.values(row.cells).every(cell=>cell.mode==='seo')));
-const aliasRoot={views:{category:{columns:[],pageColumns:{listicle:[{id:'existing-category',name:'Category Names'}]},rows:[{id:'blank',pageGroup:'listicle',cells:{}}]},icp:{columns:[],rows:[]},value:{columns:[],rows:[]}},sharedUrlRepositoryRevision:'old:existing-cells-v1'};
+const aliasRoot={views:{product:{columns:[],rows:[]},category:{columns:[],pageColumns:{listicle:[{id:'existing-category',name:'Category Names'}]},rows:[{id:'blank',pageGroup:'listicle',cells:{}}]},icp:{columns:[],rows:[]},value:{columns:[],rows:[]}},sharedUrlRepositoryRevision:'old:existing-cells-v1'};
 assert.equal(repo.installMappings(aliasRoot,types,{product:'Answer Engine Optimization Agency',uid:()=>'alias-'+(++n)}),true);
 assert(aliasRoot.views.category.rows.find(row=>row.pageGroup==='listicle'&&row.repositoryHierarchy).cells['existing-category']?.repositoryQueries?.length);
 assert.equal(aliasRoot.views.category.pageColumns.listicle.some(column=>column.id==='shared-url-col-category-listicle-category-name'),false);
