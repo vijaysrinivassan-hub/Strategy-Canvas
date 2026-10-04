@@ -20,14 +20,16 @@ const routes={
   '/saras-iq/sales-and-marketing-analytics':['Marketing-performance analysis','Marketing'],
   '/saras-iq/inventory-product-planning':['Product and SKU performance analysis','Product'],
   '/saras-iq':['Descriptive analysis','Capabilities'],
-  '/ai-ready-data-foundation':['Analysis','Product']
+  '/ai-ready-data-foundation':['Analysis','Product'],
+  '/blog/cohort-analysis-software':['Cohort analysis','Product','Listicle'],
+  '/blog/customer-segmentation-software':['Segmentation analysis','Marketing','Listicle']
 };
 
-for(const [pathname,[hierarchy,axis]] of Object.entries(routes)){
+for(const [pathname,[hierarchy,axis,pageType='Landing page']] of Object.entries(routes)){
   const url='https://www.sarasanalytics.com'+pathname;
   const meta=source.classifications[url];
   if(!meta)throw new Error('Missing Saras Analytics classification: '+url);
-  Object.assign(meta,{workspace:'ai-data-platform',awareness:'solution-aware',section:'Value AEO',pageType:'Landing page',hierarchy,axis,topicGroup:url,groupSize:1,covered:false});
+  Object.assign(meta,{workspace:'ai-data-platform',awareness:'solution-aware',section:'Value AEO',pageType,hierarchy,axis,topicGroup:url,groupSize:1,covered:false});
   delete meta.icpSegment;
 }
 
@@ -46,7 +48,7 @@ if(fs.existsSync(auditTarget)){
   const ai=Object.entries(source.classifications).filter(([,meta])=>meta.workspace==='ai-data-platform');
   audit.revision='saras-keyword-taxonomy-v2';
   audit.counts=Object.fromEntries(Object.entries(Object.groupBy(ai,([,meta])=>meta.section)).map(([key,items])=>[key,items.length]));
-  audit.rules.valueAeo='Read every commercial page. Route standalone product capabilities and features into the first two-column Value AEO section. Route department-specific use cases and outcomes into the process-by-department matrix beneath it; keep category definitions and integrations in Category AEO.';
+  audit.rules.valueAeo='Read every commercial page. Route standalone product capabilities and features into the first two-column Value AEO section. Route department-specific use cases and outcomes into the process-by-department matrix beneath it. Software/tool listicles whose primary subject is a named analysis subprocess, such as cohort or segmentation analysis, are Solution Aware Value AEO rather than Category AEO. Keep broad category definitions and integrations in Category AEO.';
   fs.writeFileSync(auditTarget,JSON.stringify(audit,null,2)+'\n');
 }
 

@@ -47,9 +47,11 @@ const categoryRoutes={
   '/blog/10-benefits-of-using-etl-tools':['Category SEO','Informational','Data Integration & ETL','Features & buying criteria'],
   '/blog/10-best-etl-tools-for-data-warehousing':['Category AEO','Listicle','Data Integration & ETL','Category name'],
   '/blog/best-etl-tools':['Category AEO','Listicle','Data Integration & ETL','Category name'],
-  '/blog/cohort-analysis-software':['Category AEO','Landing page','Customer Analytics Software','Category name'],
   '/blog/customer-behavior-analysis-tools':['Category AEO','Listicle','Customer Analytics Software','Category synonyms'],
-  '/blog/customer-segmentation-software':['Category AEO','Landing page','Customer Analytics Software','Category name']
+};
+const ownValueListicle={
+  '/blog/cohort-analysis-software':['Cohort analysis','Product'],
+  '/blog/customer-segmentation-software':['Segmentation analysis','Marketing']
 };
 const valueSeoRoutes={
   '/glossary/pricing-strategy':['problem-unaware','General Value','Explainers'],
@@ -101,6 +103,9 @@ for(const raw of profile.urls){
   }else if(icpRoutes[pathname]){
     const [pageType,hierarchy,icpSegment]=icpRoutes[pathname];
     apply(meta,{awareness:'solution-aware',section:'ICP AEO',pageType,hierarchy,axis:icpSegment,icpSegment});
+  }else if(ownValueListicle[pathname]){
+    const [hierarchy,axis]=ownValueListicle[pathname];
+    apply(meta,{awareness:'solution-aware',section:'Value AEO',pageType:'Listicle',hierarchy,axis});delete meta.icpSegment;
   }else if(categoryRoutes[pathname]){
     const [section,pageType,hierarchy,axis]=categoryRoutes[pathname];
     apply(meta,{awareness:'category-aware',section,pageType,hierarchy,axis});delete meta.icpSegment;

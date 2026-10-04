@@ -34,7 +34,7 @@ assert.deepEqual(aiValue.pageColumns['value-overview'].map(column=>column.name),
 assert.deepEqual(aiValue.pageColumns.matrix.map(column=>column.name),['Marketing','Product','Sales','Finance']);
 assert(aiValue.rows.findIndex(row=>row.pageGroup==='value-overview')<aiValue.rows.findIndex(row=>row.pageGroup==='matrix'));
 const aiValueCells=aiValue.rows.flatMap(row=>Object.values(row.cells||{}));
-assert.equal(new Set(aiValueCells.flatMap(cell=>repo.resolve(cell.repositoryQueries||[])).map(record=>record.url)).size,14);
+assert.equal(new Set(aiValueCells.flatMap(cell=>repo.resolve(cell.repositoryQueries||[])).map(record=>record.url)).size,16);
 assert(aiValueCells.filter(cell=>cell.repositoryQueries?.length).every(cell=>cell.st==='for_review'));
 const overviewUrls=aiValue.rows.filter(row=>row.pageGroup==='value-overview').flatMap(row=>Object.values(row.cells||{})).flatMap(cell=>repo.resolve(cell.repositoryQueries||[]));
 assert.equal(new Set(overviewUrls.map(record=>record.url)).size,5);

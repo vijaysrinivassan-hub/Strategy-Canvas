@@ -1606,9 +1606,9 @@
     }
   ],
   "counts": {
-    "Category AEO": 217,
+    "Category AEO": 215,
     "Corporate & Non-SEO": 15,
-    "Value AEO": 14,
+    "Value AEO": 16,
     "Competitor AEO": 47,
     "ICP AEO": 12,
     "Value SEO": 142,
@@ -1620,6 +1620,6 @@
     "utility": "Thank-you and utility pages are Corporate & Non-SEO.",
     "aeo": "ICP AEO and Value AEO accept only Listicle or Landing page.",
     "icp": "Industry, Company size, Role / Team and Technology are independent; every ICP AEO URL has an explicit segment.",
-    "valueAeo": "Read every commercial page. Route standalone product capabilities and features into the first two-column Value AEO section. Route department-specific use cases and outcomes into the process-by-department matrix beneath it; keep category definitions and integrations in Category AEO."
+    "valueAeo": "Read every commercial page. Route standalone product capabilities and features into the first two-column Value AEO section. Route department-specific use cases and outcomes into the process-by-department matrix beneath it. Software/tool listicles whose primary subject is a named analysis subprocess, such as cohort or segmentation analysis, are Solution Aware Value AEO rather than Category AEO. Keep broad category definitions and integrations in Category AEO."
   }
 }

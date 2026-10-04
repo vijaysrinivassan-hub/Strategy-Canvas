@@ -407,7 +407,7 @@
         const spec={workspace,awareness,section:record.section,pageType:record.pageType,hierarchy:record.hierarchy,axis:record.axis,topicGroup:record.topicGroup};
         const queries=Array.isArray(current.repositoryQueries)?current.repositoryQueries.slice():[];
         if(!queries.some(query=>query.topicGroup===record.topicGroup))queries.push(spec);
-        row.cells[column.id]={...current,v:String(current.v||'').trim()?current.v:record.topic,url:current.url||'',mode:'aeo',type:current.type||typeId(types,'landing'),cfg:true,repositoryQueries:queries};
+        row.cells[column.id]={...current,v:String(current.v||'').trim()?current.v:record.topic,url:current.url||'',mode:'aeo',type:current.type||typeId(types,pageGroup(record.pageType)||'landing'),cfg:true,repositoryQueries:queries};
         linked++;
       });
       view.rows.sort((a,b)=>a.pageGroup==='value-overview'&&b.pageGroup!=='value-overview'?-1:b.pageGroup==='value-overview'&&a.pageGroup!=='value-overview'?1:0);
