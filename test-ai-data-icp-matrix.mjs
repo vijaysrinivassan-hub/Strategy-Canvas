@@ -91,4 +91,7 @@ const html=fs.readFileSync(new URL('./index.html',import.meta.url),'utf8');
 for(const marker of ['Process matrix','value-overview','matrix-ai-prompt','Departments','Features','Capabilities','isPositioningMatrix','value-process-parent','Sub-process','ai-data-icp-matrix.js','processTaxonomyColumnIds','processTaxonomyRows'])assert.ok(html.includes(marker),marker);
 assert.ok(html.includes("repositoryColumnIds.has(col.id) || processTaxonomyColumnIds.has(col.id)"));
 assert.ok(html.includes("['process','subprocess'].includes(row.processLevel) ||"));
+assert.ok(html.includes("const showAxisSuperHeaders = isPositioningMatrix || (state.contentView === 'icp' && !isIcpSeoMatrix);"));
+assert.ok(html.includes("isValueSeoMatrix ? 'Category ↓\\nContent type →'"));
+assert.ok(html.includes('.mx-table thead th.value-seo-column .mx-lab b'));
 console.log('PASS: ICP audience-fit and Value process matrices retained while Capabilities/Features moved to Product Aware listicles with empty landing columns.');

@@ -2410,6 +2410,8 @@
   .icp-matrix-use{--axis-color:#8d6bc0}.icp-matrix-ind{--axis-color:#64c886}.icp-matrix-ctry{--axis-color:#65a8d8}.icp-matrix-tech{--axis-color:#d9a85c}.icp-matrix-benefit{--axis-color:#cf7f56}.icp-matrix-cap{--axis-color:#5d8ec9}
   .icp-matrix-problem{--axis-color:#d3a044}.icp-matrix-solution{--axis-color:#5d8ec9}.icp-matrix-product{--axis-color:#64c886}
   .mx-table thead th.value-seo-column.icp-matrix-problem{background:#fff8e8 !important;box-shadow:inset 0 3px #d3a044}.mx-table thead th.value-seo-column.icp-matrix-solution{background:#edf4fc !important;box-shadow:inset 0 3px #5d8ec9}.mx-table thead th.value-seo-column.icp-matrix-product{background:#edf8f1 !important;box-shadow:inset 0 3px #64c886}
+  .mx-table thead th.value-seo-column .mx-lab b,.mx-table thead th.value-seo-column .mx-lab input.hd{color:#1f2b22 !important;-webkit-text-fill-color:#1f2b22 !important;opacity:1}
+  .mx-table thead th.value-seo-column .col-tools .column-move{color:#627269}
   .mx-table thead th.icp-matrix-column-topic.icp-matrix-benefit{background:#fff1ea !important;box-shadow:inset 0 3px #cf7f56}.mx-table thead th.icp-matrix-column-topic.icp-matrix-cap{background:#edf4fc !important;box-shadow:inset 0 3px #5d8ec9}
   .matrix-ai-prompt{margin:0 0 12px;border:1px solid #d9e2dc;background:#f8faf8}.matrix-ai-prompt summary{cursor:pointer;padding:9px 12px;font-size:11px;font-weight:750}.matrix-ai-prompt textarea{display:block;width:100%;min-height:88px;box-sizing:border-box;border:0;border-top:1px solid #d9e2dc;padding:10px 12px;resize:vertical;background:#fff;color:#26342b;font:11px/1.5 Arial,sans-serif}
   .gr-foot2 .gr-author{flex:1 1 0;min-width:0}
@@ -8288,31 +8290,31 @@ function renderGridTable(v, group, table){
   table.append(cg);
 
   const thead = document.createElement('thead');
-  const showAxisSuperHeaders = isPositioningMatrix || isValueSeoMatrix || (state.contentView === 'icp' && !isIcpSeoMatrix);
+  const showAxisSuperHeaders = isPositioningMatrix || (state.contentView === 'icp' && !isIcpSeoMatrix);
   if (showAxisSuperHeaders){
     const axisRow = document.createElement('tr');
     axisRow.className = 'icp-axis-row';
     const corner = matrixCornerActions(() => addGridColumn(group.id), () => addGridRow(group.id), 'Add column', 'Add row');
     corner.rowSpan = 2; corner.classList.add('icp-axis-corner');
-    if(isPositioningMatrix||isValueSeoMatrix){corner.classList.add('icp-matrix-corner');const label=document.createElement('span');label.className='matrix-corner-label';label.textContent=isValueSeoMatrix?'Category ↓\nContent type →':state.contentView==='value'&&processTaxonomyRows.length?'Process / sub-process ↓\nDepartment →':state.contentView==='value'?'Process ↓\nValue dimension →':'Department ↓\nICP dimension →';corner.append(label);}
+    if(isPositioningMatrix){corner.classList.add('icp-matrix-corner');const label=document.createElement('span');label.className='matrix-corner-label';label.textContent=state.contentView==='value'&&processTaxonomyRows.length?'Process / sub-process ↓\nDepartment →':state.contentView==='value'?'Process ↓\nValue dimension →':'Department ↓\nICP dimension →';corner.append(label);}
     axisRow.append(corner);
-    const axes = isPositioningMatrix ? (state.contentView==='value' ? (processTaxonomyRows.length?[['use','Departments'],['benefit','Features'],['cap','Capabilities']]:[['use','Processes / Use cases'],['benefit','Nodal benefits'],['cap','Capabilities']]) : [['ind','Industry Pages'],['size','Company Size'],['process','Process / Use Case'],['ctry','Country'],['tech','Technology'],['role','Role / Team'],['people','People'],['input','Input']]) : isValueSeoMatrix ? [['problem','Problem-aware'],['solution','Solution-aware'],['product','Product-aware']] : KeywordColumns.ICP_AXIS_ORDER.map(axis=>[axis,KeywordColumns.ICP_AXIS_LABELS[axis]]);
+    const axes = isPositioningMatrix ? (state.contentView==='value' ? (processTaxonomyRows.length?[['use','Departments'],['benefit','Features'],['cap','Capabilities']]:[['use','Processes / Use cases'],['benefit','Nodal benefits'],['cap','Capabilities']]) : [['ind','Industry Pages'],['size','Company Size'],['process','Process / Use Case'],['ctry','Country'],['tech','Technology'],['role','Role / Team'],['people','People'],['input','Input']]) : KeywordColumns.ICP_AXIS_ORDER.map(axis=>[axis,KeywordColumns.ICP_AXIS_LABELS[axis]]);
     for (const [axis, label] of axes){
-        const count = columns.filter(col => isPositioningMatrix ? col.matrixGroup === axis : isValueSeoMatrix ? col.awarenessGroup === axis : (col.axis || KeywordColumns.inferIcpAxis(col.name)) === axis).length;
+        const count = columns.filter(col => isPositioningMatrix ? col.matrixGroup === axis : (col.axis || KeywordColumns.inferIcpAxis(col.name)) === axis).length;
         if (!count) continue;
-        const th = document.createElement('th'); th.className = 'icp-axis-head' + (isPositioningMatrix || isValueSeoMatrix ? ' icp-matrix-axis icp-matrix-' + axis : ''); th.colSpan = count;
+        const th = document.createElement('th'); th.className = 'icp-axis-head' + (isPositioningMatrix ? ' icp-matrix-axis icp-matrix-' + axis : ''); th.colSpan = count;
         th.textContent = label; axisRow.append(th);
       }
     if(spacerCount){const spacer=document.createElement('th');spacer.className='keyword-grid-spacer';spacer.colSpan=spacerCount;spacer.setAttribute('aria-hidden','true');axisRow.append(spacer);}
     thead.append(axisRow);
   }
   const hr = document.createElement('tr');
-  hr.className = (state.contentView === 'icp' || isPositioningMatrix || isIcpSeoMatrix) ? 'icp-column-row' : '';
+  hr.className = (state.contentView === 'icp' || isPositioningMatrix || isIcpSeoMatrix || isValueSeoMatrix) ? 'icp-column-row' : '';
   if (!showAxisSuperHeaders){
     const corner = matrixCornerActions(() => addGridColumn(group.id), () => addGridRow(group.id), 'Add column', 'Add row');
-    if (isIcpSeoMatrix){
+    if (isIcpSeoMatrix || isValueSeoMatrix){
       corner.classList.add('icp-matrix-corner');
-      const label = document.createElement('span'); label.className = 'matrix-corner-label'; label.textContent = state.contentView === 'category' ? 'Category type ↓\nCategory dimension →' : 'ICP axis ↓\nContent type →'; corner.append(label);
+      const label = document.createElement('span'); label.className = 'matrix-corner-label'; label.textContent = isValueSeoMatrix ? 'Category ↓\nContent type →' : state.contentView === 'category' ? 'Category type ↓\nCategory dimension →' : 'ICP axis ↓\nContent type →'; corner.append(label);
     }
     hr.append(corner);
   }
