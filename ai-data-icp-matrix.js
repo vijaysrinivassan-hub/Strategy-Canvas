@@ -1,7 +1,7 @@
 /* Generated from the supplied ICP matrix and Processes > Analysis matrix. */
 (function(root,factory){const api=factory();if(typeof module==='object')module.exports=api;else root.AiDataIcpMatrix=api;})(globalThis,function(){
 const data={
-  "revision": "ai-data-positioning-matrices-v13",
+  "revision": "ai-data-positioning-matrices-v14",
   "client": "AI Data Platform",
   "productId": "0jgsw8bx554d",
   "columns": [
@@ -1074,7 +1074,7 @@ data.valueRows=[{
  const legacy=legacyValueById.get(legacyId);
  return {id:legacy?.id||'ai-value-subprocess-'+item.id,name:item.name,description:item.description,
   keywordIdeas:[item.name.toLowerCase()],processLevel:'subprocess',parentProcess:analysisTaxonomy.name,
-  cells:legacy?copy(legacy.cells.slice(0,data.valueColumns.length)):emptyValueCells()};
+  cells:(legacy?copy(legacy.cells.slice(0,data.valueColumns.length)):emptyValueCells()).map(cell=>({...cell,title:''}))};
 })];
 data.icpPrompt=ICP_PROMPT;data.valuePrompt=VALUE_PROMPT;data.routingPrompt=DATA_IMPORT_PROMPT+'\n\n'+ROUTING_PROMPT;
 const blankCell=(sourceRow,sourceCell,column,kind)=>({v:sourceCell.title,url:'',mode:'aeo',type:'',on:false,aw:'',st:'',writtenBy:'',cfg:true,kws:[],keywordIdeas:copy(sourceCell.keywordIdeas),actorType:sourceCell.actorType,actor:sourceCell.actor,icpSource:{kind:kind||'sample-matrix',row:sourceRow.name,column:column.name}});
@@ -1129,6 +1129,11 @@ function ensure(content,client,productId){
  const buildRows=(sourceRows,columns,targetOld,kind)=>sourceRows.map(sourceRow=>{const oldTarget=targetOld.get(sourceRow.id);const oldSource=oldIcpById.get(sourceRow.id);const row=oldTarget||{id:sourceRow.id,pageGroup:'matrix',name:sourceRow.name,description:sourceRow.description,keywordIdeas:copy(sourceRow.keywordIdeas),cells:{}};row.pageGroup='matrix';row.name=sourceRow.name;row.description=sourceRow.description;row.keywordIdeas=copy(sourceRow.keywordIdeas);row.processLevel=sourceRow.processLevel||'';row.parentProcess=sourceRow.parentProcess||'';if(row.processLevel)row.topicCell={...(row.topicCell||{}),v:sourceRow.name};row.cells ||= {};const next={};sourceRow.cells.forEach((sourceCell,index)=>{const column=columns[index];next[column.id]=row.cells[column.id]||oldSource?.cells?.[column.id]||blankCell(sourceRow,sourceCell,column,kind);});row.cells=next;return row;});
  const icpIds=new Set(data.icpRows.map(row=>row.id));
  const valueSeed=buildRows(data.valueRows,data.valueColumns,oldValueById,'sample-matrix-value');
+ const isLucaUrl=url=>/^https?:\/\/(?:www\.)?ask-luca\.com\//i.test(String(url||''))||/^https?:\/\/content\.maximuslabs\.ai\/luca\//i.test(String(url||''));
+ // Value AEO cell titles are reserved for represented-company coverage. The
+ // row/column axes already describe an empty opportunity, so seeded examples,
+ // competitor headlines, and manually carried matrix labels stay out of Title.
+ valueSeed.forEach(row=>Object.values(row.cells||{}).forEach(cell=>{if(cell&&typeof cell==='object'&&!isLucaUrl(cell.url))cell.v='';}));
  const icpSeed=buildRows(data.icpRows,data.icpColumns,oldIcpById,'sample-matrix-icp');
  icp.rows=[...(icp.rows||[]).filter(row=>row.pageGroup!=='matrix'),...icpSeed,...oldIcpRows.filter(row=>!icpIds.has(row.id)).map(row=>({...row,cells:Object.fromEntries(Object.entries(row.cells||{}).filter(([id])=>data.icpColumns.some(column=>column.id===id)))}))];
  // Value AEO is intentionally a closed process-by-department matrix. Archive

@@ -3,7 +3,7 @@ import fs from 'node:fs';
 import Matrix from './ai-data-icp-matrix.js';
 import Columns from './keyword-columns.js';
 
-assert.equal(Matrix.data.revision,'ai-data-positioning-matrices-v13');
+assert.equal(Matrix.data.revision,'ai-data-positioning-matrices-v14');
 assert.equal(Matrix.data.icpColumns.length,12);
 assert.deepEqual([...new Set(Matrix.data.icpColumns.map(c=>c.matrixGroup))],['ind','ctry','tech']);
 assert.equal(Matrix.data.valueColumns.length,4);
@@ -38,7 +38,8 @@ assert(content.views.product.pageColumns.landing.some(column=>column.name==='Cap
 assert(content.views.product.pageColumns.landing.some(column=>column.name==='Features'));
 assert.equal(content.views.value.pageColumns['value-overview'],undefined);
 assert.equal(content.views.icp.rows.find(r=>r.id===Matrix.data.rows[0].id).cells[rest[0].id].v,'Preserved ICP edit');
-assert.equal(content.views.value.rows.find(r=>r.id===Matrix.data.rows[0].id).cells[use[0].id].v,'Preserved moved use case');
+assert.equal(content.views.value.rows.find(r=>r.id===Matrix.data.rows[0].id).cells[use[0].id].v,'');
+assert(content.views.value.rows.filter(r=>r.pageGroup==='matrix').flatMap(r=>Object.values(r.cells||{})).every(cell=>cell.v===''));
 assert.equal(content.views.value.rows.find(r=>r.id==='ai-value-process-analysis').name,'Analysis');
 assert.equal(content.views.value.rows.filter(r=>r.pageGroup==='matrix'&&r.processLevel==='subprocess').length,14);
 assert.equal(content.views.value.rows.filter(r=>r.pageGroup==='matrix').length,15);
@@ -48,6 +49,16 @@ assert.equal(content.views.value.rows.find(r=>r.id==='legacy').cells.aeo,undefin
 assert.ok(content.views.category.pageColumns.landing.some(c=>c.name==='Integration pages'));
 assert.match(content.views.icp.matrixAiPrompt,/E-commerce Data Analytics/);assert.match(content.views.value.matrixAiPrompt,/Product Aware/);
 assert.equal(Matrix.ensure(content,'AI Data Platform','0jgsw8bx554d'),false);
+// Upgrade an already-saved Value AEO matrix: seeded/competitor titles are
+// removed, while the represented company's Luca title and slug survive.
+const cohort=content.views.value.rows.find(row=>row.name==='Cohort analysis');
+cohort.cells[Matrix.data.valueColumns[2].id].v='Deal-vintage cohort analysis';
+cohort.cells[Matrix.data.valueColumns[3].id].v='Luca represented title';
+cohort.cells[Matrix.data.valueColumns[3].id].url='https://ask-luca.com/blogs/represented';
+content.views.value.valueMatrixRevision='ai-data-positioning-matrices-v13';
+assert.equal(Matrix.ensure(content,'AI Data Platform','0jgsw8bx554d'),true);
+assert.equal(cohort.cells[Matrix.data.valueColumns[2].id].v,'');
+assert.equal(cohort.cells[Matrix.data.valueColumns[3].id].v,'Luca represented title');
 // Repair a previously seeded board whose saved Value AEO column projection
 // was later reduced to one visible column while its subprocess cells survived.
 content.views.value.pageColumns.matrix=content.views.value.pageColumns.matrix.slice(0,1);
