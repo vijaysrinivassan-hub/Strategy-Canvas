@@ -94,6 +94,20 @@ assert.equal(unawareCells.flatMap(cell=>repo.resolve(cell.repositoryQueries||[])
 assert(unaware.rows.filter(row=>row.repositoryWorkspace==='ai-data-platform').every(row=>row.repositorySuperHierarchy&&row.repositoryHierarchy));
 assert.deepEqual(Array.from(unaware.pageColumns.informational.filter(column=>seoHeaders.includes(column.name)),column=>column.name),seoHeaders);
 
+for(const awareness of ['problem-unaware','problem-aware']){
+  const valueView={columns:[],rows:[]};
+  const valueRoot={views:{value:valueView}};
+  assert.equal(repo.installMappings(valueRoot,types,{product:'AI Data Platform',uid:()=>`value-seo-${awareness}-${++n}`,awareness,contentView:'value',mode:'seo',activeView:valueView}),true);
+  const valueRows=valueView.rows.filter(row=>row.repositoryWorkspace==='ai-data-platform');
+  const expectedCount=repo.query({workspace:'ai-data-platform',awareness,section:'Value SEO'}).length;
+  assert.equal(valueRows.flatMap(row=>Object.values(row.cells||{})).flatMap(cell=>repo.resolve(cell.repositoryQueries||[])).length,expectedCount);
+  assert(valueRows.every(row=>['Prime category','Supporting process'].includes(row.repositorySuperHierarchy)));
+  assert(valueRows.every(row=>['Data Analysis','Data Integration & ETL'].includes(row.repositoryHierarchy)));
+  assert.equal(valueRows[0].repositorySuperHierarchy,'Prime category');
+  assert.deepEqual(Array.from(valueView.pageColumns.informational,column=>column.name),seoHeaders);
+  assert(valueView.pageColumns.informational.every(column=>['problem','solution','product'].includes(column.awarenessGroup)));
+}
+
 assert.equal(repo.installMappings(root,types,{product:'AI Data Platform',uid:()=>`solution-${++n}`,awareness:'solution-aware',contentView:'icp',mode:'aeo',activeView:active}),true);
 const afterSolution=active.rows.flatMap(row=>Object.values(row.cells||{}));
 assert.equal(afterSolution.flatMap(cell=>repo.resolve(cell.repositoryQueries||[])).filter(row=>row.awareness==='problem-aware').length,311);

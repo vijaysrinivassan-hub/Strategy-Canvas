@@ -31,6 +31,8 @@ assert.match(Columns.strategyPrompt,/never copy an AI Layer product into Capital
 assert.match(Columns.strategyPrompt,/Agency-fit pages belong under Industry Pages/);
 assert.match(Columns.strategyPrompt,/Enterprise and SMB belong under Company Size/);
 assert.match(Columns.strategyPrompt,/Amazon belongs under Technology/);
+assert.match(Columns.strategyPrompt,/VALUE SEO CATEGORY AXIS/);
+assert.match(Columns.strategyPrompt,/same selected Maturity Axis category hierarchy/);
 assert.ok(Columns.names.category.includes('Integration pages'));
 
 const use=Matrix.data.columns.slice(0,4),rest=Matrix.data.columns.slice(4);

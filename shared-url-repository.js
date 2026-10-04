@@ -277,7 +277,7 @@
           if(viewId==='category'||viewId==='product'){
             return categoryRowRank(a)-categoryRowRank(b)||String(a.repositoryHierarchy).localeCompare(String(b.repositoryHierarchy))||Number(a.repositoryRowSlot||0)-Number(b.repositoryRowSlot||0);
           }
-          if(viewId==='value')return String(a.repositoryHierarchy).localeCompare(String(b.repositoryHierarchy))||Number(a.repositoryRowSlot||0)-Number(b.repositoryRowSlot||0);
+          if(viewId==='value')return categoryRowRank(a)-categoryRowRank(b)||String(a.repositoryHierarchy).localeCompare(String(b.repositoryHierarchy))||Number(a.repositoryRowSlot||0)-Number(b.repositoryRowSlot||0);
           if(group==='matrix'){const ar=PROCESS_DEPARTMENT_ORDER.indexOf(a.repositoryHierarchy),br=PROCESS_DEPARTMENT_ORDER.indexOf(b.repositoryHierarchy);return (ar<0?999:ar)-(br<0?999:br)||Number(a.repositoryRowSlot||0)-Number(b.repositoryRowSlot||0);}
           const ag=a.repositorySuperHierarchy||a.repositoryHierarchy,bg=b.repositorySuperHierarchy||b.repositoryHierarchy;
           const ar=ICP_DIMENSION_ORDER.indexOf(ag),br=ICP_DIMENSION_ORDER.indexOf(bg);
@@ -348,7 +348,7 @@
     if(!root?.views||!productMatches(options.product)||!data())return false;
     const workspace=workspaceFor(options.product);
     if(workspace==='ai-data-platform')return installScopedMappings(root,types,{...options,workspace});
-    const revision=(data().classifiedAt||'classification')+':'+(global.AskLucaKeywordImport?.REVISION||'base')+':represented-title-v2';
+    const revision=(data().classifiedAt||'classification')+':'+(global.AskLucaKeywordImport?.REVISION||'base')+':represented-title-v3';
     if(root.sharedUrlRepositoryRevision===revision)return false;
     const preserved=captureRepositoryState(root);
     clearPreviousMappings(root);
@@ -371,8 +371,9 @@
       if(viewId==='icp'&&group==='matrix'){column.matrixGroup=matrixGroup('icp',sourceDimension);column.repositoryDimension=sourceDimension;}
       if(viewId==='value'&&mode==='seo'){column.awarenessGroup=valueSeoAwarenessGroup(record.axis);column.repositoryAwareness=awarenessForGroup(column.awarenessGroup);}
       const category=categoryPlacement(record,options,workspace);
-      const rowHierarchy=(viewId==='category'||viewId==='product')?category.hierarchy:viewId==='icp'&&mode==='aeo'?processDepartment(record):viewId==='icp'&&mode==='seo'?dimensionValue:record.hierarchy;
-      const rowSuperHierarchy=(viewId==='category'||viewId==='product')?category.superHierarchy:viewId==='icp'&&mode==='seo'?sourceDimension:undefined;
+      const categoryBasedRows=viewId==='category'||viewId==='product'||(viewId==='value'&&mode==='seo');
+      const rowHierarchy=categoryBasedRows?category.hierarchy:viewId==='icp'&&mode==='aeo'?processDepartment(record):viewId==='icp'&&mode==='seo'?dimensionValue:record.hierarchy;
+      const rowSuperHierarchy=categoryBasedRows?category.superHierarchy:viewId==='icp'&&mode==='seo'?sourceDimension:undefined;
       const row=ensureRow(view,group,rowHierarchy,record.groupOrder,uid,rowSuperHierarchy);
       const current=row.cells[column.id]&&typeof row.cells[column.id]==='object'?row.cells[column.id]:{};
       const saved=preserved.get(record.topicGroup)||{};
@@ -422,7 +423,7 @@
     // Include overlay imports in the persisted migration key. Otherwise a
     // board that already installed the Saras/base repository incorrectly
     // treats a newly shipped represented-company import as already applied.
-    const revision=(data().classifiedAt||'classification')+':'+(global.AskLucaKeywordImport?.REVISION||'base')+':'+scope+':v18';
+    const revision=(data().classifiedAt||'classification')+':'+(global.AskLucaKeywordImport?.REVISION||'base')+':'+scope+':v19';
     root.sharedUrlRepositoryRevisions ||= {};
     const view=options.activeView,uid=options.uid||(()=>Math.random().toString(36).slice(2));
     const fixedAiDataValueMatrix=workspace==='ai-data-platform'&&awareness==='solution-aware'&&viewId==='value'&&mode==='aeo';
@@ -478,10 +479,12 @@
         isAiDataSolution&&viewId==='value'?'Capabilities':(record.axis||'General');
       const column=ensureColumn(viewId,view,group,columnName,mode,types);
       if(group==='matrix')column.matrixGroup=isAiDataSolution&&viewId==='value'?'cap':matrixGroup(viewId,record.hierarchy);
+      if(viewId==='value'&&mode==='seo'){column.awarenessGroup=valueSeoAwarenessGroup(record.axis);column.repositoryAwareness=awarenessForGroup(column.awarenessGroup);}
       const category=categoryPlacement(record,options,workspace);
-      const rowHierarchy=(viewId==='product'||viewId==='category')?category.hierarchy:isAiDataSolution?'E-commerce Data Analytics':
+      const categoryBasedValueSeo=viewId==='value'&&mode==='seo'&&['problem-unaware','problem-aware'].includes(awareness);
+      const rowHierarchy=(viewId==='product'||viewId==='category'||categoryBasedValueSeo)?category.hierarchy:isAiDataSolution?'E-commerce Data Analytics':
         viewId==='icp'&&mode==='seo'?(record.icpSegment||record.hierarchy||'General ICP'):(record.hierarchy||'General');
-      const rowSuperHierarchy=(viewId==='product'||viewId==='category')?category.superHierarchy:isAiDataSolution?'Category':
+      const rowSuperHierarchy=(viewId==='product'||viewId==='category'||categoryBasedValueSeo)?category.superHierarchy:isAiDataSolution?'Category':
         viewId==='icp'&&mode==='seo'?(record.hierarchy||'General ICP'):(viewId==='icp'?record.hierarchy:undefined);
       const slotKey=[group,rowHierarchy,column.id].join('|');
       // Source groupOrder can restart when several source dimensions collapse
@@ -518,7 +521,7 @@
       sortIcpMatrixColumns(view);
     }
     if(mode==='seo'&&(viewId==='icp'||viewId==='value')){
-      SEO_TOPIC_COLUMNS.forEach(name=>ensureColumn(viewId,view,'informational',name,'seo',types));
+      SEO_TOPIC_COLUMNS.forEach(name=>{const column=ensureColumn(viewId,view,'informational',name,'seo',types);if(viewId==='value'){column.awarenessGroup=valueSeoAwarenessGroup(name);column.repositoryAwareness=awarenessForGroup(column.awarenessGroup);}});
       const columns=columnsFor(view,'informational');
       columns.sort((a,b)=>{
         const ai=SEO_TOPIC_COLUMNS.indexOf(a.name),bi=SEO_TOPIC_COLUMNS.indexOf(b.name);
