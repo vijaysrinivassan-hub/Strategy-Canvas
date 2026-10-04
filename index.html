@@ -3015,12 +3015,13 @@
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="keyword-assignments.js?v=value-lenses-v2"></script>
 <script src="keyword-page-tables.js?v=product-capabilities-v2"></script>
-<script src="keyword-columns.js?v=value-keywords-v19"></script>
-<script src="ai-data-icp-matrix.js?v=value-keywords-v10"></script>
+<script src="keyword-columns.js?v=value-keywords-v20"></script>
+<script src="ai-data-icp-matrix.js?v=value-keywords-v11"></script>
 <script src="keyword-columns-ui.js"></script>
 <script src="high-priority-links.js"></script>
 <script src="eor-provider-india-keywords.js"></script>
 <script src="ai-data-value-keywords.js?v=value-keywords-v3"></script>
+<script src="ai-data-search-metrics.js?v=search-metrics-v1"></script>
 <script src="competitor-comparison.js?v=status-color-v2"></script>
 <link rel="stylesheet" href="competitive-intelligence.css">
 <script src="competitive-intelligence-seed.js"></script>
@@ -5268,6 +5269,7 @@ async function openBoard(id, location){
   const migratedOnOpen = globalThis.AiDataIcpMatrix?.ensure(state.tabs[CONTENT_TAB] || (state.tabs[CONTENT_TAB] = {}), state.client, state.workspaceProductId);
   if (migratedOnOpen && !readOnly()){ markDirty(); await saveBoard(true); }
   await ensureAiDataValueKeywordSeed();
+  await ensureAiDataSearchMetricsSeed();
   await ensureEorProviderIndiaKeywordSeed();
   await ensureAskLucaCompetitiveIntelligenceSeed();
   await ensureSarasAnalyticsCompetitiveIntelligenceSeed();
@@ -6288,6 +6290,9 @@ async function saveKeywords(rows, source){
       country: r.country || 'us',
       source: source || 'manual'
     };
+    /* Search-suggestion imports retain every source metric in the JSON data
+       column while the common metrics remain directly queryable. */
+    if (r.data && typeof r.data === 'object') payload.data = r.data;
     if (existing[k]) toUpdate.push({ id: existing[k], payload: payload });
     else toInsert.push(Object.assign({ owner_id: state.user.id, board_id: state.boardId }, payload));
   });
@@ -6295,13 +6300,18 @@ async function saveKeywords(rows, source){
   let added = 0, updated = 0;
   const problems = [];
 
-  if (toInsert.length){
-    const res = await sb.from('keywords').insert(toInsert);
-    if (res.error) problems.push(res.error.message); else added = toInsert.length;
+  for (let from = 0; from < toInsert.length; from += 400){
+    const batch = toInsert.slice(from, from + 400);
+    const res = await sb.from('keywords').insert(batch);
+    if (res.error) problems.push(res.error.message); else added += batch.length;
   }
-  for (let i = 0; i < toUpdate.length; i++){
-    const res = await sb.from('keywords').update(toUpdate[i].payload).eq('id', toUpdate[i].id);
-    if (res.error) problems.push(res.error.message); else updated++;
+  for (let from = 0; from < toUpdate.length; from += 20){
+    const results = await Promise.all(toUpdate.slice(from, from + 20).map(function(item){
+      return sb.from('keywords').update(item.payload).eq('id', item.id);
+    }));
+    results.forEach(function(res){
+      if (res.error) problems.push(res.error.message); else updated++;
+    });
   }
 
   await repaintFromDb();
@@ -6320,6 +6330,7 @@ async function saveKeywords(rows, source){
 
 let eorProviderIndiaSeedPending = null;
 let aiDataValueKeywordSeedPending = null;
+let aiDataSearchMetricsSeedPending = null;
 async function ensureAiDataValueKeywordSeed(){
   const api=globalThis.AiDataValueKeywords;
   if(!api?.matches(state.client,state.workspaceProductId)||readOnly())return false;
@@ -6344,6 +6355,28 @@ async function ensureAiDataValueKeywordSeed(){
   try{return await aiDataValueKeywordSeedPending;}
   catch(error){console.error(error);toast('Could not populate the Value AEO keyword layers: '+(error.message||error),true);return false;}
   finally{aiDataValueKeywordSeedPending=null;}
+}
+async function ensureAiDataSearchMetricsSeed(){
+  const api=globalThis.AiDataSearchMetrics;
+  if(!api?.matches(state.client,state.workspaceProductId)||readOnly())return false;
+  const root=contentRoot();
+  if(!root?.views?.value||root.aiDataSearchMetricsRevision===api.REVISION)return false;
+  if(aiDataSearchMetricsSeedPending)return aiDataSearchMetricsSeedPending;
+  const targetBoard=state.boardId,targetProduct=state.workspaceProductId;
+  aiDataSearchMetricsSeedPending=(async function(){
+    /* Save the complete import, rather than only missing terms, so existing
+       matrix keywords also receive KD, CPC, CPS, traffic and trend fields. */
+    if(!await saveKeywords(api.keywordRows(),'ai-data-search-suggestions-2026-10-04'))return false;
+    if(state.boardId!==targetBoard||state.workspaceProductId!==targetProduct)return false;
+    const changed=api.apply(root,kwRows);
+    root.aiDataSearchMetricsRevision=api.REVISION;
+    markDirty();
+    await saveBoard(true);
+    return changed;
+  })();
+  try{return await aiDataSearchMetricsSeedPending;}
+  catch(error){console.error(error);toast('Could not import the search-suggestion metrics: '+(error.message||error),true);return false;}
+  finally{aiDataSearchMetricsSeedPending=null;}
 }
 async function ensureEorProviderIndiaKeywordSeed(){
   const api = globalThis.EorProviderIndiaKeywords;
@@ -12651,14 +12684,26 @@ function applyRole(){
    =================================================================== */
 const KEYWORDS_TAB = 'Keyword Repo';
 const KW_COLS = [
+  { key: 'source_rank',       label: '#',        cls: 'num' },
   { key: 'keyword',           label: 'Keyword',  cls: 'kw-term' },
+  { key: 'country',           label: 'Country' },
   { key: 'volume',            label: 'Volume',   cls: 'num', fmt: v => v == null ? '' : Number(v).toLocaleString() },
   { key: 'kd',                label: 'KD',       cls: 'num' },
   { key: 'cpc',               label: 'CPC',      cls: 'num', fmt: v => v == null ? '' : '$' + Number(v).toFixed(2) },
-  { key: 'traffic_potential', label: 'TP',       cls: 'num', fmt: v => v == null ? '' : Number(v).toLocaleString() },
-  { key: 'parent_topic',      label: 'Parent topic' },
+  { key: 'cps',               label: 'CPS',      cls: 'num', fmt: v => v == null ? '' : Number(v).toFixed(2) },
+  { key: 'parent_topic',      label: 'Parent keyword' },
+  { key: 'last_update',       label: 'Last update' },
+  { key: 'serp_features',     label: 'SERP features' },
+  { key: 'global_volume',     label: 'Global volume', cls: 'num', fmt: v => v == null ? '' : Number(v).toLocaleString() },
+  { key: 'traffic_potential', label: 'Traffic potential', cls: 'num', fmt: v => v == null ? '' : Number(v).toLocaleString() },
+  { key: 'global_traffic_potential', label: 'Global traffic potential', cls: 'num', fmt: v => v == null ? '' : Number(v).toLocaleString() },
+  { key: 'first_seen',        label: 'First seen' },
   { key: 'intent',            label: 'Intent' },
-  { key: 'country',           label: 'Country' }
+  { key: 'languages',         label: 'Languages' },
+  { key: 'sv_trend',          label: 'SV trend (10-2024 – 09-2026)' },
+  { key: 'sv_forecasting_trend', label: 'SV forecast (10-2026 – 10-2027)' },
+  { key: 'category',          label: 'Category' },
+  { key: 'source_files',      label: 'Source files' }
 ];
 
 let kwRows = [];
@@ -12695,14 +12740,16 @@ async function loadKeywords(force = false){
         const rows=[],pageSize=1000,maxRows=10000;
         for(let from=0;from<maxRows;from+=pageSize){
           const {data,error} = await sb.from('keywords')
-            .select('id,keyword,selected,volume,kd,cpc,traffic_potential,parent_topic,intent,country')
+            .select('id,keyword,selected,volume,kd,cpc,traffic_potential,parent_topic,intent,country,data')
             .eq('board_id', board).order('volume', {ascending:false,nullsFirst:false}).order('id',{ascending:true})
             .range(from,from+pageSize-1);
           if(error)throw error;
           const page=data||[];rows.push(...page);
           if(page.length<pageSize)break;
         }
-        entry.rows = rows;
+        entry.rows = rows.map(function(row){
+          return Object.assign({}, row.data && typeof row.data === 'object' ? row.data : {}, row);
+        });
         entry.loadedAt = Date.now();
         return null;
       } catch(error){
