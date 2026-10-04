@@ -3030,7 +3030,7 @@
 <script src="saras-analytics-organic-traffic.js?v=2026-10-04"></script>
 <script src="saras-analytics-competitive-intelligence.js?v=organic-traffic-v1"></script>
 <script src="competitive-intelligence.js?v=organic-traffic-v1"></script>
-<script src="shared-url-repository.js?v=represented-content-v19"></script>
+<script src="shared-url-repository.js?v=value-lens-status-v20"></script>
 <link rel="stylesheet" href="icp-workflows.css">
 <script src="icp-workflows.js"></script>
 <link rel="stylesheet" href="icp-table.css">
@@ -6954,7 +6954,7 @@ function valueLensKeywordPatch(cell,lens,ids,excluded){
 function valueLensForPageUrl(row,cell){
   const explicit=String(row?.lens||cell?.valueLensUrlLens||'').toLowerCase();
   if(VALUE_MATRIX_LENSES.some(lens=>lens.id===explicit))return explicit;
-  const text=[row?.title,row?.url,row?.pageType,row?.axis].filter(Boolean).join(' ').toLowerCase();
+  const text=[row?.title,row?.topic,row?.url,row?.pageType,row?.axis].filter(Boolean).join(' ').toLowerCase();
   if(/\b(tool|tools|software|platform|system|systems|app|apps|solution|solutions)\b/.test(text))return 'tools';
   if(/\b(benefit|benefits|advantage|advantages|roi|save|saving|efficiency|efficient|faster)\b/.test(text))return 'benefits';
   if(/\b(outcome|outcomes|result|results|growth|increase|improve|improvement|revenue|profit|conversion)\b/.test(text))return 'outcome';
@@ -6963,6 +6963,32 @@ function valueLensForPageUrl(row,cell){
 }
 function valueLensPageUrls(cell,lens){
   return normalizePageUrls(cell?.pageUrls).filter(row=>valueLensForPageUrl(row,cell)===lens);
+}
+function normalizeValueLensStatusMap(value){
+  const out={};
+  if(!value||typeof value!=='object'||Array.isArray(value))return out;
+  VALUE_MATRIX_LENSES.forEach(lens=>{
+    if(Object.prototype.hasOwnProperty.call(value,lens.id))out[lens.id]=String(value[lens.id]||'');
+  });
+  return out;
+}
+function valueLensHasUrl(cell,lens){
+  if(!cell||!lens)return false;
+  if(String(cell.url||'').trim()&&valueLensForPageUrl({url:cell.url,lens:cell.valueLensUrlLens},cell)===lens)return true;
+  if(valueLensPageUrls(cell,lens).some(row=>String(row.url||'').trim()))return true;
+  const shared=window.SharedUrlRepository?.resolve(cell.repositoryQueries,cell.repositoryUrlOverrides)||[];
+  return shared.some(row=>String(row.url||'').trim()&&valueLensForPageUrl(row,cell)===lens);
+}
+function valueLensStatus(cell,lens){
+  const statuses=normalizeValueLensStatusMap(cell?.valueLensStatuses);
+  if(Object.prototype.hasOwnProperty.call(statuses,lens))return statuses[lens];
+  const anyUrl=VALUE_MATRIX_LENSES.some(item=>valueLensHasUrl(cell,item.id));
+  return valueLensHasUrl(cell,lens)||(!anyUrl&&lens==='process')?String(cell?.st||''):'';
+}
+function valueLensStatusPatch(cell,lens,status){
+  const statuses=normalizeValueLensStatusMap(cell?.valueLensStatuses);
+  statuses[lens]=String(status||'');
+  return {valueLensStatuses:statuses};
 }
 function normalizeRepositoryUrlOverrides(value){
   if (!value || typeof value !== 'object' || Array.isArray(value)) return {};
@@ -7287,7 +7313,8 @@ function renderPageUrlEvidence(td, o){
    the article type and the awareness level on the next. `get` reads the cell
    and `set` writes a patch to it, so the two views cannot drift apart. */
 function cellControls(td, o){
-  const cell = o.get();
+  const rawCell=o.get();
+  const cell=o.keywordLens?{...rawCell,st:valueLensStatus(rawCell,o.keywordLens)}:rawCell;
   if (!o.inlineMode && (cell.mode || 'aeo') !== keywordMode){
     td.replaceChildren();
     td.classList.add('empty');
@@ -7364,7 +7391,7 @@ function cellControls(td, o){
     foot.append(tick);
   }
   foot.append(statusSelect(cell.st, o.ro, function(id){
-    o.set({ st: id });
+    o.set(o.keywordLens?valueLensStatusPatch(o.get(),o.keywordLens,id):{st:id});
     /* the full render used to paint this; only the cell redraws now */
     td.classList.toggle('written', id === 'written');
     td.dataset.status = id || '';
@@ -7663,7 +7690,7 @@ function cellOf(row, colId, defaults){
              actorType: c.actorType || '', actor: c.actor || '',
              keywordIdeas: Array.isArray(c.keywordIdeas) ? c.keywordIdeas : [], icpSource:c.icpSource || null,
              kws: Array.isArray(c.kws) ? c.kws.filter(Boolean) : [], excludedKws:Array.isArray(c.excludedKws)?c.excludedKws.filter(Boolean):[], pageUrls: normalizePageUrls(c.pageUrls),
-             valueLensKeywords:normalizeValueLensKeywordMap(c.valueLensKeywords),valueLensExcludedKeywords:normalizeValueLensKeywordMap(c.valueLensExcludedKeywords),
+             valueLensKeywords:normalizeValueLensKeywordMap(c.valueLensKeywords),valueLensExcludedKeywords:normalizeValueLensKeywordMap(c.valueLensExcludedKeywords),valueLensStatuses:normalizeValueLensStatusMap(c.valueLensStatuses),
              valueLensUrlLens:VALUE_MATRIX_LENSES.some(lens=>lens.id===c.valueLensUrlLens)?c.valueLensUrlLens:'',
              repositoryQueries: Array.isArray(c.repositoryQueries) ? c.repositoryQueries : [], repositoryUrlOverrides:normalizeRepositoryUrlOverrides(c.repositoryUrlOverrides) };
   }
@@ -7683,13 +7710,13 @@ function setCellIn(row, colId, patch, defaults){
   const pageUrls = normalizePageUrls(c.pageUrls);
   const repositoryQueries = Array.isArray(c.repositoryQueries) ? c.repositoryQueries : [];
   const excludedKws = Array.isArray(c.excludedKws) ? c.excludedKws.filter(Boolean) : [];
-  const valueLensKeywords=normalizeValueLensKeywordMap(c.valueLensKeywords),valueLensExcludedKeywords=normalizeValueLensKeywordMap(c.valueLensExcludedKeywords);
-  const valueLensCount=Object.values(valueLensKeywords).reduce((sum,ids)=>sum+ids.length,0)+Object.values(valueLensExcludedKeywords).reduce((sum,ids)=>sum+ids.length,0);
+  const valueLensKeywords=normalizeValueLensKeywordMap(c.valueLensKeywords),valueLensExcludedKeywords=normalizeValueLensKeywordMap(c.valueLensExcludedKeywords),valueLensStatuses=normalizeValueLensStatusMap(c.valueLensStatuses);
+  const valueLensCount=Object.values(valueLensKeywords).reduce((sum,ids)=>sum+ids.length,0)+Object.values(valueLensExcludedKeywords).reduce((sum,ids)=>sum+ids.length,0)+Object.values(valueLensStatuses).filter(Boolean).length;
   const repositoryUrlOverrides = normalizeRepositoryUrlOverrides(c.repositoryUrlOverrides);
   const defaultMode = (defaults && defaults.mode) || 'aeo';
   if (!c.url && !c.writtenBy && !c.actorType && !c.actor && !c.cfg && !c.v && !c.type && c.mode === defaultMode && !c.on && !c.aw && !c.st && !kws.length && !excludedKws.length && !valueLensCount && !pageUrls.length && !repositoryQueries.length && !Object.keys(repositoryUrlOverrides).length && !c.keywordIdeas?.length && !c.icpSource) delete row.cells[colId];
   else row.cells[colId] = { v: c.v, mode: c.mode, type: c.type, on: c.on, aw: c.aw, st: c.st, url: c.url || '', writtenBy: c.writtenBy || '', cfg:!!c.cfg, kws: kws, excludedKws, pageUrls: pageUrls, repositoryQueries, repositoryUrlOverrides,
-    valueLensKeywords,valueLensExcludedKeywords,...(VALUE_MATRIX_LENSES.some(lens=>lens.id===c.valueLensUrlLens)?{valueLensUrlLens:c.valueLensUrlLens}:{}),
+    valueLensKeywords,valueLensExcludedKeywords,valueLensStatuses,...(VALUE_MATRIX_LENSES.some(lens=>lens.id===c.valueLensUrlLens)?{valueLensUrlLens:c.valueLensUrlLens}:{}),
     ...(c.actorType ? {actorType:c.actorType} : {}), ...(c.actor ? {actor:c.actor} : {}),
     ...(c.keywordIdeas?.length ? {keywordIdeas:c.keywordIdeas} : {}), ...(c.icpSource ? {icpSource:c.icpSource} : {}) };
 }
@@ -8177,6 +8204,8 @@ function setMatrixTopicCell(holder,patch){
 function renderMatrixTopicCell(host,holder,ro,keywordLens){
   host.classList.add('gr-cell','icp-matrix-topic-cell');
   const get=()=>matrixTopicCell(holder),cell=get();
+  const displayStatus=keywordLens?valueLensStatus(cell,keywordLens):cell.st;
+  host.dataset.status=displayStatus||'';host.classList.toggle('written',displayStatus==='written');
   const title=document.createElement('input');title.type='text';title.value=cell.v;title.placeholder='Title....';title.disabled=ro;title.setAttribute('aria-label','Title');host.append(title);
   const rowsFor=now=>keywordLens?gridCellKeywords('',valueLensKeywordIds(now,keywordLens),valueLensExcludedIds(now,keywordLens)):gridCellKeywords(now.v||now.url,now.kws,now.excludedKws);
   const removeKeyword=row=>{const now=get();if(keywordLens){const key=keywordEvidenceKey(row),ids=valueLensKeywordIds(now,keywordLens).filter(id=>String(id)!==key),excluded=valueLensExcludedIds(now,keywordLens).slice();if(key&&!excluded.map(String).includes(key))excluded.push(key);setMatrixTopicCell(holder,valueLensKeywordPatch(now,keywordLens,ids,excluded));}else setMatrixTopicCell(holder,keywordRemovalPatch(now,row));markDirty();renderGrid();};
@@ -8337,7 +8366,8 @@ function renderGridTable(v, group, table){
       const packedByColumn = new Map(columns.map(function(col){
         return [col.id, batch.filter(function(row){
           const cell = row.cells?.[col.id];
-          return cell && typeof cell === 'object' && keywordStatusFilter.has(cell.st || '');
+          const filterStatus=isValueAeoProcessMatrix?valueLensStatus(cell,activeValueMatrixLens(v)):(cell?.st||'');
+          return cell && typeof cell === 'object' && keywordStatusFilter.has(filterStatus);
         })];
       }));
       const packedCount = Math.max(0, ...Array.from(packedByColumn.values(), rows => rows.length));
@@ -8438,6 +8468,7 @@ function renderGridTable(v, group, table){
       if (!defaults.type && group.type) defaults.type = articleTypes().find(t => t.name.toLowerCase() === group.type.toLowerCase())?.id || '';
       const cell = cellOf(sourceRow, col.id, defaults);
       const valueLens=isValueAeoProcessMatrix?activeValueMatrixLens(v):'';
+      const displayStatus=valueLens?valueLensStatus(cell,valueLens):cell.st;
       const keywordIds=valueLens?valueLensKeywordIds(cell,valueLens):cell.kws;
       const excludedIds=valueLens?valueLensExcludedIds(cell,valueLens):cell.excludedKws;
       const keywordText=valueLens&&valueLens!=='process'?'':(cell.v || cell.url);
@@ -8454,8 +8485,8 @@ function renderGridTable(v, group, table){
       const td = document.createElement('td');
       const untouched = !sourceRow.cells[col.id];
       td.className = 'gr-cell' + ((untouched || cellQuiet(cell, kws.length)) ? ' empty' : '') + (cell.on ? ' planned' : '')
-                   + (cell.st === 'written' ? ' written' : '');
-      td.dataset.status = cell.st || '';
+                   + (displayStatus === 'written' ? ' written' : '');
+      td.dataset.status = displayStatus || '';
 
       const inp = document.createElement('input');
       inp.type = 'text';

@@ -16,6 +16,9 @@ assert(html.includes('valueLensKeywords'));
 assert(html.includes('valueLensExcludedKeywords'));
 assert(html.includes('function valueLensForPageUrl(row,cell)'));
 assert(html.includes('function valueLensPageUrls(cell,lens)'));
+assert(html.includes('function valueLensStatus(cell,lens)'));
+assert(html.includes('valueLensStatuses:normalizeValueLensStatusMap(c.valueLensStatuses)'));
+assert(html.includes('const displayStatus=valueLens?valueLensStatus(cell,valueLens):cell.st'));
 assert(html.includes("pageUrls.push({ id: uid(), url: '', traffic: '', ...(o.keywordLens?{lens:o.keywordLens}:{}) })"));
 assert(!html.includes('Red Ocean'));
 assert(!html.includes('Blue Ocean'));
@@ -23,4 +26,13 @@ assert(!html.includes('id="oceanSwitcher"'));
 
 const scripts=[...html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/g)].map(match=>match[1]).filter(source=>source.trim());
 scripts.forEach(source=>new vm.Script(source));
+
+const lensSource=html.slice(html.indexOf('const VALUE_MATRIX_LENSES='),html.indexOf('function normalizeRepositoryUrlOverrides'));
+const context=vm.createContext({window:{SharedUrlRepository:{resolve:()=>[{url:'https://example.com/analytics-tools',topic:'Best analytics tools'}]}}});
+vm.runInContext("function normalizePageUrls(rows){return Array.isArray(rows)?rows:[];}\n"+lensSource,context);
+const cell={st:'for_review',repositoryQueries:[{topicGroup:'tools'}],pageUrls:[]};
+assert.equal(vm.runInContext("valueLensStatus("+JSON.stringify(cell)+",'tools')",context),'for_review');
+for(const lens of ['process','output','outcome','benefits'])assert.equal(vm.runInContext("valueLensStatus("+JSON.stringify(cell)+",'"+lens+"')",context),'',lens);
+const overridden={...cell,valueLensStatuses:{tools:'planned'}};
+assert.equal(vm.runInContext("valueLensStatus("+JSON.stringify(overridden)+",'tools')",context),'planned');
 console.log('PASS: Value AEO uses a five-column viewport including the row header, five persistent keyword lenses with copy, and no ocean controls.');

@@ -149,6 +149,7 @@
     return !!(cell.url||cell.slug||cell.st||cell.aw||cell.writtenBy||cell.actor||cell.on
       ||(Array.isArray(cell.kws)&&cell.kws.length)||(Array.isArray(cell.excludedKws)&&cell.excludedKws.length)
       ||Object.values(cell.valueLensKeywords||{}).some(ids=>Array.isArray(ids)&&ids.length)
+      ||Object.values(cell.valueLensStatuses||{}).some(Boolean)
       ||(Array.isArray(cell.pageUrls)&&cell.pageUrls.length)||(cell.repositoryUrlOverrides&&Object.keys(cell.repositoryUrlOverrides).length));
   }
   function clearPreviousMappings(root){
