@@ -19,6 +19,9 @@ assert.equal(asset.classifications['https://www.sarasanalytics.com/blog/ecommerc
 assert.equal(asset.classifications['https://www.sarasanalytics.com/blog/ecommerce-reporting-tools'].axis,'Category synonyms');
 assert.equal(asset.classifications['https://www.sarasanalytics.com/saras-data-engineering'].axis,'Service pages');
 assert.equal(asset.classifications['https://www.sarasanalytics.com/daton/shopify'].axis,'Integration pages');
+assert.equal(asset.classifications['https://www.sarasanalytics.com/products'].axis,'Product pages');
+assert.equal(asset.classifications['https://www.sarasanalytics.com/saras-daton'].axis,'Product pages');
+assert.equal(asset.classifications['https://www.sarasanalytics.com/saras-ad'].axis,'Product pages');
 assert.equal(asset.classifications['https://www.sarasanalytics.com/blog/ecommerce-analytics'].section,'Category SEO');
 assert(!records.filter(([,meta])=>/^Category /.test(meta.section)).some(([url])=>/alternative|\/vs\//i.test(url)));
 
@@ -45,6 +48,9 @@ assert.equal(mappedProduct.length,expectedAeo.filter(item=>repo.pageGroup(item.p
 assert(product.pageColumns.landing.some(column=>column.name==='Feature pages'));
 assert(product.pageColumns.landing.some(column=>column.name==='Integration pages'));
 assert(product.pageColumns.landing.some(column=>column.name==='Service pages'));
+const productPageColumn=product.pageColumns.landing.find(column=>column.name==='Product pages');
+assert(productPageColumn);
+assert.equal(product.rows.flatMap(row=>repo.resolve(row.cells?.[productPageColumn.id]?.repositoryQueries||[])).length,3);
 for(const column of product.pageColumns.landing){
   const count=product.rows.filter(row=>row.cells?.[column.id]?.repositoryQueries?.length).length;
   if(count)assert(product.rows[0].cells?.[column.id]?.repositoryQueries?.length,`${column.name} must start in the first Product Aware row`);

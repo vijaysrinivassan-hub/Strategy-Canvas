@@ -26,7 +26,8 @@ const routeFor=url=>{
   if(seo[pathname])return seo[pathname];
   if(listicles[pathname])return ['Category AEO','Listicle',...listicles[pathname]];
   if(/^\/(daton|connectors)\//.test(pathname)||['/saras-daton/sources','/claude-bigquery'].includes(pathname))return ['Category AEO','Landing page','Data Integration & ETL','Integration pages'];
-  if(['/products','/saras-daton','/saras-iq-mcp','/saras-ad'].includes(pathname))return ['Category AEO','Landing page','E-commerce Data Analytics','Feature pages'];
+  if(['/products','/saras-daton','/saras-ad'].includes(pathname))return ['Category AEO','Landing page','E-commerce Data Analytics','Product pages'];
+  if(pathname==='/saras-iq-mcp')return ['Category AEO','Landing page','E-commerce Data Analytics','Feature pages'];
   if(['/saras-consulting','/saras-data-engineering','/talk-to-data-consultants'].includes(pathname))return ['Category AEO','Landing page','E-commerce Data Analytics Services','Service pages'];
   return null;
 };
