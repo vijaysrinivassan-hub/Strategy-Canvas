@@ -111,6 +111,12 @@
         defaults:{mode,type:typeId(types,group),aw:''},...(group==='matrix'?{matrixGroup:matrixGroup(viewId,axis)}:viewId==='icp'?{axis:/role|people/.test(key)?'people':/tech/.test(key)?'technology':/size|input/.test(key)?'input':'process'}:{})};
       columns.push(column);view.pageOrders[group]=columns.map(item=>item.id);
     }
+    // A matrix is the AEO surface. Old universal-column defaults must not
+    // suppress imported Solution Aware cells in the renderer.
+    if(group==='matrix'){
+      column.defaults ||= {};
+      column.defaults.mode=mode;
+    }
     if(group==='matrix'&&!column.matrixGroup)column.matrixGroup=matrixGroup(viewId,axis);
     const guidance='Workbook URL grouping: create one content cell per URL unless the source workbook explicitly groups URLs between separator lines. Keep every separator-delimited URL group in one cell. A group containing a Maximus Labs URL is already covered and appears red. Store the Maximus Labs URL in the Slug field and keep only competitor URLs in the URL evidence list. Keep URL and keyword evidence editable and removable.';
     if(!String(column.instruction||'').includes('Workbook URL grouping:'))column.instruction=(String(column.instruction||'').trim()+' '+guidance).trim();
@@ -358,7 +364,7 @@
     const mode=viewId==='category'?(options.mode||'aeo'):(awareness==='solution-aware'?'aeo':'seo');
     const section=sectionFor(viewId,mode);
     const scope=[workspace,awareness,viewId,mode].join(':');
-    const revision=(data().classifiedAt||'classification')+':'+scope+':v4';
+    const revision=(data().classifiedAt||'classification')+':'+scope+':v5';
     root.sharedUrlRepositoryRevisions ||= {};
     if(root.sharedUrlRepositoryRevisions[scope]===revision&&hasScopedMappings(options.activeView,workspace,awareness,section))return false;
     const view=options.activeView,uid=options.uid||(()=>Math.random().toString(36).slice(2));
@@ -367,15 +373,24 @@
     if(awareness==='problem-unaware')clearScopedMappings(view,workspace,'problem-aware',section);
     clearScopedMappings(view,workspace,awareness,section);
     let linked=0;
+    const solutionSlots=new Map();
     records().filter(record=>record.workspace===workspace&&record.awareness===awareness&&record.section===section).forEach(record=>{
       if(record.section==='Corporate & Non-SEO')return;
       const format=pageGroup(record.pageType);if(!format)return;
       const group=viewId==='category'?format:(mode==='aeo'?'matrix':'informational');
-      const column=ensureColumn(viewId,view,group,record.axis||'General',mode,types);
-      if(group==='matrix')column.matrixGroup=matrixGroup(viewId,record.hierarchy);
-      const rowHierarchy=viewId==='icp'&&mode==='seo'?(record.icpSegment||record.hierarchy||'General ICP'):(record.hierarchy||'General');
-      const rowSuperHierarchy=viewId==='icp'&&mode==='seo'?(record.hierarchy||'General ICP'):(viewId==='icp'?record.hierarchy:undefined);
-      const row=ensureRow(view,group,rowHierarchy,record.groupOrder,uid,rowSuperHierarchy);
+      const isAiDataSolution=workspace==='ai-data-platform'&&awareness==='solution-aware'&&mode==='aeo';
+      const columnName=isAiDataSolution&&viewId==='icp'?(record.icpSegment||record.axis||'General ICP'):
+        isAiDataSolution&&viewId==='value'?'Capabilities':(record.axis||'General');
+      const column=ensureColumn(viewId,view,group,columnName,mode,types);
+      if(group==='matrix')column.matrixGroup=isAiDataSolution&&viewId==='value'?'cap':matrixGroup(viewId,record.hierarchy);
+      const rowHierarchy=isAiDataSolution?'E-commerce Data Analytics':
+        viewId==='icp'&&mode==='seo'?(record.icpSegment||record.hierarchy||'General ICP'):(record.hierarchy||'General');
+      const rowSuperHierarchy=isAiDataSolution?'Category':
+        viewId==='icp'&&mode==='seo'?(record.hierarchy||'General ICP'):(viewId==='icp'?record.hierarchy:undefined);
+      const slotKey=[group,rowHierarchy,column.id].join('|');
+      const rowSlot=isAiDataSolution?(solutionSlots.get(slotKey)||0):record.groupOrder;
+      if(isAiDataSolution)solutionSlots.set(slotKey,rowSlot+1);
+      const row=ensureRow(view,group,rowHierarchy,rowSlot,uid,rowSuperHierarchy);
       row.repositoryWorkspace=workspace;
       const current=row.cells[column.id]&&typeof row.cells[column.id]==='object'?row.cells[column.id]:{};
       const spec={workspace,awareness,section:record.section,pageType:record.pageType,hierarchy:record.hierarchy,axis:record.axis,topicGroup:record.topicGroup};

@@ -18,6 +18,8 @@ assert.match(Columns.strategyPrompt,/Processes and use cases belong to Value/);
 assert.match(Columns.strategyPrompt,/named competitor/);
 assert.match(Columns.strategyPrompt,/first available cell/);
 assert.match(Columns.strategyPrompt,/canonical competitor list/);
+assert.match(Columns.strategyPrompt,/actual flagship category/);
+assert.match(Columns.strategyPrompt,/never copy an AI Layer product into Capital Layer/);
 assert.ok(Columns.names.category.includes('Integration pages'));
 
 const use=Matrix.data.columns.slice(0,4),rest=Matrix.data.columns.slice(4);
@@ -35,7 +37,7 @@ assert.equal(content.views.value.rows.filter(r=>r.pageGroup==='matrix'&&r.proces
 assert.equal(content.views.value.rows.find(r=>r.id==='legacy').cells.seo,seoCell);
 assert.equal(content.views.value.rows.find(r=>r.id==='legacy').cells.aeo,undefined);
 assert.ok(content.views.category.pageColumns.landing.some(c=>c.name==='Integration pages'));
-assert.match(content.views.icp.matrixAiPrompt,/audience-fit/);assert.match(content.views.value.matrixAiPrompt,/Nodal benefits/);
+assert.match(content.views.icp.matrixAiPrompt,/E-commerce Data Analytics/);assert.match(content.views.value.matrixAiPrompt,/capabilities and features/);
 assert.equal(Matrix.ensure(content,'AI Data Platform','0jgsw8bx554d'),false);
 const html=fs.readFileSync(new URL('./index.html',import.meta.url),'utf8');
 for(const marker of ['Value matrix','matrix-ai-prompt','Nodal benefits','Capabilities','isPositioningMatrix','value-process-parent','Sub-process','ai-data-icp-matrix.js'])assert.ok(html.includes(marker),marker);

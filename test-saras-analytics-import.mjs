@@ -59,6 +59,23 @@ assert.equal(repo.installMappings(root,types,{product:'AI Data Platform',uid:()=
 const afterSolution=active.rows.flatMap(row=>Object.values(row.cells||{}));
 assert.equal(afterSolution.flatMap(cell=>repo.resolve(cell.repositoryQueries||[])).filter(row=>row.awareness==='problem-aware').length,312);
 assert.equal(afterSolution.flatMap(cell=>repo.resolve(cell.repositoryQueries||[])).filter(row=>row.awareness==='solution-aware').length,12);
+const solutionRows=active.rows.filter(row=>Object.values(row.cells||{}).some(cell=>(cell.repositoryQueries||[]).some(query=>query.awareness==='solution-aware')));
+assert(solutionRows.length>0);
+assert(solutionRows.every(row=>row.repositorySuperHierarchy==='Category'&&row.repositoryHierarchy==='E-commerce Data Analytics'));
+const solutionColumnIds=new Set(solutionRows.flatMap(row=>Object.keys(row.cells||{})));
+const solutionColumns=active.pageColumns.matrix.filter(column=>solutionColumnIds.has(column.id));
+assert(solutionColumns.some(column=>column.name==='E-commerce & Retail'&&column.matrixGroup==='ind'));
+assert(solutionColumns.some(column=>column.name==='Enterprise'&&column.matrixGroup==='size'));
+assert(solutionColumns.some(column=>column.name==='Snowflake'&&column.matrixGroup==='tech'));
+assert(!solutionColumns.some(column=>/country/i.test(column.name)));
+
+const valueSolution={columns:[],rows:[]};
+assert.equal(repo.installMappings(root,types,{product:'AI Data Platform',uid:()=>`value-solution-${++n}`,awareness:'solution-aware',contentView:'value',mode:'aeo',activeView:valueSolution}),true);
+const valueSolutionRows=valueSolution.rows.filter(row=>Object.values(row.cells||{}).some(cell=>(cell.repositoryQueries||[]).some(query=>query.awareness==='solution-aware')));
+assert(valueSolutionRows.every(row=>row.repositorySuperHierarchy==='Category'&&row.repositoryHierarchy==='E-commerce Data Analytics'));
+const valueSolutionCells=valueSolutionRows.flatMap(row=>Object.values(row.cells||{}));
+assert.equal(valueSolutionCells.flatMap(cell=>repo.resolve(cell.repositoryQueries||[])).length,20);
+assert(valueSolution.pageColumns.matrix.some(column=>column.name==='Capabilities'&&column.matrixGroup==='cap'&&column.defaults.mode==='aeo'));
 assert.equal(repo.installMappings(root,types,{product:'AI Data Platform',uid:()=>`return-${++n}`,awareness:'problem-aware',contentView:'icp',mode:'seo',activeView:active}),false);
 
 const seedSource=fs.readFileSync(new URL('./saras-analytics-competitive-intelligence.js',import.meta.url),'utf8');
@@ -105,4 +122,7 @@ assert.equal(strategyRoot.views.competitor.comparisonCells[focalPair].st,'select
 const html=fs.readFileSync(new URL('./index.html',import.meta.url),'utf8');
 assert(html.includes('<script src="saras-analytics-competitive-intelligence.js"></script>'));
 assert(html.includes('await ensureSarasAnalyticsCompetitiveIntelligenceSeed();'));
+assert(html.includes("const solutionAwareRepositoryMatrix = state.keywordAwareness === 'solution-aware'"));
+assert(html.includes("query.awareness === 'solution-aware'"));
+assert(html.includes("/^capital layer$/i.test(String(state.clientProduct||'').trim())"));
 console.log('PASS: all 770 Saras Analytics sitemap URLs are scoped to AI Data Platform and every keyword cell resolves one article.');

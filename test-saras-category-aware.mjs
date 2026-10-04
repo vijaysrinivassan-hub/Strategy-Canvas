@@ -24,7 +24,7 @@ assert(!records.filter(([,meta])=>/^Category /.test(meta.section)).some(([url])=
 
 const source=fs.readFileSync(new URL('./shared-url-repository.js',import.meta.url),'utf8');
 const appSource=fs.readFileSync(new URL('./index.html',import.meta.url),'utf8');
-assert.match(appSource,/shared-url-repository\.js\?v=category-aware-hydration-v2/);
+assert.match(appSource,/shared-url-repository\.js\?v=solution-aware-category-axis-v1/);
 assert.match(appSource,/const categoryMode = state\.contentView === 'category' \? keywordMode : ''/);
 const context=vm.createContext({globalThis:{CompetitiveIntelligenceClassifications:asset},console});
 vm.runInContext(source,context);

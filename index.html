@@ -3038,7 +3038,7 @@
 <script src="ask-luca-competitive-intelligence.js"></script>
 <script src="saras-analytics-competitive-intelligence.js"></script>
 <script src="competitive-intelligence.js"></script>
-<script src="shared-url-repository.js?v=category-aware-hydration-v2"></script>
+<script src="shared-url-repository.js?v=solution-aware-category-axis-v1"></script>
 <link rel="stylesheet" href="icp-workflows.css">
 <script src="icp-workflows.js"></script>
 <link rel="stylesheet" href="icp-table.css">
@@ -7799,8 +7799,13 @@ let sharedUrlMappingPending = null;
 let sharedUrlRepositoryReadyFor = '';
 function sharedUrlBoardContext(){
   const board = state.boards.find(item => item.id === state.boardId);
-  return [state.client,state.clientProduct,board?.title].map(value=>String(value||'').trim())
-    .find(value=>window.SharedUrlRepository?.productMatches(value)) || '';
+  const candidates=[state.client,state.clientProduct,board?.title].map(value=>String(value||'').trim());
+  const matched=candidates.find(value=>window.SharedUrlRepository?.productMatches(value)) || '';
+  // Saras Analytics belongs to the AI Layer product workspace. The board
+  // title/client still says AI Data Platform while Capital Layer is active,
+  // so do not use that broader label to import the same URLs there.
+  if(window.SharedUrlRepository?.workspaceFor(matched)==='ai-data-platform' && /^capital layer$/i.test(String(state.clientProduct||'').trim()))return '';
+  return matched;
 }
 function ensureSharedUrlCellMappings(){
   const repositoryContext = sharedUrlBoardContext();
@@ -7905,9 +7910,11 @@ function renderGridTable(v, group, table){
   const sortedColumns = state.contentView === 'icp' && !isIcpMatrix && !isIcpSeoMatrix ? KeywordColumns.sortIcpColumns(v.columns) : v.columns;
   const activeIcpAxis = state.contentView === 'icp' && !isIcpMatrix && !isIcpSeoMatrix ? activeBuyingIndustryAxis() : '';
   const repositoryColumnIds = new Set(v.rows.filter(row => row.pageGroup === group.id).flatMap(row => Object.entries(row.cells || {}).filter(([,cell]) => cell?.repositoryQueries?.length).map(([id]) => id)));
-  const columns = activeIcpAxis
+  let columns = activeIcpAxis
     ? sortedColumns.filter(col => (col.axis || KeywordColumns.inferIcpAxis(col.name)) === activeIcpAxis || repositoryColumnIds.has(col.id))
     : sortedColumns;
+  const solutionAwareRepositoryMatrix = state.keywordAwareness === 'solution-aware' && isPositioningMatrix && repositoryColumnIds.size > 0;
+  if (solutionAwareRepositoryMatrix) columns = columns.filter(col => repositoryColumnIds.has(col.id));
   const NUM_W = hasRowAxis ? 310 : 46, COL_W = 310;
   const contentSlots = hasRowAxis ? 4 : 5;
   const fitsViewport = columns.length <= contentSlots;
@@ -8001,7 +8008,11 @@ function renderGridTable(v, group, table){
   table.append(thead);
 
   const tbody = document.createElement('tbody');
-  const sourceGroupRows = v.rows.filter(row => row.pageGroup === group.id);
+  let sourceGroupRows = v.rows.filter(row => row.pageGroup === group.id);
+  if (solutionAwareRepositoryMatrix){
+    sourceGroupRows = sourceGroupRows.filter(row => Object.values(row.cells || {}).some(cell =>
+      (cell?.repositoryQueries || []).some(query => query.awareness === 'solution-aware')));
+  }
   let allGroupRows = sourceGroupRows;
   if (keywordStatusFilter.size){
     const repositoryAxisKey = row => state.contentView === 'icp' ? String(row.repositorySuperHierarchy || 'General ICP') + '|' + String(row.repositoryHierarchy || repositoryAxisFallback) : String(row.repositoryHierarchy || repositoryAxisFallback);
