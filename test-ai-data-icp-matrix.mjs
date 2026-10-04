@@ -55,5 +55,7 @@ assert.equal(content.views.value.pageColumns.matrix.filter(column=>column.name==
 assert.equal(content.views.value.rows.find(row=>row.id==='imported-capability').cells['ai-value-capabilities'].v,'Imported capability');
 assert.equal(content.views.value.rows.find(row=>row.id==='imported-capability').cells[aliasId],undefined);
 const html=fs.readFileSync(new URL('./index.html',import.meta.url),'utf8');
-for(const marker of ['Value matrix','matrix-ai-prompt','Nodal benefits','Capabilities','isPositioningMatrix','value-process-parent','Sub-process','ai-data-icp-matrix.js'])assert.ok(html.includes(marker),marker);
+for(const marker of ['Value matrix','matrix-ai-prompt','Nodal benefits','Capabilities','isPositioningMatrix','value-process-parent','Sub-process','ai-data-icp-matrix.js','processTaxonomyColumnIds','processTaxonomyRows'])assert.ok(html.includes(marker),marker);
+assert.ok(html.includes("repositoryColumnIds.has(col.id) || processTaxonomyColumnIds.has(col.id)"));
+assert.ok(html.includes("['process','subprocess'].includes(row.processLevel) ||"));
 console.log('PASS: ICP audience-fit matrix retained, process/use-case cells moved to Value with nodal benefits and capabilities, old Value AEO cleared, SEO preserved, category integration added, prompts embedded.');

@@ -8020,6 +8020,9 @@ function renderGridTable(v, group, table){
   const sortedColumns = state.contentView === 'icp' && !isIcpMatrix && !isIcpSeoMatrix ? KeywordColumns.sortIcpColumns(v.columns) : v.columns;
   const activeIcpAxis = state.contentView === 'icp' && !isIcpMatrix && !isIcpSeoMatrix ? activeBuyingIndustryAxis() : '';
   const repositoryColumnIds = new Set(v.rows.filter(row => row.pageGroup === group.id).flatMap(row => Object.entries(row.cells || {}).filter(([,cell]) => cell?.repositoryQueries?.length).map(([id]) => id)));
+  const processTaxonomyRows = state.contentView === 'value' && group.id === 'matrix'
+    ? v.rows.filter(row => row.pageGroup === group.id && ['process','subprocess'].includes(row.processLevel)) : [];
+  const processTaxonomyColumnIds = new Set(processTaxonomyRows.flatMap(row => Object.keys(row.cells || {})));
   let columns = activeIcpAxis
     ? sortedColumns.filter(col => (col.axis || KeywordColumns.inferIcpAxis(col.name)) === activeIcpAxis || repositoryColumnIds.has(col.id))
     : sortedColumns;
@@ -8027,7 +8030,7 @@ function renderGridTable(v, group, table){
   const awarenessSeoMatrix = ['problem-unaware','problem-aware'].includes(state.keywordAwareness) && group.id === 'informational' && ['icp','value'].includes(state.contentView);
   if (awarenessSeoMatrix) columns = columns.filter(col => awarenessSeoHeaders.has(String(col.name || '').trim().toLowerCase()));
   const solutionAwareRepositoryMatrix = state.keywordAwareness === 'solution-aware' && isPositioningMatrix && repositoryColumnIds.size > 0;
-  if (solutionAwareRepositoryMatrix) columns = columns.filter(col => repositoryColumnIds.has(col.id));
+  if (solutionAwareRepositoryMatrix) columns = columns.filter(col => repositoryColumnIds.has(col.id) || processTaxonomyColumnIds.has(col.id));
   const NUM_W = hasRowAxis ? 310 : 46, COL_W = 310;
   const contentSlots = hasRowAxis ? 4 : 5;
   const fitsViewport = columns.length <= contentSlots;
@@ -8123,8 +8126,9 @@ function renderGridTable(v, group, table){
   const tbody = document.createElement('tbody');
   let sourceGroupRows = v.rows.filter(row => row.pageGroup === group.id);
   if (solutionAwareRepositoryMatrix){
-    sourceGroupRows = sourceGroupRows.filter(row => Object.values(row.cells || {}).some(cell =>
-      (cell?.repositoryQueries || []).some(query => query.awareness === 'solution-aware')));
+    sourceGroupRows = sourceGroupRows.filter(row => ['process','subprocess'].includes(row.processLevel) ||
+      Object.values(row.cells || {}).some(cell =>
+        (cell?.repositoryQueries || []).some(query => query.awareness === 'solution-aware')));
   }
   let allGroupRows = sourceGroupRows;
   if (keywordStatusFilter.size){
