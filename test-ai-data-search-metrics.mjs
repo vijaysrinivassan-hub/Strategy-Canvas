@@ -3,10 +3,10 @@ import fs from 'node:fs';
 import Matrix from './ai-data-icp-matrix.js';
 import Metrics from './ai-data-search-metrics.js';
 
-assert.equal(Metrics.REVISION, 'ai-data-search-suggestions-v1');
-assert.equal(Metrics.records.length, 2612);
-assert.equal(Metrics.keywordRows().length, 2612);
-assert.equal(new Set(Metrics.records.map(row => `${row.keyword.toLowerCase()}|${row.country}`)).size, 2612);
+assert.equal(Metrics.REVISION, 'ai-data-search-suggestions-v2');
+assert.equal(Metrics.records.length, 2613);
+assert.equal(Metrics.keywordRows().length, 2613);
+assert.equal(new Set(Metrics.records.map(row => `${row.keyword.toLowerCase()}|${row.country}`)).size, 2613);
 
 const bestTools = Metrics.records.find(row => row.keyword === 'best marketing analytics tools');
 assert.deepEqual(
@@ -41,11 +41,11 @@ for (const row of content.views.value.rows.filter(row => row.pageGroup === 'matr
     for (const ids of Object.values(cell.valueLensKeywords || {})) assigned.push(...ids);
   }
 }
-assert.equal(assigned.length, 2612);
-assert.equal(new Set(assigned).size, 2612);
+assert.equal(assigned.length, 2613);
+assert.equal(new Set(assigned).size, 2613);
 
 const html = fs.readFileSync(new URL('./index.html', import.meta.url), 'utf8');
-assert(html.includes('<script src="ai-data-search-metrics.js?v=search-metrics-v1"></script>'));
+assert(html.includes('<script src="ai-data-search-metrics.js?v=search-metrics-v2"></script>'));
 assert(html.includes('await ensureAiDataSearchMetricsSeed();'));
 assert(html.includes("saveKeywords(api.keywordRows(),'ai-data-search-suggestions-2026-10-04')"));
 assert(html.includes(".select('id,keyword,selected,volume,kd,cpc,traffic_potential,parent_topic,intent,country,data')"));
@@ -54,4 +54,4 @@ assert(html.includes("{ key: 'global_traffic_potential',"));
 assert(html.includes('for (let from = 0; from < toInsert.length; from += 400)'));
 assert(html.includes('for (let from = 0; from < toUpdate.length; from += 20)'));
 
-console.log('PASS: all 2,612 unique search suggestions retain the complete metric set and map once into Value AEO.');
+console.log('PASS: all 2,613 unique search suggestions retain the complete metric set and map once into Value AEO.');

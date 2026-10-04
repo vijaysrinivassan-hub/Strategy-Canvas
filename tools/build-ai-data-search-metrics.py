@@ -7,7 +7,7 @@ from collections import defaultdict
 
 CLIENT = "AI Data Platform"
 PRODUCT_ID = "0jgsw8bx554d"
-REVISION = "ai-data-search-suggestions-v1"
+REVISION = "ai-data-search-suggestions-v2"
 
 PROCESSES = [
     "Analysis", "Descriptive analysis", "Diagnostic analysis", "Cohort analysis",
@@ -88,7 +88,11 @@ def build(paths):
         with open(path, encoding="utf-8-sig", newline="") as handle:
             for row in csv.DictReader(handle):
                 row["_source"] = os.path.basename(path)
-                grouped[(normalize(row.get("Keyword")), normalize(row.get("Country") or "us"))].append(row)
+                # Match the shared keyword table's uniqueness rule exactly.
+                # Punctuation variants are distinct search suggestions.
+                keyword_key = str(row.get("Keyword") or "").strip().lower()
+                country_key = str(row.get("Country") or "us").strip().lower()
+                grouped[(keyword_key, country_key)].append(row)
 
     records = []
     for (_, _), rows in grouped.items():
@@ -135,7 +139,7 @@ def emit(records, destination):
 (function(root,factory){{const api=factory();if(typeof module==='object'&&module.exports)module.exports=api;else root.AiDataSearchMetrics=api;}})(typeof globalThis!=='undefined'?globalThis:this,function(){{
 const REVISION={json.dumps(REVISION)},CLIENT={json.dumps(CLIENT)},PRODUCT_ID={json.dumps(PRODUCT_ID)},records={payload};
 const normalize=value=>String(value||'').trim().toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
-const key=(keyword,country)=>normalize(keyword)+'|'+String(country||'us').toLowerCase();
+const key=(keyword,country)=>String(keyword||'').trim().toLowerCase()+'|'+String(country||'us').trim().toLowerCase();
 function keywordRows(){{return records.map(record=>({{keyword:record.keyword,country:record.country,volume:record.volume,kd:record.kd,cpc:record.cpc,traffic_potential:record.traffic_potential,parent_topic:record.parent_topic,intent:record.intent,data:record.data}}));}}
 function matches(client,productId){{return normalize(client)===normalize(CLIENT)&&String(productId||'')===PRODUCT_ID;}}
 function apply(root,keywordRowsFromDb){{
