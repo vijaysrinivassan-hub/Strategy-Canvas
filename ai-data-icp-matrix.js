@@ -1,7 +1,7 @@
 /* Generated from the supplied ICP matrix and Processes > Analysis matrix. */
 (function(root,factory){const api=factory();if(typeof module==='object')module.exports=api;else root.AiDataIcpMatrix=api;})(globalThis,function(){
 const data={
-  "revision": "ai-data-positioning-matrices-v6",
+  "revision": "ai-data-positioning-matrices-v7",
   "client": "AI Data Platform",
   "productId": "0jgsw8bx554d",
   "columns": [
@@ -1023,8 +1023,8 @@ const data={
 };
 const copy=value=>JSON.parse(JSON.stringify(value));
 const ICP_PROMPT='Classify only audience-fit positioning: this product is for this industry, country, company size, role/team or installed technology. In Solution Aware, build the matrix from the product’s real flagship category rather than a generic multi-industry template. Use the category or categories as the grouped vertical axis and add horizontal fit columns only when evidenced. For Saras Analytics, use E-commerce Data Analytics as the single vertical category, E-commerce as the only industry, no country, and retain only evidenced company/team-size, role/team and technology dimensions. Do not place a process, use case, benefit, capability or problem here; route those to Value. Keep named competitors in Competitor and category names/features/integrations in Category.';
-const VALUE_PROMPT='Classify what the product helps someone do or obtain. Value means the capabilities and features inside the product, the processes/use cases it performs, and the outcomes it creates. For the AI Data Platform, Solution Aware Value AEO has two stacked sections. The first section contains only the standalone Capabilities and Features columns. The second section beneath it is one fixed process-by-department matrix: the vertical axis contains only Analysis followed immediately by its specific analysis sub-processes, and the horizontal axis contains only the relevant departments. Never place Capabilities or Features beside the departments in the process matrix. Read each commercial page before routing it. Product-wide capability and feature pages belong in the first section; department-specific use-case and outcome pages belong in the best matching process/sub-process and department cell below. A listicle about software or tools for a named analysis subprocess—such as cohort-analysis software or customer-segmentation software—is Solution Aware Value AEO, not Category AEO, because the specific process is the primary intent. Category definitions, broad category buying criteria and connector/integration pages remain in Category AEO. Use one URL per cell when a suitable empty intersection exists, and never create URL-topic rows, category rows, repository rows, or any other extra process rows. These processes and sub-processes belong to Value, never ICP. Keep audience-fit dimensions in ICP, category names/features/integrations in Category, and named competitors in Competitor.';
-const ROUTING_PROMPT='Competitor: any keyword containing a named competitor, including alternatives, reviews, pricing, features, two-way comparisons and three-way comparisons. ICP: product fit by industry, country, company size, role/team or installed technology. Value: processes/use cases, features, capabilities, problems and outcomes. For AI Data Platform Value AEO, keep standalone Capabilities and Features in the first section, keep the process-by-department matrix beneath it, and never add URL-topic rows. Category: category names/synonyms, category definitions, feature pages and integration pages. Preserve SEO while reorganizing AEO.';
+const VALUE_PROMPT='Classify what the product helps someone do or obtain. For the AI Data Platform, Solution Aware Value AEO is one fixed process-by-department matrix: the vertical axis contains only Analysis followed immediately by its specific analysis sub-processes, and the horizontal axis contains only the relevant departments. Product-wide Capabilities and Features do not belong in Value AEO; route them to Product Aware > Listicle pages. Department-specific use-case and outcome pages belong in the best matching process/sub-process and department cell. A listicle about software or tools for a named analysis subprocess—such as cohort-analysis software or customer-segmentation software—is Solution Aware Value AEO, not Category Aware, because the specific process is the primary intent. Category definitions, broad category buying criteria and connector/integration pages remain in Category Aware. Use one URL per cell when a suitable empty intersection exists, and never create URL-topic rows, category rows, repository rows, or any other extra process rows. These processes and sub-processes belong to Value, never ICP. Keep audience-fit dimensions in ICP and named competitors in Competitor Aware.';
+const ROUTING_PROMPT='Competitor: any keyword containing a named competitor, including alternatives, reviews, pricing, features, two-way comparisons and three-way comparisons. ICP: product fit by industry, country, company size, role/team or installed technology. Value: department-specific processes/use cases, problems and outcomes. Product Aware: product-wide Capabilities and Features belong in its Listicle pages table; its Landing pages table also contains separate empty Capabilities and Features columns for future landing pages. For AI Data Platform Value AEO, keep only the process-by-department matrix and never add URL-topic rows. Category: category names/synonyms and category definitions. Preserve SEO while reorganizing AEO.';
 const DATA_IMPORT_PROMPT='Start every import or reclassification at the first available cell in each destination column. Never leave blank cells above or between populated URL cells; compact columns independently without losing metadata. Use one URL per cell unless the source explicitly groups equivalent URLs. The selected Positioning Canvas category is the source of truth for competitor names. Any keyword or topic containing a named competitor belongs in Competitor Aware, including alternatives, reviews, pricing, features and comparisons; never leave company names under Category. Sync Positioning Canvas competitors to the Competitor Aware matrix.';
 const benefits={
  Cohort:['Understand how groups behave over time',['cohort reporting','cohort comparison','lifecycle diagnosis']],
@@ -1052,9 +1052,13 @@ const analysisTaxonomy={name:'Analysis',description:'Core pillar process for tra
 data.analysisTaxonomy=copy(analysisTaxonomy);
 data.icpColumns=data.columns.filter(column=>column.matrixGroup!=='use');
 data.valueColumns=data.columns.filter(column=>column.matrixGroup==='use');
-data.valueOverviewColumns=[
+data.productListicleColumns=[
  {id:'ai-value-capabilities',name:'Capabilities',keywordIdeas:['analytics capabilities','platform capabilities','data capabilities'],local:true,defaults:{mode:'aeo',type:'',aw:''}},
  {id:'ai-value-nodal-benefit',name:'Features',keywordIdeas:['product features','analytics features','process features'],local:true,defaults:{mode:'aeo',type:'',aw:''}}
+];
+data.productLandingColumns=[
+ {id:'product-landing-capabilities',name:'Capabilities',keywordIdeas:['product capabilities'],local:true,defaults:{mode:'aeo',type:'',aw:''}},
+ {id:'product-landing-features',name:'Features',keywordIdeas:['product features'],local:true,defaults:{mode:'aeo',type:'',aw:''}}
 ];
 data.icpRows=data.rows.map(row=>({...copy(row),cells:row.cells.slice(4)}));
 const legacyValueRows=data.rows.map(row=>{const pair=benefits[row.name]||['Direct process benefit',['platform capability']];return {...copy(row),cells:[...row.cells.slice(0,4),
@@ -1094,26 +1098,33 @@ function migrateDuplicateColumns(rows,seed,existing){
 }
 function ensure(content,client,productId){
  if(String(client||'').trim().toLowerCase()!==data.client.toLowerCase()||String(productId||'')!==data.productId)return false;
- content.views ||= {};const icp=content.views.icp;if(!icp)return false;const value=content.views.value ||= {kind:'grid',columns:[],rows:[],pageColumns:{},pageOrders:{}};
+ content.views ||= {};const icp=content.views.icp;if(!icp)return false;const value=content.views.value ||= {kind:'grid',columns:[],rows:[],pageColumns:{},pageOrders:{}};const product=content.views.product ||= {kind:'grid',columns:[],rows:[],pageColumns:{},pageOrders:{}};
  const valueMatrixComplete=data.valueColumns.every(column=>(value.pageColumns?.matrix||[]).some(item=>item.id===column.id))&&
-  data.valueOverviewColumns.every(column=>(value.pageColumns?.['value-overview']||[]).some(item=>item.id===column.id))&&
-  data.valueRows.every(sourceRow=>(value.rows||[]).some(row=>row.pageGroup==='matrix'&&row.id===sourceRow.id));
+  data.valueRows.every(sourceRow=>(value.rows||[]).some(row=>row.pageGroup==='matrix'&&row.id===sourceRow.id))&&
+  data.productListicleColumns.every(column=>(product.pageColumns?.listicle||[]).some(item=>item.id===column.id))&&
+  data.productLandingColumns.every(column=>(product.pageColumns?.landing||[]).some(item=>String(item.name).toLowerCase()===column.name.toLowerCase()))&&
+  !(value.rows||[]).some(row=>row.pageGroup==='value-overview');
  if(icp.icpMatrixRevision===data.revision&&value.valueMatrixRevision===data.revision&&valueMatrixComplete)return false;
- content.routingInstruction=DATA_IMPORT_PROMPT+'\n\n'+ROUTING_PROMPT;icp.pageColumns ||= {};icp.pageOrders ||= {};value.pageColumns ||= {};value.pageOrders ||= {};
+ content.routingInstruction=DATA_IMPORT_PROMPT+'\n\n'+ROUTING_PROMPT;icp.pageColumns ||= {};icp.pageOrders ||= {};value.pageColumns ||= {};value.pageOrders ||= {};product.pageColumns ||= {};product.pageOrders ||= {};
  icp.icpMatrixArchive ||= [];value.valueMatrixArchive ||= [];
  const oldIcpColumns=Array.isArray(icp.pageColumns.matrix)?icp.pageColumns.matrix:[];const oldIcpRows=matrixRows(icp);
  const oldValueColumns=Array.isArray(value.pageColumns.matrix)?value.pageColumns.matrix:[];const oldValueRows=matrixRows(value);
  const oldValueOverviewColumns=Array.isArray(value.pageColumns['value-overview'])?value.pageColumns['value-overview']:[];
  const oldValueOverviewRows=(value.rows||[]).filter(row=>row.pageGroup==='value-overview');
+ const oldProductListicleColumns=Array.isArray(product.pageColumns.listicle)?product.pageColumns.listicle:[];
+ const oldProductLandingColumns=Array.isArray(product.pageColumns.landing)?product.pageColumns.landing:[];
  icp.icpMatrixArchive.push({revision:data.revision,previousRevision:icp.icpMatrixRevision||'',at:new Date().toISOString(),pageColumns:copy(oldIcpColumns),rows:copy(oldIcpRows)});
  const clearedAeo=[];
  for(const row of (value.rows||[]).filter(row=>row.pageGroup!=='matrix'&&row.pageGroup!=='value-overview'))for(const [id,cell] of Object.entries(row.cells||{})){const mode=typeof cell==='object'?cell.mode||'aeo':'aeo';if(mode!=='seo'){clearedAeo.push({rowId:row.id,columnId:id,cell:copy(cell)});delete row.cells[id];}}
  value.valueMatrixArchive.push({revision:data.revision,previousRevision:value.valueMatrixRevision||'',at:new Date().toISOString(),pageColumns:copy(oldValueColumns),overviewColumns:copy(oldValueOverviewColumns),rows:copy(oldValueRows),clearedAeo});
  migrateDuplicateColumns(oldValueRows,data.valueColumns,oldValueColumns);
- migrateDuplicateColumns(oldValueOverviewRows,data.valueOverviewColumns,oldValueOverviewColumns);
+ migrateDuplicateColumns(oldValueOverviewRows,data.productListicleColumns,oldValueOverviewColumns);
  icp.pageColumns.matrix=mergeColumns(data.icpColumns,oldIcpColumns.filter(column=>column.matrixGroup!=='use'));icp.pageOrders.matrix=icp.pageColumns.matrix.map(column=>column.id);icp.matrixAiPrompt=ICP_PROMPT;
  value.pageColumns.matrix=mergeColumns(data.valueColumns,oldValueColumns.filter(column=>column.matrixGroup==='use'));value.pageOrders.matrix=value.pageColumns.matrix.map(column=>column.id);value.matrixAiPrompt=VALUE_PROMPT;
- value.pageColumns['value-overview']=mergeColumns(data.valueOverviewColumns,oldValueOverviewColumns);value.pageOrders['value-overview']=value.pageColumns['value-overview'].map(column=>column.id);
+ product.pageColumns.listicle=mergeColumns(data.productListicleColumns,[...oldProductListicleColumns,...oldValueOverviewColumns]);product.pageOrders.listicle=product.pageColumns.listicle.map(column=>column.id);
+ product.pageColumns.landing=oldProductLandingColumns;
+ for(const column of data.productLandingColumns)if(!product.pageColumns.landing.some(item=>String(item.name).toLowerCase()===column.name.toLowerCase()))product.pageColumns.landing.push(copy(column));
+ product.pageOrders.landing=product.pageColumns.landing.map(column=>column.id);
  const oldIcpById=new Map(oldIcpRows.map(row=>[row.id,row])),oldValueById=new Map(oldValueRows.map(row=>[row.id,row]));
  const buildRows=(sourceRows,columns,targetOld,kind)=>sourceRows.map(sourceRow=>{const oldTarget=targetOld.get(sourceRow.id);const oldSource=oldIcpById.get(sourceRow.id);const row=oldTarget||{id:sourceRow.id,pageGroup:'matrix',name:sourceRow.name,description:sourceRow.description,keywordIdeas:copy(sourceRow.keywordIdeas),cells:{}};row.pageGroup='matrix';row.name=sourceRow.name;row.description=sourceRow.description;row.keywordIdeas=copy(sourceRow.keywordIdeas);row.processLevel=sourceRow.processLevel||'';row.parentProcess=sourceRow.parentProcess||'';if(row.processLevel)row.topicCell={...(row.topicCell||{}),v:sourceRow.name};row.cells ||= {};const next={};sourceRow.cells.forEach((sourceCell,index)=>{const column=columns[index];next[column.id]=row.cells[column.id]||oldSource?.cells?.[column.id]||blankCell(sourceRow,sourceCell,column,kind);});row.cells=next;return row;});
  const icpIds=new Set(data.icpRows.map(row=>row.id));
@@ -1122,7 +1133,13 @@ function ensure(content,client,productId){
  icp.rows=[...(icp.rows||[]).filter(row=>row.pageGroup!=='matrix'),...icpSeed,...oldIcpRows.filter(row=>!icpIds.has(row.id)).map(row=>({...row,cells:Object.fromEntries(Object.entries(row.cells||{}).filter(([id])=>data.icpColumns.some(column=>column.id===id)))}))];
  // Value AEO is intentionally a closed process-by-department matrix. Archive
  // prior URL/topic rows above, but do not carry them back into the live grid.
- value.rows=[...(value.rows||[]).filter(row=>row.pageGroup!=='matrix'),...valueSeed];
+ value.rows=[...(value.rows||[]).filter(row=>row.pageGroup!=='matrix'&&row.pageGroup!=='value-overview'),...valueSeed];
+ const movedOverviewRows=oldValueOverviewRows.map(row=>{row.pageGroup='listicle';row.repositoryHierarchy='Data Analysis';row.repositorySuperHierarchy='Prime category';for(const [columnId,cell] of Object.entries(row.cells||{})){if(!cell||typeof cell!=='object')continue;const axis=data.productListicleColumns.find(column=>column.id===columnId)?.name||'Capabilities';cell.repositoryQueries=(cell.repositoryQueries||[]).map(query=>({...query,awareness:'category-aware',section:'Category AEO',pageType:'Listicle',hierarchy:'Data Analysis',axis}));}return row;});
+ const existingProductRows=(product.rows||[]).filter(row=>row.pageGroup!=='listicle');
+ const existingProductListicleRows=(product.rows||[]).filter(row=>row.pageGroup==='listicle');
+ const productListicleIds=new Set(existingProductListicleRows.map(row=>row.id));
+ product.rows=[...existingProductListicleRows,...movedOverviewRows.filter(row=>!productListicleIds.has(row.id)),...existingProductRows];
+ delete value.pageColumns['value-overview'];delete value.pageOrders['value-overview'];
  const category=content.views.category;if(category){category.pageColumns ||= {};category.pageOrders ||= {};category.pageColumns.landing ||= copy(category.columns||[]);if(!category.pageColumns.landing.some(column=>/integration/i.test(column.name||'')))category.pageColumns.landing.push({id:'ai-category-integration-pages',name:'Integration pages',instruction:'Category landing pages that explain how this category connects to another product, platform or data source. Exclude generic how-to guides and named-competitor comparisons.',local:true,defaults:{mode:'aeo',type:'',aw:''}});category.pageOrders.landing=category.pageColumns.landing.map(column=>column.id);}
  icp.icpMatrixRevision=data.revision;value.valueMatrixRevision=data.revision;return true;
 }

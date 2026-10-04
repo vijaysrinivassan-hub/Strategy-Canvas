@@ -3030,9 +3030,9 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="keyword-assignments.js"></script>
-<script src="keyword-page-tables.js"></script>
-<script src="keyword-columns.js?v=maturity-category-taxonomy-v15"></script>
-<script src="ai-data-icp-matrix.js?v=value-aeo-process-routing-v5"></script>
+<script src="keyword-page-tables.js?v=product-capabilities-v2"></script>
+<script src="keyword-columns.js?v=product-capabilities-v16"></script>
+<script src="ai-data-icp-matrix.js?v=product-capabilities-v7"></script>
 <script src="keyword-columns-ui.js"></script>
 <script src="high-priority-links.js"></script>
 <script src="eor-provider-india-keywords.js"></script>
@@ -3042,7 +3042,7 @@
 <script src="ask-luca-competitive-intelligence.js"></script>
 <script src="saras-analytics-competitive-intelligence.js?v=saras-taxonomy-v2"></script>
 <script src="competitive-intelligence.js"></script>
-<script src="shared-url-repository.js?v=maturity-category-taxonomy-v12"></script>
+<script src="shared-url-repository.js?v=product-capabilities-v13"></script>
 <link rel="stylesheet" href="icp-workflows.css">
 <script src="icp-workflows.js"></script>
 <link rel="stylesheet" href="icp-table.css">
@@ -3627,15 +3627,18 @@ function keywordFilledCounts(){
     });
     result[stage.id].total = result[stage.id].icp + result[stage.id].value;
   });
+  const isProductAwareRecord = record => record.section === 'Category AEO' && (
+    (repository?.pageGroup?.(record.pageType) || '') === 'landing' ||
+    ['capabilities','features'].includes(String(record.axis || '').trim().toLowerCase())
+  );
   const productRepositoryCount = records.filter(record =>
-    record.workspace === workspace && record.awareness === 'category-aware' && record.section === 'Category AEO' &&
-    (repository?.pageGroup?.(record.pageType) || '') === 'landing'
+    record.workspace === workspace && record.awareness === 'category-aware' && isProductAwareRecord(record)
   ).length;
   const categoryRepositoryCount = records.filter(record =>
     record.workspace === workspace && record.awareness === 'category-aware' && /^Category (AEO|SEO)$/.test(record.section) &&
-    !(record.section === 'Category AEO' && (repository?.pageGroup?.(record.pageType) || '') === 'landing')
+    !isProductAwareRecord(record)
   ).length;
-  result.product.total = productRepositoryCount + keywordCountGrid(root.views?.product, 'landing', hasScopedRepository && productRepositoryCount > 0);
+  result.product.total = productRepositoryCount + keywordCountGrid(root.views?.product, '', hasScopedRepository && productRepositoryCount > 0);
   result.category.total = categoryRepositoryCount + keywordCountGrid(root.views?.category, '', hasScopedRepository && categoryRepositoryCount > 0);
   result.competitor.total = keywordCountCompetitor(root.views?.competitor) || keywordCountCompetitorRepository(records, workspace);
   return result;
@@ -6614,21 +6617,58 @@ function normalizeColumnMeta(col){
 }
 function defaultsFor(col){ return normalizeColumnMeta(col).defaults; }
 
-const PRODUCT_AWARE_MIGRATION='category-aware-landing-pages-v1';
+const PRODUCT_AWARE_MIGRATION='value-overview-to-product-aware-v2';
 function ensureProductAwarePages(root){
-  const category=root.views?.category,product=root.views?.product;
+  const category=root.views?.category,product=root.views?.product,value=root.views?.value;
   if(!category||!product||product.productAwareMigration===PRODUCT_AWARE_MIGRATION)return false;
   category.pageColumns ||= {};category.pageOrders ||= {};product.pageColumns ||= {};product.pageOrders ||= {};
+  value.pageColumns ||= {};value.pageOrders ||= {};
+  let changed=false;
   const sourceColumns=category.pageColumns.landing||category.columns||[];
-  product.pageColumns.landing=JSON.parse(JSON.stringify(sourceColumns));
-  product.pageOrders.landing=(category.pageOrders.landing||sourceColumns.map(column=>column.id)).slice();
+  if(!Array.isArray(product.pageColumns.landing)||!product.pageColumns.landing.length){
+    product.pageColumns.landing=JSON.parse(JSON.stringify(sourceColumns));
+    product.pageOrders.landing=(category.pageOrders.landing||sourceColumns.map(column=>column.id)).slice();
+    changed=true;
+  }
+  const overviewColumns=Array.isArray(value.pageColumns['value-overview'])?value.pageColumns['value-overview']:[];
+  const existingListicle=Array.isArray(product.pageColumns.listicle)?product.pageColumns.listicle:[];
+  const listicleSeeds=[
+    existingListicle.find(column=>/^capabilities$/i.test(column.name||''))||overviewColumns.find(column=>/^capabilities$/i.test(column.name||''))||{id:'product-listicle-capabilities',name:'Capabilities',local:true,defaults:{mode:'aeo',type:'',aw:''}},
+    existingListicle.find(column=>/^features$/i.test(column.name||''))||overviewColumns.find(column=>/^features$/i.test(column.name||''))||{id:'product-listicle-features',name:'Features',local:true,defaults:{mode:'aeo',type:'',aw:''}}
+  ];
+  product.pageColumns.listicle=[...listicleSeeds,...existingListicle.filter(column=>!listicleSeeds.some(seed=>String(seed.name).toLowerCase()===String(column.name).toLowerCase()))];
+  product.pageOrders.listicle=product.pageColumns.listicle.map(column=>column.id);
+  const landingSeeds=[
+    {id:'product-landing-capabilities',name:'Capabilities',local:true,defaults:{mode:'aeo',type:'',aw:''}},
+    {id:'product-landing-features',name:'Features',local:true,defaults:{mode:'aeo',type:'',aw:''}}
+  ];
+  for(const column of landingSeeds)if(!product.pageColumns.landing.some(item=>String(item.name||'').toLowerCase()===column.name.toLowerCase())){
+    product.pageColumns.landing.push(column);changed=true;
+  }
+  product.pageOrders.landing=product.pageColumns.landing.map(column=>column.id);
   const moved=(category.rows||[]).filter(row=>row.pageGroup==='landing');
   category.rows=(category.rows||[]).filter(row=>row.pageGroup!=='landing');
   const existing=(product.rows||[]).filter(row=>row.pageGroup==='landing'&&Object.values(row.cells||{}).some(keywordCountCellFilled));
   const seen=new Set(existing.map(row=>row.id));
-  product.rows=[...existing,...moved.filter(row=>!seen.has(row.id))];
+  const otherRows=(product.rows||[]).filter(row=>row.pageGroup!=='landing'&&row.pageGroup!=='listicle');
+  const existingListicleRows=(product.rows||[]).filter(row=>row.pageGroup==='listicle');
+  const valueOverviewRows=(value.rows||[]).filter(row=>row.pageGroup==='value-overview');
+  const movedListicleRows=valueOverviewRows.map(row=>{
+    row.pageGroup='listicle';row.repositoryHierarchy='Data Analysis';row.repositorySuperHierarchy='Prime category';
+    for(const [columnId,cell] of Object.entries(row.cells||{})){
+      if(!cell||typeof cell!=='object')continue;
+      const axis=listicleSeeds.find(column=>column.id===columnId)?.name||'Capabilities';
+      cell.repositoryQueries=(cell.repositoryQueries||[]).map(query=>({...query,awareness:'category-aware',section:'Category AEO',pageType:'Listicle',hierarchy:'Data Analysis',axis}));
+    }
+    return row;
+  });
+  value.rows=(value.rows||[]).filter(row=>row.pageGroup!=='value-overview');
+  delete value.pageColumns['value-overview'];delete value.pageOrders['value-overview'];
+  const listicleIds=new Set(existingListicleRows.map(row=>row.id));
+  product.rows=[...existingListicleRows,...movedListicleRows.filter(row=>!listicleIds.has(row.id)),...otherRows,...existing,...moved.filter(row=>!seen.has(row.id))];
+  if(moved.length||movedListicleRows.length)changed=true;
   product.productAwareMigration=PRODUCT_AWARE_MIGRATION;
-  return !!moved.length||!existing.length;
+  return changed;
 }
 
 function contentRoot(){
@@ -8031,7 +8071,7 @@ function renderGrid(){
   host.hidden = false; host.innerHTML = '';
   if (['icp','value'].includes(state.contentView) && keywordMode === 'aeo'){
     const groups=state.contentView==='value'
-      ? [{id:'value-overview',label:'Capabilities & Features',type:''},{id:'matrix',label:'Process matrix',type:''}]
+      ? [{id:'matrix',label:'Process matrix',type:''}]
       : [{id:'matrix',label:'ICP matrix',type:''}];
     for(const group of groups){
       const section = document.createElement('section');section.className = 'keyword-page-section keyword-page-section-'+group.id;

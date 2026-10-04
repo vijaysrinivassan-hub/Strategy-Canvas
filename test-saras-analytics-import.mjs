@@ -31,7 +31,8 @@ assert(icpAeo.every(([,meta])=>meta.icpSegment&&['Industry','Company size','Role
 assert(icpAeo.filter(([,meta])=>meta.hierarchy==='Company size').every(([,meta])=>meta.icpSegment==='Enterprise'));
 assert(icpAeo.filter(([,meta])=>meta.hierarchy==='Role / Team').every(([,meta])=>['Agencies','Data & Analytics'].includes(meta.icpSegment)));
 assert(icpAeo.filter(([,meta])=>meta.hierarchy==='Technology').every(([,meta])=>['Snowflake','Shopify','NetSuite','MySQL'].includes(meta.icpSegment)));
-assert.equal(records.filter(([,meta])=>meta.section==='Value AEO').length,17);
+assert.equal(records.filter(([,meta])=>meta.section==='Value AEO').length,12);
+assert.equal(records.filter(([,meta])=>meta.section==='Category AEO').length,219);
 assert.deepEqual(records.find(([url])=>url==='https://www.sarasanalytics.com/blog/cohort-analysis-software')?.[1],asset.classifications['https://www.sarasanalytics.com/blog/cohort-analysis-software']);
 assert.equal(asset.classifications['https://www.sarasanalytics.com/blog/cohort-analysis-software'].hierarchy,'Cohort analysis');
 assert.equal(asset.classifications['https://www.sarasanalytics.com/blog/customer-segmentation-software'].hierarchy,'Segmentation analysis');
@@ -94,14 +95,14 @@ assert(solutionColumns.some(column=>column.name==='Enterprise'&&column.matrixGro
 assert(solutionColumns.some(column=>column.name==='Snowflake'&&column.matrixGroup==='tech'));
 assert(!solutionColumns.some(column=>/country/i.test(column.name)));
 
-const valueSolutionRoot={views:{category:{columns:[],rows:[]},icp:{columns:[],rows:[]},value:{columns:[],rows:[]}}};
+const valueSolutionRoot={views:{product:{columns:[],rows:[]},category:{columns:[],rows:[]},icp:{columns:[],rows:[]},value:{columns:[],rows:[]}}};
 assert.equal(Matrix.ensure(valueSolutionRoot,'AI Data Platform','0jgsw8bx554d'),true);
 const valueSolution=valueSolutionRoot.views.value;
 assert.equal(repo.installMappings(valueSolutionRoot,types,{product:'AI Data Platform',uid:()=>`value-solution-${++n}`,awareness:'solution-aware',contentView:'value',mode:'aeo',activeView:valueSolution}),true);
 const valueSolutionRows=valueSolution.rows.filter(row=>Object.values(row.cells||{}).some(cell=>(cell.repositoryQueries||[]).some(query=>query.awareness==='solution-aware')));
 assert(valueSolutionRows.filter(row=>row.pageGroup==='matrix').every(row=>['process','subprocess'].includes(row.processLevel)));
 const valueSolutionCells=valueSolutionRows.flatMap(row=>Object.values(row.cells||{}));
-assert.equal(valueSolutionCells.flatMap(cell=>repo.resolve(cell.repositoryQueries||[])).length,17);
+assert.equal(valueSolutionCells.flatMap(cell=>repo.resolve(cell.repositoryQueries||[])).length,12);
 const cohortCell=valueSolutionCells.find(cell=>repo.resolve(cell.repositoryQueries||[]).some(record=>record.url==='https://www.sarasanalytics.com/blog/cohort-analysis-software'));
 const segmentationCell=valueSolutionCells.find(cell=>repo.resolve(cell.repositoryQueries||[]).some(record=>record.url==='https://www.sarasanalytics.com/blog/customer-segmentation-software'));
 const behaviorCell=valueSolutionCells.find(cell=>repo.resolve(cell.repositoryQueries||[]).some(record=>record.url==='https://www.sarasanalytics.com/blog/customer-behavior-analysis-tools'));
@@ -109,8 +110,15 @@ assert(behaviorCell);
 assert.equal(cohortCell?.type,'list');assert.equal(segmentationCell?.type,'list');
 assert.equal(valueSolution.rows.filter(row=>row.pageGroup==='matrix').length,15);
 assert.deepEqual(Array.from(valueSolution.pageColumns.matrix,column=>column.name),['Marketing','Product','Sales','Finance']);
-assert.deepEqual(Array.from(valueSolution.pageColumns['value-overview'],column=>column.name),['Capabilities','Features']);
-assert.equal(valueSolution.rows.filter(row=>row.pageGroup==='value-overview').flatMap(row=>Object.values(row.cells||{})).flatMap(cell=>repo.resolve(cell.repositoryQueries||[])).length,5);
+assert.equal(valueSolution.pageColumns['value-overview'],undefined);
+const productSolution=valueSolutionRoot.views.product;
+assert.equal(repo.installMappings(valueSolutionRoot,types,{product:'AI Data Platform',uid:()=>`product-solution-${++n}`,contentView:'product',mode:'aeo',activeView:productSolution}),true);
+assert.deepEqual(Array.from(productSolution.pageColumns.listicle,column=>column.name),['Capabilities','Features']);
+assert(productSolution.pageColumns.landing.some(column=>column.name==='Capabilities'));
+assert(productSolution.pageColumns.landing.some(column=>column.name==='Features'));
+const productListicleUrls=productSolution.rows.filter(row=>row.pageGroup==='listicle').flatMap(row=>Object.values(row.cells||{})).flatMap(cell=>repo.resolve(cell.repositoryQueries||[]));
+assert.equal(productListicleUrls.length,5);
+assert.equal(productSolution.rows.filter(row=>row.pageGroup==='landing').flatMap(row=>['Capabilities','Features'].flatMap(name=>{const column=productSolution.pageColumns.landing.find(item=>item.name===name);return repo.resolve(row.cells?.[column?.id]?.repositoryQueries||[]);})).length,0);
 assert.equal(repo.installMappings(root,types,{product:'AI Data Platform',uid:()=>`return-${++n}`,awareness:'problem-aware',contentView:'icp',mode:'seo',activeView:active}),false);
 
 const seedSource=fs.readFileSync(new URL('./saras-analytics-competitive-intelligence.js',import.meta.url),'utf8');

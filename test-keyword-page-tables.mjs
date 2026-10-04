@@ -23,7 +23,7 @@ v.rows.push({id:'empty',pageGroup:'informational',cells:{}});
 P.split(v,types,uid);assert.equal(v.rows.find(r=>r.id==='empty').pageGroup,'informational');
 assert.equal(P.groupFor('unknown',types),'listicle');
 assert.equal(P.groupFor('Feature page',types),'landing');
-assert.deepEqual(P.visibleGroups('product','aeo').map(group=>group.id),['landing']);
+assert.deepEqual(P.visibleGroups('product','aeo').map(group=>group.id),['listicle','landing']);
 assert.deepEqual(P.visibleGroups('icp','aeo').map(group=>group.id),[]);
 assert.deepEqual(P.visibleGroups('icp','seo').map(group=>group.id),['informational']);
 assert.deepEqual(P.visibleGroups('category','aeo').map(group=>group.id),['listicle']);

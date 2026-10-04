@@ -110,7 +110,7 @@
     return [key];
   }
   function ensureColumn(viewId,view,group,axis,mode,types){
-    const columns=columnsFor(view,group),key=normalizeName(axis),aliases=aliasesFor(viewId,axis);
+    const columns=columnsFor(view,group),key=normalizeName(axis),aliases=viewId==='product'?[key]:aliasesFor(viewId,axis);
     let column=columns.find(item=>normalizeName(item.name)===key)
       ||columns.find(item=>aliases.includes(normalizeName(item.name)));
     if(!column){
@@ -330,7 +330,7 @@
       if(record.section==='Corporate & Non-SEO')return;
       const match=/^(Category|ICP|Value) (AEO|SEO)$/.exec(record.section);if(!match)return;
       let viewId=match[1].toLowerCase();const mode=match[2].toLowerCase(),format=pageGroup(record.pageType);if(!format)return;
-      if(viewId==='category'&&mode==='aeo'&&format==='landing')viewId='product';
+      if(viewId==='category'&&mode==='aeo'&&(format==='landing'||['capabilities','features'].includes(normalizeName(record.axis))))viewId='product';
       const view=root.views[viewId];if(!view)return;
       const group=mode==='aeo'&&(viewId==='icp'||viewId==='value')?'matrix':format;
       const sourceDimension=viewId==='icp'?(mode==='aeo'?record.axis:record.hierarchy):'';
@@ -386,35 +386,24 @@
     const mode=viewId==='product'?'aeo':viewId==='category'?(options.mode||'aeo'):(awareness==='solution-aware'?'aeo':'seo');
     const section=sectionFor(viewId,mode);
     const scope=[workspace,awareness,viewId,mode].join(':');
-    const revision=(data().classifiedAt||'classification')+':'+scope+':v12';
+    const revision=(data().classifiedAt||'classification')+':'+scope+':v13';
     root.sharedUrlRepositoryRevisions ||= {};
     const view=options.activeView,uid=options.uid||(()=>Math.random().toString(36).slice(2));
     const fixedAiDataValueMatrix=workspace==='ai-data-platform'&&awareness==='solution-aware'&&viewId==='value'&&mode==='aeo';
     if(fixedAiDataValueMatrix){
       const before=JSON.stringify({rows:view.rows||[],columns:view.pageColumns?.matrix||[]});
       clearScopedMappings(view,workspace,awareness,section);
-      view.rows=(view.rows||[]).filter(row=>row.pageGroup!=='matrix'||['process','subprocess'].includes(row.processLevel));
+      view.rows=(view.rows||[]).filter(row=>row.pageGroup!=='value-overview'&&(row.pageGroup!=='matrix'||['process','subprocess'].includes(row.processLevel)));
+      if(view.pageColumns){delete view.pageColumns['value-overview'];delete view.pageOrders?.['value-overview'];}
       const taxonomyColumnIds=new Set((view.rows||[]).filter(row=>row.pageGroup==='matrix').flatMap(row=>Object.keys(row.cells||{})));
       if(Array.isArray(view.pageColumns?.matrix))view.pageColumns.matrix=view.pageColumns.matrix.filter(column=>taxonomyColumnIds.has(column.id));
       if(Array.isArray(view.pageOrders?.matrix))view.pageOrders.matrix=view.pageOrders.matrix.filter(id=>taxonomyColumnIds.has(id));
       const taxonomyRows=new Map((view.rows||[]).filter(row=>row.pageGroup==='matrix').map(row=>[normalizeName(row.name||row.topicCell?.v),row]));
       const taxonomyColumns=new Map((view.pageColumns?.matrix||[]).map(column=>[normalizeName(column.name),column]));
-      const overviewColumns=new Map((view.pageColumns?.['value-overview']||[]).map(column=>[normalizeName(column.name),column]));
-      const overviewSlots=new Map();
       let linked=0;
       records().filter(record=>record.workspace===workspace&&record.awareness===awareness&&record.section===section).forEach(record=>{
-        const overviewColumn=overviewColumns.get(normalizeName(record.axis));
-        let row,column;
-        if(overviewColumn){
-          column=overviewColumn;
-          const slot=overviewSlots.get(column.id)||0;overviewSlots.set(column.id,slot+1);
-          const rows=(view.rows||[]).filter(item=>item.pageGroup==='value-overview'&&item.repositoryWorkspace===workspace);
-          row=rows.find(item=>Number(item.repositoryRowSlot||0)===slot);
-          if(!row){row={id:uid(),pageGroup:'value-overview',repositoryWorkspace:workspace,repositoryHierarchy:'Product value',repositoryRowSlot:slot,cells:{}};view.rows.push(row);}
-        }else{
-          row=taxonomyRows.get(normalizeName(record.hierarchy));
-          column=taxonomyColumns.get(normalizeName(record.axis));
-        }
+        const row=taxonomyRows.get(normalizeName(record.hierarchy));
+        const column=taxonomyColumns.get(normalizeName(record.axis));
         if(!row||!column)return;
         row.cells ||= {};
         const current=row.cells[column.id]&&typeof row.cells[column.id]==='object'?row.cells[column.id]:{};
@@ -424,7 +413,6 @@
         row.cells[column.id]={...current,v:String(current.v||'').trim()?current.v:record.topic,url:current.url||'',mode:'aeo',type:current.type||typeId(types,pageGroup(record.pageType)||'landing'),cfg:true,repositoryQueries:queries};
         linked++;
       });
-      view.rows.sort((a,b)=>a.pageGroup==='value-overview'&&b.pageGroup!=='value-overview'?-1:b.pageGroup==='value-overview'&&a.pageGroup!=='value-overview'?1:0);
       applyRepositoryStatuses({views:{value:view}});
       root.sharedUrlRepositoryRevisions[scope]=revision;
       root.sharedUrlLinkedCount=(root.sharedUrlLinkedCount||0)+linked;
@@ -441,8 +429,9 @@
     records().filter(record=>record.workspace===workspace&&record.awareness===awareness&&record.section===section).forEach(record=>{
       if(record.section==='Corporate & Non-SEO')return;
       const format=pageGroup(record.pageType);if(!format)return;
-      if(viewId==='product'&&format!=='landing')return;
-      if(viewId==='category'&&mode==='aeo'&&format==='landing')return;
+      const productAwareListicle=['capabilities','features'].includes(normalizeName(record.axis));
+      if(viewId==='product'&&!(format==='landing'||(format==='listicle'&&productAwareListicle)))return;
+      if(viewId==='category'&&mode==='aeo'&&(format==='landing'||productAwareListicle))return;
       const group=(viewId==='product'||viewId==='category')?format:(mode==='aeo'?'matrix':'informational');
       const isAiDataSolution=workspace==='ai-data-platform'&&awareness==='solution-aware'&&mode==='aeo';
       const columnName=isAiDataSolution&&viewId==='icp'?(record.icpSegment||record.axis||'General ICP'):
@@ -476,6 +465,15 @@
         return (ai<0?SEO_TOPIC_COLUMNS.length:ai)-(bi<0?SEO_TOPIC_COLUMNS.length:bi);
       });
       view.pageOrders.informational=columns.map(column=>column.id);
+    }
+    if(viewId==='product'){
+      const listicleColumns=columnsFor(view,'listicle');
+      const listicleOrder=['capabilities','features'];
+      listicleColumns.sort((a,b)=>listicleOrder.indexOf(normalizeName(a.name))-listicleOrder.indexOf(normalizeName(b.name)));
+      view.pageOrders.listicle=listicleColumns.map(column=>column.id);
+      ensureColumn('product',view,'landing','Capabilities','aeo',types);
+      ensureColumn('product',view,'landing','Features','aeo',types);
+      view.pageOrders.landing=columnsFor(view,'landing').map(column=>column.id);
     }
     compactRepositoryCells(view,viewId);
     mappedRowsFirst(view,viewId);

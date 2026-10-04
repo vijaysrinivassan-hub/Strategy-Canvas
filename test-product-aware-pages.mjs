@@ -5,12 +5,16 @@ import assert from 'node:assert/strict';
 const html=fs.readFileSync(new URL('./index.html',import.meta.url),'utf8');
 assert(html.includes("{ id: 'product', label: 'Product Aware'"));
 assert(html.includes("['category','product','competitor'].forEach(viewId =>"));
-assert(html.includes("const PRODUCT_AWARE_MIGRATION='category-aware-landing-pages-v1'"));
+assert(html.includes("const PRODUCT_AWARE_MIGRATION='value-overview-to-product-aware-v2'"));
 assert(html.includes("const moved=(category.rows||[]).filter(row=>row.pageGroup==='landing')"));
 assert(html.includes("category.rows=(category.rows||[]).filter(row=>row.pageGroup!=='landing')"));
+assert(html.includes("const movedListicleRows=valueOverviewRows.map(row=>"));
+assert(html.includes("delete value.pageColumns['value-overview']"));
+assert(html.includes("name:'Capabilities'"));
+assert(html.includes("name:'Features'"));
 assert(html.includes("if (id === 'product') keywordMode = 'aeo'"));
 assert(html.includes("state.contentView === 'product' ||"));
-assert(html.includes("shared-url-repository.js?v=maturity-category-taxonomy-v12"));
+assert(html.includes("shared-url-repository.js?v=product-capabilities-v13"));
 assert(html.includes("categoryTaxonomy:selectedMaturityCategoryTaxonomy()"));
 
 const research=html.indexOf("{ kind: 'label',  text: 'Research' }");

@@ -30,14 +30,16 @@ aiValue.rows.push({id:'old-repository-topic',pageGroup:'matrix',repositoryWorksp
 repo.installMappings(aiRoot,types,{product:'AI Data Platform',awareness:'solution-aware',contentView:'value',mode:'aeo',activeView:aiValue,uid:()=>'ai-row-'+(++n)});
 assert.equal(aiValue.rows.filter(row=>row.pageGroup==='matrix').length,15);
 assert(aiValue.rows.filter(row=>row.pageGroup==='matrix').every(row=>['process','subprocess'].includes(row.processLevel)));
-assert.deepEqual(aiValue.pageColumns['value-overview'].map(column=>column.name),['Capabilities','Features']);
+assert.equal(aiValue.pageColumns['value-overview'],undefined);
 assert.deepEqual(aiValue.pageColumns.matrix.map(column=>column.name),['Marketing','Product','Sales','Finance']);
-assert(aiValue.rows.findIndex(row=>row.pageGroup==='value-overview')<aiValue.rows.findIndex(row=>row.pageGroup==='matrix'));
 const aiValueCells=aiValue.rows.flatMap(row=>Object.values(row.cells||{}));
-assert.equal(new Set(aiValueCells.flatMap(cell=>repo.resolve(cell.repositoryQueries||[])).map(record=>record.url)).size,17);
+assert.equal(new Set(aiValueCells.flatMap(cell=>repo.resolve(cell.repositoryQueries||[])).map(record=>record.url)).size,12);
 assert(aiValueCells.filter(cell=>cell.repositoryQueries?.length).every(cell=>cell.st==='for_review'));
-const overviewUrls=aiValue.rows.filter(row=>row.pageGroup==='value-overview').flatMap(row=>Object.values(row.cells||{})).flatMap(cell=>repo.resolve(cell.repositoryQueries||[]));
-assert.equal(new Set(overviewUrls.map(record=>record.url)).size,5);
+const aiProduct=aiRoot.views.product;
+repo.installMappings(aiRoot,types,{product:'AI Data Platform',awareness:'category-aware',contentView:'product',mode:'aeo',activeView:aiProduct,uid:()=>'ai-product-'+(++n)});
+assert.deepEqual(aiProduct.pageColumns.listicle.map(column=>column.name),['Capabilities','Features']);
+const productListicleUrls=aiProduct.rows.filter(row=>row.pageGroup==='listicle').flatMap(row=>Object.values(row.cells||{})).flatMap(cell=>repo.resolve(cell.repositoryQueries||[]));
+assert.equal(new Set(productListicleUrls.map(record=>record.url)).size,5);
 
 const categoryTaxonomy={primary:['Technical SEO / AEO'],supporting:['Content','Digital PR / Authority','Analytics & Reporting']};
 assert.equal(repo.installMappings(root,types,{product:'Answer Engine Optimization Agency',uid:()=>'row-'+(++n),categoryTaxonomy}),true);

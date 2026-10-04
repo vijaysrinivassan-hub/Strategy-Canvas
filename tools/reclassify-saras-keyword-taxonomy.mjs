@@ -53,24 +53,26 @@ const ownValueListicle={
   '/blog/customer-segmentation-software':['Segmentation analysis','Marketing'],
   '/blog/customer-behavior-analysis-tools':['Segmentation analysis','Marketing']
 };
+const productAwareListicle={
+  '/lp/what-is-saras-iq':'Features',
+  '/lp/saras-iq-demo':'Features',
+  '/saras-iq/pricing':'Features',
+  '/lp/saras-iq-essentials':'Capabilities',
+  '/saras-iq':'Capabilities'
+};
 const valueSeoRoutes={
   '/glossary/pricing-strategy':['problem-unaware','General Value','Explainers'],
   '/blog/how-returns-distort-contribution-margin-pricing':['problem-aware','Revenue & Profitability','Explainers']
 };
 const ownValueLanding={
   '/saras-daton/pricing':['Revenue and profitability analysis','Sales'],
-  '/lp/what-is-saras-iq':['Analysis','Features'],
-  '/lp/saras-iq-demo':['Product and SKU performance analysis','Features'],
   '/lp/ltv-audit':['Customer lifetime-value analysis','Marketing'],
-  '/saras-iq/pricing':['Revenue and profitability analysis','Features'],
-  '/lp/saras-iq-essentials':['Analysis','Capabilities'],
   '/lp/q4-plan':['Comparative analysis','Finance'],
   '/lp/saras-iq-24-questions':['Diagnostic analysis','Finance'],
   '/saras-iq/customer-analytics':['Cohort analysis','Marketing'],
   '/saras-iq/contribution-margin':['Revenue and profitability analysis','Finance'],
   '/saras-iq/sales-and-marketing-analytics':['Marketing-performance analysis','Marketing'],
   '/saras-iq/inventory-product-planning':['Product and SKU performance analysis','Product'],
-  '/saras-iq':['Descriptive analysis','Capabilities'],
   '/ai-ready-data-foundation':['Analysis','Product']
 };
 const competitorFromPath=pathname=>{
@@ -106,6 +108,8 @@ for(const raw of profile.urls){
   }else if(ownValueListicle[pathname]){
     const [hierarchy,axis]=ownValueListicle[pathname];
     apply(meta,{awareness:'solution-aware',section:'Value AEO',pageType:'Listicle',hierarchy,axis});delete meta.icpSegment;
+  }else if(productAwareListicle[pathname]){
+    apply(meta,{awareness:'category-aware',section:'Category AEO',pageType:'Listicle',hierarchy:'Data Analysis',axis:productAwareListicle[pathname]});delete meta.icpSegment;
   }else if(categoryRoutes[pathname]){
     const [section,pageType,hierarchy,axis]=categoryRoutes[pathname];
     apply(meta,{awareness:'category-aware',section,pageType,hierarchy,axis});delete meta.icpSegment;
