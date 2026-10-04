@@ -3029,7 +3029,7 @@
 <script src="keyword-assignments.js"></script>
 <script src="keyword-page-tables.js"></script>
 <script src="keyword-columns.js"></script>
-<script src="ai-data-icp-matrix.js?v=value-aeo-urls-v3"></script>
+<script src="ai-data-icp-matrix.js?v=value-aeo-stacked-v4"></script>
 <script src="keyword-columns-ui.js"></script>
 <script src="high-priority-links.js"></script>
 <script src="eor-provider-india-keywords.js"></script>
@@ -3039,7 +3039,7 @@
 <script src="ask-luca-competitive-intelligence.js"></script>
 <script src="saras-analytics-competitive-intelligence.js?v=saras-taxonomy-v2"></script>
 <script src="competitive-intelligence.js"></script>
-<script src="shared-url-repository.js?v=value-aeo-urls-v3"></script>
+<script src="shared-url-repository.js?v=value-aeo-stacked-v4"></script>
 <link rel="stylesheet" href="icp-workflows.css">
 <script src="icp-workflows.js"></script>
 <link rel="stylesheet" href="icp-table.css">
@@ -7955,16 +7955,24 @@ function renderGrid(){
   }
   host.hidden = false; host.innerHTML = '';
   if (['icp','value'].includes(state.contentView) && keywordMode === 'aeo'){
-    const group = {id:'matrix', label:state.contentView === 'icp' ? 'ICP matrix' : 'Value matrix', type:''};
-    const section = document.createElement('section');section.className = 'keyword-page-section';
-    const title = document.createElement('h3');title.textContent = group.label;
-    const prompt = document.createElement('details');prompt.className='matrix-ai-prompt';
-    const summary=document.createElement('summary');summary.textContent='AI prompt';
-    const editor=document.createElement('textarea');editor.value=v.matrixAiPrompt||'';editor.disabled=readOnly();editor.placeholder='Instructions for an AI classifying this matrix…';
-    editor.oninput=function(){matrixState().matrixAiPrompt=editor.value;markDirty();};prompt.append(summary,editor);
-    const table = document.createElement('table');table.className = 'mx-table';
-    section.append(title, prompt, table);host.append(section);
-    renderGridTable(KeywordColumns.pageView(v, group.id), group, table);return;
+    const groups=state.contentView==='value'
+      ? [{id:'value-overview',label:'Capabilities & Features',type:''},{id:'matrix',label:'Process matrix',type:''}]
+      : [{id:'matrix',label:'ICP matrix',type:''}];
+    for(const group of groups){
+      const section = document.createElement('section');section.className = 'keyword-page-section keyword-page-section-'+group.id;
+      const title = document.createElement('h3');title.textContent = group.label;
+      const table = document.createElement('table');table.className = 'mx-table';
+      section.append(title);
+      if(group.id==='matrix'){
+        const prompt = document.createElement('details');prompt.className='matrix-ai-prompt';
+        const summary=document.createElement('summary');summary.textContent='AI prompt';
+        const editor=document.createElement('textarea');editor.value=v.matrixAiPrompt||'';editor.disabled=readOnly();editor.placeholder='Instructions for an AI classifying this matrix…';
+        editor.oninput=function(){matrixState().matrixAiPrompt=editor.value;markDirty();};prompt.append(summary,editor);section.append(prompt);
+      }
+      section.append(table);host.append(section);
+      renderGridTable(KeywordColumns.pageView(v, group.id), group, table);
+    }
+    return;
   }
   for (const group of KeywordPageTables.visibleGroups(state.contentView, keywordMode)){
     const section = document.createElement('section');
@@ -8012,6 +8020,7 @@ function renderGridTable(v, group, table){
   $('btnAddType').hidden = ro;
 
   const isPositioningMatrix = ['icp','value'].includes(state.contentView) && group.id === 'matrix';
+  const isValueOverview = state.contentView === 'value' && group.id === 'value-overview';
   const isIcpMatrix = state.contentView === 'icp' && isPositioningMatrix;
   const isIcpSeoMatrix = (state.contentView === 'icp' && keywordMode === 'seo' && group.id === 'informational') || state.contentView === 'category';
   const isValueSeoMatrix = state.contentView === 'value' && keywordMode === 'seo' && group.id === 'informational';
@@ -8033,7 +8042,7 @@ function renderGridTable(v, group, table){
   const solutionAwareRepositoryMatrix = state.keywordAwareness === 'solution-aware' && isPositioningMatrix && repositoryColumnIds.size > 0;
   if (solutionAwareRepositoryMatrix) columns = columns.filter(col => repositoryColumnIds.has(col.id) || processTaxonomyColumnIds.has(col.id));
   const NUM_W = hasRowAxis ? 310 : 46, COL_W = 310;
-  const contentSlots = hasRowAxis ? 4 : 5;
+  const contentSlots = isValueOverview ? 2 : hasRowAxis ? 4 : 5;
   const fitsViewport = columns.length <= contentSlots;
   const spacerCount = fitsViewport ? contentSlots - columns.length : 0;
   const gridWidth = NUM_W + COL_W * columns.length;

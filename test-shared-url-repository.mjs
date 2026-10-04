@@ -30,10 +30,14 @@ aiValue.rows.push({id:'old-repository-topic',pageGroup:'matrix',repositoryWorksp
 repo.installMappings(aiRoot,types,{product:'AI Data Platform',awareness:'solution-aware',contentView:'value',mode:'aeo',activeView:aiValue,uid:()=>'ai-row-'+(++n)});
 assert.equal(aiValue.rows.filter(row=>row.pageGroup==='matrix').length,15);
 assert(aiValue.rows.filter(row=>row.pageGroup==='matrix').every(row=>['process','subprocess'].includes(row.processLevel)));
-assert.deepEqual(aiValue.pageColumns.matrix.map(column=>column.name),['Marketing','Product','Sales','Finance','Features','Capabilities']);
+assert.deepEqual(aiValue.pageColumns['value-overview'].map(column=>column.name),['Capabilities','Features']);
+assert.deepEqual(aiValue.pageColumns.matrix.map(column=>column.name),['Marketing','Product','Sales','Finance']);
+assert(aiValue.rows.findIndex(row=>row.pageGroup==='value-overview')<aiValue.rows.findIndex(row=>row.pageGroup==='matrix'));
 const aiValueCells=aiValue.rows.flatMap(row=>Object.values(row.cells||{}));
 assert.equal(new Set(aiValueCells.flatMap(cell=>repo.resolve(cell.repositoryQueries||[])).map(record=>record.url)).size,14);
 assert(aiValueCells.filter(cell=>cell.repositoryQueries?.length).every(cell=>cell.st==='for_review'));
+const overviewUrls=aiValue.rows.filter(row=>row.pageGroup==='value-overview').flatMap(row=>Object.values(row.cells||{})).flatMap(cell=>repo.resolve(cell.repositoryQueries||[]));
+assert.equal(new Set(overviewUrls.map(record=>record.url)).size,5);
 
 assert.equal(repo.installMappings(root,types,{product:'Answer Engine Optimization Agency',uid:()=>'row-'+(++n)}),true);
 assert.equal(repo.installMappings(root,types,{product:'Answer Engine Optimization Agency',uid:()=>'row-'+(++n)}),false);

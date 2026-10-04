@@ -95,11 +95,13 @@ assert.equal(Matrix.ensure(valueSolutionRoot,'AI Data Platform','0jgsw8bx554d'),
 const valueSolution=valueSolutionRoot.views.value;
 assert.equal(repo.installMappings(valueSolutionRoot,types,{product:'AI Data Platform',uid:()=>`value-solution-${++n}`,awareness:'solution-aware',contentView:'value',mode:'aeo',activeView:valueSolution}),true);
 const valueSolutionRows=valueSolution.rows.filter(row=>Object.values(row.cells||{}).some(cell=>(cell.repositoryQueries||[]).some(query=>query.awareness==='solution-aware')));
-assert(valueSolutionRows.every(row=>['process','subprocess'].includes(row.processLevel)));
+assert(valueSolutionRows.filter(row=>row.pageGroup==='matrix').every(row=>['process','subprocess'].includes(row.processLevel)));
 const valueSolutionCells=valueSolutionRows.flatMap(row=>Object.values(row.cells||{}));
 assert.equal(valueSolutionCells.flatMap(cell=>repo.resolve(cell.repositoryQueries||[])).length,14);
 assert.equal(valueSolution.rows.filter(row=>row.pageGroup==='matrix').length,15);
-assert(valueSolution.pageColumns.matrix.some(column=>column.name==='Capabilities'&&column.matrixGroup==='cap'&&column.defaults.mode==='aeo'));
+assert.deepEqual(Array.from(valueSolution.pageColumns.matrix,column=>column.name),['Marketing','Product','Sales','Finance']);
+assert.deepEqual(Array.from(valueSolution.pageColumns['value-overview'],column=>column.name),['Capabilities','Features']);
+assert.equal(valueSolution.rows.filter(row=>row.pageGroup==='value-overview').flatMap(row=>Object.values(row.cells||{})).flatMap(cell=>repo.resolve(cell.repositoryQueries||[])).length,5);
 assert.equal(repo.installMappings(root,types,{product:'AI Data Platform',uid:()=>`return-${++n}`,awareness:'problem-aware',contentView:'icp',mode:'seo',activeView:active}),false);
 
 const seedSource=fs.readFileSync(new URL('./saras-analytics-competitive-intelligence.js',import.meta.url),'utf8');

@@ -22,7 +22,7 @@
     let changed=false;
     const rows=[];
     for(const row of view.rows){
-      if(row.pageGroup==='matrix'){rows.push(row);continue;}
+      if(row.pageGroup==='matrix'||row.pageGroup==='value-overview'){rows.push(row);continue;}
       const fallback=groups.some(g=>g.id===row.pageGroup)?row.pageGroup:'listicle';
       const buckets=new Map();
       for(const [column,cell] of Object.entries(row.cells || {})){

@@ -3,14 +3,15 @@ import fs from 'node:fs';
 import Matrix from './ai-data-icp-matrix.js';
 import Columns from './keyword-columns.js';
 
-assert.equal(Matrix.data.revision,'ai-data-positioning-matrices-v5');
+assert.equal(Matrix.data.revision,'ai-data-positioning-matrices-v6');
 assert.equal(Matrix.data.icpColumns.length,12);
 assert.deepEqual([...new Set(Matrix.data.icpColumns.map(c=>c.matrixGroup))],['ind','ctry','tech']);
-assert.equal(Matrix.data.valueColumns.length,6);
-assert.deepEqual(Matrix.data.valueColumns.map(c=>c.matrixGroup),['use','use','use','use','benefit','cap']);
-assert.deepEqual(Matrix.data.valueColumns.map(c=>c.name),['Marketing','Product','Sales','Finance','Features','Capabilities']);
+assert.equal(Matrix.data.valueColumns.length,4);
+assert.deepEqual(Matrix.data.valueColumns.map(c=>c.matrixGroup),['use','use','use','use']);
+assert.deepEqual(Matrix.data.valueColumns.map(c=>c.name),['Marketing','Product','Sales','Finance']);
+assert.deepEqual(Matrix.data.valueOverviewColumns.map(c=>c.name),['Capabilities','Features']);
 assert.equal(Matrix.data.icpRows.length,5);assert.equal(Matrix.data.valueRows.length,15);
-assert.equal(Matrix.data.icpRows.flatMap(r=>r.cells).length,60);assert.equal(Matrix.data.valueRows.flatMap(r=>r.cells).length,90);
+assert.equal(Matrix.data.icpRows.flatMap(r=>r.cells).length,60);assert.equal(Matrix.data.valueRows.flatMap(r=>r.cells).length,60);
 assert.equal(Matrix.data.valueRows[0].name,'Analysis');
 assert.equal(Matrix.data.valueRows[0].processLevel,'process');
 assert.deepEqual(Matrix.data.valueRows.slice(1).map(r=>r.name),Matrix.data.analysisTaxonomy.subProcesses.map(r=>r.name));
@@ -30,7 +31,8 @@ const seoCell={v:'Preserve SEO',mode:'seo',cfg:true};const aeoCell={v:'Clear old
 const content={views:{icp:{kind:'grid',columns:[],pageColumns:{matrix:structuredClone(Matrix.data.columns)},pageOrders:{},rows:icpRows},value:{kind:'grid',columns:[],pageColumns:{informational:[{id:'guide'}]},pageOrders:{},rows:[{id:'legacy',pageGroup:'informational',cells:{seo:seoCell,aeo:aeoCell}},{id:'url-topic-row',pageGroup:'matrix',name:'Choose the right plan for you',cells:{repository:{v:'Choose the right plan for you',repositoryQueries:[{}]}}}]},category:{kind:'grid',columns:[],pageColumns:{landing:[]},pageOrders:{},rows:[]}}};
 assert.equal(Matrix.ensure(content,'AI Data Platform','0jgsw8bx554d'),true);
 assert.equal(content.views.icp.pageColumns.matrix.length,12);
-assert.equal(content.views.value.pageColumns.matrix.length,6);
+assert.equal(content.views.value.pageColumns.matrix.length,4);
+assert.deepEqual(content.views.value.pageColumns['value-overview'].map(column=>column.name),['Capabilities','Features']);
 assert.equal(content.views.icp.rows.find(r=>r.id===Matrix.data.rows[0].id).cells[rest[0].id].v,'Preserved ICP edit');
 assert.equal(content.views.value.rows.find(r=>r.id===Matrix.data.rows[0].id).cells[use[0].id].v,'Preserved moved use case');
 assert.equal(content.views.value.rows.find(r=>r.id==='ai-value-process-analysis').name,'Analysis');
@@ -44,22 +46,22 @@ assert.match(content.views.icp.matrixAiPrompt,/E-commerce Data Analytics/);asser
 assert.equal(Matrix.ensure(content,'AI Data Platform','0jgsw8bx554d'),false);
 // Repair a previously seeded board whose saved Value AEO column projection
 // was later reduced to one visible column while its subprocess cells survived.
-content.views.value.pageColumns.matrix=content.views.value.pageColumns.matrix.filter(column=>column.id==='ai-value-capabilities');
+content.views.value.pageColumns.matrix=content.views.value.pageColumns.matrix.slice(0,1);
 assert.equal(Matrix.ensure(content,'AI Data Platform','0jgsw8bx554d'),true);
-assert.deepEqual(content.views.value.pageColumns.matrix.slice(0,6).map(column=>column.id),Matrix.data.valueColumns.map(column=>column.id));
+assert.deepEqual(content.views.value.pageColumns.matrix.slice(0,4).map(column=>column.id),Matrix.data.valueColumns.map(column=>column.id));
 assert.equal(Matrix.ensure(content,'AI Data Platform','0jgsw8bx554d'),false);
 // A repository-created alias must be folded into the canonical Capabilities
 // column so repair does not expose a duplicate or strand imported URLs.
-const aliasId='shared-url-col-value-matrix-capabilities';
-content.views.value.pageColumns.matrix=[{id:aliasId,name:'Capabilities',matrixGroup:'cap'}];
-const analysisRow=content.views.value.rows.find(row=>row.id==='ai-value-process-analysis');
-analysisRow.cells[aliasId]={v:'Imported capability',repositoryQueries:[{topicGroup:'one'}]};
+const aliasId='shared-url-col-value-overview-capabilities';
+content.views.value.pageColumns['value-overview']=[{id:aliasId,name:'Capabilities'}];
+const overviewRow={id:'overview-alias-row',pageGroup:'value-overview',cells:{[aliasId]:{v:'Imported capability',repositoryQueries:[{topicGroup:'one'}]}}};
+content.views.value.rows.unshift(overviewRow);
 assert.equal(Matrix.ensure(content,'AI Data Platform','0jgsw8bx554d'),true);
-assert.equal(content.views.value.pageColumns.matrix.filter(column=>column.name==='Capabilities').length,1);
-assert.equal(content.views.value.rows.find(row=>row.id==='ai-value-process-analysis').cells['ai-value-capabilities'].v,'Imported capability');
-assert.equal(content.views.value.rows.find(row=>row.id==='ai-value-process-analysis').cells[aliasId],undefined);
+assert.equal(content.views.value.pageColumns['value-overview'].filter(column=>column.name==='Capabilities').length,1);
+assert.equal(overviewRow.cells['ai-value-capabilities'].v,'Imported capability');
+assert.equal(overviewRow.cells[aliasId],undefined);
 const html=fs.readFileSync(new URL('./index.html',import.meta.url),'utf8');
-for(const marker of ['Value matrix','matrix-ai-prompt','Departments','Features','Capabilities','isPositioningMatrix','value-process-parent','Sub-process','ai-data-icp-matrix.js','processTaxonomyColumnIds','processTaxonomyRows'])assert.ok(html.includes(marker),marker);
+for(const marker of ['Process matrix','Capabilities & Features','value-overview','matrix-ai-prompt','Departments','Features','Capabilities','isPositioningMatrix','value-process-parent','Sub-process','ai-data-icp-matrix.js','processTaxonomyColumnIds','processTaxonomyRows'])assert.ok(html.includes(marker),marker);
 assert.ok(html.includes("repositoryColumnIds.has(col.id) || processTaxonomyColumnIds.has(col.id)"));
 assert.ok(html.includes("['process','subprocess'].includes(row.processLevel) ||"));
-console.log('PASS: ICP audience-fit matrix retained, Value AEO reduced to process/sub-process rows across departments, Features and Capabilities, SEO preserved, category integration added, prompts embedded.');
+console.log('PASS: ICP audience-fit matrix retained, standalone Value AEO Capabilities/Features section stacked above the process-by-department matrix, SEO preserved, category integration added, prompts embedded.');

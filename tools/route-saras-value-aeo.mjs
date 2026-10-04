@@ -46,7 +46,7 @@ if(fs.existsSync(auditTarget)){
   const ai=Object.entries(source.classifications).filter(([,meta])=>meta.workspace==='ai-data-platform');
   audit.revision='saras-keyword-taxonomy-v2';
   audit.counts=Object.fromEntries(Object.entries(Object.groupBy(ai,([,meta])=>meta.section)).map(([key,items])=>[key,items.length]));
-  audit.rules.valueAeo='Read every commercial page. Route product-specific capabilities, features, use cases and outcomes into the existing process-by-department Value AEO matrix; keep category definitions and integrations in Category AEO.';
+  audit.rules.valueAeo='Read every commercial page. Route standalone product capabilities and features into the first two-column Value AEO section. Route department-specific use cases and outcomes into the process-by-department matrix beneath it; keep category definitions and integrations in Category AEO.';
   fs.writeFileSync(auditTarget,JSON.stringify(audit,null,2)+'\n');
 }
 

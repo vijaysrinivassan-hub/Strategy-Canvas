@@ -372,7 +372,7 @@
     const mode=viewId==='category'?(options.mode||'aeo'):(awareness==='solution-aware'?'aeo':'seo');
     const section=sectionFor(viewId,mode);
     const scope=[workspace,awareness,viewId,mode].join(':');
-    const revision=(data().classifiedAt||'classification')+':'+scope+':v9';
+    const revision=(data().classifiedAt||'classification')+':'+scope+':v10';
     root.sharedUrlRepositoryRevisions ||= {};
     const view=options.activeView,uid=options.uid||(()=>Math.random().toString(36).slice(2));
     const fixedAiDataValueMatrix=workspace==='ai-data-platform'&&awareness==='solution-aware'&&viewId==='value'&&mode==='aeo';
@@ -385,10 +385,22 @@
       if(Array.isArray(view.pageOrders?.matrix))view.pageOrders.matrix=view.pageOrders.matrix.filter(id=>taxonomyColumnIds.has(id));
       const taxonomyRows=new Map((view.rows||[]).filter(row=>row.pageGroup==='matrix').map(row=>[normalizeName(row.name||row.topicCell?.v),row]));
       const taxonomyColumns=new Map((view.pageColumns?.matrix||[]).map(column=>[normalizeName(column.name),column]));
+      const overviewColumns=new Map((view.pageColumns?.['value-overview']||[]).map(column=>[normalizeName(column.name),column]));
+      const overviewSlots=new Map();
       let linked=0;
       records().filter(record=>record.workspace===workspace&&record.awareness===awareness&&record.section===section).forEach(record=>{
-        const row=taxonomyRows.get(normalizeName(record.hierarchy));
-        const column=taxonomyColumns.get(normalizeName(record.axis));
+        const overviewColumn=overviewColumns.get(normalizeName(record.axis));
+        let row,column;
+        if(overviewColumn){
+          column=overviewColumn;
+          const slot=overviewSlots.get(column.id)||0;overviewSlots.set(column.id,slot+1);
+          const rows=(view.rows||[]).filter(item=>item.pageGroup==='value-overview'&&item.repositoryWorkspace===workspace);
+          row=rows.find(item=>Number(item.repositoryRowSlot||0)===slot);
+          if(!row){row={id:uid(),pageGroup:'value-overview',repositoryWorkspace:workspace,repositoryHierarchy:'Product value',repositoryRowSlot:slot,cells:{}};view.rows.push(row);}
+        }else{
+          row=taxonomyRows.get(normalizeName(record.hierarchy));
+          column=taxonomyColumns.get(normalizeName(record.axis));
+        }
         if(!row||!column)return;
         row.cells ||= {};
         const current=row.cells[column.id]&&typeof row.cells[column.id]==='object'?row.cells[column.id]:{};
@@ -398,6 +410,7 @@
         row.cells[column.id]={...current,v:String(current.v||'').trim()?current.v:record.topic,url:current.url||'',mode:'aeo',type:current.type||typeId(types,'landing'),cfg:true,repositoryQueries:queries};
         linked++;
       });
+      view.rows.sort((a,b)=>a.pageGroup==='value-overview'&&b.pageGroup!=='value-overview'?-1:b.pageGroup==='value-overview'&&a.pageGroup!=='value-overview'?1:0);
       applyRepositoryStatuses({views:{value:view}});
       root.sharedUrlRepositoryRevisions[scope]=revision;
       root.sharedUrlLinkedCount=(root.sharedUrlLinkedCount||0)+linked;

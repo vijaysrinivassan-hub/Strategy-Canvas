@@ -55,7 +55,7 @@ assert.ok(!html.includes("status-filtered-out"));
 assert.ok(html.includes("details.contains(event.target)"));
 assert.ok(html.includes("document.addEventListener('pointerdown'"));
 assert.ok(html.includes('const contentSlots = 4'));
-assert.ok(html.includes('const contentSlots = hasRowAxis ? 4 : 5'));
+assert.ok(html.includes('const contentSlots = isValueOverview ? 2 : hasRowAxis ? 4 : 5'));
 assert.ok(html.includes('contentSlots - columns.length'));
 assert.ok(html.includes("className='keyword-grid-spacer'"));
 assert.ok(html.includes("fitsViewport ? '100%' : gridWidth + 'px'"));
