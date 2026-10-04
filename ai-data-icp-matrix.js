@@ -1,7 +1,7 @@
 /* Generated from the supplied ICP matrix and Processes > Analysis matrix. */
 (function(root,factory){const api=factory();if(typeof module==='object')module.exports=api;else root.AiDataIcpMatrix=api;})(globalThis,function(){
 const data={
-  "revision": "ai-data-positioning-matrices-v14",
+  "revision": "ai-data-positioning-matrices-v15",
   "client": "AI Data Platform",
   "productId": "0jgsw8bx554d",
   "columns": [
@@ -1022,7 +1022,7 @@ const data={
   ]
 };
 const copy=value=>JSON.parse(JSON.stringify(value));
-const ICP_PROMPT='Classify only audience-fit positioning: this product is for this industry, country, company size, role/team or installed technology. In Solution Aware, build the matrix from the product’s real flagship category rather than a generic multi-industry template. Use the category or categories as the grouped vertical axis and add horizontal fit columns only when evidenced. For Saras Analytics, use E-commerce Data Analytics as the single vertical category, E-commerce as the only industry, no country, and retain only evidenced company/team-size, role/team and technology dimensions. Do not place a process, use case, benefit, capability or problem here; route those to Value. Keep named competitors in Competitor and category names/features/integrations in Category.';
+const ICP_PROMPT='Classify only audience-fit positioning: this product is for this industry, country, company size, role/team or installed technology. In Solution Aware, build the matrix from the product’s real flagship category rather than a generic multi-industry template. Use the category or categories as the grouped vertical axis and add horizontal fit columns only when evidenced. For Saras Analytics, keep E-commerce, Agencies, and Amazon under Industry Pages; keep SMB and Enterprise under Company Size; use no country dimension; and retain only evidenced technology dimensions. Never create a generic Data Analytics ICP column: route a named product or AI analyst landing page to Product Aware. Do not place a process, use case, benefit, capability or problem here; route those to Value. Keep named competitors in Competitor and category names/features/integrations in Category.';
 const VALUE_PROMPT='Classify what the product helps someone do or obtain. For the AI Data Platform, Solution Aware Value AEO is one fixed process-by-department matrix: the vertical axis contains only Analysis followed immediately by its specific analysis sub-processes, and the horizontal axis contains only the relevant departments. Every vertical header, horizontal header, and process-by-department intersection owns five independent keyword sets: Process describes the activity; Output describes the concrete deliverable; Outcome describes the result created by that output; Benefits describes the user or business benefit; Tools describes software/platform searches. Vertical headers use process-only terms, horizontal headers use department-only terms, and only intersections combine the two axes. Never reuse one shared header keyword list across the five toggles or seed two headers from the same first intersection. Maintain roughly five useful keywords, synonyms, and close search variants at every header and intersection for every lens. Preserve all imported suggestions and metrics in the Keyword Repo, but automatically place only high-confidence business-analytics searches in this matrix. Exclude jobs, salaries, education, events, stocks/tickers, generic AI phrases, media/image segmentation and context-free year searches. Keywords may coexist with a URL. Classify each URL into exactly one best-fit lens and never repeat the same URL across Process, Output, Outcome, Benefits, and Tools; prefer Tools for software/tool intent, Output for reports/dashboards/templates, Benefits for explicit value, Outcome for results, and Process otherwise. Product-wide capability or feature listicles do not belong in Value AEO; route them to Product Aware > Listicle pages. Named-product and feature landing pages belong in Product Aware > Landing pages. Department-specific use-case and outcome pages belong in the best matching process/sub-process and department cell. A listicle about software or tools for a named analysis subprocess—such as cohort-analysis software or customer-segmentation software—is Solution Aware Value AEO, not Category Aware, because the specific process is the primary intent. Category definitions, broad category buying criteria and connector/integration pages remain in Category Aware. Use one URL per cell when a suitable empty intersection exists, and never create URL-topic rows, category rows, repository rows, or any other extra process rows. Preserve every metric supplied with imported keyword research—including volume, KD, CPC, CPS, traffic potential, global metrics, SERP features, dates, trends, language, category, and source provenance—on the shared keyword record. These processes and sub-processes belong to Value, never ICP. Keep audience-fit dimensions in ICP and named competitors in Competitor Aware.';
 const ROUTING_PROMPT='Competitor: any keyword containing a named competitor, including alternatives, reviews, pricing, features, two-way comparisons and three-way comparisons. ICP: product fit by industry, country, company size, role/team or installed technology. Value: department-specific processes/use cases, problems and outcomes. Product Aware: capability and feature listicles belong in its Listicle pages table; named-product and feature landing pages belong in the corresponding Landing pages columns. A demo-request page or product-specific pricing page is Corporate & Non-SEO. For AI Data Platform Value AEO, keep only the process-by-department matrix and never add URL-topic rows. Category: category names/synonyms and category definitions. Preserve SEO while reorganizing AEO.';
 const DATA_IMPORT_PROMPT='Start every import or reclassification at the first available cell in each destination column. Never leave blank cells above or between populated URL cells; compact columns independently without losing metadata. Use one URL per cell unless the source explicitly groups equivalent URLs. The selected Positioning Canvas category is the source of truth for competitor names. Any keyword or topic containing a named competitor belongs in Competitor Aware, including alternatives, reviews, pricing, features and comparisons; never leave company names under Category. Sync Positioning Canvas competitors to the Competitor Aware matrix.';
@@ -1050,8 +1050,19 @@ const analysisTaxonomy={name:'Analysis',description:'Core pillar process for tra
  {id:'comparative',name:'Comparative analysis',description:'Period versus period, segment versus segment, or product versus product.'}
 ]};
 data.analysisTaxonomy=copy(analysisTaxonomy);
-data.icpColumns=data.columns.filter(column=>column.matrixGroup!=='use');
 data.valueColumns=data.columns.filter(column=>column.matrixGroup==='use');
+data.icpColumns=[
+ {id:'ai-icp-ind-e-commerce',name:'E-commerce',matrixGroup:'ind',keywordIdeas:['ecommerce analytics','retail analytics','ecommerce data analysis']},
+ {id:'ai-icp-ind-agencies',name:'Agencies',matrixGroup:'ind',keywordIdeas:['ecommerce analytics agency','analytics for agencies']},
+ {id:'ai-icp-ind-amazon',name:'Amazon',matrixGroup:'ind',keywordIdeas:['amazon analytics','amazon brand analytics']},
+ {id:'ai-icp-size-smb',name:'SMB',matrixGroup:'size',keywordIdeas:['small business analytics','smb analytics']},
+ {id:'ai-icp-size-enterprise',name:'Enterprise',matrixGroup:'size',keywordIdeas:['enterprise ecommerce analytics','enterprise analytics platform']},
+ {id:'ai-icp-tech-snowflake',name:'Snowflake',matrixGroup:'tech',keywordIdeas:['snowflake ecommerce analytics']},
+ {id:'ai-icp-tech-shopify',name:'Shopify',matrixGroup:'tech',keywordIdeas:['shopify analytics']},
+ {id:'ai-icp-tech-netsuite',name:'NetSuite',matrixGroup:'tech',keywordIdeas:['netsuite analytics']},
+ {id:'ai-icp-tech-mysql',name:'MySQL',matrixGroup:'tech',keywordIdeas:['mysql analytics']}
+];
+data.columns=[...data.valueColumns,...data.icpColumns];
 data.productListicleColumns=[
  {id:'ai-value-capabilities',name:'Capabilities',keywordIdeas:['analytics capabilities','platform capabilities','data capabilities'],local:true,defaults:{mode:'aeo',type:'',aw:''}},
  {id:'ai-value-nodal-benefit',name:'Features',keywordIdeas:['product features','analytics features','process features'],local:true,defaults:{mode:'aeo',type:'',aw:''}}
@@ -1060,7 +1071,7 @@ data.productLandingColumns=[
  {id:'product-landing-capabilities',name:'Capabilities',keywordIdeas:['product capabilities'],local:true,defaults:{mode:'aeo',type:'',aw:''}},
  {id:'product-landing-features',name:'Features',keywordIdeas:['product features'],local:true,defaults:{mode:'aeo',type:'',aw:''}}
 ];
-data.icpRows=data.rows.map(row=>({...copy(row),cells:row.cells.slice(4)}));
+data.icpRows=data.rows.map(row=>({...copy(row),cells:data.icpColumns.map(column=>({title:'',actorType:'product',actor:'AI data platform',keywordIdeas:copy(column.keywordIdeas||[])}))}));
 const legacyValueRows=data.rows.map(row=>{const pair=benefits[row.name]||['Direct process benefit',['platform capability']];return {...copy(row),cells:[...row.cells.slice(0,4),
  {title:pair[0],actorType:'product',actor:'AI data platform',keywordIdeas:[row.name.toLowerCase()+' benefits','benefits of '+row.name.toLowerCase(),row.name.toLowerCase()+' outcomes']},
  {title:pair[1].join(', '),actorType:'technology',actor:'AI data platform',keywordIdeas:copy(pair[1])}]};});
@@ -1119,7 +1130,8 @@ function ensure(content,client,productId){
  value.valueMatrixArchive.push({revision:data.revision,previousRevision:value.valueMatrixRevision||'',at:new Date().toISOString(),pageColumns:copy(oldValueColumns),overviewColumns:copy(oldValueOverviewColumns),rows:copy(oldValueRows),clearedAeo});
  migrateDuplicateColumns(oldValueRows,data.valueColumns,oldValueColumns);
  migrateDuplicateColumns(oldValueOverviewRows,data.productListicleColumns,oldValueOverviewColumns);
- icp.pageColumns.matrix=mergeColumns(data.icpColumns,oldIcpColumns.filter(column=>column.matrixGroup!=='use'));icp.pageOrders.matrix=icp.pageColumns.matrix.map(column=>column.id);icp.matrixAiPrompt=ICP_PROMPT;
+ const allowedIcpColumns=new Set(data.icpColumns.map(column=>columnKey(column.name)));
+ icp.pageColumns.matrix=mergeColumns(data.icpColumns,oldIcpColumns.filter(column=>column.matrixGroup!=='use'&&allowedIcpColumns.has(columnKey(column.name))));icp.pageOrders.matrix=icp.pageColumns.matrix.map(column=>column.id);icp.matrixAiPrompt=ICP_PROMPT;
  value.pageColumns.matrix=mergeColumns(data.valueColumns,oldValueColumns.filter(column=>column.matrixGroup==='use'));value.pageOrders.matrix=value.pageColumns.matrix.map(column=>column.id);value.matrixAiPrompt=VALUE_PROMPT;
  product.pageColumns.listicle=mergeColumns(data.productListicleColumns,[...oldProductListicleColumns,...oldValueOverviewColumns]);product.pageOrders.listicle=product.pageColumns.listicle.map(column=>column.id);
  product.pageColumns.landing=oldProductLandingColumns;

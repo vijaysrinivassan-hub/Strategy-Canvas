@@ -59,6 +59,14 @@ const source=fs.readFileSync(new URL('./shared-url-repository.js',import.meta.ur
 const context=vm.createContext({globalThis:{CompetitiveIntelligenceClassifications:asset},console});
 vm.runInContext(source,context);
 const repo=context.globalThis.SharedUrlRepository;
+const effectiveIcpAeo=repo.query({workspace:'ai-data-platform',awareness:'solution-aware',section:'ICP AEO'});
+assert.equal(effectiveIcpAeo.length,11);
+assert(effectiveIcpAeo.some(record=>record.url==='https://www.sarasanalytics.com/solutions/amazon-agencies'&&record.hierarchy==='Industry'&&record.icpSegment==='Agencies'));
+assert(effectiveIcpAeo.some(record=>record.url==='https://www.sarasanalytics.com/solutions/amazon-brands'&&record.hierarchy==='Industry'&&record.icpSegment==='Amazon'));
+assert(effectiveIcpAeo.filter(record=>record.hierarchy==='Company size').every(record=>record.icpSegment==='Enterprise'));
+assert(!effectiveIcpAeo.some(record=>/data\s*(?:&|and)?\s*analytics/i.test(record.icpSegment)));
+const analystLanding=repo.query({workspace:'ai-data-platform',awareness:'category-aware',section:'Category AEO'}).find(record=>record.url==='https://www.sarasanalytics.com/lp/saras-iq-ai-analyst');
+assert.equal(analystLanding?.axis,'Product pages');
 const types=[{id:'list',name:'Listicle'},{id:'land',name:'Landing page'},{id:'info',name:'Informational'}];
 let n=0;
 const root={views:{category:{columns:[],rows:[]},competitor:{columns:[],rows:[]},icp:{columns:[],rows:[]},value:{columns:[],rows:[]}}};
@@ -89,16 +97,20 @@ assert.deepEqual(Array.from(unaware.pageColumns.informational.filter(column=>seo
 assert.equal(repo.installMappings(root,types,{product:'AI Data Platform',uid:()=>`solution-${++n}`,awareness:'solution-aware',contentView:'icp',mode:'aeo',activeView:active}),true);
 const afterSolution=active.rows.flatMap(row=>Object.values(row.cells||{}));
 assert.equal(afterSolution.flatMap(cell=>repo.resolve(cell.repositoryQueries||[])).filter(row=>row.awareness==='problem-aware').length,311);
-assert.equal(afterSolution.flatMap(cell=>repo.resolve(cell.repositoryQueries||[])).filter(row=>row.awareness==='solution-aware').length,12);
+assert.equal(afterSolution.flatMap(cell=>repo.resolve(cell.repositoryQueries||[])).filter(row=>row.awareness==='solution-aware').length,11);
 const solutionRows=active.rows.filter(row=>Object.values(row.cells||{}).some(cell=>(cell.repositoryQueries||[]).some(query=>query.awareness==='solution-aware')));
 assert(solutionRows.length>0);
 assert(solutionRows.every(row=>row.repositorySuperHierarchy==='Category'&&row.repositoryHierarchy==='E-commerce Data Analytics'));
 const solutionColumnIds=new Set(solutionRows.flatMap(row=>Object.keys(row.cells||{})));
 const solutionColumns=active.pageColumns.matrix.filter(column=>solutionColumnIds.has(column.id));
 assert(solutionColumns.some(column=>column.name==='E-commerce'&&column.matrixGroup==='ind'));
+assert(solutionColumns.some(column=>column.name==='Agencies'&&column.matrixGroup==='ind'));
+assert(solutionColumns.some(column=>column.name==='Amazon'&&column.matrixGroup==='ind'));
 assert(solutionColumns.some(column=>column.name==='Enterprise'&&column.matrixGroup==='size'));
 assert(solutionColumns.some(column=>column.name==='Snowflake'&&column.matrixGroup==='tech'));
 assert(!solutionColumns.some(column=>/country/i.test(column.name)));
+assert(active.pageColumns.matrix.some(column=>column.name==='SMB'&&column.matrixGroup==='size'));
+assert(!active.pageColumns.matrix.some(column=>/data\s*(?:&|and)?\s*analytics/i.test(column.name)));
 
 const valueSolutionRoot={views:{product:{columns:[],rows:[]},category:{columns:[],rows:[]},icp:{columns:[],rows:[]},value:{columns:[],rows:[]}}};
 assert.equal(Matrix.ensure(valueSolutionRoot,'AI Data Platform','0jgsw8bx554d'),true);
@@ -123,6 +135,8 @@ assert(productSolution.pageColumns.landing.some(column=>column.name==='Capabilit
 assert(productSolution.pageColumns.landing.some(column=>column.name==='Features'));
 const productListicleUrls=productSolution.rows.filter(row=>row.pageGroup==='listicle').flatMap(row=>Object.values(row.cells||{})).flatMap(cell=>repo.resolve(cell.repositoryQueries||[]));
 assert.equal(productListicleUrls.length,0);
+const productLandingUrls=productSolution.rows.filter(row=>row.pageGroup==='landing').flatMap(row=>Object.values(row.cells||{})).flatMap(cell=>repo.resolve(cell.repositoryQueries||[]));
+assert(productLandingUrls.some(record=>record.url==='https://www.sarasanalytics.com/lp/saras-iq-ai-analyst'&&record.axis==='Product pages'));
 assert.equal(productSolution.rows.filter(row=>row.pageGroup==='landing').flatMap(row=>['Capabilities','Features'].flatMap(name=>{const column=productSolution.pageColumns.landing.find(item=>item.name===name);return repo.resolve(row.cells?.[column?.id]?.repositoryQueries||[]);})).length,0);
 assert.equal(repo.installMappings(root,types,{product:'AI Data Platform',uid:()=>`return-${++n}`,awareness:'problem-aware',contentView:'icp',mode:'seo',activeView:active}),false);
 
@@ -178,6 +192,6 @@ assert(html.includes('<script src="saras-analytics-competitive-intelligence.js?v
 assert(html.includes('await ensureSarasAnalyticsCompetitiveIntelligenceSeed();'));
 assert(html.includes("const solutionAwareRepositoryMatrix = state.keywordAwareness === 'solution-aware'"));
 assert(html.includes("query.awareness === 'solution-aware'"));
-assert(html.includes("/^capital layer$/i.test(String(state.clientProduct||'').trim())"));
+assert(source.includes("/^capital layer$/i.test(String(product||'').trim())"));
 assert(html.includes("const awarenessSeoHeaders = new Set(['guides','how to articles','explainers','trends','topic vs topic'])"));
 console.log('PASS: all 770 Saras Analytics sitemap URLs are scoped to AI Data Platform and every keyword cell resolves one article.');

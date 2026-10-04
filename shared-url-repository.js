@@ -14,6 +14,15 @@
   };
   const sectionFor=(view,mode)=>({product:'Category',category:'Category',icp:'ICP',value:'Value'}[view]||'')+' '+String(mode||'aeo').toUpperCase();
   const SEO_TOPIC_COLUMNS=['Guides','How To Articles','Explainers','Trends','Topic vs Topic'];
+  // These corrections are deliberately kept as a small, readable overlay on
+  // top of the imported sitemap classification. The source export is a large
+  // generated artifact; this overlay is the durable source of truth used by
+  // every matrix and preserves the original import for audit purposes.
+  const AI_DATA_ICP_OVERRIDES={
+    'https://www.sarasanalytics.com/solutions/amazon-agencies':{hierarchy:'Industry',icpSegment:'Agencies',axis:'Agencies'},
+    'https://www.sarasanalytics.com/solutions/amazon-brands':{hierarchy:'Industry',icpSegment:'Amazon',axis:'Amazon'},
+    'https://www.sarasanalytics.com/lp/saras-iq-ai-analyst':{awareness:'category-aware',section:'Category AEO',pageType:'Landing page',hierarchy:'Saras iQ',axis:'Product pages',icpSegment:''}
+  };
   let loadPromise=null,indexedSource=null,indexedOverlayRevision='',indexedRecords=[];
   function data(){return global.CompetitiveIntelligenceClassifications||null;}
   function buildIndex(source){
@@ -24,7 +33,8 @@
     profiles.forEach(profile=>(profile.urls||[]).forEach(url=>owners.set(normalizeUrl(url),{competitorId:profile.id||'',competitor:profile.name||'',workspace:profile.workspace||'aeo-agency'})));
     const classifications=new Map(Object.entries(source.classifications||{}));
     Object.entries(overlay?.classifications||{}).forEach(([url,meta])=>classifications.set(url,meta));
-    indexedRecords=[...classifications].map(([url,meta])=>{
+    indexedRecords=[...classifications].map(([url,sourceMeta])=>{
+      const meta={...sourceMeta,...(AI_DATA_ICP_OVERRIDES[normalizeUrl(url)]||{})};
       const owner=owners.get(normalizeUrl(url))||{};
       const measuredTraffic=owner.competitorId==='saras-analytics'?global.SarasAnalyticsOrganicTraffic?.trafficFor(url):null;
       return {id:normalizeUrl(url),url,traffic:measuredTraffic==null?(meta.traffic||''):String(measuredTraffic),shared:true,competitorId:owner.competitorId||'',competitor:owner.competitor||'',workspace:meta.workspace||owner.workspace||'aeo-agency',awareness:meta.awareness||'',
@@ -410,7 +420,7 @@
     // Include overlay imports in the persisted migration key. Otherwise a
     // board that already installed the Saras/base repository incorrectly
     // treats a newly shipped represented-company import as already applied.
-    const revision=(data().classifiedAt||'classification')+':'+(global.AskLucaKeywordImport?.REVISION||'base')+':'+scope+':v16';
+    const revision=(data().classifiedAt||'classification')+':'+(global.AskLucaKeywordImport?.REVISION||'base')+':'+scope+':v17';
     root.sharedUrlRepositoryRevisions ||= {};
     const view=options.activeView,uid=options.uid||(()=>Math.random().toString(36).slice(2));
     const fixedAiDataValueMatrix=workspace==='ai-data-platform'&&awareness==='solution-aware'&&viewId==='value'&&mode==='aeo';
@@ -485,6 +495,24 @@
       row.cells[column.id]={...current,...saved,v:repositoryTitle(record,current,saved),url:saved.url||current.url||(record.represented?record.url:''),mode,type:saved.type||current.type||typeId(types,format),cfg:true,repositoryQueries:[spec]};
       linked++;
     });
+    if(workspace==='ai-data-platform'&&awareness==='solution-aware'&&viewId==='icp'&&mode==='aeo'){
+      const required=[
+        {name:'E-commerce',group:'ind'},
+        {name:'Agencies',group:'ind'},
+        {name:'Amazon',group:'ind'},
+        {name:'SMB',group:'size'},
+        {name:'Enterprise',group:'size'}
+      ];
+      required.forEach(item=>{const column=ensureColumn('icp',view,'matrix',item.name,'aeo',types);column.matrixGroup=item.group;column.repositoryDimension=item.group==='ind'?'Industry':'Company size';});
+      const retired=new Set(['data analytics','data and analytics']);
+      const retiredIds=new Set((view.pageColumns?.matrix||[]).filter(column=>retired.has(normalizeName(column.name))).map(column=>column.id));
+      if(retiredIds.size){
+        view.pageColumns.matrix=view.pageColumns.matrix.filter(column=>!retiredIds.has(column.id));
+        view.pageOrders.matrix=(view.pageOrders.matrix||[]).filter(id=>!retiredIds.has(id));
+        (view.rows||[]).forEach(row=>retiredIds.forEach(id=>delete row.cells?.[id]));
+      }
+      sortIcpMatrixColumns(view);
+    }
     if(mode==='seo'&&(viewId==='icp'||viewId==='value')){
       SEO_TOPIC_COLUMNS.forEach(name=>ensureColumn(viewId,view,'informational',name,'seo',types));
       const columns=columnsFor(view,'informational');
