@@ -17,7 +17,7 @@ assert(saras.urls.every(url=>url==='https://www.sarasanalytics.com'||url.startsW
 
 const records=Object.entries(asset.classifications).filter(([,meta])=>meta.workspace==='ai-data-platform');
 assert.equal(records.length,770);
-assert.equal(records.filter(([,meta])=>meta.section==='Corporate & Non-SEO').length,15);
+assert.equal(records.filter(([,meta])=>meta.section==='Corporate & Non-SEO').length,17);
 assert(records.every(([,meta])=>meta.awareness&&meta.topicGroup&&meta.topic));
 assert(records.filter(([,meta])=>meta.section!=='Corporate & Non-SEO').every(([,meta])=>/^(Category|ICP|Value|Competitor) (SEO|AEO)$/.test(meta.section)));
 assert(records.filter(([,meta])=>meta.section!=='Corporate & Non-SEO').every(([,meta])=>['problem-unaware','problem-aware','solution-aware','category-aware','competitor-aware'].includes(meta.awareness)));
@@ -32,7 +32,7 @@ assert(icpAeo.filter(([,meta])=>meta.hierarchy==='Company size').every(([,meta])
 assert(icpAeo.filter(([,meta])=>meta.hierarchy==='Role / Team').every(([,meta])=>['Agencies','Data & Analytics'].includes(meta.icpSegment)));
 assert(icpAeo.filter(([,meta])=>meta.hierarchy==='Technology').every(([,meta])=>['Snowflake','Shopify','NetSuite','MySQL'].includes(meta.icpSegment)));
 assert.equal(records.filter(([,meta])=>meta.section==='Value AEO').length,12);
-assert.equal(records.filter(([,meta])=>meta.section==='Category AEO').length,219);
+assert.equal(records.filter(([,meta])=>meta.section==='Category AEO').length,217);
 assert.deepEqual(records.find(([url])=>url==='https://www.sarasanalytics.com/blog/cohort-analysis-software')?.[1],asset.classifications['https://www.sarasanalytics.com/blog/cohort-analysis-software']);
 assert.equal(asset.classifications['https://www.sarasanalytics.com/blog/cohort-analysis-software'].hierarchy,'Cohort analysis');
 assert.equal(asset.classifications['https://www.sarasanalytics.com/blog/customer-segmentation-software'].hierarchy,'Segmentation analysis');
@@ -42,6 +42,11 @@ assert.equal(asset.classifications['https://www.sarasanalytics.com/blog/triple-w
 assert.equal(asset.classifications['https://www.sarasanalytics.com/blog/triple-whale-pricing'].section,'Competitor AEO');
 assert.equal(asset.classifications['https://www.sarasanalytics.com/blog/saras-pulse-vs-triple-whale'].axis,'Competitor vs Competitor');
 assert.equal(asset.classifications['https://www.sarasanalytics.com/blog/saras-pulse-vs-triple-whale'].hierarchy,'Triple Whale / Moby AI');
+assert.equal(asset.classifications['https://www.sarasanalytics.com/saras-iq'].axis,'Product pages');
+assert.equal(asset.classifications['https://www.sarasanalytics.com/lp/what-is-saras-iq'].axis,'Product pages');
+assert.equal(asset.classifications['https://www.sarasanalytics.com/lp/saras-iq-essentials'].axis,'Feature pages');
+assert.equal(asset.classifications['https://www.sarasanalytics.com/lp/saras-iq-demo'].section,'Corporate & Non-SEO');
+assert.equal(asset.classifications['https://www.sarasanalytics.com/saras-iq/pricing'].section,'Corporate & Non-SEO');
 const icpSeo=records.filter(([,meta])=>meta.section==='ICP SEO');
 assert.equal(icpSeo.length,320);
 assert.equal(icpSeo.filter(([,meta])=>meta.awareness==='problem-unaware').length,9);
@@ -117,7 +122,7 @@ assert.deepEqual(Array.from(productSolution.pageColumns.listicle,column=>column.
 assert(productSolution.pageColumns.landing.some(column=>column.name==='Capabilities'));
 assert(productSolution.pageColumns.landing.some(column=>column.name==='Features'));
 const productListicleUrls=productSolution.rows.filter(row=>row.pageGroup==='listicle').flatMap(row=>Object.values(row.cells||{})).flatMap(cell=>repo.resolve(cell.repositoryQueries||[]));
-assert.equal(productListicleUrls.length,5);
+assert.equal(productListicleUrls.length,0);
 assert.equal(productSolution.rows.filter(row=>row.pageGroup==='landing').flatMap(row=>['Capabilities','Features'].flatMap(name=>{const column=productSolution.pageColumns.landing.find(item=>item.name===name);return repo.resolve(row.cells?.[column?.id]?.repositoryQueries||[]);})).length,0);
 assert.equal(repo.installMappings(root,types,{product:'AI Data Platform',uid:()=>`return-${++n}`,awareness:'problem-aware',contentView:'icp',mode:'seo',activeView:active}),false);
 

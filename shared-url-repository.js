@@ -386,7 +386,7 @@
     const mode=viewId==='product'?'aeo':viewId==='category'?(options.mode||'aeo'):(awareness==='solution-aware'?'aeo':'seo');
     const section=sectionFor(viewId,mode);
     const scope=[workspace,awareness,viewId,mode].join(':');
-    const revision=(data().classifiedAt||'classification')+':'+scope+':v13';
+    const revision=(data().classifiedAt||'classification')+':'+scope+':v14';
     root.sharedUrlRepositoryRevisions ||= {};
     const view=options.activeView,uid=options.uid||(()=>Math.random().toString(36).slice(2));
     const fixedAiDataValueMatrix=workspace==='ai-data-platform'&&awareness==='solution-aware'&&viewId==='value'&&mode==='aeo';
@@ -467,6 +467,8 @@
       view.pageOrders.informational=columns.map(column=>column.id);
     }
     if(viewId==='product'){
+      ensureColumn('product',view,'listicle','Capabilities','aeo',types);
+      ensureColumn('product',view,'listicle','Features','aeo',types);
       const listicleColumns=columnsFor(view,'listicle');
       const listicleOrder=['capabilities','features'];
       listicleColumns.sort((a,b)=>listicleOrder.indexOf(normalizeName(a.name))-listicleOrder.indexOf(normalizeName(b.name)));

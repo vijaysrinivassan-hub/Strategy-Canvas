@@ -53,12 +53,14 @@ const ownValueListicle={
   '/blog/customer-segmentation-software':['Segmentation analysis','Marketing'],
   '/blog/customer-behavior-analysis-tools':['Segmentation analysis','Marketing']
 };
-const productAwareListicle={
-  '/lp/what-is-saras-iq':'Features',
-  '/lp/saras-iq-demo':'Features',
-  '/saras-iq/pricing':'Features',
-  '/lp/saras-iq-essentials':'Capabilities',
-  '/saras-iq':'Capabilities'
+const productAwareLanding={
+  '/lp/what-is-saras-iq':'Product pages',
+  '/lp/saras-iq-essentials':'Feature pages',
+  '/saras-iq':'Product pages'
+};
+const productNonSeo={
+  '/lp/saras-iq-demo':'Demo',
+  '/saras-iq/pricing':'Pricing'
 };
 const valueSeoRoutes={
   '/glossary/pricing-strategy':['problem-unaware','General Value','Explainers'],
@@ -108,8 +110,10 @@ for(const raw of profile.urls){
   }else if(ownValueListicle[pathname]){
     const [hierarchy,axis]=ownValueListicle[pathname];
     apply(meta,{awareness:'solution-aware',section:'Value AEO',pageType:'Listicle',hierarchy,axis});delete meta.icpSegment;
-  }else if(productAwareListicle[pathname]){
-    apply(meta,{awareness:'category-aware',section:'Category AEO',pageType:'Listicle',hierarchy:'Data Analysis',axis:productAwareListicle[pathname]});delete meta.icpSegment;
+  }else if(productAwareLanding[pathname]){
+    apply(meta,{awareness:'category-aware',section:'Category AEO',pageType:'Landing page',hierarchy:'Data Analysis',axis:productAwareLanding[pathname]});delete meta.icpSegment;
+  }else if(productNonSeo[pathname]){
+    apply(meta,{awareness:'non-seo',section:'Corporate & Non-SEO',pageType:'Non-SEO',hierarchy:'Saras iQ',axis:productNonSeo[pathname]});delete meta.icpSegment;
   }else if(categoryRoutes[pathname]){
     const [section,pageType,hierarchy,axis]=categoryRoutes[pathname];
     apply(meta,{awareness:'category-aware',section,pageType,hierarchy,axis});delete meta.icpSegment;

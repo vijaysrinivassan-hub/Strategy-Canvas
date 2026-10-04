@@ -12,7 +12,7 @@ assert.equal(manifest.reviewed,770);
 assert.equal(manifest.read,768);
 assert.equal(manifest.failed.length,2);
 assert.equal(manifest.selected.length,220);
-assert.equal(records.filter(([,meta])=>meta.section==='Category AEO').length,219);
+assert.equal(records.filter(([,meta])=>meta.section==='Category AEO').length,217);
 assert.equal(records.filter(([,meta])=>meta.section==='Category SEO').length,3);
 assert(records.filter(([,meta])=>/^Category /.test(meta.section)).every(([,meta])=>meta.awareness==='category-aware'&&meta.auditStatus==='read'&&meta.auditTitle));
 assert.equal(asset.classifications['https://www.sarasanalytics.com/blog/ecommerce-analytics-software'].axis,'Category name');
@@ -30,7 +30,7 @@ assert(!records.filter(([,meta])=>/^Category /.test(meta.section)).some(([url])=
 
 const source=fs.readFileSync(new URL('./shared-url-repository.js',import.meta.url),'utf8');
 const appSource=fs.readFileSync(new URL('./index.html',import.meta.url),'utf8');
-assert.match(appSource,/shared-url-repository\.js\?v=product-capabilities-v13/);
+assert.match(appSource,/shared-url-repository\.js\?v=saras-product-pages-v14/);
 assert.match(appSource,/const categoryMode = \['product','category'\]\.includes\(state\.contentView\) \? keywordMode : ''/);
 const context=vm.createContext({globalThis:{CompetitiveIntelligenceClassifications:asset},console});
 vm.runInContext(source,context);
@@ -59,7 +59,7 @@ assert(product.pageColumns.landing.some(column=>column.name==='Capabilities'));
 assert(product.pageColumns.landing.some(column=>column.name==='Features'));
 const productPageColumn=product.pageColumns.landing.find(column=>column.name==='Product pages');
 assert(productPageColumn);
-assert.equal(product.rows.flatMap(row=>repo.resolve(row.cells?.[productPageColumn.id]?.repositoryQueries||[])).length,3);
+assert.equal(product.rows.flatMap(row=>repo.resolve(row.cells?.[productPageColumn.id]?.repositoryQueries||[])).length,5);
 for(const column of product.pageColumns.landing){
   const count=product.rows.filter(row=>row.cells?.[column.id]?.repositoryQueries?.length).length;
   if(count)assert(product.rows[0].cells?.[column.id]?.repositoryQueries?.length,`${column.name} must start in the first Product Aware row`);

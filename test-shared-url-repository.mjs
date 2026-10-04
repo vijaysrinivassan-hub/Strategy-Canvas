@@ -39,7 +39,12 @@ const aiProduct=aiRoot.views.product;
 repo.installMappings(aiRoot,types,{product:'AI Data Platform',awareness:'category-aware',contentView:'product',mode:'aeo',activeView:aiProduct,uid:()=>'ai-product-'+(++n)});
 assert.deepEqual(aiProduct.pageColumns.listicle.map(column=>column.name),['Capabilities','Features']);
 const productListicleUrls=aiProduct.rows.filter(row=>row.pageGroup==='listicle').flatMap(row=>Object.values(row.cells||{})).flatMap(cell=>repo.resolve(cell.repositoryQueries||[]));
-assert.equal(new Set(productListicleUrls.map(record=>record.url)).size,5);
+assert.equal(new Set(productListicleUrls.map(record=>record.url)).size,0);
+const aiProductUrls=aiProduct.rows.flatMap(row=>Object.values(row.cells||{})).flatMap(cell=>repo.resolve(cell.repositoryQueries||[]));
+assert(aiProductUrls.some(record=>record.url==='https://www.sarasanalytics.com/saras-iq'&&record.axis==='Product pages'));
+assert(aiProductUrls.some(record=>record.url==='https://www.sarasanalytics.com/lp/saras-iq-essentials'&&record.axis==='Feature pages'));
+assert(!aiProductUrls.some(record=>record.url==='https://www.sarasanalytics.com/lp/saras-iq-demo'));
+assert(!aiProductUrls.some(record=>record.url==='https://www.sarasanalytics.com/saras-iq/pricing'));
 
 const categoryTaxonomy={primary:['Technical SEO / AEO'],supporting:['Content','Digital PR / Authority','Analytics & Reporting']};
 assert.equal(repo.installMappings(root,types,{product:'Answer Engine Optimization Agency',uid:()=>'row-'+(++n),categoryTaxonomy}),true);
