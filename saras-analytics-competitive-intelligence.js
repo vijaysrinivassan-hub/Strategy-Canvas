@@ -1,7 +1,7 @@
 /* Board-scoped Saras Analytics sitemap import for Competitive Intelligence. */
 (function(root){
   'use strict';
-  const REVISION='saras-analytics-sitemap-2026-10-04-v4';
+  const REVISION='saras-analytics-sitemap-2026-10-04-v5';
   const FOCAL_COMPETITOR='Saras Analytics';
   const normalize=value=>String(value||'').trim().toLowerCase().replace(/\/$/,'');
   const comparisonName=value=>normalize(value)==='triple whale / moby ai'?'Triple Whale':String(value||'').trim();
@@ -81,7 +81,12 @@
       const key=JSON.stringify([focalRow.id,opponent.id].sort());
       const existing=matrix.comparisonCells[key]&&typeof matrix.comparisonCells[key]==='object'?matrix.comparisonCells[key]:{};
       const queries=records.filter(item=>normalize(item.name)===normalize(opponent.name)&&isDirectComparison(item)).map(repositoryQuery);
-      matrix.comparisonCells[key]={v:existing.v===undefined?FOCAL_COMPETITOR+' vs '+comparisonName(opponent.name):existing.v,mode:existing.mode||'aeo',type:existing.type||competitorType.id,aw:existing.aw||'Competitor aware',st:existing.st||'for_review',on:existing.on||false,writtenBy:existing.writtenBy||'',url:existing.url||'',kws:Array.isArray(existing.kws)?existing.kws:[],cfg:true,...existing,repositoryQueries:queries,repositoryUrlOverrides:existing.repositoryUrlOverrides||{}};
+      const generatedTitle=FOCAL_COMPETITOR+' vs '+comparisonName(opponent.name);
+      const customTitle=existing.v!==undefined&&String(existing.v).trim()!==generatedTitle;
+      const manualContent=customTitle||!!String(existing.url||'').trim()||(Array.isArray(existing.kws)&&existing.kws.length)||(Array.isArray(existing.pageUrls)&&existing.pageUrls.length)||existing.on===true||!!String(existing.writtenBy||'').trim();
+      const explicitStatus=String(existing.st||'').trim()&&!(existing.st==='for_review'&&!manualContent&&!queries.length)?existing.st:'';
+      if(!queries.length&&!manualContent&&!explicitStatus){delete matrix.comparisonCells[key];continue;}
+      matrix.comparisonCells[key]={...existing,v:existing.v===undefined?generatedTitle:existing.v,mode:existing.mode||'aeo',type:existing.type||competitorType.id,aw:existing.aw||'Competitor aware',st:explicitStatus||(queries.length||manualContent?'for_review':''),on:existing.on||false,writtenBy:existing.writtenBy||'',url:existing.url||'',kws:Array.isArray(existing.kws)?existing.kws:[],cfg:true,repositoryQueries:queries,repositoryUrlOverrides:existing.repositoryUrlOverrides||{}};
     }
 
     const categoryView=content.views.category;

@@ -62,7 +62,7 @@ assert.equal(afterSolution.flatMap(cell=>repo.resolve(cell.repositoryQueries||[]
 assert.equal(repo.installMappings(root,types,{product:'AI Data Platform',uid:()=>`return-${++n}`,awareness:'problem-aware',contentView:'icp',mode:'seo',activeView:active}),false);
 
 const seedSource=fs.readFileSync(new URL('./saras-analytics-competitive-intelligence.js',import.meta.url),'utf8');
-assert(seedSource.includes("REVISION='saras-analytics-sitemap-2026-10-04-v4'"));
+assert(seedSource.includes("REVISION='saras-analytics-sitemap-2026-10-04-v5'"));
 const seedContext=vm.createContext({globalThis:{CompetitiveIntelligenceClassifications:asset},console});
 vm.runInContext(seedSource,seedContext);
 const importer=seedContext.globalThis.SarasAnalyticsCompetitiveIntelligence;
@@ -82,7 +82,7 @@ assert(competitorCells.every(cell=>cell.st==='for_review'));
 const focal=canonical.find(item=>item.name==='Saras Analytics');
 const tripleWhale=canonical.find(item=>item.name==='Triple Whale / Moby AI');
 assert(focal&&tripleWhale);
-assert.equal(Object.keys(strategyRoot.views.competitor.comparisonCells).length,23);
+assert.equal(Object.keys(strategyRoot.views.competitor.comparisonCells).length,7);
 const focalPair=JSON.stringify([focal.contentRowId,tripleWhale.contentRowId].sort());
 assert.equal(strategyRoot.views.competitor.comparisonCells[focalPair].v,'Saras Analytics vs Triple Whale');
 assert.equal(strategyRoot.views.competitor.comparisonCells[focalPair].aw,'Competitor aware');
@@ -92,6 +92,9 @@ const comparisonUrls=Object.values(strategyRoot.views.competitor.comparisonCells
 assert.equal(comparisonUrls.length,8);
 assert(comparisonUrls.every(item=>/(?:^|\/)vs\/|(?:^|[-/])vs(?:[-/]|$)/i.test(new URL(item.url).pathname)));
 assert.equal(new Set([...competitorCells.flatMap(cell=>repo.resolve(cell.repositoryQueries||[])),...comparisonUrls].map(item=>item.url)).size,42);
+const daasity=canonical.find(item=>item.name==='Daasity');
+const emptyPair=JSON.stringify([focal.contentRowId,daasity.contentRowId].sort());
+assert.equal(strategyRoot.views.competitor.comparisonCells[emptyPair],undefined);
 strategyRoot.views.competitor.comparisonCells[focalPair].v='Preserved custom comparison title';
 strategyRoot.views.competitor.comparisonCells[focalPair].url='/custom-comparison';
 strategyRoot.views.competitor.comparisonCells[focalPair].st='selected';
