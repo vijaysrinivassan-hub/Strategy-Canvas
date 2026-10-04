@@ -3038,7 +3038,7 @@
 <script src="ask-luca-competitive-intelligence.js"></script>
 <script src="saras-analytics-competitive-intelligence.js?v=saras-taxonomy-v2"></script>
 <script src="competitive-intelligence.js"></script>
-<script src="shared-url-repository.js?v=saras-taxonomy-v2"></script>
+<script src="shared-url-repository.js?v=seo-header-parity-v1"></script>
 <link rel="stylesheet" href="icp-workflows.css">
 <script src="icp-workflows.js"></script>
 <link rel="stylesheet" href="icp-table.css">
@@ -7913,6 +7913,9 @@ function renderGridTable(v, group, table){
   let columns = activeIcpAxis
     ? sortedColumns.filter(col => (col.axis || KeywordColumns.inferIcpAxis(col.name)) === activeIcpAxis || repositoryColumnIds.has(col.id))
     : sortedColumns;
+  const awarenessSeoHeaders = new Set(['guides','how to articles','explainers','trends','topic vs topic']);
+  const awarenessSeoMatrix = ['problem-unaware','problem-aware'].includes(state.keywordAwareness) && group.id === 'informational' && ['icp','value'].includes(state.contentView);
+  if (awarenessSeoMatrix) columns = columns.filter(col => awarenessSeoHeaders.has(String(col.name || '').trim().toLowerCase()));
   const solutionAwareRepositoryMatrix = state.keywordAwareness === 'solution-aware' && isPositioningMatrix && repositoryColumnIds.size > 0;
   if (solutionAwareRepositoryMatrix) columns = columns.filter(col => repositoryColumnIds.has(col.id));
   const NUM_W = hasRowAxis ? 310 : 46, COL_W = 310;

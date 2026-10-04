@@ -63,8 +63,9 @@ const problemAwareRows=active.rows.filter(row=>row.repositoryWorkspace==='ai-dat
 assert(problemAwareRows.every(row=>row.repositorySuperHierarchy&&row.repositoryHierarchy));
 assert(problemAwareRows.some(row=>row.repositorySuperHierarchy==='Industry'&&row.repositoryHierarchy==='E-commerce & Retail'));
 assert(problemAwareRows.some(row=>row.repositorySuperHierarchy==='Technology'&&row.repositoryHierarchy==='BigQuery'));
-assert(active.pageColumns.informational.some(column=>column.name==='Data Integration & Ingestion'));
-assert(active.pageColumns.informational.some(column=>column.name==='Data Analysis'));
+const seoHeaders=['Guides','How To Articles','Explainers','Trends','Topic vs Topic'];
+assert.deepEqual(Array.from(active.pageColumns.informational.filter(column=>seoHeaders.includes(column.name)),column=>column.name),seoHeaders);
+assert(cells.every(cell=>seoHeaders.includes(repo.resolve(cell.repositoryQueries)[0].axis)));
 
 const unaware=structuredClone(active);
 assert.equal(repo.installMappings(root,types,{product:'AI Data Platform',uid:()=>`unaware-${++n}`,awareness:'problem-unaware',contentView:'icp',mode:'seo',activeView:unaware}),true);
@@ -72,6 +73,7 @@ const unawareCells=unaware.rows.flatMap(row=>Object.values(row.cells||{}));
 assert.equal(unawareCells.flatMap(cell=>repo.resolve(cell.repositoryQueries||[])).length,9);
 assert.equal(unawareCells.flatMap(cell=>repo.resolve(cell.repositoryQueries||[])).filter(row=>row.awareness==='problem-aware').length,0);
 assert(unaware.rows.filter(row=>row.repositoryWorkspace==='ai-data-platform').every(row=>row.repositorySuperHierarchy&&row.repositoryHierarchy));
+assert.deepEqual(Array.from(unaware.pageColumns.informational.filter(column=>seoHeaders.includes(column.name)),column=>column.name),seoHeaders);
 
 assert.equal(repo.installMappings(root,types,{product:'AI Data Platform',uid:()=>`solution-${++n}`,awareness:'solution-aware',contentView:'icp',mode:'aeo',activeView:active}),true);
 const afterSolution=active.rows.flatMap(row=>Object.values(row.cells||{}));
@@ -143,4 +145,5 @@ assert(html.includes('await ensureSarasAnalyticsCompetitiveIntelligenceSeed();')
 assert(html.includes("const solutionAwareRepositoryMatrix = state.keywordAwareness === 'solution-aware'"));
 assert(html.includes("query.awareness === 'solution-aware'"));
 assert(html.includes("/^capital layer$/i.test(String(state.clientProduct||'').trim())"));
+assert(html.includes("const awarenessSeoHeaders = new Set(['guides','how to articles','explainers','trends','topic vs topic'])"));
 console.log('PASS: all 770 Saras Analytics sitemap URLs are scoped to AI Data Platform and every keyword cell resolves one article.');

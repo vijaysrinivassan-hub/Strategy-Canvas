@@ -5,9 +5,1604 @@
   "read": 768,
   "moves": [
     {
-      "url": "https://www.sarasanalytics.com/blog/saras-pulse-vs-triple-whale",
-      "before": "Competitor AEO|Comparison|Triple Whale|Competitor vs Competitor|",
-      "after": "Competitor AEO|Comparison|Triple Whale / Moby AI|Competitor vs Competitor|"
+      "url": "https://www.sarasanalytics.com/how-to/adjust-to-amazon-redshift-made-easy",
+      "before": "ICP SEO|Informational|Industry|General Data & Analytics|E-commerce & Retail",
+      "after": "ICP SEO|Informational|Industry|How To Articles|E-commerce & Retail"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/adjust-to-snowflake-made-easy",
+      "before": "ICP SEO|Informational|Technology|Data Integration & Ingestion|Snowflake",
+      "after": "ICP SEO|Informational|Technology|How To Articles|Snowflake"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/amazon-ads-to-amazon-redshift-made-easy",
+      "before": "ICP SEO|Informational|Industry|General Data & Analytics|E-commerce & Retail",
+      "after": "ICP SEO|Informational|Industry|How To Articles|E-commerce & Retail"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/amazon-ads-to-google-bigquery-made-easy",
+      "before": "ICP SEO|Informational|Industry|General Data & Analytics|E-commerce & Retail",
+      "after": "ICP SEO|Informational|Industry|How To Articles|E-commerce & Retail"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/amazon-ads-to-snowflake-made-easy",
+      "before": "ICP SEO|Informational|Industry|Data Integration & Ingestion|E-commerce & Retail",
+      "after": "ICP SEO|Informational|Industry|How To Articles|E-commerce & Retail"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/amazon-aurora-to-bigquery-made-easy",
+      "before": "ICP SEO|Informational|Industry|Data Integration & Ingestion|E-commerce & Retail",
+      "after": "ICP SEO|Informational|Industry|How To Articles|E-commerce & Retail"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/amazon-aurora-to-snowflake-made-easy",
+      "before": "ICP SEO|Informational|Industry|Data Integration & Ingestion|E-commerce & Retail",
+      "after": "ICP SEO|Informational|Industry|How To Articles|E-commerce & Retail"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/amazon-dsp-to-amazon-redshift-made-easy",
+      "before": "ICP SEO|Informational|Industry|General Data & Analytics|E-commerce & Retail",
+      "after": "ICP SEO|Informational|Industry|How To Articles|E-commerce & Retail"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/amazon-dsp-to-google-bigquery-made-easy",
+      "before": "ICP SEO|Informational|Industry|General Data & Analytics|E-commerce & Retail",
+      "after": "ICP SEO|Informational|Industry|How To Articles|E-commerce & Retail"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/amazon-dsp-to-snowflake-made-easy",
+      "before": "ICP SEO|Informational|Industry|Data Integration & Ingestion|E-commerce & Retail",
+      "after": "ICP SEO|Informational|Industry|How To Articles|E-commerce & Retail"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/amazon-mws-api-to-google-bigquerymade-easy",
+      "before": "ICP SEO|Informational|Industry|Data Engineering|E-commerce & Retail",
+      "after": "ICP SEO|Informational|Industry|How To Articles|E-commerce & Retail"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/amazon-mws-to-google-bigquery-made-easy",
+      "before": "ICP SEO|Informational|Industry|General Data & Analytics|E-commerce & Retail",
+      "after": "ICP SEO|Informational|Industry|How To Articles|E-commerce & Retail"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/amazon-mws-to-snowflake-made-easy",
+      "before": "ICP SEO|Informational|Industry|Data Integration & Ingestion|E-commerce & Retail",
+      "after": "ICP SEO|Informational|Industry|How To Articles|E-commerce & Retail"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/amazon-redshift-to-bigquery-made-easy",
+      "before": "ICP SEO|Informational|Industry|Data Integration & Ingestion|E-commerce & Retail",
+      "after": "ICP SEO|Informational|Industry|How To Articles|E-commerce & Retail"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/amazon-redshift-to-snowflake-made-easy",
+      "before": "ICP SEO|Informational|Industry|Data Integration & Ingestion|E-commerce & Retail",
+      "after": "ICP SEO|Informational|Industry|How To Articles|E-commerce & Retail"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/amazon-s3-to-google-bigquery-made-easy",
+      "before": "ICP SEO|Informational|Industry|General Data & Analytics|E-commerce & Retail",
+      "after": "ICP SEO|Informational|Industry|How To Articles|E-commerce & Retail"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/amazon-s3-to-snowflake-made-easy",
+      "before": "ICP SEO|Informational|Industry|Data Integration & Ingestion|E-commerce & Retail",
+      "after": "ICP SEO|Informational|Industry|How To Articles|E-commerce & Retail"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/amazon-sp-api-to-amazon-redshift-made-easy",
+      "before": "ICP SEO|Informational|Industry|Data Engineering|E-commerce & Retail",
+      "after": "ICP SEO|Informational|Industry|How To Articles|E-commerce & Retail"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/amazon-sp-api-to-google-bigquery-made-easy",
+      "before": "ICP SEO|Informational|Industry|Data Engineering|E-commerce & Retail",
+      "after": "ICP SEO|Informational|Industry|How To Articles|E-commerce & Retail"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/amazon-sp-api-to-snowflake-made-easy",
+      "before": "ICP SEO|Informational|Industry|Data Integration & Ingestion|E-commerce & Retail",
+      "after": "ICP SEO|Informational|Industry|How To Articles|E-commerce & Retail"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/amazon-vendor-central-to-google-bigquery-made-easy",
+      "before": "ICP SEO|Informational|Industry|General Data & Analytics|E-commerce & Retail",
+      "after": "ICP SEO|Informational|Industry|How To Articles|E-commerce & Retail"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/amazon-vendor-central-to-snowflake-made-easy",
+      "before": "ICP SEO|Informational|Industry|Data Integration & Ingestion|E-commerce & Retail",
+      "after": "ICP SEO|Informational|Industry|How To Articles|E-commerce & Retail"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/amazon-vendor-centraltoamazon-redshift-made-easy",
+      "before": "ICP SEO|Informational|Industry|General Data & Analytics|E-commerce & Retail",
+      "after": "ICP SEO|Informational|Industry|How To Articles|E-commerce & Retail"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/appsflyer-to-amazon-redshift-made-easy",
+      "before": "ICP SEO|Informational|Industry|General Data & Analytics|E-commerce & Retail",
+      "after": "ICP SEO|Informational|Industry|How To Articles|E-commerce & Retail"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/appsflyer-to-bigquery-made-easy",
+      "before": "ICP SEO|Informational|Technology|Data Integration & Ingestion|BigQuery",
+      "after": "ICP SEO|Informational|Technology|How To Articles|BigQuery"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/appsflyer-to-snowflake-made-easy",
+      "before": "ICP SEO|Informational|Technology|Data Integration & Ingestion|Snowflake",
+      "after": "ICP SEO|Informational|Technology|How To Articles|Snowflake"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/bigcommerce-to-amazon-redshift-made-easy",
+      "before": "ICP SEO|Informational|Industry|General Data & Analytics|E-commerce & Retail",
+      "after": "ICP SEO|Informational|Industry|How To Articles|E-commerce & Retail"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/bigcommerce-to-bigquery-made-easy",
+      "before": "ICP SEO|Informational|Technology|Data Integration & Ingestion|BigQuery",
+      "after": "ICP SEO|Informational|Technology|How To Articles|BigQuery"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/bing-ads-to-bigquery-made-easy",
+      "before": "ICP SEO|Informational|Technology|Data Integration & Ingestion|BigQuery",
+      "after": "ICP SEO|Informational|Technology|How To Articles|BigQuery"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/bing-ads-to-redshift-made-easy",
+      "before": "ICP SEO|Informational|Technology|Data Integration & Ingestion|Amazon Redshift",
+      "after": "ICP SEO|Informational|Technology|How To Articles|Amazon Redshift"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/bing-ads-to-snowflake-made-easy",
+      "before": "ICP SEO|Informational|Technology|Data Integration & Ingestion|Snowflake",
+      "after": "ICP SEO|Informational|Technology|How To Articles|Snowflake"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/bold-commerce-to-amazon-redshift-made-easy",
+      "before": "ICP SEO|Informational|Industry|General Data & Analytics|E-commerce & Retail",
+      "after": "ICP SEO|Informational|Industry|How To Articles|E-commerce & Retail"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/bold-commerce-to-google-bigquery-made-easy",
+      "before": "ICP SEO|Informational|Technology|General Data & Analytics|BigQuery",
+      "after": "ICP SEO|Informational|Technology|How To Articles|BigQuery"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/bold-commerce-to-snowflake-made-easy",
+      "before": "ICP SEO|Informational|Technology|Data Integration & Ingestion|Snowflake",
+      "after": "ICP SEO|Informational|Technology|How To Articles|Snowflake"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/chargebee-to-google-bigquery-made-easy",
+      "before": "ICP SEO|Informational|Technology|General Data & Analytics|BigQuery",
+      "after": "ICP SEO|Informational|Technology|How To Articles|BigQuery"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/chargebee-to-redshift-made-easy",
+      "before": "ICP SEO|Informational|Technology|Data Integration & Ingestion|Amazon Redshift",
+      "after": "ICP SEO|Informational|Technology|How To Articles|Amazon Redshift"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/constant-contact-to-google-bigquery-made-easy",
+      "before": "ICP SEO|Informational|Technology|General Data & Analytics|BigQuery",
+      "after": "ICP SEO|Informational|Technology|How To Articles|BigQuery"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/constant-contact-to-redshift-made-easy",
+      "before": "ICP SEO|Informational|Technology|Data Integration & Ingestion|Amazon Redshift",
+      "after": "ICP SEO|Informational|Technology|How To Articles|Amazon Redshift"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/constant-contact-to-snowflake-made-easy",
+      "before": "ICP SEO|Informational|Technology|Data Integration & Ingestion|Snowflake",
+      "after": "ICP SEO|Informational|Technology|How To Articles|Snowflake"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/criteo-to-amazon-redshift-made-easy",
+      "before": "ICP SEO|Informational|Industry|General Data & Analytics|E-commerce & Retail",
+      "after": "ICP SEO|Informational|Industry|How To Articles|E-commerce & Retail"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/criteo-to-google-bigquery-made-easy",
+      "before": "ICP SEO|Informational|Technology|General Data & Analytics|BigQuery",
+      "after": "ICP SEO|Informational|Technology|How To Articles|BigQuery"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/criteo-to-snowflake-made-easy",
+      "before": "ICP SEO|Informational|Technology|Data Integration & Ingestion|Snowflake",
+      "after": "ICP SEO|Informational|Technology|How To Articles|Snowflake"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/customer-io-to-amazon-redshift-made-easy",
+      "before": "ICP SEO|Informational|Industry|Customer Analytics|E-commerce & Retail",
+      "after": "ICP SEO|Informational|Industry|How To Articles|E-commerce & Retail"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/customerio-to-google-bigquery-made-easy",
+      "before": "ICP SEO|Informational|Technology|General Data & Analytics|BigQuery",
+      "after": "ICP SEO|Informational|Technology|How To Articles|BigQuery"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/customerio-to-snowflake-made-easy",
+      "before": "ICP SEO|Informational|Technology|Data Integration & Ingestion|Snowflake",
+      "after": "ICP SEO|Informational|Technology|How To Articles|Snowflake"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/dropbox-to-amazon-redshift-made-easy",
+      "before": "ICP SEO|Informational|Industry|General Data & Analytics|E-commerce & Retail",
+      "after": "ICP SEO|Informational|Industry|How To Articles|E-commerce & Retail"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/dropbox-to-bigquery-made-easy",
+      "before": "ICP SEO|Informational|Technology|Data Integration & Ingestion|BigQuery",
+      "after": "ICP SEO|Informational|Technology|How To Articles|BigQuery"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/dropbox-to-snowflake-made-easy",
+      "before": "ICP SEO|Informational|Technology|Data Integration & Ingestion|Snowflake",
+      "after": "ICP SEO|Informational|Technology|How To Articles|Snowflake"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/exotel-to-amazon-redshift-made-easy",
+      "before": "ICP SEO|Informational|Industry|General Data & Analytics|E-commerce & Retail",
+      "after": "ICP SEO|Informational|Industry|How To Articles|E-commerce & Retail"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/exotel-to-google-bigquery-made-easy",
+      "before": "ICP SEO|Informational|Technology|General Data & Analytics|BigQuery",
+      "after": "ICP SEO|Informational|Technology|How To Articles|BigQuery"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/exotel-to-snowflake-made-easy",
+      "before": "ICP SEO|Informational|Technology|Data Integration & Ingestion|Snowflake",
+      "after": "ICP SEO|Informational|Technology|How To Articles|Snowflake"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/facebook-ads-to-amazon-redshift-made-easy",
+      "before": "ICP SEO|Informational|Industry|General Data & Analytics|E-commerce & Retail",
+      "after": "ICP SEO|Informational|Industry|How To Articles|E-commerce & Retail"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/facebook-ads-to-google-bigquery-made-easy",
+      "before": "ICP SEO|Informational|Technology|General Data & Analytics|BigQuery",
+      "after": "ICP SEO|Informational|Technology|How To Articles|BigQuery"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/facebook-ads-to-snowflake-made-easy",
+      "before": "ICP SEO|Informational|Technology|Data Integration & Ingestion|Snowflake",
+      "after": "ICP SEO|Informational|Technology|How To Articles|Snowflake"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/firebase-to-amazon-redshift-made-easy",
+      "before": "ICP SEO|Informational|Industry|General Data & Analytics|E-commerce & Retail",
+      "after": "ICP SEO|Informational|Industry|How To Articles|E-commerce & Retail"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/firebase-to-google-bigquery-made-easy",
+      "before": "ICP SEO|Informational|Technology|General Data & Analytics|BigQuery",
+      "after": "ICP SEO|Informational|Technology|How To Articles|BigQuery"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/firebase-to-snowflake-made-easy",
+      "before": "ICP SEO|Informational|Technology|Data Integration & Ingestion|Snowflake",
+      "after": "ICP SEO|Informational|Technology|How To Articles|Snowflake"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/freshbooks-to-amazon-redshift-made-easy",
+      "before": "ICP SEO|Informational|Industry|General Data & Analytics|E-commerce & Retail",
+      "after": "ICP SEO|Informational|Industry|How To Articles|E-commerce & Retail"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/freshbooks-to-google-bigquery-made-easy",
+      "before": "ICP SEO|Informational|Technology|General Data & Analytics|BigQuery",
+      "after": "ICP SEO|Informational|Technology|How To Articles|BigQuery"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/freshbooks-to-snowflake-made-easy",
+      "before": "ICP SEO|Informational|Technology|Data Integration & Ingestion|Snowflake",
+      "after": "ICP SEO|Informational|Technology|How To Articles|Snowflake"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/freshdesk-to-google-bigquery-made-easy",
+      "before": "ICP SEO|Informational|Technology|General Data & Analytics|BigQuery",
+      "after": "ICP SEO|Informational|Technology|How To Articles|BigQuery"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/freshdesk-to-redshift-made-easy",
+      "before": "ICP SEO|Informational|Technology|Data Integration & Ingestion|Amazon Redshift",
+      "after": "ICP SEO|Informational|Technology|How To Articles|Amazon Redshift"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/freshsales-to-amazon-redshift-made-easy",
+      "before": "ICP SEO|Informational|Industry|General Data & Analytics|E-commerce & Retail",
+      "after": "ICP SEO|Informational|Industry|How To Articles|E-commerce & Retail"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/freshsales-to-bigquery-made-easy",
+      "before": "ICP SEO|Informational|Technology|Data Integration & Ingestion|BigQuery",
+      "after": "ICP SEO|Informational|Technology|How To Articles|BigQuery"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/freshsales-to-snowflake-made-easy",
+      "before": "ICP SEO|Informational|Technology|Data Integration & Ingestion|Snowflake",
+      "after": "ICP SEO|Informational|Technology|How To Articles|Snowflake"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/gcp-mysql-to-amazon-redshift-made-easy",
+      "before": "ICP SEO|Informational|Industry|General Data & Analytics|E-commerce & Retail",
+      "after": "ICP SEO|Informational|Industry|How To Articles|E-commerce & Retail"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/gcp-mysql-to-google-bigquery-made-easy",
+      "before": "ICP SEO|Informational|Technology|General Data & Analytics|BigQuery",
+      "after": "ICP SEO|Informational|Technology|How To Articles|BigQuery"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/gcp-mysql-to-snowflake-made-easy",
+      "before": "ICP SEO|Informational|Technology|Data Integration & Ingestion|Snowflake",
+      "after": "ICP SEO|Informational|Technology|How To Articles|Snowflake"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/gcp-postgresql-to-amazon-redshift-made-easy",
+      "before": "ICP SEO|Informational|Industry|General Data & Analytics|E-commerce & Retail",
+      "after": "ICP SEO|Informational|Industry|How To Articles|E-commerce & Retail"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/gcp-postgresql-to-google-bigquery-made-easy",
+      "before": "ICP SEO|Informational|Technology|General Data & Analytics|BigQuery",
+      "after": "ICP SEO|Informational|Technology|How To Articles|BigQuery"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/gcp-postgresql-to-snowflake-made-easy",
+      "before": "ICP SEO|Informational|Technology|Data Integration & Ingestion|Snowflake",
+      "after": "ICP SEO|Informational|Technology|How To Articles|Snowflake"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/gcs-to-amazon-redshift-made-easy",
+      "before": "ICP SEO|Informational|Industry|General Data & Analytics|E-commerce & Retail",
+      "after": "ICP SEO|Informational|Industry|How To Articles|E-commerce & Retail"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/gcs-to-google-bigquery-made-easy",
+      "before": "ICP SEO|Informational|Technology|General Data & Analytics|BigQuery",
+      "after": "ICP SEO|Informational|Technology|How To Articles|BigQuery"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/gcs-to-snowflake-made-easy",
+      "before": "ICP SEO|Informational|Technology|Data Integration & Ingestion|Snowflake",
+      "after": "ICP SEO|Informational|Technology|How To Articles|Snowflake"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/google-ads-to-amazon-redshift-made-easy",
+      "before": "ICP SEO|Informational|Industry|General Data & Analytics|E-commerce & Retail",
+      "after": "ICP SEO|Informational|Industry|How To Articles|E-commerce & Retail"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/google-ads-to-bigquery-made-easy",
+      "before": "ICP SEO|Informational|Technology|Data Integration & Ingestion|BigQuery",
+      "after": "ICP SEO|Informational|Technology|How To Articles|BigQuery"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/google-ads-to-snowflake-made-easy",
+      "before": "ICP SEO|Informational|Technology|Data Integration & Ingestion|Snowflake",
+      "after": "ICP SEO|Informational|Technology|How To Articles|Snowflake"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/google-analytics-to-redshift-made-easy",
+      "before": "ICP SEO|Informational|Technology|Data Integration & Ingestion|Amazon Redshift",
+      "after": "ICP SEO|Informational|Technology|How To Articles|Amazon Redshift"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/google-analytics-to-snowflake-made-easy",
+      "before": "ICP SEO|Informational|Technology|Data Integration & Ingestion|Snowflake",
+      "after": "ICP SEO|Informational|Technology|How To Articles|Snowflake"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/google-drive-to-amazon-redshift-made-easy",
+      "before": "ICP SEO|Informational|Industry|General Data & Analytics|E-commerce & Retail",
+      "after": "ICP SEO|Informational|Industry|How To Articles|E-commerce & Retail"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/google-drive-to-bigquery-made-easy",
+      "before": "ICP SEO|Informational|Technology|Data Integration & Ingestion|BigQuery",
+      "after": "ICP SEO|Informational|Technology|How To Articles|BigQuery"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/google-drive-to-snowflake-made-easy",
+      "before": "ICP SEO|Informational|Technology|Data Integration & Ingestion|Snowflake",
+      "after": "ICP SEO|Informational|Technology|How To Articles|Snowflake"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/google-play-console-to-amazon-redshift-made-easy",
+      "before": "ICP SEO|Informational|Industry|General Data & Analytics|E-commerce & Retail",
+      "after": "ICP SEO|Informational|Industry|How To Articles|E-commerce & Retail"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/google-play-console-to-bigquery-made-easy",
+      "before": "ICP SEO|Informational|Technology|Data Integration & Ingestion|BigQuery",
+      "after": "ICP SEO|Informational|Technology|How To Articles|BigQuery"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/google-play-to-snowflake-made-easy",
+      "before": "ICP SEO|Informational|Technology|Data Integration & Ingestion|Snowflake",
+      "after": "ICP SEO|Informational|Technology|How To Articles|Snowflake"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/google-search-console-to-amazon-redshift-made-easy",
+      "before": "ICP SEO|Informational|Industry|General Data & Analytics|E-commerce & Retail",
+      "after": "ICP SEO|Informational|Industry|How To Articles|E-commerce & Retail"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/google-search-console-to-bigquery-made-easy",
+      "before": "ICP SEO|Informational|Technology|Data Integration & Ingestion|BigQuery",
+      "after": "ICP SEO|Informational|Technology|Trends|BigQuery"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/google-search-console-to-snowflake-made-easy",
+      "before": "ICP SEO|Informational|Technology|Data Integration & Ingestion|Snowflake",
+      "after": "ICP SEO|Informational|Technology|How To Articles|Snowflake"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/how-to-connect-chargebee-to-snowflake-made-easy",
+      "before": "ICP SEO|Informational|Technology|Data Integration & Ingestion|Snowflake",
+      "after": "ICP SEO|Informational|Technology|How To Articles|Snowflake"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/hubspot-to-bigquery-made-easy",
+      "before": "ICP SEO|Informational|Technology|Data Integration & Ingestion|BigQuery",
+      "after": "ICP SEO|Informational|Technology|How To Articles|BigQuery"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/hubspot-to-redshift-made-easy",
+      "before": "ICP SEO|Informational|Technology|Data Integration & Ingestion|Amazon Redshift",
+      "after": "ICP SEO|Informational|Technology|How To Articles|Amazon Redshift"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/hubspot-to-snowflake-made-easy",
+      "before": "ICP SEO|Informational|Technology|Data Integration & Ingestion|Snowflake",
+      "after": "ICP SEO|Informational|Technology|How To Articles|Snowflake"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/intercom-to-google-bigquery-made-easy",
+      "before": "ICP SEO|Informational|Technology|General Data & Analytics|BigQuery",
+      "after": "ICP SEO|Informational|Technology|How To Articles|BigQuery"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/intercom-to-redshift-made-easy",
+      "before": "ICP SEO|Informational|Technology|Data Integration & Ingestion|Amazon Redshift",
+      "after": "ICP SEO|Informational|Technology|How To Articles|Amazon Redshift"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/intercom-to-snowflake-made-easy",
+      "before": "ICP SEO|Informational|Technology|Data Integration & Ingestion|Snowflake",
+      "after": "ICP SEO|Informational|Technology|How To Articles|Snowflake"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/jira-to-bigquery-made-easy",
+      "before": "ICP SEO|Informational|Technology|Data Integration & Ingestion|BigQuery",
+      "after": "ICP SEO|Informational|Technology|How To Articles|BigQuery"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/jira-to-redshift-made-easy",
+      "before": "ICP SEO|Informational|Technology|Data Integration & Ingestion|Amazon Redshift",
+      "after": "ICP SEO|Informational|Technology|How To Articles|Amazon Redshift"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/jira-to-snowflake-made-easy",
+      "before": "ICP SEO|Informational|Technology|Data Integration & Ingestion|Snowflake",
+      "after": "ICP SEO|Informational|Technology|How To Articles|Snowflake"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/klaviyo-to-google-bigquery-made-easy",
+      "before": "ICP SEO|Informational|Technology|General Data & Analytics|BigQuery",
+      "after": "ICP SEO|Informational|Technology|How To Articles|BigQuery"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/klaviyo-to-snowflake-made-easy",
+      "before": "ICP SEO|Informational|Technology|Data Integration & Ingestion|Snowflake",
+      "after": "ICP SEO|Informational|Technology|How To Articles|Snowflake"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/knowlarity-to-google-bigquery-made-easy",
+      "before": "ICP SEO|Informational|Technology|General Data & Analytics|BigQuery",
+      "after": "ICP SEO|Informational|Technology|How To Articles|BigQuery"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/knowlarity-to-redshift-made-easy",
+      "before": "ICP SEO|Informational|Technology|Data Integration & Ingestion|Amazon Redshift",
+      "after": "ICP SEO|Informational|Technology|How To Articles|Amazon Redshift"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/knowlarity-to-snowflake-made-easy",
+      "before": "ICP SEO|Informational|Technology|Data Integration & Ingestion|Snowflake",
+      "after": "ICP SEO|Informational|Technology|How To Articles|Snowflake"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/leadsquared-to-google-bigquery-made-easy",
+      "before": "ICP SEO|Informational|Technology|General Data & Analytics|BigQuery",
+      "after": "ICP SEO|Informational|Technology|How To Articles|BigQuery"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/leadsquared-to-redshift-made-easy",
+      "before": "ICP SEO|Informational|Technology|Data Integration & Ingestion|Amazon Redshift",
+      "after": "ICP SEO|Informational|Technology|How To Articles|Amazon Redshift"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/leadsquared-to-snowflake-made-easy",
+      "before": "ICP SEO|Informational|Technology|Data Integration & Ingestion|Snowflake",
+      "after": "ICP SEO|Informational|Technology|How To Articles|Snowflake"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/linkedin-ads-to-google-bigquery-made-easy",
+      "before": "ICP SEO|Informational|Technology|General Data & Analytics|BigQuery",
+      "after": "ICP SEO|Informational|Technology|How To Articles|BigQuery"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/linkedin-ads-to-redshift-made-easy",
+      "before": "ICP SEO|Informational|Technology|Data Integration & Ingestion|Amazon Redshift",
+      "after": "ICP SEO|Informational|Technology|How To Articles|Amazon Redshift"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/linkedin-ads-to-snowflake-made-easy",
+      "before": "ICP SEO|Informational|Technology|Data Integration & Ingestion|Snowflake",
+      "after": "ICP SEO|Informational|Technology|How To Articles|Snowflake"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/livechat-to-google-bigquery-made-easy",
+      "before": "ICP SEO|Informational|Technology|General Data & Analytics|BigQuery",
+      "after": "ICP SEO|Informational|Technology|How To Articles|BigQuery"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/livechat-to-snowflake-made-easy",
+      "before": "ICP SEO|Informational|Technology|Data Integration & Ingestion|Snowflake",
+      "after": "ICP SEO|Informational|Technology|How To Articles|Snowflake"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/magento-2-to-amazon-redshift-made-easy",
+      "before": "ICP SEO|Informational|Industry|General Data & Analytics|E-commerce & Retail",
+      "after": "ICP SEO|Informational|Industry|How To Articles|E-commerce & Retail"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/magento-2-to-bigquery-made-easy",
+      "before": "ICP SEO|Informational|Technology|Data Integration & Ingestion|BigQuery",
+      "after": "ICP SEO|Informational|Technology|How To Articles|BigQuery"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/magento-2-to-snowflake-made-easy",
+      "before": "ICP SEO|Informational|Technology|Data Integration & Ingestion|Snowflake",
+      "after": "ICP SEO|Informational|Technology|How To Articles|Snowflake"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/mailchimp-to-google-bigquery-made-easy",
+      "before": "ICP SEO|Informational|Technology|General Data & Analytics|BigQuery",
+      "after": "ICP SEO|Informational|Technology|How To Articles|BigQuery"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/mailchimp-to-redshift-made-easy",
+      "before": "ICP SEO|Informational|Technology|Data Integration & Ingestion|Amazon Redshift",
+      "after": "ICP SEO|Informational|Technology|How To Articles|Amazon Redshift"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/mailchimp-to-snowflake-made-easy",
+      "before": "ICP SEO|Informational|Technology|Data Integration & Ingestion|Snowflake",
+      "after": "ICP SEO|Informational|Technology|How To Articles|Snowflake"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/mixpanel-to-bigquery-made-easy",
+      "before": "ICP SEO|Informational|Technology|Data Integration & Ingestion|BigQuery",
+      "after": "ICP SEO|Informational|Technology|How To Articles|BigQuery"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/mysql-to-amazon-redshift-made-easy",
+      "before": "ICP SEO|Informational|Industry|General Data & Analytics|E-commerce & Retail",
+      "after": "ICP SEO|Informational|Industry|How To Articles|E-commerce & Retail"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/mysql-to-bigquery-made-easy",
+      "before": "ICP SEO|Informational|Technology|Data Integration & Ingestion|BigQuery",
+      "after": "ICP SEO|Informational|Technology|How To Articles|BigQuery"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/mysql-to-snowflake-made-easy",
+      "before": "ICP SEO|Informational|Technology|Data Integration & Ingestion|Snowflake",
+      "after": "ICP SEO|Informational|Technology|How To Articles|Snowflake"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/olabi-to-amazon-redshift-made-easy",
+      "before": "ICP SEO|Informational|Industry|General Data & Analytics|E-commerce & Retail",
+      "after": "ICP SEO|Informational|Industry|How To Articles|E-commerce & Retail"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/olabi-to-google-bigquery-made-easy",
+      "before": "ICP SEO|Informational|Technology|General Data & Analytics|BigQuery",
+      "after": "ICP SEO|Informational|Technology|How To Articles|BigQuery"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/olabi-to-snowflake-made-easy",
+      "before": "ICP SEO|Informational|Technology|Data Integration & Ingestion|Snowflake",
+      "after": "ICP SEO|Informational|Technology|How To Articles|Snowflake"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/optimove-to-google-bigquery-made-easy",
+      "before": "ICP SEO|Informational|Technology|General Data & Analytics|BigQuery",
+      "after": "ICP SEO|Informational|Technology|How To Articles|BigQuery"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/optimove-to-redshift-made-easy",
+      "before": "ICP SEO|Informational|Technology|Data Integration & Ingestion|Amazon Redshift",
+      "after": "ICP SEO|Informational|Technology|How To Articles|Amazon Redshift"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/optimove-to-snowflake-made-easy",
+      "before": "ICP SEO|Informational|Technology|Data Integration & Ingestion|Snowflake",
+      "after": "ICP SEO|Informational|Technology|How To Articles|Snowflake"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/outbrain-to-amazon-redshift-made-easy",
+      "before": "ICP SEO|Informational|Industry|General Data & Analytics|E-commerce & Retail",
+      "after": "ICP SEO|Informational|Industry|How To Articles|E-commerce & Retail"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/outbrain-to-google-bigquery-made-easy",
+      "before": "ICP SEO|Informational|Technology|General Data & Analytics|BigQuery",
+      "after": "ICP SEO|Informational|Technology|How To Articles|BigQuery"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/outbrain-to-snowflake-made-easy",
+      "before": "ICP SEO|Informational|Technology|Data Integration & Ingestion|Snowflake",
+      "after": "ICP SEO|Informational|Technology|How To Articles|Snowflake"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/pingdom-to-amazon-redshift-made-easy",
+      "before": "ICP SEO|Informational|Industry|General Data & Analytics|E-commerce & Retail",
+      "after": "ICP SEO|Informational|Industry|How To Articles|E-commerce & Retail"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/pingdom-to-google-bigquery-made-easy",
+      "before": "ICP SEO|Informational|Technology|General Data & Analytics|BigQuery",
+      "after": "ICP SEO|Informational|Technology|How To Articles|BigQuery"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/pingdom-to-snowflake-made-easy",
+      "before": "ICP SEO|Informational|Technology|Data Integration & Ingestion|Snowflake",
+      "after": "ICP SEO|Informational|Technology|How To Articles|Snowflake"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/postgresql-to-amazon-redshift-made-easy",
+      "before": "ICP SEO|Informational|Industry|General Data & Analytics|E-commerce & Retail",
+      "after": "ICP SEO|Informational|Industry|How To Articles|E-commerce & Retail"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/postgresql-to-bigquery-made-easy-7c26e",
+      "before": "ICP SEO|Informational|Technology|Data Integration & Ingestion|BigQuery",
+      "after": "ICP SEO|Informational|Technology|How To Articles|BigQuery"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/postgresql-to-snowflake-made-easy",
+      "before": "ICP SEO|Informational|Technology|Data Integration & Ingestion|Snowflake",
+      "after": "ICP SEO|Informational|Technology|How To Articles|Snowflake"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/pushengage-to-amazon-redshift-made-easy",
+      "before": "ICP SEO|Informational|Industry|General Data & Analytics|E-commerce & Retail",
+      "after": "ICP SEO|Informational|Industry|How To Articles|E-commerce & Retail"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/pushengage-to-google-bigquery-made-easy",
+      "before": "ICP SEO|Informational|Technology|General Data & Analytics|BigQuery",
+      "after": "ICP SEO|Informational|Technology|How To Articles|BigQuery"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/pushengage-to-snowflake-made-easy",
+      "before": "ICP SEO|Informational|Technology|Data Integration & Ingestion|Snowflake",
+      "after": "ICP SEO|Informational|Technology|How To Articles|Snowflake"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/quickbooks-to-amazon-redshift-made-easy",
+      "before": "ICP SEO|Informational|Industry|General Data & Analytics|E-commerce & Retail",
+      "after": "ICP SEO|Informational|Industry|How To Articles|E-commerce & Retail"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/quickbooks-to-google-bigquery-made-easy",
+      "before": "ICP SEO|Informational|Technology|General Data & Analytics|BigQuery",
+      "after": "ICP SEO|Informational|Technology|How To Articles|BigQuery"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/quickbooks-to-snowflake-made-easy",
+      "before": "ICP SEO|Informational|Technology|Data Integration & Ingestion|Snowflake",
+      "after": "ICP SEO|Informational|Technology|How To Articles|Snowflake"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/razorpay-to-google-bigquery-made-easy",
+      "before": "ICP SEO|Informational|Technology|General Data & Analytics|BigQuery",
+      "after": "ICP SEO|Informational|Technology|How To Articles|BigQuery"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/razorpay-to-redshift-made-easy",
+      "before": "ICP SEO|Informational|Technology|Data Integration & Ingestion|Amazon Redshift",
+      "after": "ICP SEO|Informational|Technology|How To Articles|Amazon Redshift"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/razorpay-to-snowflake-made-easy",
+      "before": "ICP SEO|Informational|Technology|Data Integration & Ingestion|Snowflake",
+      "after": "ICP SEO|Informational|Technology|How To Articles|Snowflake"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/rds-mysql-to-amazon-redshift-made-easy",
+      "before": "ICP SEO|Informational|Industry|General Data & Analytics|E-commerce & Retail",
+      "after": "ICP SEO|Informational|Industry|How To Articles|E-commerce & Retail"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/rds-postgresql-to-amazon-redshift-made-easy",
+      "before": "ICP SEO|Informational|Industry|General Data & Analytics|E-commerce & Retail",
+      "after": "ICP SEO|Informational|Industry|How To Articles|E-commerce & Retail"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/rds-postgresql-to-google-bigquery-made-easy",
+      "before": "ICP SEO|Informational|Technology|General Data & Analytics|BigQuery",
+      "after": "ICP SEO|Informational|Technology|How To Articles|BigQuery"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/rds-postgresql-to-snowflake-made-easy",
+      "before": "ICP SEO|Informational|Technology|Data Integration & Ingestion|Snowflake",
+      "after": "ICP SEO|Informational|Technology|How To Articles|Snowflake"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/rdssql-to-amazon-redshift-made-easy",
+      "before": "ICP SEO|Informational|Industry|General Data & Analytics|E-commerce & Retail",
+      "after": "ICP SEO|Informational|Industry|How To Articles|E-commerce & Retail"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/rdssql-to-google-bigquery-made-easy",
+      "before": "ICP SEO|Informational|Technology|General Data & Analytics|BigQuery",
+      "after": "ICP SEO|Informational|Technology|How To Articles|BigQuery"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/rdssql-to-snowflake-made-easy",
+      "before": "ICP SEO|Informational|Technology|Data Integration & Ingestion|Snowflake",
+      "after": "ICP SEO|Informational|Technology|How To Articles|Snowflake"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/recharge-payments-to-amazon-redshift-made-easy",
+      "before": "ICP SEO|Informational|Industry|General Data & Analytics|E-commerce & Retail",
+      "after": "ICP SEO|Informational|Industry|How To Articles|E-commerce & Retail"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/recharge-payments-to-snowflake-made-easy",
+      "before": "ICP SEO|Informational|Technology|Data Integration & Ingestion|Snowflake",
+      "after": "ICP SEO|Informational|Technology|How To Articles|Snowflake"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/salesforce-to-amazon-redshift-made-easy",
+      "before": "ICP SEO|Informational|Industry|General Data & Analytics|E-commerce & Retail",
+      "after": "ICP SEO|Informational|Industry|How To Articles|E-commerce & Retail"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/salesforce-to-bigquery-made-easy",
+      "before": "ICP SEO|Informational|Technology|Data Integration & Ingestion|BigQuery",
+      "after": "ICP SEO|Informational|Technology|How To Articles|BigQuery"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/salesforce-to-snowflake-made-easy",
+      "before": "ICP SEO|Informational|Technology|Data Integration & Ingestion|Snowflake",
+      "after": "ICP SEO|Informational|Technology|How To Articles|Snowflake"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/sendgrid-to-bigquery-made-easy",
+      "before": "ICP SEO|Informational|Technology|Data Integration & Ingestion|BigQuery",
+      "after": "ICP SEO|Informational|Technology|How To Articles|BigQuery"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/sendgrid-to-redshift-made-easy",
+      "before": "ICP SEO|Informational|Technology|Data Integration & Ingestion|Amazon Redshift",
+      "after": "ICP SEO|Informational|Technology|How To Articles|Amazon Redshift"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/sendgrid-to-snowflake-made-easy",
+      "before": "ICP SEO|Informational|Technology|Data Integration & Ingestion|Snowflake",
+      "after": "ICP SEO|Informational|Technology|How To Articles|Snowflake"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/shiprocket-to-amazon-redshift-made-easy",
+      "before": "ICP SEO|Informational|Industry|General Data & Analytics|E-commerce & Retail",
+      "after": "ICP SEO|Informational|Industry|How To Articles|E-commerce & Retail"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/shiprocket-to-google-bigquery-made-easy",
+      "before": "ICP SEO|Informational|Technology|General Data & Analytics|BigQuery",
+      "after": "ICP SEO|Informational|Technology|How To Articles|BigQuery"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/shiprocket-to-snowflake-made-easy",
+      "before": "ICP SEO|Informational|Technology|Data Integration & Ingestion|Snowflake",
+      "after": "ICP SEO|Informational|Technology|How To Articles|Snowflake"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/shopee-to-amazon-redshift-made-easy",
+      "before": "ICP SEO|Informational|Industry|General Data & Analytics|E-commerce & Retail",
+      "after": "ICP SEO|Informational|Industry|How To Articles|E-commerce & Retail"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/shopee-to-snowflake-made-easy",
+      "before": "ICP SEO|Informational|Technology|Data Integration & Ingestion|Snowflake",
+      "after": "ICP SEO|Informational|Technology|How To Articles|Snowflake"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/shopify-to-amazon-redshift-made-easy",
+      "before": "ICP SEO|Informational|Industry|General Data & Analytics|E-commerce & Retail",
+      "after": "ICP SEO|Informational|Industry|How To Articles|E-commerce & Retail"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/shopify-to-google-bigquery-made-easy",
+      "before": "ICP SEO|Informational|Industry|General Data & Analytics|E-commerce & Retail",
+      "after": "ICP SEO|Informational|Industry|How To Articles|E-commerce & Retail"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/shopify-to-snowflake-made-easy",
+      "before": "ICP SEO|Informational|Industry|Data Integration & Ingestion|E-commerce & Retail",
+      "after": "ICP SEO|Informational|Industry|How To Articles|E-commerce & Retail"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/stamped-io-to-google-bigquery-made-easy",
+      "before": "ICP SEO|Informational|Technology|General Data & Analytics|BigQuery",
+      "after": "ICP SEO|Informational|Technology|How To Articles|BigQuery"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/stamped-io-to-snowflake-made-easy",
+      "before": "ICP SEO|Informational|Technology|Data Integration & Ingestion|Snowflake",
+      "after": "ICP SEO|Informational|Technology|How To Articles|Snowflake"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/stampedio-to-amazon-redshift-made-easy",
+      "before": "ICP SEO|Informational|Industry|General Data & Analytics|E-commerce & Retail",
+      "after": "ICP SEO|Informational|Industry|How To Articles|E-commerce & Retail"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/stripe-to-amazon-redshift-made-easy",
+      "before": "ICP SEO|Informational|Industry|General Data & Analytics|E-commerce & Retail",
+      "after": "ICP SEO|Informational|Industry|How To Articles|E-commerce & Retail"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/stripe-to-google-bigquery-made-easy",
+      "before": "ICP SEO|Informational|Technology|General Data & Analytics|BigQuery",
+      "after": "ICP SEO|Informational|Technology|How To Articles|BigQuery"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/stripe-to-snowflake-made-easy",
+      "before": "ICP SEO|Informational|Technology|Data Integration & Ingestion|Snowflake",
+      "after": "ICP SEO|Informational|Technology|How To Articles|Snowflake"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/survey-monkey-to-amazon-redshift-made-easy",
+      "before": "ICP SEO|Informational|Industry|General Data & Analytics|E-commerce & Retail",
+      "after": "ICP SEO|Informational|Industry|How To Articles|E-commerce & Retail"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/surveymonkey-to-bigquery-made-easy",
+      "before": "ICP SEO|Informational|Technology|Data Integration & Ingestion|BigQuery",
+      "after": "ICP SEO|Informational|Technology|How To Articles|BigQuery"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/surveymonkey-to-snowflake-made-easy",
+      "before": "ICP SEO|Informational|Technology|Data Integration & Ingestion|Snowflake",
+      "after": "ICP SEO|Informational|Technology|How To Articles|Snowflake"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/teamwork-to-amazon-redshift-made-easy",
+      "before": "ICP SEO|Informational|Industry|General Data & Analytics|E-commerce & Retail",
+      "after": "ICP SEO|Informational|Industry|How To Articles|E-commerce & Retail"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/teamwork-to-google-bigquery-made-easy",
+      "before": "ICP SEO|Informational|Technology|General Data & Analytics|BigQuery",
+      "after": "ICP SEO|Informational|Technology|How To Articles|BigQuery"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/teamwork-to-snowflake-made-easy",
+      "before": "ICP SEO|Informational|Technology|Data Integration & Ingestion|Snowflake",
+      "after": "ICP SEO|Informational|Technology|How To Articles|Snowflake"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/tmall-to-amazon-redshift-made-easy",
+      "before": "ICP SEO|Informational|Industry|General Data & Analytics|E-commerce & Retail",
+      "after": "ICP SEO|Informational|Industry|How To Articles|E-commerce & Retail"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/tmall-to-google-bigquery-made-easy",
+      "before": "ICP SEO|Informational|Technology|General Data & Analytics|BigQuery",
+      "after": "ICP SEO|Informational|Technology|How To Articles|BigQuery"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/tmall-to-snowflake-made-easy",
+      "before": "ICP SEO|Informational|Technology|Data Integration & Ingestion|Snowflake",
+      "after": "ICP SEO|Informational|Technology|How To Articles|Snowflake"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/unicommerce-to-amazon-redshift-made-easy",
+      "before": "ICP SEO|Informational|Industry|General Data & Analytics|E-commerce & Retail",
+      "after": "ICP SEO|Informational|Industry|How To Articles|E-commerce & Retail"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/unicommerce-to-google-bigquery-made-easy",
+      "before": "ICP SEO|Informational|Technology|General Data & Analytics|BigQuery",
+      "after": "ICP SEO|Informational|Technology|How To Articles|BigQuery"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/unicommerce-to-snowflake-made-easy",
+      "before": "ICP SEO|Informational|Technology|Data Integration & Ingestion|Snowflake",
+      "after": "ICP SEO|Informational|Technology|How To Articles|Snowflake"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/upscribe-to-amazon-redshift-made-easy",
+      "before": "ICP SEO|Informational|Industry|General Data & Analytics|E-commerce & Retail",
+      "after": "ICP SEO|Informational|Industry|How To Articles|E-commerce & Retail"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/upscribe-to-snowflake-made-easy",
+      "before": "ICP SEO|Informational|Technology|Data Integration & Ingestion|Snowflake",
+      "after": "ICP SEO|Informational|Technology|How To Articles|Snowflake"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/vinculum-to-amazon-redshift-made-easy",
+      "before": "ICP SEO|Informational|Industry|General Data & Analytics|E-commerce & Retail",
+      "after": "ICP SEO|Informational|Industry|How To Articles|E-commerce & Retail"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/vinculum-to-google-bigquery-made-easy",
+      "before": "ICP SEO|Informational|Technology|General Data & Analytics|BigQuery",
+      "after": "ICP SEO|Informational|Technology|How To Articles|BigQuery"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/vinculum-to-snowflake-made-easy",
+      "before": "ICP SEO|Informational|Technology|Data Integration & Ingestion|Snowflake",
+      "after": "ICP SEO|Informational|Technology|How To Articles|Snowflake"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/walmart-to-amazon-redshift-made-easy",
+      "before": "ICP SEO|Informational|Industry|General Data & Analytics|E-commerce & Retail",
+      "after": "ICP SEO|Informational|Industry|How To Articles|E-commerce & Retail"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/walmart-to-google-bigquery-made-easy",
+      "before": "ICP SEO|Informational|Industry|General Data & Analytics|E-commerce & Retail",
+      "after": "ICP SEO|Informational|Industry|How To Articles|E-commerce & Retail"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/walmart-to-snowflake-made-easy",
+      "before": "ICP SEO|Informational|Industry|Data Integration & Ingestion|E-commerce & Retail",
+      "after": "ICP SEO|Informational|Industry|How To Articles|E-commerce & Retail"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/yahoo-gemini-to-amazon-redshift-made-easy",
+      "before": "ICP SEO|Informational|Industry|General Data & Analytics|E-commerce & Retail",
+      "after": "ICP SEO|Informational|Industry|How To Articles|E-commerce & Retail"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/yahoo-gemini-to-bigquery-made-easy",
+      "before": "ICP SEO|Informational|Technology|Data Integration & Ingestion|BigQuery",
+      "after": "ICP SEO|Informational|Technology|How To Articles|BigQuery"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/yahoo-gemini-to-snowflake-made-easy",
+      "before": "ICP SEO|Informational|Technology|Data Integration & Ingestion|Snowflake",
+      "after": "ICP SEO|Informational|Technology|How To Articles|Snowflake"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/zendesk-chat-to-bigquery-made-easy",
+      "before": "ICP SEO|Informational|Technology|Data Integration & Ingestion|BigQuery",
+      "after": "ICP SEO|Informational|Technology|How To Articles|BigQuery"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/zendesk-chat-to-snowflake-made-easy",
+      "before": "ICP SEO|Informational|Technology|Data Integration & Ingestion|Snowflake",
+      "after": "ICP SEO|Informational|Technology|How To Articles|Snowflake"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/zendesk-to-redshift-made-easy",
+      "before": "ICP SEO|Informational|Technology|Data Integration & Ingestion|Amazon Redshift",
+      "after": "ICP SEO|Informational|Technology|How To Articles|Amazon Redshift"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/zendesk-to-snowflake-made-easy",
+      "before": "ICP SEO|Informational|Technology|Data Integration & Ingestion|Snowflake",
+      "after": "ICP SEO|Informational|Technology|How To Articles|Snowflake"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/zendeskchat-to-amazon-redshift-made-easy",
+      "before": "ICP SEO|Informational|Industry|General Data & Analytics|E-commerce & Retail",
+      "after": "ICP SEO|Informational|Industry|How To Articles|E-commerce & Retail"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/zoho-crm-to-amazon-redshift-made-easy",
+      "before": "ICP SEO|Informational|Industry|General Data & Analytics|E-commerce & Retail",
+      "after": "ICP SEO|Informational|Industry|How To Articles|E-commerce & Retail"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/zoho-crm-to-bigquery-made-easy",
+      "before": "ICP SEO|Informational|Technology|Data Integration & Ingestion|BigQuery",
+      "after": "ICP SEO|Informational|Technology|How To Articles|BigQuery"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/zoho-crm-to-snowflake-made-easy",
+      "before": "ICP SEO|Informational|Technology|Data Integration & Ingestion|Snowflake",
+      "after": "ICP SEO|Informational|Technology|How To Articles|Snowflake"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/zoho-desk-to-redshift-made-easy",
+      "before": "ICP SEO|Informational|Technology|Data Integration & Ingestion|Amazon Redshift",
+      "after": "ICP SEO|Informational|Technology|How To Articles|Amazon Redshift"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/zohodesk-to-google-bigquery-made-easy",
+      "before": "ICP SEO|Informational|Technology|General Data & Analytics|BigQuery",
+      "after": "ICP SEO|Informational|Technology|How To Articles|BigQuery"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/zohodesk-to-snowflake-made-easy",
+      "before": "ICP SEO|Informational|Technology|Data Integration & Ingestion|Snowflake",
+      "after": "ICP SEO|Informational|Technology|How To Articles|Snowflake"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/how-to/zopim-to-google-bigquery-made-easy",
+      "before": "ICP SEO|Informational|Technology|General Data & Analytics|BigQuery",
+      "after": "ICP SEO|Informational|Technology|How To Articles|BigQuery"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/glossary/amazon-fba",
+      "before": "ICP SEO|Informational|Industry|General Data & Analytics|E-commerce & Retail",
+      "after": "ICP SEO|Informational|Industry|Guides|E-commerce & Retail"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/glossary/data-blending-ecommerce",
+      "before": "ICP SEO|Informational|Industry|General Data & Analytics|E-commerce & Retail",
+      "after": "ICP SEO|Informational|Industry|Guides|E-commerce & Retail"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/glossary/ecommerce-marketing-attribution",
+      "before": "ICP SEO|Informational|Industry|Marketing Analytics|E-commerce & Retail",
+      "after": "ICP SEO|Informational|Industry|How To Articles|E-commerce & Retail"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/glossary/omnichannel-retail-strategy",
+      "before": "ICP SEO|Informational|Industry|General Data & Analytics|E-commerce & Retail",
+      "after": "ICP SEO|Informational|Industry|How To Articles|E-commerce & Retail"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/glossary/oracle-database",
+      "before": "ICP SEO|Informational|Technology|Data Engineering|Data Stack Technology",
+      "after": "ICP SEO|Informational|Technology|Guides|Data Stack Technology"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/blog/ai-agent-ecommerce-operations",
+      "before": "ICP SEO|Informational|Industry|AI Analytics|E-commerce & Retail",
+      "after": "ICP SEO|Informational|Industry|Explainers|E-commerce & Retail"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/blog/ai-agents-for-ecommerce",
+      "before": "ICP SEO|Informational|Industry|AI Analytics|E-commerce & Retail",
+      "after": "ICP SEO|Informational|Industry|Explainers|E-commerce & Retail"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/blog/ai-hallucinations-and-bigquery",
+      "before": "ICP SEO|Informational|Technology|AI Analytics|BigQuery",
+      "after": "ICP SEO|Informational|Technology|How To Articles|BigQuery"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/blog/amazon-ads-conversion-rate",
+      "before": "ICP SEO|Informational|Industry|Marketing Analytics|E-commerce & Retail",
+      "after": "ICP SEO|Informational|Industry|Trends|E-commerce & Retail"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/blog/amazon-ads-dashboard",
+      "before": "ICP SEO|Informational|Industry|Reporting & BI|E-commerce & Retail",
+      "after": "ICP SEO|Informational|Industry|Topic vs Topic|E-commerce & Retail"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/blog/amazon-ads-mcp-amazon-seller-central-mcp",
+      "before": "ICP SEO|Informational|Industry|AI Analytics|E-commerce & Retail",
+      "after": "ICP SEO|Informational|Industry|Topic vs Topic|E-commerce & Retail"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/blog/amazon-advertising-api",
+      "before": "ICP SEO|Informational|Industry|Data Engineering|E-commerce & Retail",
+      "after": "ICP SEO|Informational|Industry|Guides|E-commerce & Retail"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/blog/amazon-advertising-cost-of-sale-acos",
+      "before": "ICP SEO|Informational|Industry|Marketing Analytics|E-commerce & Retail",
+      "after": "ICP SEO|Informational|Industry|Guides|E-commerce & Retail"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/blog/amazon-aggregators",
+      "before": "ICP SEO|Informational|Industry|General Data & Analytics|E-commerce & Retail",
+      "after": "ICP SEO|Informational|Industry|Explainers|E-commerce & Retail"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/blog/amazon-api",
+      "before": "ICP SEO|Informational|Industry|Data Engineering|E-commerce & Retail",
+      "after": "ICP SEO|Informational|Industry|Guides|E-commerce & Retail"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/blog/amazon-asin",
+      "before": "ICP SEO|Informational|Industry|General Data & Analytics|E-commerce & Retail",
+      "after": "ICP SEO|Informational|Industry|Guides|E-commerce & Retail"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/blog/amazon-attribution-guide",
+      "before": "ICP SEO|Informational|Industry|Marketing Analytics|E-commerce & Retail",
+      "after": "ICP SEO|Informational|Industry|Guides|E-commerce & Retail"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/blog/amazon-brand-analytics",
+      "before": "ICP SEO|Informational|Industry|Data Analysis|E-commerce & Retail",
+      "after": "ICP SEO|Informational|Industry|Guides|E-commerce & Retail"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/blog/amazon-brand-registry",
+      "before": "ICP SEO|Informational|Industry|General Data & Analytics|E-commerce & Retail",
+      "after": "ICP SEO|Informational|Industry|Guides|E-commerce & Retail"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/blog/amazon-business-reports",
+      "before": "ICP SEO|Informational|Industry|General Data & Analytics|E-commerce & Retail",
+      "after": "ICP SEO|Informational|Industry|How To Articles|E-commerce & Retail"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/blog/amazon-buybox",
+      "before": "ICP SEO|Informational|Industry|General Data & Analytics|E-commerce & Retail",
+      "after": "ICP SEO|Informational|Industry|Guides|E-commerce & Retail"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/blog/amazon-ctr",
+      "before": "ICP SEO|Informational|Industry|General Data & Analytics|E-commerce & Retail",
+      "after": "ICP SEO|Informational|Industry|Explainers|E-commerce & Retail"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/blog/amazon-glance-views",
+      "before": "ICP SEO|Informational|Industry|General Data & Analytics|E-commerce & Retail",
+      "after": "ICP SEO|Informational|Industry|How To Articles|E-commerce & Retail"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/blog/amazon-glossary",
+      "before": "ICP SEO|Informational|Industry|General Data & Analytics|E-commerce & Retail",
+      "after": "ICP SEO|Informational|Industry|Explainers|E-commerce & Retail"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/blog/amazon-kpi",
+      "before": "ICP SEO|Informational|Industry|Data Analysis|E-commerce & Retail",
+      "after": "ICP SEO|Informational|Industry|Guides|E-commerce & Retail"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/blog/amazon-order-defect-rate",
+      "before": "ICP SEO|Informational|Industry|General Data & Analytics|E-commerce & Retail",
+      "after": "ICP SEO|Informational|Industry|How To Articles|E-commerce & Retail"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/blog/amazon-ppc-advertising",
+      "before": "ICP SEO|Informational|Industry|General Data & Analytics|E-commerce & Retail",
+      "after": "ICP SEO|Informational|Industry|Guides|E-commerce & Retail"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/blog/amazon-rds-pros-and-cons",
+      "before": "ICP SEO|Informational|Industry|General Data & Analytics|E-commerce & Retail",
+      "after": "ICP SEO|Informational|Industry|Explainers|E-commerce & Retail"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/blog/amazon-roas",
+      "before": "ICP SEO|Informational|Industry|Marketing Analytics|E-commerce & Retail",
+      "after": "ICP SEO|Informational|Industry|How To Articles|E-commerce & Retail"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/blog/amazon-seller-central",
+      "before": "ICP SEO|Informational|Industry|General Data & Analytics|E-commerce & Retail",
+      "after": "ICP SEO|Informational|Industry|Guides|E-commerce & Retail"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/blog/amazon-seller-central-vs-vendor-central",
+      "before": "ICP SEO|Informational|Industry|General Data & Analytics|E-commerce & Retail",
+      "after": "ICP SEO|Informational|Industry|Topic vs Topic|E-commerce & Retail"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/blog/amazon-sponsored-products-vs-sponsored-brands",
+      "before": "ICP SEO|Informational|Industry|General Data & Analytics|E-commerce & Retail",
+      "after": "ICP SEO|Informational|Industry|Topic vs Topic|E-commerce & Retail"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/blog/amazon-tacos",
+      "before": "ICP SEO|Informational|Industry|General Data & Analytics|E-commerce & Retail",
+      "after": "ICP SEO|Informational|Industry|Explainers|E-commerce & Retail"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/blog/amazon-vendor-central-guide",
+      "before": "ICP SEO|Informational|Industry|General Data & Analytics|E-commerce & Retail",
+      "after": "ICP SEO|Informational|Industry|Topic vs Topic|E-commerce & Retail"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/blog/are-ecommerce-discounts-profitable",
+      "before": "ICP SEO|Informational|Industry|General Data & Analytics|E-commerce & Retail",
+      "after": "ICP SEO|Informational|Industry|How To Articles|E-commerce & Retail"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/blog/best-data-analytics-company-for-ecommerce-austin",
+      "before": "ICP SEO|Listicle|Industry|Data Analysis|E-commerce & Retail",
+      "after": "ICP SEO|Listicle|Industry|Explainers|E-commerce & Retail"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/blog/bigquery-mcp",
+      "before": "ICP SEO|Informational|Technology|AI Analytics|BigQuery",
+      "after": "ICP SEO|Informational|Technology|How To Articles|BigQuery"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/blog/calculate-contribution-margin-daily-without-shopify-reconciliation",
+      "before": "ICP SEO|Informational|Industry|Revenue & Profitability|E-commerce & Retail",
+      "after": "ICP SEO|Informational|Industry|How To Articles|E-commerce & Retail"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/blog/can-you-trust-your-ecommerce-contribution-margin",
+      "before": "ICP SEO|Informational|Industry|Revenue & Profitability|E-commerce & Retail",
+      "after": "ICP SEO|Informational|Industry|How To Articles|E-commerce & Retail"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/blog/claude-bigquery-mcp-shopify-channel-margin",
+      "before": "ICP SEO|Informational|Industry|Revenue & Profitability|E-commerce & Retail",
+      "after": "ICP SEO|Informational|Industry|Topic vs Topic|E-commerce & Retail"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/blog/customer-retention-strategy-by-amazon",
+      "before": "ICP SEO|Informational|Industry|Customer Analytics|E-commerce & Retail",
+      "after": "ICP SEO|Informational|Industry|Explainers|E-commerce & Retail"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/blog/data-maturity-for-d2c-brands",
+      "before": "ICP SEO|Informational|Industry|General Data & Analytics|E-commerce & Retail",
+      "after": "ICP SEO|Informational|Industry|Explainers|E-commerce & Retail"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/blog/data-scientist-or-data-analyst-in-cro-team",
+      "before": "ICP SEO|Informational|Role / Team|General Data & Analytics|Data & Analytics",
+      "after": "ICP SEO|Informational|Role / Team|Explainers|Data & Analytics"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/blog/dtc-brands-data-needs",
+      "before": "ICP SEO|Informational|Industry|General Data & Analytics|E-commerce & Retail",
+      "after": "ICP SEO|Informational|Industry|Explainers|E-commerce & Retail"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/blog/ecommerce-analytics-for-cfos",
+      "before": "ICP SEO|Informational|Industry|Data Analysis|E-commerce & Retail",
+      "after": "ICP SEO|Informational|Industry|Explainers|E-commerce & Retail"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/blog/ecommerce-analytics-for-founders",
+      "before": "ICP SEO|Informational|Industry|Data Analysis|E-commerce & Retail",
+      "after": "ICP SEO|Informational|Industry|Explainers|E-commerce & Retail"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/blog/ecommerce-attribution",
+      "before": "ICP SEO|Informational|Industry|Marketing Analytics|E-commerce & Retail",
+      "after": "ICP SEO|Informational|Industry|Explainers|E-commerce & Retail"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/blog/ecommerce-contribution-margin",
+      "before": "ICP SEO|Informational|Industry|Revenue & Profitability|E-commerce & Retail",
+      "after": "ICP SEO|Informational|Industry|How To Articles|E-commerce & Retail"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/blog/ecommerce-conversion-rate-optimization",
+      "before": "ICP SEO|Informational|Industry|Marketing Analytics|E-commerce & Retail",
+      "after": "ICP SEO|Informational|Industry|Explainers|E-commerce & Retail"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/blog/ecommerce-customer-acquisition",
+      "before": "ICP SEO|Informational|Industry|Customer Analytics|E-commerce & Retail",
+      "after": "ICP SEO|Informational|Industry|How To Articles|E-commerce & Retail"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/blog/ecommerce-customer-lifetime-value",
+      "before": "ICP SEO|Informational|Industry|Customer Analytics|E-commerce & Retail",
+      "after": "ICP SEO|Informational|Industry|How To Articles|E-commerce & Retail"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/blog/ecommerce-customer-retention",
+      "before": "ICP SEO|Informational|Industry|Customer Analytics|E-commerce & Retail",
+      "after": "ICP SEO|Informational|Industry|Explainers|E-commerce & Retail"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/blog/ecommerce-customer-segmentation",
+      "before": "ICP SEO|Informational|Industry|Customer Analytics|E-commerce & Retail",
+      "after": "ICP SEO|Informational|Industry|Explainers|E-commerce & Retail"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/blog/ecommerce-data-foundation-ready-for-ai",
+      "before": "ICP SEO|Informational|Industry|AI Analytics|E-commerce & Retail",
+      "after": "ICP SEO|Informational|Industry|How To Articles|E-commerce & Retail"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/blog/ecommerce-data-management",
+      "before": "ICP SEO|Informational|Industry|General Data & Analytics|E-commerce & Retail",
+      "after": "ICP SEO|Informational|Industry|How To Articles|E-commerce & Retail"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/blog/ecommerce-forecasting",
+      "before": "ICP SEO|Informational|Industry|General Data & Analytics|E-commerce & Retail",
+      "after": "ICP SEO|Informational|Industry|Guides|E-commerce & Retail"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/blog/ecommerce-kpi",
+      "before": "ICP SEO|Informational|Industry|Data Analysis|E-commerce & Retail",
+      "after": "ICP SEO|Informational|Industry|Explainers|E-commerce & Retail"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/blog/ecommerce-margin-leaks-returns-shipping-fees",
+      "before": "ICP SEO|Informational|Industry|Revenue & Profitability|E-commerce & Retail",
+      "after": "ICP SEO|Informational|Industry|How To Articles|E-commerce & Retail"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/blog/ecommerce-revenue-forecasts-miss-profit",
+      "before": "ICP SEO|Informational|Industry|Revenue & Profitability|E-commerce & Retail",
+      "after": "ICP SEO|Informational|Industry|How To Articles|E-commerce & Retail"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/blog/google-ads-mcp",
+      "before": "ICP SEO|Informational|Technology|AI Analytics|Data Stack Technology",
+      "after": "ICP SEO|Informational|Technology|Explainers|Data Stack Technology"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/blog/google-analytics-vs-adobe-analytics-which-one-should-you-use",
+      "before": "ICP SEO|Informational|Technology|Data Analysis|Data Stack Technology",
+      "after": "ICP SEO|Informational|Technology|Topic vs Topic|Data Stack Technology"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/blog/how-d2c-brands-can-build-resilience-in-trump-tariffs-era-with-supply-chain-uncertainty",
+      "before": "ICP SEO|Informational|Industry|General Data & Analytics|E-commerce & Retail",
+      "after": "ICP SEO|Informational|Industry|Explainers|E-commerce & Retail"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/blog/how-to-connect-claude-to-bigquery-for-ecommerce-data",
+      "before": "ICP SEO|Informational|Industry|Data Integration & Ingestion|E-commerce & Retail",
+      "after": "ICP SEO|Informational|Industry|How To Articles|E-commerce & Retail"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/blog/how-to-find-amazon-mws-merchant-auth-token",
+      "before": "ICP SEO|Informational|Industry|General Data & Analytics|E-commerce & Retail",
+      "after": "ICP SEO|Informational|Industry|How To Articles|E-commerce & Retail"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/blog/how-to-make-ai-answers-accurate-for-ecommerce",
+      "before": "ICP SEO|Informational|Industry|AI Analytics|E-commerce & Retail",
+      "after": "ICP SEO|Informational|Industry|How To Articles|E-commerce & Retail"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/blog/improving-data-analyst-productivity",
+      "before": "ICP SEO|Informational|Role / Team|General Data & Analytics|Data & Analytics",
+      "after": "ICP SEO|Informational|Role / Team|Explainers|Data & Analytics"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/blog/increase-average-order-value-ecommerce",
+      "before": "ICP SEO|Informational|Industry|General Data & Analytics|E-commerce & Retail",
+      "after": "ICP SEO|Informational|Industry|How To Articles|E-commerce & Retail"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/blog/introducing-saras-iq-ai-data-team-for-ecommerce",
+      "before": "ICP SEO|Informational|Role / Team|AI Analytics|Data & Analytics",
+      "after": "ICP SEO|Informational|Role / Team|Explainers|Data & Analytics"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/blog/is-safety-stock-locking-up-working-capital-across-your-ecommerce-warehouses",
+      "before": "ICP SEO|Informational|Industry|Revenue & Profitability|E-commerce & Retail",
+      "after": "ICP SEO|Informational|Industry|Explainers|E-commerce & Retail"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/blog/klaviyo-etl",
+      "before": "ICP SEO|Informational|Technology|Data Integration & Ingestion|Data Stack Technology",
+      "after": "ICP SEO|Informational|Technology|Topic vs Topic|Data Stack Technology"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/blog/lifetime-value-of-amazon-customers",
+      "before": "ICP SEO|Informational|Industry|Customer Analytics|E-commerce & Retail",
+      "after": "ICP SEO|Informational|Industry|Guides|E-commerce & Retail"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/blog/mcp-server-for-ecommerce-data",
+      "before": "ICP SEO|Informational|Industry|AI Analytics|E-commerce & Retail",
+      "after": "ICP SEO|Informational|Industry|How To Articles|E-commerce & Retail"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/blog/mda-reports-weekly-retail-analytics",
+      "before": "ICP SEO|Informational|Industry|Data Analysis|E-commerce & Retail",
+      "after": "ICP SEO|Informational|Industry|Explainers|E-commerce & Retail"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/blog/netsuite-shopify-amazon-do-you-need-all-three",
+      "before": "ICP SEO|Informational|Industry|General Data & Analytics|E-commerce & Retail",
+      "after": "ICP SEO|Informational|Industry|Explainers|E-commerce & Retail"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/blog/one-person-data-team-cons",
+      "before": "ICP SEO|Informational|Role / Team|General Data & Analytics|Data & Analytics",
+      "after": "ICP SEO|Informational|Role / Team|Explainers|Data & Analytics"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/blog/product-sequencing-in-ecommerce",
+      "before": "ICP SEO|Informational|Industry|General Data & Analytics|E-commerce & Retail",
+      "after": "ICP SEO|Informational|Industry|How To Articles|E-commerce & Retail"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/blog/pros-and-cons-of-amazon-redshift",
+      "before": "ICP SEO|Informational|Industry|General Data & Analytics|E-commerce & Retail",
+      "after": "ICP SEO|Informational|Industry|Explainers|E-commerce & Retail"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/blog/quickbooks-mcp-xero-mcp-ecommerce-brands",
+      "before": "ICP SEO|Informational|Industry|AI Analytics|E-commerce & Retail",
+      "after": "ICP SEO|Informational|Industry|Explainers|E-commerce & Retail"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/blog/retail-analytics-dashboard",
+      "before": "ICP SEO|Informational|Industry|Reporting & BI|E-commerce & Retail",
+      "after": "ICP SEO|Informational|Industry|How To Articles|E-commerce & Retail"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/blog/roas-cac-ltv-ecommerce-kpi",
+      "before": "ICP SEO|Informational|Industry|Customer Analytics|E-commerce & Retail",
+      "after": "ICP SEO|Informational|Industry|Topic vs Topic|E-commerce & Retail"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/blog/saras-iq-business-analyst",
+      "before": "ICP SEO|Informational|Role / Team|General Data & Analytics|Data & Analytics",
+      "after": "ICP SEO|Informational|Role / Team|Explainers|Data & Analytics"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/blog/scaling-ecommerce",
+      "before": "ICP SEO|Informational|Industry|General Data & Analytics|E-commerce & Retail",
+      "after": "ICP SEO|Informational|Industry|Explainers|E-commerce & Retail"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/blog/scenario-planning-ecommerce-forecast-accuracy",
+      "before": "ICP SEO|Informational|Industry|Forecasting & Planning|E-commerce & Retail",
+      "after": "ICP SEO|Informational|Industry|Explainers|E-commerce & Retail"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/blog/sellers-getting-more-out-of-amazon-ads",
+      "before": "ICP SEO|Informational|Industry|General Data & Analytics|E-commerce & Retail",
+      "after": "ICP SEO|Informational|Industry|Explainers|E-commerce & Retail"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/blog/shopify-analytics-dashboard",
+      "before": "ICP SEO|Informational|Industry|Reporting & BI|E-commerce & Retail",
+      "after": "ICP SEO|Informational|Industry|Guides|E-commerce & Retail"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/blog/shopify-cohort-analysis",
+      "before": "ICP SEO|Informational|Industry|Customer Analytics|E-commerce & Retail",
+      "after": "ICP SEO|Informational|Industry|How To Articles|E-commerce & Retail"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/blog/shopify-ltv",
+      "before": "ICP SEO|Informational|Industry|Customer Analytics|E-commerce & Retail",
+      "after": "ICP SEO|Informational|Industry|Explainers|E-commerce & Retail"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/blog/shopify-mcp-merchants",
+      "before": "ICP SEO|Informational|Industry|AI Analytics|E-commerce & Retail",
+      "after": "ICP SEO|Informational|Industry|How To Articles|E-commerce & Retail"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/blog/shopify-reports",
+      "before": "ICP SEO|Informational|Industry|General Data & Analytics|E-commerce & Retail",
+      "after": "ICP SEO|Informational|Industry|Guides|E-commerce & Retail"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/blog/shopify-stores-an-excellent-start-for-the-sellers",
+      "before": "ICP SEO|Informational|Industry|General Data & Analytics|E-commerce & Retail",
+      "after": "ICP SEO|Informational|Industry|How To Articles|E-commerce & Retail"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/blog/shopify-to-bigquery",
+      "before": "ICP SEO|Informational|Industry|Data Integration & Ingestion|E-commerce & Retail",
+      "after": "ICP SEO|Informational|Industry|Topic vs Topic|E-commerce & Retail"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/blog/single-source-of-truth-e-commerce-importance",
+      "before": "ICP SEO|Informational|Industry|General Data & Analytics|E-commerce & Retail",
+      "after": "ICP SEO|Informational|Industry|Explainers|E-commerce & Retail"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/blog/snowflake-and-snowflake-architecture",
+      "before": "ICP SEO|Informational|Technology|General Data & Analytics|Snowflake",
+      "after": "ICP SEO|Informational|Technology|Explainers|Snowflake"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/blog/snowflake-mcp",
+      "before": "ICP SEO|Informational|Technology|AI Analytics|Snowflake",
+      "after": "ICP SEO|Informational|Technology|How To Articles|Snowflake"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/blog/step-by-step-connecting-claude-to-your-ecommerce-data-warehouse",
+      "before": "ICP SEO|Informational|Industry|AI Analytics|E-commerce & Retail",
+      "after": "ICP SEO|Informational|Industry|How To Articles|E-commerce & Retail"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/blog/the-questions-ecommerce-brands-never-ask-about-data",
+      "before": "ICP SEO|Informational|Industry|General Data & Analytics|E-commerce & Retail",
+      "after": "ICP SEO|Informational|Industry|Explainers|E-commerce & Retail"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/blog/tiktok-ads-mcp",
+      "before": "ICP SEO|Informational|Technology|AI Analytics|Data Stack Technology",
+      "after": "ICP SEO|Informational|Technology|Explainers|Data Stack Technology"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/blog/tiktok-shop-analytics",
+      "before": "ICP SEO|Informational|Technology|Data Analysis|Data Stack Technology",
+      "after": "ICP SEO|Informational|Technology|Guides|Data Stack Technology"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/blog/tiktok-shop-seller-center",
+      "before": "ICP SEO|Informational|Industry|General Data & Analytics|E-commerce & Retail",
+      "after": "ICP SEO|Informational|Industry|Guides|E-commerce & Retail"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/blog/what-is-amazon-marketplace-web-services-api",
+      "before": "ICP SEO|Informational|Industry|Data Engineering|E-commerce & Retail",
+      "after": "ICP SEO|Informational|Industry|Explainers|E-commerce & Retail"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/blog/what-is-amazon-sp-api",
+      "before": "ICP SEO|Informational|Industry|Data Engineering|E-commerce & Retail",
+      "after": "ICP SEO|Informational|Industry|Explainers|E-commerce & Retail"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/blog/what-is-an-mcp-server-and-how-does-it-work-for-ecommerce-data",
+      "before": "ICP SEO|Informational|Industry|AI Analytics|E-commerce & Retail",
+      "after": "ICP SEO|Informational|Industry|Explainers|E-commerce & Retail"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/blog/why-daily-ecommerce-contribution-margin-breaks-at-month-end-close",
+      "before": "ICP SEO|Informational|Industry|Revenue & Profitability|E-commerce & Retail",
+      "after": "ICP SEO|Informational|Industry|How To Articles|E-commerce & Retail"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/blog/why-e-commerce-cfos-need-shared-definitions-not-more-dashboards",
+      "before": "ICP SEO|Informational|Industry|General Data & Analytics|E-commerce & Retail",
+      "after": "ICP SEO|Informational|Industry|Explainers|E-commerce & Retail"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/blog/why-fragmented-reporting-slows-every-dtc-brand",
+      "before": "ICP SEO|Informational|Industry|General Data & Analytics|E-commerce & Retail",
+      "after": "ICP SEO|Informational|Industry|Explainers|E-commerce & Retail"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/blog/why-most-20m-dtc-brands-regret-building-data-infrastructure-in-house",
+      "before": "ICP SEO|Informational|Industry|General Data & Analytics|E-commerce & Retail",
+      "after": "ICP SEO|Informational|Industry|Explainers|E-commerce & Retail"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/blog/why-your-llm-keeps-getting-ecommerce-data-wrong",
+      "before": "ICP SEO|Informational|Industry|General Data & Analytics|E-commerce & Retail",
+      "after": "ICP SEO|Informational|Industry|How To Articles|E-commerce & Retail"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/case-study/how-true-classic-reduced-klaviyo-data-cost-with-saras-daton",
+      "before": "ICP SEO|Informational|Technology|Revenue & Profitability|Data Stack Technology",
+      "after": "ICP SEO|Informational|Technology|Explainers|Data Stack Technology"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/case-study/nexus-brand-group",
+      "before": "ICP SEO|Informational|Industry|General Data & Analytics|E-commerce & Retail",
+      "after": "ICP SEO|Informational|Industry|Explainers|E-commerce & Retail"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/ebooks/turn-klaviyo-analytics-into-a-unified-ecommerce-growth-engine",
+      "before": "ICP SEO|Informational|Industry|Data Analysis|E-commerce & Retail",
+      "after": "ICP SEO|Informational|Industry|How To Articles|E-commerce & Retail"
+    },
+    {
+      "url": "https://www.sarasanalytics.com/events/nrf-retail-big-show",
+      "before": "ICP SEO|Informational|Industry|General Data & Analytics|E-commerce & Retail",
+      "after": "ICP SEO|Informational|Industry|Explainers|E-commerce & Retail"
     }
   ],
   "counts": {

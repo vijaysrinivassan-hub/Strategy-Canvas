@@ -13,6 +13,7 @@
     return '';
   };
   const sectionFor=(view,mode)=>({category:'Category',icp:'ICP',value:'Value'}[view]||'')+' '+String(mode||'aeo').toUpperCase();
+  const SEO_TOPIC_COLUMNS=['Guides','How To Articles','Explainers','Trends','Topic vs Topic'];
   let loadPromise=null,indexedSource=null,indexedRecords=[];
   function data(){return global.CompetitiveIntelligenceClassifications||null;}
   function buildIndex(source){
@@ -364,7 +365,7 @@
     const mode=viewId==='category'?(options.mode||'aeo'):(awareness==='solution-aware'?'aeo':'seo');
     const section=sectionFor(viewId,mode);
     const scope=[workspace,awareness,viewId,mode].join(':');
-    const revision=(data().classifiedAt||'classification')+':'+scope+':v6';
+    const revision=(data().classifiedAt||'classification')+':'+scope+':v7';
     root.sharedUrlRepositoryRevisions ||= {};
     if(root.sharedUrlRepositoryRevisions[scope]===revision&&hasScopedMappings(options.activeView,workspace,awareness,section))return false;
     const view=options.activeView,uid=options.uid||(()=>Math.random().toString(36).slice(2));
@@ -400,6 +401,15 @@
       row.cells[column.id]={...current,v:record.topic||record.hierarchy,url:'',mode,type:current.type||typeId(types,format),cfg:true,repositoryQueries:[spec]};
       linked++;
     });
+    if(mode==='seo'&&(viewId==='icp'||viewId==='value')){
+      SEO_TOPIC_COLUMNS.forEach(name=>ensureColumn(viewId,view,'informational',name,'seo',types));
+      const columns=columnsFor(view,'informational');
+      columns.sort((a,b)=>{
+        const ai=SEO_TOPIC_COLUMNS.indexOf(a.name),bi=SEO_TOPIC_COLUMNS.indexOf(b.name);
+        return (ai<0?SEO_TOPIC_COLUMNS.length:ai)-(bi<0?SEO_TOPIC_COLUMNS.length:bi);
+      });
+      view.pageOrders.informational=columns.map(column=>column.id);
+    }
     compactRepositoryCells(view,viewId);
     mappedRowsFirst(view,viewId);
     applyRepositoryStatuses({views:{[viewId]:view}});

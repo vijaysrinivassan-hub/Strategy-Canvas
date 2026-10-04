@@ -14,6 +14,14 @@ const pages=new Map((audit.results||[]).map(page=>[page.url.replace(/\/$/,''),pa
 if(profile.urls.length!==770||pages.size!==770)throw new Error(`Expected the complete 770-URL audit; profile=${profile.urls.length}, audit=${pages.size}.`);
 
 const clean=value=>String(value||'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
+const seoTopicAxis=(pathname,page)=>{
+  const text=clean([pathname,page?.title,page?.h1,page?.description].join(' '));
+  if(/(?:^|\s)(?:vs|versus)(?:\s|$)|comparison|compare/.test(text))return 'Topic vs Topic';
+  if(/trend|future|statistics|benchmark/.test(text))return 'Trends';
+  if(/^\/how-to\//i.test(pathname)||/how to|made easy|step by step/.test(text))return 'How To Articles';
+  if(/guide|checklist|playbook/.test(text))return 'Guides';
+  return 'Explainers';
+};
 const utility=/^\/(?:lp\/thank-you|thank-you|404|search|wp-json)(?:\/|$)/i;
 const comparison=pathname=>/^\/vs\//i.test(pathname)||/(?:^|\/)saras-(?:iq|pulse)-vs-[^/]+$/i.test(pathname);
 const competitorPricing={
@@ -92,6 +100,7 @@ for(const raw of profile.urls){
     const hierarchy=/ltv|lifetime value/.test(text)?'Customer Analytics':/pricing/.test(text)?'Revenue & Profitability':'Product Capabilities';
     apply(meta,{awareness:'solution-aware',section:'Value AEO',pageType:'Landing page',hierarchy,axis:'Capabilities'});delete meta.icpSegment;
   }
+  if(meta.section==='ICP SEO')meta.axis=seoTopicAxis(pathname,page);
   // AEO is commercial/list-led only. Any residual informational AEO record is
   // moved to the matching SEO section instead of being silently displayed.
   if(/^(?:ICP|Value) AEO$/.test(meta.section)&&meta.pageType==='Informational'){
