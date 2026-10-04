@@ -4,16 +4,16 @@
   if(typeof module==='object'&&module.exports)module.exports=api;
   else root.AiDataValueKeywords=api;
 })(typeof globalThis!=='undefined'?globalThis:this,function(){
-  const REVISION='ai-data-value-keyword-lenses-v3';
+  const REVISION='ai-data-value-keyword-lenses-v4';
   const CLIENT='AI Data Platform';
   const PRODUCT_ID='0jgsw8bx554d';
   const COUNTRY='us';
   const LENSES=['process','output','outcome','benefits','tools'];
   const departments=[
-    {id:'ai-icp-use-marketing',name:'Marketing'},
-    {id:'ai-icp-use-product',name:'Product'},
-    {id:'ai-icp-use-sales',name:'Sales'},
-    {id:'ai-icp-use-finance',name:'Finance'}
+    {id:'ai-icp-use-marketing',name:'Marketing',search:'marketing analytics',artifact:'marketing performance report',outcome:'marketing performance visibility',benefit:'improve marketing ROI'},
+    {id:'ai-icp-use-product',name:'Product',search:'product analytics',artifact:'product performance report',outcome:'product decision insight',benefit:'improve product decisions'},
+    {id:'ai-icp-use-sales',name:'Sales',search:'sales analytics',artifact:'sales performance report',outcome:'sales pipeline visibility',benefit:'improve sales performance'},
+    {id:'ai-icp-use-finance',name:'Finance',search:'financial analytics',artifact:'financial performance report',outcome:'profitability visibility',benefit:'improve financial decisions'}
   ];
   const processes=[
     {name:'Analysis',search:'data analysis',artifact:'analytics report',outcome:'decision insight',benefit:'improve decision quality'},
@@ -75,14 +75,33 @@
       ])
     };
   }
+  function headerLensKeywords(item){
+    const search=item.search,artifact=item.artifact,outcome=item.outcome,benefit=item.benefit;
+    return {
+      process:unique([search,'what is '+search,search+' methods','how '+search+' works','AI '+search]),
+      output:unique([artifact,artifact+' template',artifact+' example','automated '+artifact,artifact+' dashboard']),
+      outcome:unique([outcome,'how to achieve '+outcome,'measure '+outcome,'AI-powered '+outcome,outcome+' benchmarks']),
+      benefits:unique([benefit,'benefits of '+search,'business value of '+search,'how '+search+' improves decisions',search+' ROI']),
+      tools:unique([search+' tools',search+' software','AI '+search+' platform','best '+search+' tools',search+' solution'])
+    };
+  }
   const records=[];
   for(const process of processes)for(const department of departments){
     const byLens=lensKeywords(process,department);
     for(const lens of LENSES)for(const keyword of byLens[lens])records.push({process:process.name,department:department.name,columnId:department.id,lens,keyword});
   }
+  const headerRecords=[];
+  for(const process of processes){
+    const byLens=headerLensKeywords(process);
+    for(const lens of LENSES)for(const keyword of byLens[lens])headerRecords.push({scope:'row',name:process.name,lens,keyword});
+  }
+  for(const department of departments){
+    const byLens=headerLensKeywords(department);
+    for(const lens of LENSES)for(const keyword of byLens[lens])headerRecords.push({scope:'column',name:department.name,columnId:department.id,lens,keyword});
+  }
   const keywordKey=(keyword,country)=>normalize(keyword)+'|'+String(country||COUNTRY).toLowerCase();
   function keywordRows(){
-    return records.map(record=>({keyword:record.keyword,volume:null,kd:null,cpc:null,traffic_potential:null,parent_topic:record.process,intent:'I, C',country:COUNTRY}));
+    return [...records,...headerRecords].map(record=>({keyword:record.keyword,volume:null,kd:null,cpc:null,traffic_potential:null,parent_topic:record.process||record.name,intent:'I, C',country:COUNTRY}));
   }
   function matches(client,productId){return normalize(client)===normalize(CLIENT)&&String(productId||'')===PRODUCT_ID;}
   function apply(contentRoot,keywordRowsFromDb){
@@ -103,7 +122,18 @@
       const target=record.lens==='process'?(cell.kws ||= []):((cell.valueLensKeywords ||= {})[record.lens] ||= []);
       if(!target.map(String).includes(String(keyword.id))){target.push(keyword.id);changed=true;}
     }
+    const topicCell=holder=>holder.topicCell||=( {v:String(holder.name||''),url:'',mode:'aeo',type:'',on:false,aw:'',st:'',writtenBy:'',cfg:true,kws:[],valueLensKeywords:{}} );
+    for(const holder of [...rows,...columns]){
+      const scope=rows.includes(holder)?'row':'column',cell=topicCell(holder);
+      for(const lens of LENSES){
+        const desired=headerRecords.filter(record=>record.scope===scope&&record.lens===lens&&(scope==='row'?normalize(record.name)===normalize(holder.name):record.columnId===holder.id)).map(record=>byKeyword.get(keywordKey(record.keyword,COUNTRY))?.id).filter(id=>id!=null).map(String);
+        const current=(lens==='process'?(cell.kws||[]):((cell.valueLensKeywords||{})[lens]||[])).map(String);
+        if(JSON.stringify(current)!==JSON.stringify(desired)){
+          if(lens==='process')cell.kws=desired;else{cell.valueLensKeywords||={};cell.valueLensKeywords[lens]=desired;}changed=true;
+        }
+      }
+    }
     return changed;
   }
-  return {REVISION,CLIENT,PRODUCT_ID,COUNTRY,LENSES,departments,processes,records,lensKeywords,keywordRows,matches,apply};
+  return {REVISION,CLIENT,PRODUCT_ID,COUNTRY,LENSES,departments,processes,records,headerRecords,lensKeywords,headerLensKeywords,keywordRows,matches,apply};
 });
