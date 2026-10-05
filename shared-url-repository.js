@@ -74,6 +74,11 @@
     if(record.competitorId==='saras-analytics')return '';
     return saved.v||current.v||record.topic||record.hierarchy||'';
   }
+  function repositorySlug(record,current={},saved={}){
+    // The represented company's published URL owns Slug. Saved board state
+    // must never leave a competitor URL (or an old blank value) in its place.
+    return record.represented?record.url:(saved.url||current.url||'');
+  }
   const matrixGroup=(view,axis)=>{
     const name=normalizeName(axis);
     if(view==='value')return /benefit/.test(name)?'benefit':/capabilit/.test(name)?'cap':'use';
@@ -295,6 +300,8 @@
       if(!cell?.repositoryQueries?.length)return;
       const imported=resolve(cell.repositoryQueries,cell.repositoryUrlOverrides);
       const manualCount=Array.isArray(cell.pageUrls)?cell.pageUrls.filter(item=>String(item?.url||'').trim()).length:0;
+      const represented=imported.find(item=>item.represented);
+      if(represented)cell.url=represented.url;
       cell.st=imported.some(item=>item.covered)?'written':imported.length+manualCount>2?'plus_2':'for_review';
     })));
   }
@@ -348,7 +355,7 @@
     if(!root?.views||!productMatches(options.product)||!data())return false;
     const workspace=workspaceFor(options.product);
     if(workspace==='ai-data-platform')return installScopedMappings(root,types,{...options,workspace});
-    const revision=(data().classifiedAt||'classification')+':'+(global.AskLucaKeywordImport?.REVISION||'base')+':represented-title-v3';
+    const revision=(data().classifiedAt||'classification')+':'+(global.AskLucaKeywordImport?.REVISION||'base')+':represented-slug-v4';
     if(root.sharedUrlRepositoryRevision===revision)return false;
     const preserved=captureRepositoryState(root);
     clearPreviousMappings(root);
@@ -381,8 +388,7 @@
       const queries=Array.isArray(current.repositoryQueries)?current.repositoryQueries.slice():[];
       if(!queries.some(item=>JSON.stringify(item)===JSON.stringify(spec)))queries.push(spec);
       const awareness=viewId==='value'&&mode==='seo'?awarenessForGroup(valueSeoAwarenessGroup(record.axis)):'';
-      const representedUrl=record.represented?record.url:'';
-      row.cells[column.id]={...current,...saved,v:repositoryTitle(record,current,saved),url:saved.url||current.url||representedUrl,mode,type:saved.type||current.type||typeId(types,format),aw:saved.aw||current.aw||awareness,cfg:true,repositoryQueries:queries};linked++;
+      row.cells[column.id]={...current,...saved,v:repositoryTitle(record,current,saved),url:repositorySlug(record,current,saved),mode,type:saved.type||current.type||typeId(types,format),aw:saved.aw||current.aw||awareness,cfg:true,repositoryQueries:queries};linked++;
     });
     Object.entries(root.views).forEach(([viewId,view])=>compactRepositoryCells(view,viewId));
     const icpView=root.views.icp;
@@ -423,7 +429,7 @@
     // Include overlay imports in the persisted migration key. Otherwise a
     // board that already installed the Saras/base repository incorrectly
     // treats a newly shipped represented-company import as already applied.
-    const revision=(data().classifiedAt||'classification')+':'+(global.AskLucaKeywordImport?.REVISION||'base')+':'+scope+':v19';
+    const revision=(data().classifiedAt||'classification')+':'+(global.AskLucaKeywordImport?.REVISION||'base')+':'+scope+':v20';
     root.sharedUrlRepositoryRevisions ||= {};
     const view=options.activeView,uid=options.uid||(()=>Math.random().toString(36).slice(2));
     const fixedAiDataValueMatrix=workspace==='ai-data-platform'&&awareness==='solution-aware'&&viewId==='value'&&mode==='aeo';
@@ -449,7 +455,7 @@
         const spec={workspace,awareness,section:record.section,pageType:record.pageType,hierarchy:record.hierarchy,axis:record.axis,topicGroup:record.topicGroup};
         const queries=Array.isArray(current.repositoryQueries)?current.repositoryQueries.slice():[];
         if(!queries.some(query=>query.topicGroup===record.topicGroup))queries.push(spec);
-        row.cells[column.id]={...current,v:repositoryTitle(record,current),url:current.url||(record.represented?record.url:''),mode:'aeo',type:current.type||typeId(types,pageGroup(record.pageType)||'landing'),cfg:true,repositoryQueries:queries};
+        row.cells[column.id]={...current,v:repositoryTitle(record,current),url:repositorySlug(record,current),mode:'aeo',type:current.type||typeId(types,pageGroup(record.pageType)||'landing'),cfg:true,repositoryQueries:queries};
         linked++;
       });
       applyRepositoryStatuses({views:{value:view}});
@@ -497,7 +503,7 @@
       const current=row.cells[column.id]&&typeof row.cells[column.id]==='object'?row.cells[column.id]:{};
       const saved=preserved.get(record.topicGroup)||{};
       const spec={workspace,awareness,section:record.section,pageType:record.pageType,hierarchy:record.hierarchy,axis:record.axis,topicGroup:record.topicGroup};
-      row.cells[column.id]={...current,...saved,v:repositoryTitle(record,current,saved),url:saved.url||current.url||(record.represented?record.url:''),mode,type:saved.type||current.type||typeId(types,format),cfg:true,repositoryQueries:[spec]};
+      row.cells[column.id]={...current,...saved,v:repositoryTitle(record,current,saved),url:repositorySlug(record,current,saved),mode,type:saved.type||current.type||typeId(types,format),cfg:true,repositoryQueries:[spec]};
       linked++;
     });
     if(workspace==='ai-data-platform'&&awareness==='solution-aware'&&viewId==='icp'&&mode==='aeo'){
@@ -556,7 +562,7 @@
     const matrix=root?.views?.competitor,workspace=workspaceFor(options.product);if(!matrix||!workspace)return false;
     const imported=records().filter(record=>record.workspace===workspace&&record.awareness==='competitor-aware'&&record.section==='Competitor AEO');
     if(!imported.length)return false;
-    const scope=workspace+':competitor-aware',revision=(data()?.classifiedAt||'classification')+':'+(global.AskLucaKeywordImport?.REVISION||'base')+':competitor-v1';
+    const scope=workspace+':competitor-aware',revision=(data()?.classifiedAt||'classification')+':'+(global.AskLucaKeywordImport?.REVISION||'base')+':competitor-v2';
     root.sharedCompetitorUrlRepositoryRevisions ||= {};
     if(root.sharedCompetitorUrlRepositoryRevisions[scope]===revision)return false;
     const uid=options.uid||(()=>Math.random().toString(36).slice(2));matrix.rows ||= [];matrix.types ||= [];matrix.cells ||= {};matrix.comparisonCells ||= {};
@@ -566,7 +572,7 @@
       current=current&&typeof current==='object'?current:{};
       const queries=Array.isArray(current.repositoryQueries)?current.repositoryQueries.slice():[];
       if(!queries.some(query=>query.topicGroup===spec.topicGroup))queries.push(spec);
-      return {...current,v:repositoryTitle(record,current),url:current.url||(record.represented?record.url:''),mode:'aeo',type:current.type||articleType,aw:'Competitor aware',st:record.covered?'written':(current.st||'for_review'),cfg:true,repositoryQueries:queries,repositoryUrlOverrides:current.repositoryUrlOverrides||{}};
+      return {...current,v:repositoryTitle(record,current),url:repositorySlug(record,current),mode:'aeo',type:current.type||articleType,aw:'Competitor aware',st:record.covered?'written':(current.st||'for_review'),cfg:true,repositoryQueries:queries,repositoryUrlOverrides:current.repositoryUrlOverrides||{}};
     };
     for(const record of imported){
       const spec={workspace,awareness:record.awareness,section:record.section,pageType:record.pageType,hierarchy:record.hierarchy,axis:record.axis,topicGroup:record.topicGroup};

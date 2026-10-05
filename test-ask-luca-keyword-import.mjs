@@ -80,6 +80,13 @@ assert(firstProductCell,'Expected a populated Product pages cell.');
 assert.equal(firstProductCell.url,'https://ask-luca.com/blogs/what-is-luca-ai-the-ai-co-founder-for-e-commerce-explained');
 assert.equal(firstProductCell.st,'written');
 assert(repo.resolve(firstProductCell.repositoryQueries).every(record=>record.represented));
+// A stale saved competitor slug must not win when the Luca migration runs.
+firstProductCell.url='https://www.sarasanalytics.com/stale-competitor-slug';
+existingBoard.sharedUrlRepositoryRevisions['ai-data-platform:category-aware:product:aeo']=`${base.classifiedAt}:${context.globalThis.AskLucaKeywordImport.REVISION}:ai-data-platform:category-aware:product:aeo:v19`;
+repo.installMappings(existingBoard,types,{product:'AI Data Platform',contentView:'product',awareness:'category-aware',mode:'aeo',activeView:existingBoard.views.product,uid:()=>`repair-${++nextId}`,categoryTaxonomy:{primary:['E-commerce Data Analytics'],supporting:['Data Integration & ETL']}});
+const repairedProductCell=existingBoard.views.product.rows.filter(row=>row.pageGroup==='landing').map(row=>row.cells?.[productColumn.id]).find(cell=>repo.resolve(cell?.repositoryQueries||[]).some(record=>record.url==='https://ask-luca.com/blogs/what-is-luca-ai-the-ai-co-founder-for-e-commerce-explained'));
+assert.equal(repairedProductCell.url,'https://ask-luca.com/blogs/what-is-luca-ai-the-ai-co-founder-for-e-commerce-explained');
+assert.equal(repairedProductCell.st,'written');
 const featureColumn=existingBoard.views.product.pageColumns.landing.find(column=>column.name==='Feature pages');
 const firstSarasFeature=existingBoard.views.product.rows.filter(row=>row.pageGroup==='landing').map(row=>row.cells?.[featureColumn.id]).find(cell=>repo.resolve(cell?.repositoryQueries||[]).some(record=>record.competitorId==='saras-analytics'));
 assert(firstSarasFeature,'Expected Saras competitor evidence in Feature pages.');
