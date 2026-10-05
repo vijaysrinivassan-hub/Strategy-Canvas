@@ -7,7 +7,7 @@ from collections import defaultdict
 
 CLIENT = "AI Data Platform"
 PRODUCT_ID = "0jgsw8bx554d"
-REVISION = "ai-data-search-suggestions-v4"
+REVISION = "ai-data-search-suggestions-v5"
 
 PROCESSES = [
     "Analysis", "Descriptive analysis", "Diagnostic analysis", "Cohort analysis",
@@ -150,7 +150,7 @@ def build(paths):
 
 def emit(records, destination):
     payload = json.dumps(records, separators=(",", ":"), ensure_ascii=False)
-    source = f"""/* Generated from the five Ahrefs search-suggestion CSV exports supplied on 2026-10-04. */
+    source = f"""/* Generated from the Ahrefs CSV exports supplied through 2026-10-05. */
 (function(root,factory){{const api=factory();if(typeof module==='object'&&module.exports)module.exports=api;else root.AiDataSearchMetrics=api;}})(typeof globalThis!=='undefined'?globalThis:this,function(){{
 const REVISION={json.dumps(REVISION)},CLIENT={json.dumps(CLIENT)},PRODUCT_ID={json.dumps(PRODUCT_ID)},records={payload};
 const normalize=value=>String(value||'').trim().toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
@@ -167,7 +167,7 @@ function apply(root,keywordRowsFromDb){{
  for(const row of rows)for(const cell of Object.values(row.cells||{{}})){{const before=JSON.stringify([cell.kws,cell.valueLensKeywords]);cell.kws=(cell.kws||[]).filter(id=>!imported.has(String(id)));for(const lens of Object.keys(cell.valueLensKeywords||{{}}))cell.valueLensKeywords[lens]=(cell.valueLensKeywords[lens]||[]).filter(id=>!imported.has(String(id)));if(before!==JSON.stringify([cell.kws,cell.valueLensKeywords]))changed=true;}}
  const groups=new Map();
  for(const record of records){{if(!record.matrix_eligible)continue;const row=rowByName.get(normalize(record.process)),column=columnByName.get(normalize(record.department)),keyword=byKeyword.get(key(record.keyword,record.country));if(!row||!column||keyword?.id==null)continue;const groupKey=row.id+'|'+column.id+'|'+record.lens;if(!groups.has(groupKey))groups.set(groupKey,[]);groups.get(groupKey).push({{record,id:String(keyword.id)}});}}
- for(const row of rows)for(const column of columns)for(const lens of {json.dumps(LENSES)}){{row.cells||={{}};const cell=row.cells[column.id]&&typeof row.cells[column.id]==='object'?row.cells[column.id]:(row.cells[column.id]={{mode:'aeo',cfg:true,kws:[],pageUrls:[]}});const before=lensIds(cell,lens).map(String);const manual=before.filter(id=>{{const source=String(byId.get(id)?.source||'');return source&&source!=='ai-data-value-keyword-lenses'&&source!=='ai-data-search-suggestions-2026-10-04';}});const fallback=before.filter(id=>!manual.includes(id));const candidates=(groups.get(row.id+'|'+column.id+'|'+lens)||[]).sort((a,b)=>quality(b.record)-quality(a.record)||a.record.keyword.localeCompare(b.record.keyword)).map(item=>item.id);const next=[...new Set([...manual,...candidates,...fallback])].slice(0,Math.max(5,manual.length));if(JSON.stringify(before)!==JSON.stringify(next)){{putLens(cell,lens,next);changed=true;}}}}
+ for(const row of rows)for(const column of columns)for(const lens of {json.dumps(LENSES)}){{row.cells||={{}};const cell=row.cells[column.id]&&typeof row.cells[column.id]==='object'?row.cells[column.id]:(row.cells[column.id]={{mode:'aeo',cfg:true,kws:[],pageUrls:[]}});const before=lensIds(cell,lens).map(String);const manual=before.filter(id=>{{const source=String(byId.get(id)?.source||'');return source&&source!=='ai-data-value-keyword-lenses'&&!source.startsWith('ai-data-search-suggestions-');}});const fallback=before.filter(id=>!manual.includes(id));const candidates=(groups.get(row.id+'|'+column.id+'|'+lens)||[]).sort((a,b)=>quality(b.record)-quality(a.record)||a.record.keyword.localeCompare(b.record.keyword)).map(item=>item.id);const next=[...new Set([...manual,...candidates,...fallback])].slice(0,Math.max(5,manual.length));if(JSON.stringify(before)!==JSON.stringify(next)){{putLens(cell,lens,next);changed=true;}}}}
  return changed;
 }}
 return {{REVISION,CLIENT,PRODUCT_ID,records,keywordRows,matches,apply}};
