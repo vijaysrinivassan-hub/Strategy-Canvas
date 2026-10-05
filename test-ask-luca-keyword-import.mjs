@@ -62,6 +62,21 @@ for(const product of ['AI Data Platform','Capital Layer']){
   assert.equal(repo.installCompetitorMappings(root,types,{product,uid:()=>`competitor-${++nextId}`}),records.some(record=>record.workspace===repo.workspaceFor(product)&&record.section==='Competitor AEO'));
   collect(root);
 }
+const solutionIcpRoot=makeRoot('AI Data Platform'),solutionIcpView=solutionIcpRoot.views.icp;
+repo.installMappings(solutionIcpRoot,types,{product:'AI Data Platform',contentView:'icp',awareness:'solution-aware',mode:'aeo',activeView:solutionIcpView,uid:()=>`solution-icp-${++nextId}`,categoryTaxonomy:{primary:['Data Analysis'],supporting:['Data Integration & ETL']}});
+const solutionColumns=new Map(solutionIcpView.pageColumns.matrix.map(column=>[column.id,column]));
+const solutionPlacements=[];
+for(const row of solutionIcpView.rows)for(const [columnId,cell] of Object.entries(row.cells||{}))for(const record of repo.resolve(cell.repositoryQueries||[]).filter(item=>item.awareness==='solution-aware'))solutionPlacements.push({record,row,column:solutionColumns.get(columnId)});
+assert.equal(solutionPlacements.length,18);
+assert.deepEqual([...new Set(solutionPlacements.map(item=>item.row.repositorySuperHierarchy+'|'+item.row.repositoryHierarchy))],[
+  'Prime category|Data Analysis','Supporting category|Data Integration & ETL'
+]);
+const agentsPlacement=solutionPlacements.find(item=>item.record.url==='https://ask-luca.com/blogs/ai-agents-for-data-analysis');
+assert.equal(agentsPlacement?.row.repositorySuperHierarchy,'Prime category');
+assert.equal(agentsPlacement?.column.name,'E-commerce');
+const smbEtlPlacement=solutionPlacements.find(item=>item.record.url==='https://ask-luca.com/blogs/best-etl-tools-for-small-business');
+assert.equal(smbEtlPlacement?.row.repositorySuperHierarchy,'Supporting category');
+assert.equal(smbEtlPlacement?.column.name,'SMB');
 assert.equal(routed.size,140);
 assert.equal(routed.get('https://ask-luca.com/blogs/what-is-luca-ai-the-ai-co-founder-for-e-commerce-explained').v,'What Is Luca AI? The AI Co-Founder for E-commerce Explained');
 assert.equal(routed.get('https://ask-luca.com/blogs/luca-ai-vs-wayflyer').st,'written');

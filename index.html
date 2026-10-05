@@ -3027,7 +3027,7 @@
 <script src="keyword-assignments.js?v=value-lenses-v2"></script>
 <script src="keyword-page-tables.js?v=product-capabilities-v2"></script>
 <script src="keyword-columns.js?v=value-seo-category-axis-v28"></script>
-<script src="ai-data-icp-matrix.js?v=icp-solution-taxonomy-v16"></script>
+<script src="ai-data-icp-matrix.js?v=icp-solution-taxonomy-v17"></script>
 <script src="keyword-columns-ui.js"></script>
 <script src="high-priority-links.js"></script>
 <script src="eor-provider-india-keywords.js"></script>
@@ -3041,7 +3041,7 @@
 <script src="saras-analytics-organic-traffic.js?v=2026-10-04"></script>
 <script src="saras-analytics-competitive-intelligence.js?v=organic-traffic-v1"></script>
 <script src="competitive-intelligence.js?v=organic-traffic-v1"></script>
-<script src="shared-url-repository.js?v=represented-slug-v24"></script>
+<script src="shared-url-repository.js?v=represented-slug-v25"></script>
 <link rel="stylesheet" href="icp-workflows.css">
 <script src="icp-workflows.js"></script>
 <link rel="stylesheet" href="icp-table.css">
@@ -8305,7 +8305,7 @@ function renderGridTable(v, group, table){
     axisRow.className = 'icp-axis-row';
     const corner = matrixCornerActions(() => addGridColumn(group.id), () => addGridRow(group.id), 'Add column', 'Add row');
     corner.rowSpan = 2; corner.classList.add('icp-axis-corner');
-    if(isPositioningMatrix){corner.classList.add('icp-matrix-corner');const label=document.createElement('span');label.className='matrix-corner-label';label.textContent=state.contentView==='value'&&processTaxonomyRows.length?'Process / sub-process ↓\nDepartment →':state.contentView==='value'?'Process ↓\nValue dimension →':'Department ↓\nICP dimension →';corner.append(label);}
+    if(isPositioningMatrix){corner.classList.add('icp-matrix-corner');const label=document.createElement('span');label.className='matrix-corner-label';label.textContent=state.contentView==='value'&&processTaxonomyRows.length?'Process / sub-process ↓\nDepartment →':state.contentView==='value'?'Process ↓\nValue dimension →':solutionAwareRepositoryMatrix?'Category ↓\nICP dimension →':'Department ↓\nICP dimension →';corner.append(label);}
     axisRow.append(corner);
     const axes = isPositioningMatrix ? (state.contentView==='value' ? (processTaxonomyRows.length?[['use','Departments'],['benefit','Features'],['cap','Capabilities']]:[['use','Processes / Use cases'],['benefit','Nodal benefits'],['cap','Capabilities']]) : [['ind','Industry Pages'],['size','Company Size'],['process','Process / Use Case'],['ctry','Country'],['tech','Technology'],['role','Role / Team'],['people','People'],['input','Input']]) : KeywordColumns.ICP_AXIS_ORDER.map(axis=>[axis,KeywordColumns.ICP_AXIS_LABELS[axis]]);
     for (const [axis, label] of axes){

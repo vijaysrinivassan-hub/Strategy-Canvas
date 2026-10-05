@@ -114,7 +114,11 @@ assert.equal(afterSolution.flatMap(cell=>repo.resolve(cell.repositoryQueries||[]
 assert.equal(afterSolution.flatMap(cell=>repo.resolve(cell.repositoryQueries||[])).filter(row=>row.awareness==='solution-aware').length,11);
 const solutionRows=active.rows.filter(row=>Object.values(row.cells||{}).some(cell=>(cell.repositoryQueries||[]).some(query=>query.awareness==='solution-aware')));
 assert(solutionRows.length>0);
-assert(solutionRows.every(row=>row.repositorySuperHierarchy==='Category'&&row.repositoryHierarchy==='E-commerce Data Analytics'));
+assert.deepEqual([...new Set(solutionRows.map(row=>row.repositorySuperHierarchy+'|'+row.repositoryHierarchy))],[
+  'Prime category|Data Analysis',
+  'Supporting category|Data Integration & ETL'
+]);
+assert.equal(solutionRows[0].repositorySuperHierarchy,'Prime category');
 const solutionColumnIds=new Set(solutionRows.flatMap(row=>Object.keys(row.cells||{})));
 const solutionColumns=active.pageColumns.matrix.filter(column=>solutionColumnIds.has(column.id));
 assert(solutionColumns.some(column=>column.name==='E-commerce'&&column.matrixGroup==='ind'));
@@ -122,6 +126,14 @@ assert(solutionColumns.some(column=>column.name==='Agencies'&&column.matrixGroup
 assert(solutionColumns.some(column=>column.name==='Amazon'&&column.matrixGroup==='tech'));
 assert(solutionColumns.some(column=>column.name==='Enterprise'&&column.matrixGroup==='size'));
 assert(solutionColumns.some(column=>column.name==='Snowflake'&&column.matrixGroup==='tech'));
+const solutionCellFor=url=>solutionRows.flatMap(row=>Object.entries(row.cells||{}).map(([columnId,cell])=>({row,columnId,records:repo.resolve(cell.repositoryQueries||[])}))).find(item=>item.records.some(record=>record.url===url));
+const snowflakePlacement=solutionCellFor('https://www.sarasanalytics.com/blog/5-snowflake-etl-tools');
+assert.equal(snowflakePlacement?.row.repositorySuperHierarchy,'Supporting category');
+assert.equal(snowflakePlacement?.row.repositoryHierarchy,'Data Integration & ETL');
+assert.equal(active.pageColumns.matrix.find(column=>column.id===snowflakePlacement?.columnId)?.name,'Snowflake');
+const enterprisePlacement=solutionCellFor('https://www.sarasanalytics.com/blog/ecommerce-data-platform-for-enterprise');
+assert.equal(enterprisePlacement?.row.repositorySuperHierarchy,'Prime category');
+assert.equal(active.pageColumns.matrix.find(column=>column.id===enterprisePlacement?.columnId)?.name,'Enterprise');
 assert(!solutionColumns.some(column=>/country/i.test(column.name)));
 assert(active.pageColumns.matrix.some(column=>column.name==='SMB'&&column.matrixGroup==='size'));
 assert(active.pageColumns.matrix.some(column=>column.name==='People'&&column.matrixGroup==='people'));

@@ -3,7 +3,7 @@ import fs from 'node:fs';
 import Matrix from './ai-data-icp-matrix.js';
 import Columns from './keyword-columns.js';
 
-assert.equal(Matrix.data.revision,'ai-data-positioning-matrices-v18');
+assert.equal(Matrix.data.revision,'ai-data-positioning-matrices-v19');
 assert.equal(Matrix.data.icpColumns.length,11);
 assert.deepEqual([...new Set(Matrix.data.icpColumns.map(c=>c.matrixGroup))],['ind','tech','size','people','input']);
 assert.deepEqual(Matrix.data.icpColumns.slice(0,5).map(c=>[c.name,c.matrixGroup]),[
@@ -31,6 +31,7 @@ assert.match(Columns.strategyPrompt,/never copy an AI Layer product into Capital
 assert.match(Columns.strategyPrompt,/Agency-fit pages belong under Industry Pages/);
 assert.match(Columns.strategyPrompt,/Enterprise and SMB belong under Company Size/);
 assert.match(Columns.strategyPrompt,/Amazon belongs under Technology/);
+assert.match(Matrix.ICP_PROMPT,/Supporting category — Data Integration & ETL/);
 assert.match(Columns.strategyPrompt,/VALUE SEO CATEGORY AXIS/);
 assert.match(Columns.strategyPrompt,/same selected Maturity Axis category hierarchy/);
 assert.ok(Columns.names.category.includes('Integration pages'));

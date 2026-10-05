@@ -21,6 +21,7 @@
   const AI_DATA_ICP_OVERRIDES={
     'https://www.sarasanalytics.com/solutions/amazon-agencies':{hierarchy:'Industry',icpSegment:'Agencies',axis:'Agencies'},
     'https://www.sarasanalytics.com/solutions/amazon-brands':{hierarchy:'Technology',icpSegment:'Amazon',axis:'Amazon'},
+    'https://ask-luca.com/blogs/ai-agents-for-data-analysis':{hierarchy:'Industry',icpSegment:'E-commerce',axis:'E-commerce'},
     'https://www.sarasanalytics.com/lp/saras-iq-ai-analyst':{awareness:'category-aware',section:'Category AEO',pageType:'Landing page',hierarchy:'Saras iQ',axis:'Product pages',icpSegment:''}
   };
   let loadPromise=null,indexedSource=null,indexedOverlayRevision='',indexedRecords=[];
@@ -205,11 +206,12 @@
   };
   const categoryPlacement=(record,options,workspace)=>{
     const source=String(record.hierarchy||'').trim()||'Category';
+    const evidence=normalizeName([record.hierarchy,record.topic,record.url].join(' '));
     const taxonomy=options?.categoryTaxonomy||{};
     const primary=(taxonomy.primary||[]).map(String).map(value=>value.trim()).filter(Boolean);
     const supporting=(taxonomy.supporting||[]).map(String).map(value=>value.trim()).filter(Boolean);
     if(workspace==='ai-data-platform'){
-      if(/data integration|\betl\b|ingestion/.test(normalizeName(source)))return {hierarchy:'Data Integration & ETL',superHierarchy:'Supporting process'};
+      if(/data integration|\betl\b|ingestion|connector service/.test(evidence))return {hierarchy:'Data Integration & ETL',superHierarchy:'Supporting process'};
       return {hierarchy:primary[0]||'Data Analysis',superHierarchy:'Prime category'};
     }
     const support=supporting.find(value=>categoryMatch(source,value));
@@ -217,7 +219,7 @@
     const prime=primary.find(value=>categoryMatch(source,value))||primary[0];
     return {hierarchy:prime||source,superHierarchy:'Prime category'};
   };
-  const categoryRowRank=row=>row.repositorySuperHierarchy==='Prime category'?0:row.repositorySuperHierarchy==='Supporting process'?1:2;
+  const categoryRowRank=row=>row.repositorySuperHierarchy==='Prime category'?0:['Supporting process','Supporting category'].includes(row.repositorySuperHierarchy)?1:2;
   const usesRepositoryAxis=(viewId,group)=>viewId==='category'||(viewId==='icp'&&(group==='informational'||group==='matrix'))||(viewId==='value'&&group==='informational');
   const ICP_DIMENSION_ORDER=['Industry','Company size','Process / Use case','Country','Technology','Role / Team','General ICP'];
   const ICP_MATRIX_GROUP_ORDER=['ind','size','process','ctry','tech','role','people','input'];
@@ -283,7 +285,10 @@
             return categoryRowRank(a)-categoryRowRank(b)||String(a.repositoryHierarchy).localeCompare(String(b.repositoryHierarchy))||Number(a.repositoryRowSlot||0)-Number(b.repositoryRowSlot||0);
           }
           if(viewId==='value')return categoryRowRank(a)-categoryRowRank(b)||String(a.repositoryHierarchy).localeCompare(String(b.repositoryHierarchy))||Number(a.repositoryRowSlot||0)-Number(b.repositoryRowSlot||0);
-          if(group==='matrix'){const ar=PROCESS_DEPARTMENT_ORDER.indexOf(a.repositoryHierarchy),br=PROCESS_DEPARTMENT_ORDER.indexOf(b.repositoryHierarchy);return (ar<0?999:ar)-(br<0?999:br)||Number(a.repositoryRowSlot||0)-Number(b.repositoryRowSlot||0);}
+          if(group==='matrix'){
+            const categoryRank=categoryRowRank(a)-categoryRowRank(b);if(categoryRank)return categoryRank;
+            const ar=PROCESS_DEPARTMENT_ORDER.indexOf(a.repositoryHierarchy),br=PROCESS_DEPARTMENT_ORDER.indexOf(b.repositoryHierarchy);return (ar<0?999:ar)-(br<0?999:br)||Number(a.repositoryRowSlot||0)-Number(b.repositoryRowSlot||0);
+          }
           const ag=a.repositorySuperHierarchy||a.repositoryHierarchy,bg=b.repositorySuperHierarchy||b.repositoryHierarchy;
           const ar=ICP_DIMENSION_ORDER.indexOf(ag),br=ICP_DIMENSION_ORDER.indexOf(bg);
           if(ar!==br)return (ar<0?999:ar)-(br<0?999:br);
@@ -429,7 +434,7 @@
     // Include overlay imports in the persisted migration key. Otherwise a
     // board that already installed the Saras/base repository incorrectly
     // treats a newly shipped represented-company import as already applied.
-    const revision=(data().classifiedAt||'classification')+':'+(global.AskLucaKeywordImport?.REVISION||'base')+':'+scope+':v20';
+    const revision=(data().classifiedAt||'classification')+':'+(global.AskLucaKeywordImport?.REVISION||'base')+':'+scope+':v21';
     root.sharedUrlRepositoryRevisions ||= {};
     const view=options.activeView,uid=options.uid||(()=>Math.random().toString(36).slice(2));
     const fixedAiDataValueMatrix=workspace==='ai-data-platform'&&awareness==='solution-aware'&&viewId==='value'&&mode==='aeo';
@@ -488,9 +493,11 @@
       if(viewId==='value'&&mode==='seo'){column.awarenessGroup=valueSeoAwarenessGroup(record.axis);column.repositoryAwareness=awarenessForGroup(column.awarenessGroup);}
       const category=categoryPlacement(record,options,workspace);
       const categoryBasedValueSeo=viewId==='value'&&mode==='seo'&&['problem-unaware','problem-aware'].includes(awareness);
-      const rowHierarchy=(viewId==='product'||viewId==='category'||categoryBasedValueSeo)?category.hierarchy:isAiDataSolution?'E-commerce Data Analytics':
+      const solutionIcpCategory=isAiDataSolution&&viewId==='icp';
+      const rowHierarchy=(viewId==='product'||viewId==='category'||categoryBasedValueSeo||solutionIcpCategory)?category.hierarchy:isAiDataSolution?'E-commerce Data Analytics':
         viewId==='icp'&&mode==='seo'?(record.icpSegment||record.hierarchy||'General ICP'):(record.hierarchy||'General');
-      const rowSuperHierarchy=(viewId==='product'||viewId==='category'||categoryBasedValueSeo)?category.superHierarchy:isAiDataSolution?'Category':
+      const solutionIcpSuperHierarchy=category.superHierarchy==='Supporting process'?'Supporting category':category.superHierarchy;
+      const rowSuperHierarchy=(viewId==='product'||viewId==='category'||categoryBasedValueSeo)?category.superHierarchy:solutionIcpCategory?solutionIcpSuperHierarchy:isAiDataSolution?'Category':
         viewId==='icp'&&mode==='seo'?(record.hierarchy||'General ICP'):(viewId==='icp'?record.hierarchy:undefined);
       const slotKey=[group,rowHierarchy,column.id].join('|');
       // Source groupOrder can restart when several source dimensions collapse
