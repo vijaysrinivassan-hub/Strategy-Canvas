@@ -22,6 +22,10 @@ assert.ok(!html.includes('keywordAwarenessOpen'));
 assert.ok(!html.includes('awareness-card'));
 assert.ok(html.includes("const AWARENESS = ['Bofu Traffic', 'Tofu Traffic', 'Backlinks'];"));
 assert.ok(!html.includes("actorRow.className='gr-actor'"));
+assert.ok(html.includes('const ICP_SEO_CELL_PREVIEW_LIMIT = 5;'));
+assert.ok(html.includes("['problem-unaware','problem-aware'].includes(state.keywordAwareness)"));
+assert.ok(html.includes("more.textContent = overflow.expanded ? 'Show fewer cells' : 'Show ' + overflow.remaining + ' more cells';"));
+assert.ok(html.includes("keywordGridCellExpansions.add(overflow.expansionKey)"));
 
 const scripts = [...html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/g)]
   .map(match => match[1]).filter(source => source.trim());

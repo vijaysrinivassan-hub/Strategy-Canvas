@@ -2525,8 +2525,10 @@
 @media(max-width:760px){.awareness-picker{padding:32px 20px}.awareness-picker-cards{grid-template-columns:1fr}}
 .keyword-grid-pager{display:flex;align-items:center;justify-content:flex-end;gap:8px;padding:8px 16px;border-top:1px solid #dce4df;border-bottom:1px solid #dce4df;background:#f7faf8;color:#5f6e64;font-size:11px}
 .keyword-grid-pager strong{margin-right:auto;color:#26342b;font-size:11px;font-weight:700}
-.keyword-grid-pager button{min-width:68px;padding:5px 9px;background:#fff;border:1px solid #cfd9d1;color:#26342b;font-size:10px}
-.keyword-grid-pager button:disabled{opacity:.42}
+  .keyword-grid-pager button{min-width:68px;padding:5px 9px;background:#fff;border:1px solid #cfd9d1;color:#26342b;font-size:10px}
+  .keyword-grid-pager button:disabled{opacity:.42}
+  .keyword-cell-overflow{display:block;width:calc(100% + 24px);margin:10px -12px -12px;padding:8px 10px;border:0;border-radius:0;background:#171b19;color:#fff;font-size:10px;font-weight:800;letter-spacing:.03em;text-align:center}
+  .keyword-cell-overflow:hover{background:#28312b;color:#fff}
 .gr-author[data-author="old"]{background:#fff0d4 !important;color:#805000 !important;border-color:#d7a747 !important;font-weight:600}
 #clientKeywordPrompts{padding:20px;border-top:1px solid #dce4df}
 #clientKeywordPrompts textarea{display:block;width:100%;min-height:360px;margin:12px 0;padding:14px;font-family:inherit;font-size:13px;line-height:1.6;border:1px solid #cbd5ce;resize:vertical;color:#25382c;background:#fff}
@@ -3097,7 +3099,7 @@ const SUPABASE_URL = 'https://cskamgfvebryahkljlll.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_MdkD-TxMCIwlu69seSHA3Q_A39GADsK';
 const CLIENT_ID    = '1059013355751-6g50dsgm7df37htl2fdqrtlkh5hmrc0c.apps.googleusercontent.com';
 const ALLOWED      = ['vijaysrinivassan@gmail.com'];
-const BUILD        = 'v8.58';
+const BUILD        = 'v8.59';
 /* The v8.56 navigation regression could create this placeholder report on
    page load. Quarantine only rows created after that release; do not delete
    them, so an administrator can still recover or inspect them if necessary. */
@@ -5322,6 +5324,7 @@ async function openBoard(id, location){
   if (error){ toast('Could not open board: ' + error.message, true); return; }
   keywordCache.clear();
   kwRows = [];
+  keywordGridCellExpansions.clear();
   state.boardId = data.id;
   state.boardCreationArmed = false;
   state.boardRevision = data.updated_at;
@@ -8447,7 +8450,9 @@ function renderMatrixTopicCell(host,holder,ro,keywordLens){
 }
 
 const KEYWORD_GRID_PAGE_SIZE = 40;
+const ICP_SEO_CELL_PREVIEW_LIMIT = 5;
 const keywordGridPages = new Map();
+const keywordGridCellExpansions = new Set();
 function keywordGridPageKey(group){ return [state.boardId,state.clientProduct,state.tabs[CONTENT_TAB]?.activeKeywordNodeId || '',state.contentView,keywordMode,group.id].join('|'); }
 function renderGridTable(v, group, table){
   $('competitorComparison').hidden = true;
@@ -8588,9 +8593,52 @@ function renderGridTable(v, group, table){
       Object.values(row.cells || {}).some(cell =>
         (cell?.repositoryQueries || []).some(query => query.awareness === 'solution-aware')));
   }
+  const repositoryAxisKey = row => state.contentView === 'icp'
+    ? String(row.repositorySuperHierarchy || 'General ICP') + '|' + String(row.repositoryHierarchy || repositoryAxisFallback)
+    : String(row.repositoryHierarchy || repositoryAxisFallback);
+  const compactIcpSeoCells = !keywordStatusFilter.size && state.contentView === 'icp' && keywordMode === 'seo' &&
+    group.id === 'informational' && ['problem-unaware','problem-aware'].includes(state.keywordAwareness);
   let allGroupRows = sourceGroupRows;
-  if (keywordStatusFilter.size){
-    const repositoryAxisKey = row => state.contentView === 'icp' ? String(row.repositorySuperHierarchy || 'General ICP') + '|' + String(row.repositoryHierarchy || repositoryAxisFallback) : String(row.repositoryHierarchy || repositoryAxisFallback);
+  if (compactIcpSeoCells){
+    const compactBatches = new Map();
+    sourceGroupRows.forEach(function(row){
+      const key = repositoryAxisKey(row);
+      if (!compactBatches.has(key)) compactBatches.set(key,[]);
+      compactBatches.get(key).push(row);
+    });
+    allGroupRows = Array.from(compactBatches.entries()).flatMap(function([hierarchyKey,batch], batchIndex){
+      const lists = new Map(columns.map(col => [col.id,batch.filter(row => keywordCountCellFilled(row.cells?.[col.id]))]));
+      const shownByColumn = new Map(columns.map(function(col){
+        const rows = lists.get(col.id) || [];
+        const expansionKey = keywordGridPageKey(group) + '|intersection|' + hierarchyKey + '|' + col.id;
+        return [col.id,{rows,expansionKey,expanded:keywordGridCellExpansions.has(expansionKey),shown:keywordGridCellExpansions.has(expansionKey)?rows.length:Math.min(ICP_SEO_CELL_PREVIEW_LIMIT,rows.length)}];
+      }));
+      const packedCount = Math.max(1,...Array.from(shownByColumn.values(),item => item.shown));
+      return Array.from({length:packedCount},function(_,index){
+        const compactSources = {}, compactControls = {};
+        columns.forEach(function(col){
+          const item = shownByColumn.get(col.id);
+          const sourceRow = item?.rows[index];
+          if (sourceRow) compactSources[col.id] = sourceRow;
+          if (!item || item.rows.length <= ICP_SEO_CELL_PREVIEW_LIMIT || !sourceRow) return;
+          const controlIndex = item.expanded ? item.rows.length - 1 : item.shown - 1;
+          if (index === controlIndex) compactControls[col.id] = {
+            expansionKey:item.expansionKey,
+            expanded:item.expanded,
+            remaining:item.rows.length - item.shown
+          };
+        });
+        const compactTopicRow = Object.values(compactSources)[0] || batch[0] || null;
+        return {
+          id:'icp-seo-compact-' + group.id + '-' + batchIndex + '-' + index,
+          pageGroup:group.id,
+          repositoryHierarchy:compactTopicRow?.repositoryHierarchy || batch[0]?.repositoryHierarchy || repositoryAxisFallback,
+          repositorySuperHierarchy:compactTopicRow?.repositorySuperHierarchy || batch[0]?.repositorySuperHierarchy,
+          cells:{}, compactSources, compactControls, compactTopicRow
+        };
+      });
+    });
+  } else if (keywordStatusFilter.size){
     const hierarchyBatches = isRepositoryRowAxis
       ? [...new Set(sourceGroupRows.map(repositoryAxisKey))].map(key => sourceGroupRows.filter(row => repositoryAxisKey(row) === key))
       : [sourceGroupRows];
@@ -8623,14 +8671,15 @@ function renderGridTable(v, group, table){
     });
   }
   const pageKey = keywordGridPageKey(group);
-  const pageCount = Math.max(1, Math.ceil(allGroupRows.length / KEYWORD_GRID_PAGE_SIZE));
+  const pageSize = compactIcpSeoCells ? Math.max(1,allGroupRows.length) : KEYWORD_GRID_PAGE_SIZE;
+  const pageCount = Math.max(1, Math.ceil(allGroupRows.length / pageSize));
   const page = Math.min(Math.max(0, keywordGridPages.get(pageKey) || 0), pageCount - 1);
   keywordGridPages.set(pageKey, page);
-  const rowOffset = page * KEYWORD_GRID_PAGE_SIZE;
-  const groupRows = allGroupRows.slice(rowOffset, rowOffset + KEYWORD_GRID_PAGE_SIZE);
+  const rowOffset = page * pageSize;
+  const groupRows = allGroupRows.slice(rowOffset, rowOffset + pageSize);
   if (pageCount > 1){
     const pager = document.createElement('nav'); pager.className = 'keyword-grid-pager'; pager.setAttribute('aria-label', group.label + ' pages');
-    const range = document.createElement('strong'); range.textContent = 'Rows ' + (rowOffset + 1) + '\u2013' + Math.min(rowOffset + KEYWORD_GRID_PAGE_SIZE, allGroupRows.length) + ' of ' + allGroupRows.length;
+    const range = document.createElement('strong'); range.textContent = 'Rows ' + (rowOffset + 1) + '\u2013' + Math.min(rowOffset + pageSize, allGroupRows.length) + ' of ' + allGroupRows.length;
     const position = document.createElement('span'); position.textContent = 'Page ' + (page + 1) + ' of ' + pageCount;
     const previous = document.createElement('button'); previous.type = 'button'; previous.textContent = 'Previous'; previous.disabled = page === 0;
     const next = document.createElement('button'); next.type = 'button'; next.textContent = 'Next'; next.disabled = page >= pageCount - 1;
@@ -8638,8 +8687,8 @@ function renderGridTable(v, group, table){
     previous.onclick = function(){ changePage(page - 1); }; next.onclick = function(){ changePage(page + 1); };
     pager.append(range, position, previous, next); table.before(pager);
   }
-  const icpSeoHierarchy = row => String((row.statusFilterTopicRow || row).repositoryHierarchy || repositoryAxisFallback);
-  const icpSeoSuperHierarchy = row => String((row.statusFilterTopicRow || row).repositorySuperHierarchy || '');
+  const icpSeoHierarchy = row => String((row.statusFilterTopicRow || row.compactTopicRow || row).repositoryHierarchy || repositoryAxisFallback);
+  const icpSeoSuperHierarchy = row => String((row.statusFilterTopicRow || row.compactTopicRow || row).repositorySuperHierarchy || '');
   const icpSeoAxisKey = row => icpSeoSuperHierarchy(row) + '|' + icpSeoHierarchy(row);
   const icpSeoRowSpan = index => {
     if (!isRepositoryRowAxis) return 1;
@@ -8680,8 +8729,9 @@ function renderGridTable(v, group, table){
     if (appendRowHeader) tr.append(num);
 
     columns.forEach(function(col, ci){
-      const sourceRow = row.statusFilterSources?.[col.id] || row;
-      if (row.statusFilterSources && !row.statusFilterSources[col.id]){
+      const packedSources = row.statusFilterSources || row.compactSources;
+      const sourceRow = packedSources?.[col.id] || row;
+      if (packedSources && !packedSources[col.id]){
         const td = document.createElement('td');
         td.className = 'gr-cell empty';
         td.setAttribute('aria-hidden','true');
@@ -8775,6 +8825,21 @@ function renderGridTable(v, group, table){
         onTypeChange: renderGrid,
         rerender: renderGrid
       });
+
+      const overflow = row.compactControls?.[col.id];
+      if (overflow){
+        const more = document.createElement('button');
+        more.type = 'button';
+        more.className = 'keyword-cell-overflow';
+        more.textContent = overflow.expanded ? 'Show fewer cells' : 'Show ' + overflow.remaining + ' more cells';
+        more.setAttribute('aria-expanded',String(overflow.expanded));
+        more.onclick = function(){
+          if (overflow.expanded) keywordGridCellExpansions.delete(overflow.expansionKey);
+          else keywordGridCellExpansions.add(overflow.expansionKey);
+          renderGrid();
+        };
+        td.append(more);
+      }
 
       tr.append(td);
     });
