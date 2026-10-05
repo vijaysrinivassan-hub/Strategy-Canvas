@@ -1089,7 +1089,7 @@ data.valueRows=[{
   keywordIdeas:[item.name.toLowerCase()],processLevel:'subprocess',parentProcess:analysisTaxonomy.name,
   cells:(legacy?copy(legacy.cells.slice(0,data.valueColumns.length)):emptyValueCells()).map(cell=>({...cell,title:''}))};
 })];
-data.icpPrompt=ICP_PROMPT;data.valuePrompt=VALUE_PROMPT;data.routingPrompt=DATA_IMPORT_PROMPT+'\n\n'+ROUTING_PROMPT;
+data.icpPrompt=ICP_PROMPT;data.valuePrompt=VALUE_PROMPT+'\n\nCURRENT BUILD ORDER: Populate only the Process keyword lens. Keep Output, Outcome, Benefits and Tools available as empty toggles until the user explicitly requests the next build.';data.routingPrompt=DATA_IMPORT_PROMPT+'\n\n'+ROUTING_PROMPT;
 const blankCell=(sourceRow,sourceCell,column,kind)=>({v:sourceCell.title,url:'',mode:'aeo',type:'',on:false,aw:'',st:'',writtenBy:'',cfg:true,kws:[],keywordIdeas:copy(sourceCell.keywordIdeas),actorType:sourceCell.actorType,actor:sourceCell.actor,icpSource:{kind:kind||'sample-matrix',row:sourceRow.name,column:column.name}});
 const matrixRows=view=>(view.rows||[]).filter(row=>row.pageGroup==='matrix');
 const columnKey=value=>String(value||'').trim().toLowerCase().replace(/[^a-z0-9]+/g,' ');

@@ -41,7 +41,7 @@ const db = Metrics.keywordRows().map((row, index) => ({...row, id:`search-metric
 const seedDb = ValueSeed.keywordRows().map((row, index) => ({...row, id:`value-seed-${index}`,source:'ai-data-value-keyword-lenses'}));
 assert.equal(ValueSeed.apply(content, seedDb), true);
 assert.equal(Metrics.apply(content, [...seedDb, ...db]), true);
-assert.equal(ValueSeed.apply(content, [...seedDb, ...db], {processOnly:true}), true);
+assert.equal(ValueSeed.apply(content, [...seedDb, ...db], {processOnly:true,clearOtherLenses:true}), true);
 const assigned = [];
 for (const row of content.views.value.rows.filter(row => row.pageGroup === 'matrix')) {
   for (const cell of Object.values(row.cells || {})) {
@@ -58,16 +58,14 @@ assert(!importedAssignments.includes(`search-metric-${Metrics.records.indexOf(no
 const lenses = ['process','output','outcome','benefits','tools'];
 const idsFor = (cell, lens) => lens === 'process' ? (cell.kws || []) : (cell.valueLensKeywords?.[lens] || []);
 assert(content.views.value.rows.filter(row=>row.pageGroup==='matrix').flatMap(row=>Object.values(row.cells||{})).every(cell=>idsFor(cell,'process').length>=25));
-assert(content.views.value.rows.filter(row=>row.pageGroup==='matrix').flatMap(row=>Object.values(row.cells||{})).every(cell=>['output','outcome','benefits','tools'].every(lens=>idsFor(cell,lens).length<=5)));
+assert(content.views.value.rows.filter(row=>row.pageGroup==='matrix').flatMap(row=>Object.values(row.cells||{})).every(cell=>['output','outcome','benefits','tools'].every(lens=>idsFor(cell,lens).length===0)));
 const matrixRows = content.views.value.rows.filter(row => row.pageGroup === 'matrix');
 const matrixColumns = content.views.value.pageColumns.matrix;
 for (const holder of [...matrixRows, ...matrixColumns]) {
-  const signatures = lenses.map(lens => {
+  for(const lens of lenses){
     const ids = idsFor(holder.topicCell, lens);
-    assert.equal(ids.length, 5, `${holder.name} ${lens}`);
-    return [...ids].sort().join('|');
-  });
-  assert.equal(new Set(signatures).size, 5, `${holder.name} must have five different header sets`);
+    assert.equal(ids.length, lens==='process'?5:0, `${holder.name} ${lens}`);
+  }
 }
 
 const html = fs.readFileSync(new URL('./index.html', import.meta.url), 'utf8');
@@ -81,5 +79,6 @@ assert(html.includes('for (let from = 0; from < toInsert.length; from += 400)'))
 assert(html.includes('for (let from = 0; from < toUpdate.length; from += 20)'));
 assert(html.includes('function renderMatrixTopicCell(host,holder,ro,keywordLens)'));
 assert(html.includes("keywordLens:keywordLens||''"));
+assert(html.includes('{processOnly:true,clearOtherLenses:true}'));
 
 console.log('PASS: all 2,613 suggestions retain their metrics while only ranked, relevant terms enter five-keyword matrix cells.');

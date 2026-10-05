@@ -3031,7 +3031,7 @@
 <script src="keyword-columns-ui.js"></script>
 <script src="high-priority-links.js"></script>
 <script src="eor-provider-india-keywords.js"></script>
-<script src="ai-data-value-keywords.js?v=value-keywords-v5"></script>
+<script src="ai-data-value-keywords.js?v=value-keywords-v6"></script>
 <script src="ai-data-search-metrics.js?v=search-metrics-v4"></script>
 <script src="competitor-comparison.js?v=status-color-v2"></script>
 <link rel="stylesheet" href="competitive-intelligence.css?v=organic-traffic-v1">
@@ -6384,7 +6384,7 @@ async function ensureAiDataSearchMetricsSeed(){
     const metricChanged=api.apply(root,kwRows);
     // Metrics may rank a short top-five list, but the Value AEO process lens
     // must retain its five sub-subprocess groups with five variants each.
-    const hierarchyChanged=globalThis.AiDataValueKeywords?.apply(root,kwRows,{processOnly:true})||false;
+    const hierarchyChanged=globalThis.AiDataValueKeywords?.apply(root,kwRows,{processOnly:true,clearOtherLenses:true})||false;
     root.aiDataSearchMetricsRevision=api.REVISION;
     markDirty();
     await saveBoard(true);

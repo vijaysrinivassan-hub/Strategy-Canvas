@@ -4,7 +4,7 @@
   if(typeof module==='object'&&module.exports)module.exports=api;
   else root.AiDataValueKeywords=api;
 })(typeof globalThis!=='undefined'?globalThis:this,function(){
-  const REVISION='ai-data-value-keyword-lenses-v5';
+  const REVISION='ai-data-value-keyword-lenses-v6';
   const CLIENT='AI Data Platform';
   const PRODUCT_ID='0jgsw8bx554d';
   const COUNTRY='us';
@@ -210,18 +210,16 @@
   }
   const records=[];
   for(const process of processes)for(const department of departments){
-    const byLens=lensKeywords(process,department);
     for(const group of processIntentGroups(process,department))for(const keyword of group.keywords)records.push({process:process.name,department:department.name,columnId:department.id,lens:'process',intentGroup:group.name,keyword});
-    for(const lens of LENSES.filter(lens=>lens!=='process'))for(const keyword of byLens[lens])records.push({process:process.name,department:department.name,columnId:department.id,lens,keyword});
   }
   const headerRecords=[];
   for(const process of processes){
     const byLens=headerLensKeywords(process);
-    for(const lens of LENSES)for(const keyword of byLens[lens])headerRecords.push({scope:'row',name:process.name,lens,keyword});
+    for(const keyword of byLens.process)headerRecords.push({scope:'row',name:process.name,lens:'process',keyword});
   }
   for(const department of departments){
     const byLens=headerLensKeywords(department);
-    for(const lens of LENSES)for(const keyword of byLens[lens])headerRecords.push({scope:'column',name:department.name,columnId:department.id,lens,keyword});
+    for(const keyword of byLens.process)headerRecords.push({scope:'column',name:department.name,columnId:department.id,lens:'process',keyword});
   }
   const keywordKey=(keyword,country)=>normalize(keyword)+'|'+String(country||COUNTRY).toLowerCase();
   function keywordRows(){
@@ -236,6 +234,16 @@
     const columnByName=new Map(columns.map(column=>[normalize(column.name),column]));
     const byKeyword=new Map((keywordRowsFromDb||[]).map(row=>[keywordKey(row.keyword,row.country),row]));
     let changed=false;
+    if(!options.processOnly||options.clearOtherLenses){
+      for(const cell of rows.flatMap(row=>Object.values(row.cells||{}))){
+        cell.valueLensKeywords ||= {};
+        for(const lens of LENSES.filter(lens=>lens!=='process'))if((cell.valueLensKeywords[lens]||[]).length){cell.valueLensKeywords[lens]=[];changed=true;}
+      }
+      for(const holder of [...rows,...columns]){
+        const cell=holder.topicCell;if(!cell)continue;cell.valueLensKeywords ||= {};
+        for(const lens of LENSES.filter(lens=>lens!=='process'))if((cell.valueLensKeywords[lens]||[]).length){cell.valueLensKeywords[lens]=[];changed=true;}
+      }
+    }
     for(const record of records){
       if(options.processOnly&&record.lens!=='process')continue;
       const row=rowByName.get(normalize(record.process));
@@ -250,7 +258,7 @@
     const topicCell=holder=>holder.topicCell||=( {v:String(holder.name||''),url:'',mode:'aeo',type:'',on:false,aw:'',st:'',writtenBy:'',cfg:true,kws:[],valueLensKeywords:{}} );
     for(const holder of [...rows,...columns]){
       const scope=rows.includes(holder)?'row':'column',cell=topicCell(holder);
-      for(const lens of (options.processOnly?['process']:LENSES)){
+      for(const lens of ['process']){
         const desired=headerRecords.filter(record=>record.scope===scope&&record.lens===lens&&(scope==='row'?normalize(record.name)===normalize(holder.name):record.columnId===holder.id)).map(record=>byKeyword.get(keywordKey(record.keyword,COUNTRY))?.id).filter(id=>id!=null).map(String);
         const current=(lens==='process'?(cell.kws||[]):((cell.valueLensKeywords||{})[lens]||[])).map(String);
         if(JSON.stringify(current)!==JSON.stringify(desired)){
