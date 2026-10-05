@@ -18,10 +18,10 @@
   // top of the imported sitemap classification. The source export is a large
   // generated artifact; this overlay is the durable source of truth used by
   // every matrix and preserves the original import for audit purposes.
-  const AI_DATA_ICP_OVERRIDES={
+  const AI_DATA_URL_OVERRIDES={
     'https://www.sarasanalytics.com/solutions/amazon-agencies':{hierarchy:'Industry',icpSegment:'Agencies',axis:'Agencies'},
     'https://www.sarasanalytics.com/solutions/amazon-brands':{hierarchy:'Technology',icpSegment:'Amazon',axis:'Amazon'},
-    'https://ask-luca.com/blogs/ai-agents-for-data-analysis':{hierarchy:'Industry',icpSegment:'E-commerce',axis:'E-commerce'},
+    'https://ask-luca.com/blogs/ai-agents-for-data-analysis':{awareness:'category-aware',section:'Category AEO',pageType:'Listicle',hierarchy:'Data Analysis',axis:'Category Synonyms',icpSegment:''},
     'https://www.sarasanalytics.com/lp/saras-iq-ai-analyst':{awareness:'category-aware',section:'Category AEO',pageType:'Landing page',hierarchy:'Saras iQ',axis:'Product pages',icpSegment:''}
   };
   let loadPromise=null,indexedSource=null,indexedOverlayRevision='',indexedRecords=[];
@@ -35,7 +35,7 @@
     const classifications=new Map(Object.entries(source.classifications||{}));
     Object.entries(overlay?.classifications||{}).forEach(([url,meta])=>classifications.set(url,meta));
     indexedRecords=[...classifications].map(([url,sourceMeta])=>{
-      const meta={...sourceMeta,...(AI_DATA_ICP_OVERRIDES[normalizeUrl(url)]||{})};
+      const meta={...sourceMeta,...(AI_DATA_URL_OVERRIDES[normalizeUrl(url)]||{})};
       const owner=owners.get(normalizeUrl(url))||{};
       const measuredTraffic=owner.competitorId==='saras-analytics'?global.SarasAnalyticsOrganicTraffic?.trafficFor(url):null;
       return {id:normalizeUrl(url),url,traffic:measuredTraffic==null?(meta.traffic||''):String(measuredTraffic),shared:true,competitorId:owner.competitorId||'',competitor:owner.competitor||'',workspace:meta.workspace||owner.workspace||'aeo-agency',awareness:meta.awareness||'',
@@ -434,7 +434,7 @@
     // Include overlay imports in the persisted migration key. Otherwise a
     // board that already installed the Saras/base repository incorrectly
     // treats a newly shipped represented-company import as already applied.
-    const revision=(data().classifiedAt||'classification')+':'+(global.AskLucaKeywordImport?.REVISION||'base')+':'+scope+':v21';
+    const revision=(data().classifiedAt||'classification')+':'+(global.AskLucaKeywordImport?.REVISION||'base')+':'+scope+':v22';
     root.sharedUrlRepositoryRevisions ||= {};
     const view=options.activeView,uid=options.uid||(()=>Math.random().toString(36).slice(2));
     const fixedAiDataValueMatrix=workspace==='ai-data-platform'&&awareness==='solution-aware'&&viewId==='value'&&mode==='aeo';
