@@ -692,6 +692,7 @@
   /* cells: a fixed-height scroller so every row in a band lines up */
   .mx-cell{padding:0}
   .mx-kws{display:flex; flex-direction:column; max-height:180px; overflow-y:auto}
+  .kw-intent-label{padding:7px 10px 4px;background:#eef5ef;border-bottom:1px solid var(--line);font-size:10px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:#356147;position:sticky;top:0;z-index:1}
   .mx-kw{
     display:flex; align-items:center; gap:8px; height:30px; flex:none;
     padding:0 10px; cursor:pointer; border-bottom:1px solid var(--line-2);
@@ -3030,7 +3031,7 @@
 <script src="keyword-columns-ui.js"></script>
 <script src="high-priority-links.js"></script>
 <script src="eor-provider-india-keywords.js"></script>
-<script src="ai-data-value-keywords.js?v=value-keywords-v4"></script>
+<script src="ai-data-value-keywords.js?v=value-keywords-v5"></script>
 <script src="ai-data-search-metrics.js?v=search-metrics-v4"></script>
 <script src="competitor-comparison.js?v=status-color-v2"></script>
 <link rel="stylesheet" href="competitive-intelligence.css?v=organic-traffic-v1">
@@ -6380,11 +6381,14 @@ async function ensureAiDataSearchMetricsSeed(){
        matrix keywords also receive KD, CPC, CPS, traffic and trend fields. */
     if(!await saveKeywords(api.keywordRows(),'ai-data-search-suggestions-2026-10-04'))return false;
     if(state.boardId!==targetBoard||state.workspaceProductId!==targetProduct)return false;
-    const changed=api.apply(root,kwRows);
+    const metricChanged=api.apply(root,kwRows);
+    // Metrics may rank a short top-five list, but the Value AEO process lens
+    // must retain its five sub-subprocess groups with five variants each.
+    const hierarchyChanged=globalThis.AiDataValueKeywords?.apply(root,kwRows,{processOnly:true})||false;
     root.aiDataSearchMetricsRevision=api.REVISION;
     markDirty();
     await saveBoard(true);
-    return changed;
+    return metricChanged||hierarchyChanged;
   })();
   try{return await aiDataSearchMetricsSeedPending;}
   catch(error){console.error(error);toast('Could not import the search-suggestion metrics: '+(error.message||error),true);return false;}
@@ -7511,7 +7515,12 @@ function keywordBlock(rows,onRemove){
   if (!rows.length) return frag;
   const list = document.createElement('div');
   list.className = 'mx-kws';
+  let previousGroup='';
   rows.forEach(function(r){
+    const group=String(r?.data?.value_keyword_group||'').trim();
+    if(group&&group!==previousGroup){
+      const heading=document.createElement('div');heading.className='kw-intent-label';heading.textContent=group;heading.title='Sub-subprocess intent';list.append(heading);previousGroup=group;
+    }
     const line = document.createElement('div');
     line.className = 'mx-kw';
     const nm = document.createElement('span');
