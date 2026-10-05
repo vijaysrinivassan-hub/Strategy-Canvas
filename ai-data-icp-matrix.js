@@ -1,7 +1,7 @@
 /* Generated from the supplied ICP matrix and Processes > Analysis matrix. */
 (function(root,factory){const api=factory();if(typeof module==='object')module.exports=api;else root.AiDataIcpMatrix=api;})(globalThis,function(){
 const data={
-  "revision": "ai-data-positioning-matrices-v17",
+  "revision": "ai-data-positioning-matrices-v18",
   "client": "AI Data Platform",
   "productId": "0jgsw8bx554d",
   "columns": [
@@ -1089,7 +1089,7 @@ data.valueRows=[{
   keywordIdeas:[item.name.toLowerCase()],processLevel:'subprocess',parentProcess:analysisTaxonomy.name,
   cells:(legacy?copy(legacy.cells.slice(0,data.valueColumns.length)):emptyValueCells()).map(cell=>({...cell,title:''}))};
 })];
-data.icpPrompt=ICP_PROMPT;data.valuePrompt=VALUE_PROMPT+'\n\nCURRENT BUILD ORDER: Populate the Process and Tools keyword lenses. Keep Output, Outcome and Benefits available as empty toggles until the user explicitly requests the next build.';data.routingPrompt=DATA_IMPORT_PROMPT+'\n\n'+ROUTING_PROMPT;
+data.icpPrompt=ICP_PROMPT;data.valuePrompt=VALUE_PROMPT+'\n\nCURRENT BUILD ORDER: Populate the Process and Tools keyword lenses. Keep Output, Outcome and Benefits available as empty toggles until the user explicitly requests the next build. In Single Industry mode, Tools must mix two broad same-intent searches, two industry-specific or industry-native searches, and one platform/ecosystem search only when natural and evidenced. For E-commerce, prefer native concepts such as carts, checkout, orders, SKUs, ROAS, repeat purchase, AOV and contribution margin; do not mechanically add ecommerce, Shopify or Amazon to every keyword. Multi-industry Tools remain industry-neutral.';data.routingPrompt=DATA_IMPORT_PROMPT+'\n\n'+ROUTING_PROMPT;
 const blankCell=(sourceRow,sourceCell,column,kind)=>({v:sourceCell.title,url:'',mode:'aeo',type:'',on:false,aw:'',st:'',writtenBy:'',cfg:true,kws:[],keywordIdeas:copy(sourceCell.keywordIdeas),actorType:sourceCell.actorType,actor:sourceCell.actor,icpSource:{kind:kind||'sample-matrix',row:sourceRow.name,column:column.name}});
 const matrixRows=view=>(view.rows||[]).filter(row=>row.pageGroup==='matrix');
 const columnKey=value=>String(value||'').trim().toLowerCase().replace(/[^a-z0-9]+/g,' ');

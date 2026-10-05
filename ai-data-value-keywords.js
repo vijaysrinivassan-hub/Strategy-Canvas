@@ -4,7 +4,7 @@
   if(typeof module==='object'&&module.exports)module.exports=api;
   else root.AiDataValueKeywords=api;
 })(typeof globalThis!=='undefined'?globalThis:this,function(){
-  const REVISION='ai-data-value-keyword-lenses-v7';
+  const REVISION='ai-data-value-keyword-lenses-v8';
   const CLIENT='AI Data Platform';
   const PRODUCT_ID='0jgsw8bx554d';
   const COUNTRY='us';
@@ -161,10 +161,31 @@
   function toolIntentGroups(process,department){
     const groups=intentTaxonomy[process.name]||[[process.name,process.search]];
     return groups.map(group=>{
-      const intent=contextualize(group[0],department),alias=contextualize(group[1]||group[0],department);
-      return {name:group[0],keywords:unique([
-        intent+' tools',alias+' software','best '+intent+' tools','AI '+intent+' platform',intent+' solution'
-      ]).slice(0,5)};
+      const topic=clean(group[0]).replace(/[- ]analysis$/i,'').replace(/summarization$/i,'reporting').toLowerCase();
+      const alias=clean(group[1]||group[0]).replace(/[- ]analysis$/i,'').toLowerCase();
+      const name=normalize(group[0]);
+      let commerceContext='ecommerce',platform='Shopify';
+      if(/conversion|funnel|drop off|customer path|time to conversion/.test(name)){commerceContext='cart and checkout';platform='Shopify';}
+      else if(/campaign|channel|attribution|touchpoint|assisted/.test(name)){commerceContext='ROAS and revenue';platform='GA4';}
+      else if(/cohort|retention curve|behavioral progression/.test(name)){commerceContext='repeat purchase';platform='Shopify';}
+      else if(/retention|churn|reactivation|survival/.test(name)){commerceContext='repeat customer';platform='Shopify';}
+      else if(/segment|demographic|behavioral|lifecycle|value based/.test(name)){commerceContext='customer and shopper';platform='Shopify';}
+      else if(/clv|lifetime|payback/.test(name)){commerceContext='customer LTV';platform='Shopify';}
+      else if(/product|sku|inventory|assortment|affinity/.test(name)){commerceContext='SKU and catalog';platform='Amazon';}
+      else if(/margin|profit|revenue|cost to serve/.test(name)){commerceContext='order and SKU profitability';platform='Shopify';}
+      else if(/trend|seasonality|anomaly|forecast|change point/.test(name)){commerceContext='sales and demand';platform='Shopify';}
+      else if(/problem|cause|driver|corrective|hypothesis|correlation|variance|drill down|factor/.test(name)){commerceContext='store performance';platform='Shopify';}
+      else if(/comparison|benchmark|period/.test(name)){commerceContext='store and product benchmarking';platform='Shopify';}
+      else if(/kpi|dashboard|report|historical|distribution/.test(name)){commerceContext='orders and store performance';platform='Shopify';}
+      const keywords=unique([
+        topic+' tools',
+        alias+' software',
+        'ecommerce '+topic+' tools',
+        commerceContext+' '+topic+' tools',
+        platform+' '+topic+' app'
+      ]);
+      for(const fallback of ['best ecommerce '+topic+' tools','AI ecommerce '+topic+' platform',department.name.toLowerCase()+' '+topic+' software'])if(keywords.length<5)keywords.push(fallback);
+      return {name:group[0],keywords:unique(keywords).slice(0,5)};
     });
   }
   function lensKeywords(process,department){

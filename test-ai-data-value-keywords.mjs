@@ -3,7 +3,7 @@ import fs from 'node:fs';
 import Matrix from './ai-data-icp-matrix.js';
 import Seed from './ai-data-value-keywords.js';
 
-assert.equal(Seed.REVISION,'ai-data-value-keyword-lenses-v7');
+assert.equal(Seed.REVISION,'ai-data-value-keyword-lenses-v8');
 assert.equal(Seed.processes.length,15);
 assert.equal(Seed.departments.length,4);
 assert.deepEqual(Seed.LENSES,['process','output','outcome','benefits','tools']);
@@ -19,6 +19,8 @@ for(const process of Seed.processes)for(const department of Seed.departments)for
     for(const group of groups)assert.equal(matching.filter(record=>record.intentGroup===group).length,5);
   }
 }
+const marketingTools=Seed.toolIntentGroups(Seed.processes.find(item=>item.name==='Marketing-performance analysis'),Seed.departments.find(item=>item.name==='Marketing')).find(item=>item.name==='Conversion-rate analysis');
+assert.deepEqual(marketingTools.keywords,['conversion-rate tools','conversion tracking software','ecommerce conversion-rate tools','cart and checkout conversion-rate tools','Shopify conversion-rate app']);
 
 const content={views:{product:{kind:'grid',pageColumns:{},pageOrders:{},rows:[]},icp:{kind:'grid',pageColumns:{matrix:[]},pageOrders:{},rows:[]},value:{kind:'grid',pageColumns:{},pageOrders:{},rows:[]},category:{kind:'grid',pageColumns:{landing:[]},pageOrders:{},rows:[]}}};
 assert.equal(Matrix.ensure(content,Seed.CLIENT,Seed.PRODUCT_ID),true);
@@ -36,7 +38,7 @@ assert.notDeepEqual(headerIds(content.views.value.rows.find(row=>row.name==='Ana
 assert.equal(Seed.apply(content,db),false);
 
 const html=fs.readFileSync(new URL('./index.html',import.meta.url),'utf8');
-assert(html.includes('<script src="ai-data-value-keywords.js?v=value-keywords-v7"></script>'));
+assert(html.includes('<script src="ai-data-value-keywords.js?v=value-keywords-v8"></script>'));
 assert(html.includes("heading.className='kw-intent-label'"));
 assert(html.includes('await ensureAiDataValueKeywordSeed();'));
 assert(html.includes("saveKeywords(missing,'ai-data-value-keyword-lenses')"));
