@@ -22,5 +22,6 @@ assert.doesNotMatch(
 );
 assert.match(html, /state\.boardId \|\| state\.boardCreationArmed/, 'autosave should run only for an opened or explicitly created board');
 assert.match(html, /if \(!state\.boardId && !state\.boardCreationArmed\)/, 'saveBoard should reject implicit report creation');
+assert.match(html, /r\.title === 'XYZ Strategy Board'[\s\S]*?ACCIDENTAL_XYZ_BOARD_AFTER/, 'bug-created XYZ placeholders should be quarantined without deleting reports');
 
 console.log('PASS: every keyword matrix can send a deduplicated cell to Write > Articles and mark it Sent for review.');
