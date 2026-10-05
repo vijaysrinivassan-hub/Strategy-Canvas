@@ -22,6 +22,7 @@ assert.doesNotMatch(
 );
 assert.match(html, /state\.boardId \|\| state\.boardCreationArmed/, 'autosave should run only for an opened or explicitly created board');
 assert.match(html, /if \(!state\.boardId && !state\.boardCreationArmed\)/, 'saveBoard should reject implicit report creation');
-assert.match(html, /r\.title === 'XYZ Strategy Board'[\s\S]*?ACCIDENTAL_XYZ_BOARD_AFTER/, 'bug-created XYZ placeholders should be quarantined without deleting reports');
+assert.match(html, /const accidentalPlaceholder = r\.title === 'XYZ Strategy Board'/, 'all bug-created XYZ placeholders should be quarantined without deleting reports');
+assert.doesNotMatch(html.match(/async function renderClients\(\)\{[\s\S]*?\n\}/)?.[0] || '', /loadClientDetails/, 'the client directory must not block on downloading every board body');
 
 console.log('PASS: every keyword matrix can send a deduplicated cell to Write > Articles and mark it Sent for review.');
