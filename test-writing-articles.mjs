@@ -14,5 +14,13 @@ assert.match(html, /key:\['grid'/, 'all ordinary keyword matrices should provide
 assert.match(html, /key:\['competitor'/, 'the competitor article matrix should provide a stable source key');
 assert.match(comparison, /key:\['competitor-comparison'/, 'the competitor-vs-competitor matrix should provide a stable source key');
 assert.match(html, /\['Title','Slug','Primary keyword','Keywords','Article type','Awareness','Matrix location','Status','Sent'\]/, 'writing table should expose the requested planning fields');
+assert.match(html, /writingArticles\(false\)\.length/, 'the Articles badge should use a read-only queue lookup');
+assert.doesNotMatch(
+  html.match(/function writingArticles\(create=true\)\{[\s\S]*?\n\}/)?.[0] || '',
+  /contentRoot\(/,
+  'reading the Articles queue must not run keyword-matrix migrations'
+);
+assert.match(html, /state\.boardId \|\| state\.boardCreationArmed/, 'autosave should run only for an opened or explicitly created board');
+assert.match(html, /if \(!state\.boardId && !state\.boardCreationArmed\)/, 'saveBoard should reject implicit report creation');
 
 console.log('PASS: every keyword matrix can send a deduplicated cell to Write > Articles and mark it Sent for review.');

@@ -3097,7 +3097,7 @@ const SUPABASE_URL = 'https://cskamgfvebryahkljlll.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_MdkD-TxMCIwlu69seSHA3Q_A39GADsK';
 const CLIENT_ID    = '1059013355751-6g50dsgm7df37htl2fdqrtlkh5hmrc0c.apps.googleusercontent.com';
 const ALLOWED      = ['vijaysrinivassan@gmail.com'];
-const BUILD        = 'v8.56';
+const BUILD        = 'v8.57';
 
 const STRATEGY_ONE_TAB = 'Strategy 1 — Brand Strategy';
 const PRODUCT_EVOLUTION_TAB = 'Strategy 1 — Product Evolution';
@@ -3209,6 +3209,7 @@ $('positioningRadarHost').append($('brandRadarPane').querySelector('.radar-canva
 const state = {
   user: null,
   boardId: null,               /* uuid of the Supabase row, null = unsaved */
+  boardCreationArmed: false,   /* only newBoard may create a reports row */
   client: 'XYZ',
   clientProduct: '',
   companyUrlWorkspaceMigrated: false,
@@ -3442,7 +3443,9 @@ function markDirty(){
 let autosaveTimer = null;
 function scheduleAutosave(){
   clearTimeout(autosaveTimer);
-  autosaveTimer = setTimeout(() => { if (state.dirty && state.user) saveBoard(true); }, 2500);
+  autosaveTimer = setTimeout(() => {
+    if (state.dirty && state.user && (state.boardId || state.boardCreationArmed)) saveBoard(true);
+  }, 2500);
 }
 
 /* ===================================================================
@@ -3735,7 +3738,7 @@ function renderTabs(){
     if (name === ARTICLES_TAB){
       const c = document.createElement('span');
       c.className = 'n';
-      c.textContent = String(writingArticles().length);
+      c.textContent = String(writingArticles(false).length);
       b.append(c);
     }
     b.onclick = () => switchTab(name);
@@ -5312,6 +5315,7 @@ async function openBoard(id, location){
   keywordCache.clear();
   kwRows = [];
   state.boardId = data.id;
+  state.boardCreationArmed = false;
   state.boardRevision = data.updated_at;
   state.saveConflict = false;
   state.ownerId = data.owner_id;
@@ -5354,6 +5358,12 @@ async function openBoard(id, location){
 let boardSaveInFlight = false;
 async function saveBoard(quiet){
   if (!state.user || readOnly()) return;
+  /* Rendering and migrations must never create a report implicitly. A new
+     database row is permitted only during the explicit new-board flow. */
+  if (!state.boardId && !state.boardCreationArmed){
+    if (!quiet) toast('Choose or create a client workspace before saving.', true);
+    return;
+  }
   if (boardSaveInFlight){ scheduleAutosave(); return; }
   const el = $('saveState');
   if (state.saveConflict){
@@ -5388,6 +5398,7 @@ async function saveBoard(quiet){
     return;
   }
   state.boardId = result.data[0].id;
+  state.boardCreationArmed = false;
   state.boardRevision = result.data[0].updated_at;
   state.dirty = (state.editRevision || 0) !== editRevision;
   el.textContent = state.dirty ? 'Unsaved changes' : 'Saved'; el.className = 'save-line';
@@ -5410,6 +5421,7 @@ async function saveBoard(quiet){
 
 async function newBoard(clientName, clientProduct, clientType, clientGoal, clientSalesMotion, clientIcp1, products){
   state.boardId = null;
+  state.boardCreationArmed = true;
   state.boardRevision = null;
   state.saveConflict = false;
   state.ownerId = state.user ? state.user.id : null;
@@ -7303,9 +7315,15 @@ function pageTrafficTotal(rows){
 /* One saved writing queue is rendered in Write > Articles. Matrix cells keep
    ownership of their content; this list stores a compact, up-to-date snapshot
    keyed by the source cell, so sending the same cell twice updates one row. */
-function writingArticles(){
-  const root = contentRoot();
-  if (!Array.isArray(root.writingArticles)) root.writingArticles = [];
+function writingArticles(create=true){
+  /* This collection lives beside the keyword matrix, but reading its badge
+     must not invoke the mutating matrix-root helper. Keep navigation
+     rendering strictly read-only. */
+  const existing = state.tabs?.[CONTENT_TAB]?.writingArticles;
+  if (Array.isArray(existing)) return existing;
+  if (!create) return [];
+  const root = state.tabs[CONTENT_TAB] || (state.tabs[CONTENT_TAB] = {nodes:[],edges:[]});
+  root.writingArticles = [];
   return root.writingArticles;
 }
 function writingArticleTypeName(id, fallback){
@@ -7369,7 +7387,7 @@ function appendArticleCell(row, value, className){
 function renderWritingArticles(){
   const host = $('articlesHost');
   if (!host) return;
-  const rows = writingArticles().slice().sort((a,b) => String(b.updatedAt || '').localeCompare(String(a.updatedAt || '')));
+  const rows = writingArticles(false).slice().sort((a,b) => String(b.updatedAt || '').localeCompare(String(a.updatedAt || '')));
   const count = $('articlesCount');
   if (count) count.textContent = rows.length + ' article' + (rows.length === 1 ? '' : 's');
   host.replaceChildren();
