@@ -4,7 +4,7 @@
   if(typeof module==='object'&&module.exports)module.exports=api;
   else root.AiDataValueKeywords=api;
 })(typeof globalThis!=='undefined'?globalThis:this,function(){
-  const REVISION='ai-data-value-keyword-lenses-v6';
+  const REVISION='ai-data-value-keyword-lenses-v7';
   const CLIENT='AI Data Platform';
   const PRODUCT_ID='0jgsw8bx554d';
   const COUNTRY='us';
@@ -158,6 +158,15 @@
       return {name:group[0],keywords:unique(keywords).slice(0,5)};
     });
   }
+  function toolIntentGroups(process,department){
+    const groups=intentTaxonomy[process.name]||[[process.name,process.search]];
+    return groups.map(group=>{
+      const intent=contextualize(group[0],department),alias=contextualize(group[1]||group[0],department);
+      return {name:group[0],keywords:unique([
+        intent+' tools',alias+' software','best '+intent+' tools','AI '+intent+' platform',intent+' solution'
+      ]).slice(0,5)};
+    });
+  }
   function lensKeywords(process,department){
     const dept=department.name.toLowerCase(),search=process.search,artifact=process.artifact,outcome=process.outcome,benefit=process.benefit;
     return {
@@ -211,15 +220,16 @@
   const records=[];
   for(const process of processes)for(const department of departments){
     for(const group of processIntentGroups(process,department))for(const keyword of group.keywords)records.push({process:process.name,department:department.name,columnId:department.id,lens:'process',intentGroup:group.name,keyword});
+    for(const group of toolIntentGroups(process,department))for(const keyword of group.keywords)records.push({process:process.name,department:department.name,columnId:department.id,lens:'tools',intentGroup:group.name,keyword});
   }
   const headerRecords=[];
   for(const process of processes){
     const byLens=headerLensKeywords(process);
-    for(const keyword of byLens.process)headerRecords.push({scope:'row',name:process.name,lens:'process',keyword});
+    for(const lens of ['process','tools'])for(const keyword of byLens[lens])headerRecords.push({scope:'row',name:process.name,lens,keyword});
   }
   for(const department of departments){
     const byLens=headerLensKeywords(department);
-    for(const keyword of byLens.process)headerRecords.push({scope:'column',name:department.name,columnId:department.id,lens:'process',keyword});
+    for(const lens of ['process','tools'])for(const keyword of byLens[lens])headerRecords.push({scope:'column',name:department.name,columnId:department.id,lens,keyword});
   }
   const keywordKey=(keyword,country)=>normalize(keyword)+'|'+String(country||COUNTRY).toLowerCase();
   function keywordRows(){
@@ -237,11 +247,11 @@
     if(!options.processOnly||options.clearOtherLenses){
       for(const cell of rows.flatMap(row=>Object.values(row.cells||{}))){
         cell.valueLensKeywords ||= {};
-        for(const lens of LENSES.filter(lens=>lens!=='process'))if((cell.valueLensKeywords[lens]||[]).length){cell.valueLensKeywords[lens]=[];changed=true;}
+        for(const lens of ['output','outcome','benefits'])if((cell.valueLensKeywords[lens]||[]).length){cell.valueLensKeywords[lens]=[];changed=true;}
       }
       for(const holder of [...rows,...columns]){
         const cell=holder.topicCell;if(!cell)continue;cell.valueLensKeywords ||= {};
-        for(const lens of LENSES.filter(lens=>lens!=='process'))if((cell.valueLensKeywords[lens]||[]).length){cell.valueLensKeywords[lens]=[];changed=true;}
+        for(const lens of ['output','outcome','benefits'])if((cell.valueLensKeywords[lens]||[]).length){cell.valueLensKeywords[lens]=[];changed=true;}
       }
     }
     for(const record of records){
@@ -258,7 +268,7 @@
     const topicCell=holder=>holder.topicCell||=( {v:String(holder.name||''),url:'',mode:'aeo',type:'',on:false,aw:'',st:'',writtenBy:'',cfg:true,kws:[],valueLensKeywords:{}} );
     for(const holder of [...rows,...columns]){
       const scope=rows.includes(holder)?'row':'column',cell=topicCell(holder);
-      for(const lens of ['process']){
+      for(const lens of (options.processOnly?['process']:['process','tools'])){
         const desired=headerRecords.filter(record=>record.scope===scope&&record.lens===lens&&(scope==='row'?normalize(record.name)===normalize(holder.name):record.columnId===holder.id)).map(record=>byKeyword.get(keywordKey(record.keyword,COUNTRY))?.id).filter(id=>id!=null).map(String);
         const current=(lens==='process'?(cell.kws||[]):((cell.valueLensKeywords||{})[lens]||[])).map(String);
         if(JSON.stringify(current)!==JSON.stringify(desired)){
@@ -268,5 +278,5 @@
     }
     return changed;
   }
-  return {REVISION,CLIENT,PRODUCT_ID,COUNTRY,LENSES,departments,processes,intentTaxonomy,records,headerRecords,lensKeywords,processIntentGroups,headerLensKeywords,keywordRows,matches,apply};
+  return {REVISION,CLIENT,PRODUCT_ID,COUNTRY,LENSES,departments,processes,intentTaxonomy,records,headerRecords,lensKeywords,processIntentGroups,toolIntentGroups,headerLensKeywords,keywordRows,matches,apply};
 });
