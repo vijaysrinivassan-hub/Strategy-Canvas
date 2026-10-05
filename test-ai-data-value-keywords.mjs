@@ -3,7 +3,7 @@ import fs from 'node:fs';
 import Matrix from './ai-data-icp-matrix.js';
 import Seed from './ai-data-value-keywords.js';
 
-assert.equal(Seed.REVISION,'ai-data-value-keyword-lenses-v8');
+assert.equal(Seed.REVISION,'ai-data-value-keyword-lenses-v9');
 assert.equal(Seed.processes.length,15);
 assert.equal(Seed.departments.length,4);
 assert.deepEqual(Seed.LENSES,['process','output','outcome','benefits','tools']);
@@ -24,7 +24,7 @@ assert.deepEqual(marketingTools.keywords,['conversion-rate tools','conversion tr
 
 const content={views:{product:{kind:'grid',pageColumns:{},pageOrders:{},rows:[]},icp:{kind:'grid',pageColumns:{matrix:[]},pageOrders:{},rows:[]},value:{kind:'grid',pageColumns:{},pageOrders:{},rows:[]},category:{kind:'grid',pageColumns:{landing:[]},pageOrders:{},rows:[]}}};
 assert.equal(Matrix.ensure(content,Seed.CLIENT,Seed.PRODUCT_ID),true);
-const db=Seed.keywordRows().map((row,index)=>({...row,id:'value-keyword-'+index}));
+const db=Seed.keywordRows().map((row,index)=>({...row,id:'value-keyword-'+index,source:'ai-data-value-keyword-lenses'}));
 assert.equal(Seed.apply(content,db),true);
 const cells=content.views.value.rows.filter(row=>row.pageGroup==='matrix').flatMap(row=>Object.values(row.cells||{}));
 assert.equal(cells.length,60);
@@ -37,8 +37,18 @@ for(const holder of holders)for(const lens of Seed.LENSES)assert.equal(headerIds
 assert.notDeepEqual(headerIds(content.views.value.rows.find(row=>row.name==='Analysis'),'process'),headerIds(content.views.value.pageColumns.matrix.find(column=>column.name==='Marketing'),'process'));
 assert.equal(Seed.apply(content,db),false);
 
+const firstCell=cells[0];
+const originalProcessIds=[...firstCell.kws];
+firstCell.kws.unshift('imported-process','manual-process');
+const refillDb=[...db,{id:'imported-process',keyword:'unranked imported process',country:'us',source:'ai-data-search-suggestions-2026-10-05'},{id:'manual-process',keyword:'manual process',country:'us',source:'manual'}];
+assert.equal(Seed.apply(content,refillDb,{refillProcesses:true}),true);
+assert(!firstCell.kws.includes('imported-process'));
+assert(firstCell.kws.includes('manual-process'));
+assert.deepEqual(firstCell.kws.filter(id=>id!=='manual-process'),originalProcessIds);
+
 const html=fs.readFileSync(new URL('./index.html',import.meta.url),'utf8');
-assert(html.includes('<script src="ai-data-value-keywords.js?v=value-keywords-v8"></script>'));
+assert(html.includes('<script src="ai-data-value-keywords.js?v=value-keywords-v9"></script>'));
+assert(html.includes('api.apply(root,kwRows,{refillProcesses:true})'));
 assert(html.includes("heading.className='kw-intent-label'"));
 assert(html.includes('await ensureAiDataValueKeywordSeed();'));
 assert(html.includes("saveKeywords(missing,'ai-data-value-keyword-lenses')"));

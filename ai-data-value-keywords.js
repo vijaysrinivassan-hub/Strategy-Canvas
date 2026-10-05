@@ -4,7 +4,7 @@
   if(typeof module==='object'&&module.exports)module.exports=api;
   else root.AiDataValueKeywords=api;
 })(typeof globalThis!=='undefined'?globalThis:this,function(){
-  const REVISION='ai-data-value-keyword-lenses-v8';
+  const REVISION='ai-data-value-keyword-lenses-v9';
   const CLIENT='AI Data Platform';
   const PRODUCT_ID='0jgsw8bx554d';
   const COUNTRY='us';
@@ -264,7 +264,18 @@
     const rowByName=new Map(rows.map(row=>[normalize(row.name),row]));
     const columnByName=new Map(columns.map(column=>[normalize(column.name),column]));
     const byKeyword=new Map((keywordRowsFromDb||[]).map(row=>[keywordKey(row.keyword,row.country),row]));
+    const byId=new Map((keywordRowsFromDb||[]).map(row=>[String(row.id),row]));
     let changed=false;
+    if(options.refillProcesses){
+      for(const cell of rows.flatMap(row=>Object.values(row.cells||{}))){
+        const current=(cell.kws||[]).map(String);
+        const manual=current.filter(id=>{
+          const source=String(byId.get(id)?.source||'');
+          return source!=='ai-data-value-keyword-lenses'&&!source.startsWith('ai-data-search-suggestions-');
+        });
+        if(JSON.stringify(current)!==JSON.stringify(manual)){cell.kws=manual;changed=true;}
+      }
+    }
     if(!options.processOnly||options.clearOtherLenses){
       for(const cell of rows.flatMap(row=>Object.values(row.cells||{}))){
         cell.valueLensKeywords ||= {};

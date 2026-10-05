@@ -3031,7 +3031,7 @@
 <script src="keyword-columns-ui.js"></script>
 <script src="high-priority-links.js"></script>
 <script src="eor-provider-india-keywords.js"></script>
-<script src="ai-data-value-keywords.js?v=value-keywords-v8"></script>
+<script src="ai-data-value-keywords.js?v=value-keywords-v9"></script>
 <script src="ai-data-search-metrics.js?v=search-metrics-v5"></script>
 <script src="competitor-comparison.js?v=status-color-v2"></script>
 <link rel="stylesheet" href="competitive-intelligence.css?v=organic-traffic-v1">
@@ -6359,7 +6359,7 @@ async function ensureAiDataValueKeywordSeed(){
     if(missing.length&&!await saveKeywords(missing,'ai-data-value-keyword-lenses'))return false;
     if(!missing.length&&await loadKeywords(true))return false;
     if(state.boardId!==targetBoard||state.workspaceProductId!==targetProduct)return false;
-    const changed=api.apply(root,kwRows);
+    const changed=api.apply(root,kwRows,{refillProcesses:true});
     view.aiDataValueKeywordRevision=api.REVISION;
     markDirty();
     await saveBoard(true);
@@ -6384,7 +6384,7 @@ async function ensureAiDataSearchMetricsSeed(){
     const metricChanged=api.apply(root,kwRows);
     // Metrics may rank a short top-five list, but the Value AEO process lens
     // must retain its five sub-subprocess groups with five variants each.
-    const hierarchyChanged=globalThis.AiDataValueKeywords?.apply(root,kwRows,{clearOtherLenses:true})||false;
+    const hierarchyChanged=globalThis.AiDataValueKeywords?.apply(root,kwRows,{clearOtherLenses:true,refillProcesses:true})||false;
     root.aiDataSearchMetricsRevision=api.REVISION;
     markDirty();
     await saveBoard(true);
