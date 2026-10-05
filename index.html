@@ -783,7 +783,7 @@
   .gr-del:hover{color:var(--danger); background:var(--danger-bg); border-color:transparent}
   /* Every cell is its own piece of content: the words, whether it is aimed at
      answer engines or search engines, and what kind of article it becomes. */
-  .gr-cell{padding:0; vertical-align:top}
+  .gr-cell{padding:0; vertical-align:top;position:relative}
   .gr-cell input[type=text]{
     width:100%; height:30px; border:none; outline:none; background:transparent;
     font:inherit; font-size:12.5px; color:var(--ink); padding:0 9px;
@@ -817,6 +817,12 @@
      an empty matrix still shows what each cell can take; hover brings them up */
   .gr-cell.empty .gr-ctl{opacity:.38; transition:opacity .12s}
   .gr-cell.empty:hover .gr-ctl, .gr-cell.empty:focus-within .gr-ctl{opacity:1}
+  .gr-send-write{position:absolute;top:7px;right:7px;z-index:3;width:27px;height:27px;padding:4px;border:1px solid #b9c8be;border-radius:6px;background:#fff;color:#315d42;display:grid;place-items:center;cursor:pointer;box-shadow:0 1px 2px rgba(20,40,27,.08)}
+  .gr-send-write:hover{border-color:#4aa56b;background:#f1fbf4;color:#1f7b43}
+  .gr-send-write:focus-visible{outline:2px solid #4aa56b;outline-offset:2px}
+  .gr-send-write:disabled{cursor:not-allowed;opacity:.45}
+  .gr-send-write svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+  .gr-cell>.gr-send-write+input[type=text],.gr-cell>.gr-send-write~input[type=text]:first-of-type{padding-right:43px}
   /* the tick: green, so it never reads as a keyword selection */
   .gr-tick{margin:0; accent-color:#15803d; width:14px; height:14px; flex:none; cursor:pointer}
   .gr-cell.planned{background:#f4fbf6}
@@ -2489,6 +2495,22 @@
   .mx-table td.gr-cell[data-status="plus_2"],.comparison-table td.gr-cell[data-status="plus_2"]{background:#dfeeff !important;box-shadow:inset 3px 0 #397dcc}
 .keyword-page-section { margin: 0 0 32px; }
 .keyword-page-section > h3 { margin: 0; padding: 20px 16px 12px; font-size: 15px; color: #17221c; }
+.articles{height:100%;overflow:auto;background:#f7faf8;padding:28px 30px 48px}
+.articles-shell{max-width:100%;margin:0 auto}
+.articles-head{display:flex;align-items:flex-end;justify-content:space-between;gap:20px;margin-bottom:18px}
+.articles-head h3{margin:0 0 5px;font-size:23px;color:#17221c}
+.articles-head p{margin:0;color:#667269;font-size:13px}
+.articles-count{flex:0 0 auto;border:1px solid #bcd3c3;border-radius:999px;background:#eff8f1;color:#246a3a;font-size:12px;font-weight:700;padding:6px 10px}
+.articles-table-wrap{overflow:auto;border:1px solid #ccd7cf;background:#fff;box-shadow:0 7px 22px rgba(24,50,33,.06)}
+.articles-table{width:100%;min-width:1260px;border-collapse:collapse;table-layout:fixed;font-size:12px;color:#253129}
+.articles-table th{position:static;background:#151d18;color:#fff;text-align:left;text-transform:uppercase;letter-spacing:.08em;font-size:10px;padding:11px 12px;border-right:1px solid #39433d;white-space:nowrap}
+.articles-table td{padding:11px 12px;border-right:1px solid #dce3de;border-bottom:1px solid #dce3de;vertical-align:top;line-height:1.45;word-break:break-word;background:#fff}
+.articles-table tbody tr:nth-child(even) td{background:#f8faf8}
+.articles-table .article-title{font-weight:700;color:#1d2b22}
+.articles-table .article-slug{color:#267342}
+.articles-table .article-keywords{white-space:pre-line}
+.articles-table .article-status{display:inline-block;border:1px solid #9fc8ab;border-radius:4px;background:#edf8f0;color:#25653a;font-weight:700;padding:3px 7px;white-space:nowrap}
+.articles-empty{padding:50px 24px;text-align:center;color:#718078;background:#fff;border:1px solid #d5ddd7}
 .awareness-picker{min-height:calc(100vh - 92px);padding:56px 48px;background:#f7faf8}
 .awareness-picker-inner{max-width:920px;margin:0 auto}
 .awareness-picker-kicker{display:block;margin-bottom:8px;color:#4f8e63;font-size:10px;font-weight:800;letter-spacing:.12em;text-transform:uppercase}
@@ -3003,6 +3025,20 @@
       </section>
     </div>
 
+    <!-- Write queue: cells sent from any Keywords matrix appear here once. -->
+    <div class="articles" id="articlesPane" hidden>
+      <div class="articles-shell">
+        <div class="articles-head">
+          <div>
+            <h3>Articles</h3>
+            <p>Every keyword-matrix cell sent for review appears here as one writing brief.</p>
+          </div>
+          <span class="articles-count" id="articlesCount">0 articles</span>
+        </div>
+        <div id="articlesHost"></div>
+      </div>
+    </div>
+
     <div class="ci" id="ciPane" hidden>
       <div class="ci-shell">
         <div class="ci-head">
@@ -3033,7 +3069,7 @@
 <script src="eor-provider-india-keywords.js"></script>
 <script src="ai-data-value-keywords.js?v=value-keywords-v9"></script>
 <script src="ai-data-search-metrics.js?v=search-metrics-v5"></script>
-<script src="competitor-comparison.js?v=status-color-v2"></script>
+<script src="competitor-comparison.js?v=writing-queue-v1"></script>
 <link rel="stylesheet" href="competitive-intelligence.css?v=organic-traffic-v1">
 <script src="competitive-intelligence-seed.js"></script>
 <script src="ask-luca-competitive-intelligence.js"></script>
@@ -3061,7 +3097,7 @@ const SUPABASE_URL = 'https://cskamgfvebryahkljlll.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_MdkD-TxMCIwlu69seSHA3Q_A39GADsK';
 const CLIENT_ID    = '1059013355751-6g50dsgm7df37htl2fdqrtlkh5hmrc0c.apps.googleusercontent.com';
 const ALLOWED      = ['vijaysrinivassan@gmail.com'];
-const BUILD        = 'v8.55';
+const BUILD        = 'v8.56';
 
 const STRATEGY_ONE_TAB = 'Strategy 1 — Brand Strategy';
 const PRODUCT_EVOLUTION_TAB = 'Strategy 1 — Product Evolution';
@@ -3074,6 +3110,7 @@ const COMMUNICATION_STRATEGY_TAB = 'Strategy 1 — Communication Strategy';
 const BRAND_RADAR_TAB = 'Strategy 1 — Brand Radar';
 
 const COMPETITIVE_INTELLIGENCE_TAB = 'Competitive Intelligence';
+const ARTICLES_TAB = 'Articles';
 
 const TABS = [
   'Product Architecture',
@@ -3089,6 +3126,7 @@ const TABS = [
   COMMUNICATION_STRATEGY_TAB,
   'Channel Strategy',
   'Content Strategy',
+  ARTICLES_TAB,
   COMPETITIVE_INTELLIGENCE_TAB,
   'Keyword Repo',
   'Grounded Evidences'
@@ -3132,6 +3170,8 @@ const NAV = [
   { kind: 'strategy1-tabs' },
   { kind: 'label',  text: 'Keywords' },
   { kind: 'keywords-tabs' },
+  { kind: 'label',  text: 'Write' },
+  { kind: 'tab',    name: ARTICLES_TAB },
   { kind: 'label',  text: 'Research' },
   { kind: 'tab',    name: COMPETITIVE_INTELLIGENCE_TAB },
   { kind: 'tab',    name: 'Keyword Repo' },
@@ -3514,6 +3554,7 @@ const TAB_ICONS = {
   'ICP': '<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/><path d="M12 1v3M12 20v3M1 12h3M20 12h3"/>',
   'Value': '<path d="M12 3l8 7-8 11-8-11z"/><path d="M4 10h16"/>',
   'Competitive Intelligence': '<circle cx="10" cy="10" r="6"/><path d="M14.5 14.5L21 21M4 20h7M16 4h4v4"/>',
+  'Articles': '<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 12h6M9 16h6"/>',
   'Keyword Repo': '<circle cx="8.5" cy="8.5" r="4.5"/><path d="M12 12l7 7"/><path d="M17 17l2-2"/>',
   'Grounded Evidences': '<path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>',
   'Strategy 1 — Brand Strategy': '<path d="M4 5h16v14H4z"/><path d="M8 9h8M8 13h5M8 17h3"/>',
@@ -3684,11 +3725,17 @@ function renderTabs(){
                      STRATEGY_ONE_TAB, PRODUCT_ARCHITECTURE_TAB,
                      MATURITY_ACCESS_TAB,
                      POSITIONING_TAB, POSITIONING_DOCUMENT_TAB, COMMUNICATION_STRATEGY_TAB,
-                     COMPETITIVE_INTELLIGENCE_TAB, BRAND_RADAR_TAB].indexOf(name) > -1;
+                     COMPETITIVE_INTELLIGENCE_TAB, ARTICLES_TAB, BRAND_RADAR_TAB].indexOf(name) > -1;
     if (!isPanel){
       const c = document.createElement('span');
       c.className = 'n';
       c.textContent = (t.nodes || []).filter(x => x.type !== 'group').length;
+      b.append(c);
+    }
+    if (name === ARTICLES_TAB){
+      const c = document.createElement('span');
+      c.className = 'n';
+      c.textContent = String(writingArticles().length);
       b.append(c);
     }
     b.onclick = () => switchTab(name);
@@ -5886,6 +5933,7 @@ function applyTabMode(){
     $('positioningDocumentPane').hidden = true;
     $('communicationPane').hidden = true;
     $('ciPane').hidden = true;
+    $('articlesPane').hidden = true;
     $('brandRadarPane').hidden = true;
     $('framePane').hidden = true; $('roFrame').hidden = true;
     $('btnFrameExport').hidden = true;
@@ -5919,10 +5967,11 @@ function applyTabMode(){
   const isPositioningDocument = state.tab === POSITIONING_DOCUMENT_TAB;
   const isCommunication = state.tab === COMMUNICATION_STRATEGY_TAB;
   const isCompetitiveIntelligence = state.tab === COMPETITIVE_INTELLIGENCE_TAB;
+  const isArticles = state.tab === ARTICLES_TAB;
   const isRadar = false;
   const isCanvas = !isDocs && !isChan && !isKw && !isMx && !isGuide && !isEvo &&
     !isArchitecture && !isPositioning && !isPositioningDocument && !isCommunication &&
-    !isCompetitiveIntelligence && !isRadar && !isNote;
+    !isCompetitiveIntelligence && !isArticles && !isRadar && !isNote;
 
   if (frame){
     $('tabTitle').textContent = frame.name;
@@ -5944,6 +5993,7 @@ function applyTabMode(){
   $('positioningDocumentPane').hidden = !isPositioningDocument;
   $('communicationPane').hidden = !isCommunication;
   $('ciPane').hidden = !isCompetitiveIntelligence;
+  $('articlesPane').hidden = !isArticles;
   $('brandRadarPane').hidden = true;
   $('btnFit').hidden = !isCanvas;
   /* a frame can be used as a template on a real canvas, but not inside a frame */
@@ -5965,6 +6015,7 @@ function applyTabMode(){
   if (isPositioningDocument) renderPositioningDocument();
   if (isCommunication) renderCommunicationStrategyCanvas();
   if (isCompetitiveIntelligence) renderCompetitiveIntelligence();
+  if (isArticles) renderWritingArticles();
   if (isArchitecture) renderProductArchitecture();
   renderCrumb();
   applyRole();
@@ -7249,6 +7300,128 @@ function pageTrafficTotal(rows){
   }, 0);
 }
 
+/* One saved writing queue is rendered in Write > Articles. Matrix cells keep
+   ownership of their content; this list stores a compact, up-to-date snapshot
+   keyed by the source cell, so sending the same cell twice updates one row. */
+function writingArticles(){
+  const root = contentRoot();
+  if (!Array.isArray(root.writingArticles)) root.writingArticles = [];
+  return root.writingArticles;
+}
+function writingArticleTypeName(id, fallback){
+  return articleTypes().find(type => String(type.id) === String(id))?.name || fallback || '';
+}
+function writingArticleKeywords(cell, o){
+  const rows = typeof o.queueContext?.keywords === 'function'
+    ? o.queueContext.keywords(cell)
+    : o.keywordLens
+      ? gridCellKeywords(o.keywordLens === 'process' ? (cell.v || cell.url) : '', valueLensKeywordIds(cell,o.keywordLens), valueLensExcludedIds(cell,o.keywordLens))
+      : gridCellKeywords(cell.v || cell.url, cell.kws, cell.excludedKws);
+  const seen = new Set();
+  return (rows || []).map(row => String(row?.keyword || row?.value || row || '').trim()).filter(word => {
+    const key = word.toLowerCase();
+    return word && !seen.has(key) && seen.add(key);
+  });
+}
+function queueCellForWriting(td, o){
+  if (o.ro || readOnly() || !o.queueContext?.key) return;
+  const current = o.get();
+  o.set(o.keywordLens ? valueLensStatusPatch(current,o.keywordLens,'review') : {st:'review'});
+  const cell = o.get();
+  const keywords = writingArticleKeywords(cell,o);
+  const list = writingArticles();
+  const primaryKey = String(o.queueContext.key);
+  const previous = list.find(item => item.primaryKey === primaryKey);
+  const now = new Date().toISOString();
+  const article = {
+    id: previous?.id || uid(),
+    primaryKey,
+    title: String(cell.v || '').trim(),
+    slug: String(cell.url || '').trim(),
+    primaryKeyword: keywords[0] || '',
+    keywords,
+    articleType: writingArticleTypeName(cell.type,o.queueContext.articleType),
+    awareness: o.queueContext.awareness || state.keywordAwareness || viewDef(state.contentView)?.label || '',
+    matrix: o.queueContext.matrix || activeContentLabel(),
+    row: o.queueContext.row || '',
+    column: o.queueContext.column || '',
+    layer: o.keywordLens || '',
+    mode: String(cell.mode || keywordMode || '').toUpperCase(),
+    status: 'review',
+    sentAt: previous?.sentAt || now,
+    updatedAt: now
+  };
+  if (previous) list.splice(list.indexOf(previous),1,article); else list.push(article);
+  td.dataset.status = 'review';
+  td.classList.remove('written');
+  markDirty();
+  renderTabs();
+  toast('Sent for review and added to Write → Articles.');
+  if (typeof o.rerender === 'function') o.rerender();
+}
+function appendArticleCell(row, value, className){
+  const cell = document.createElement('td');
+  if (className) cell.className = className;
+  cell.textContent = value == null ? '' : String(value);
+  row.append(cell);
+  return cell;
+}
+function renderWritingArticles(){
+  const host = $('articlesHost');
+  if (!host) return;
+  const rows = writingArticles().slice().sort((a,b) => String(b.updatedAt || '').localeCompare(String(a.updatedAt || '')));
+  const count = $('articlesCount');
+  if (count) count.textContent = rows.length + ' article' + (rows.length === 1 ? '' : 's');
+  host.replaceChildren();
+  if (!rows.length){
+    const empty = document.createElement('div');
+    empty.className = 'articles-empty';
+    empty.textContent = 'No articles have been sent from the keyword matrices yet.';
+    host.append(empty);
+    return;
+  }
+  const wrap = document.createElement('div'); wrap.className = 'articles-table-wrap';
+  const table = document.createElement('table'); table.className = 'articles-table';
+  const colgroup = document.createElement('colgroup');
+  ['190px','220px','170px','270px','130px','130px','165px','120px','145px'].forEach(width => {
+    const col = document.createElement('col'); col.style.width = width; colgroup.append(col);
+  });
+  table.append(colgroup);
+  const thead = document.createElement('thead'), heading = document.createElement('tr');
+  ['Title','Slug','Primary keyword','Keywords','Article type','Awareness','Matrix location','Status','Sent'].forEach(label => {
+    const th = document.createElement('th'); th.scope = 'col'; th.textContent = label; heading.append(th);
+  });
+  thead.append(heading); table.append(thead);
+  const tbody = document.createElement('tbody');
+  rows.forEach(article => {
+    const tr = document.createElement('tr'); tr.dataset.primaryKey = article.primaryKey || '';
+    appendArticleCell(tr,article.title,'article-title');
+    appendArticleCell(tr,article.slug,'article-slug');
+    appendArticleCell(tr,article.primaryKeyword);
+    appendArticleCell(tr,(article.keywords || []).join('\n'),'article-keywords');
+    appendArticleCell(tr,article.articleType);
+    appendArticleCell(tr,article.awareness);
+    appendArticleCell(tr,[article.matrix,article.row,article.column,article.layer].filter(Boolean).join(' · '));
+    const status = appendArticleCell(tr,'');
+    const badge = document.createElement('span'); badge.className = 'article-status'; badge.textContent = statusLabel(article.status) || 'Sent for review'; status.append(badge);
+    appendArticleCell(tr,article.sentAt ? new Date(article.sentAt).toLocaleString() : '');
+    tbody.append(tr);
+  });
+  table.append(tbody); wrap.append(table); host.append(wrap);
+}
+
+function addSendToWritingButton(td, o){
+  td.querySelector(':scope > .gr-send-write')?.remove();
+  if (!o.queueContext) return;
+  const button = document.createElement('button');
+  button.type = 'button'; button.className = 'gr-send-write'; button.disabled = o.ro;
+  button.title = 'Send this cell for review'; button.setAttribute('aria-label','Send this cell for review');
+  button.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 4H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h4"/><path d="M13 8l5 4-5 4M9 12h9"/></svg>';
+  button.onpointerdown = event => event.stopPropagation();
+  button.onclick = event => { event.preventDefault(); event.stopPropagation(); queueCellForWriting(td,o); };
+  td.prepend(button);
+}
+
 function isMaximusLabsUrl(row){
   // Kept as a compatibility name for older saved cells. Represented means
   // the URL belongs to the company on this board, not competitor evidence.
@@ -7335,6 +7508,7 @@ function cellControls(td, o){
     td.removeAttribute('aria-label');
     return;
   }
+  if (typeof addSendToWritingButton === 'function') addSendToWritingButton(td,o);
   renderIcpKeywordIdeas(td, cell);
   const slugBelongsToLens=!o.keywordLens||!cell.url||valueLensForPageUrl({url:cell.url,lens:cell.valueLensUrlLens},cell)===o.keywordLens;
   if (slugBelongsToLens&&!td.querySelector(':scope > .gr-url')){
@@ -8089,6 +8263,15 @@ function renderMatrix(){
         inlineMode: true,
         get: function(){ return cellState(m, cellKey, defaults); },
         set: function(patch){ setCellState(m, cellKey, Object.assign(cellState(m, cellKey, defaults), patch, { cfg:true })); },
+        queueContext:{
+          key:['competitor',state.tabs[CONTENT_TAB]?.activeKeywordNodeId||'default',comp.id,ty.id].join('|'),
+          awareness:'Competitor Aware',
+          matrix:'Competitor matrix',
+          row:comp.name || '',
+          column:ty.name || '',
+          articleType:ty.name || '',
+          keywords:function(now){return matrixCellKeywords(comp,ty,now.v||now.url,now.kws,now.excludedKws);}
+        },
         seed: function(){
           const now = cellState(m, cellKey, defaults);
           if ((now.v || '').trim()) return now.v.trim();
@@ -8548,6 +8731,15 @@ function renderGridTable(v, group, table){
         get: function(){ return cellOf(sourceRow, col.id, defaults); },
         set: function(patch){ setCellIn(sourceRow, col.id, Object.assign({}, patch, { cfg:true }), defaults); },
         keywordLens:valueLens,
+        queueContext:{
+          key:['grid',state.tabs[CONTENT_TAB]?.activeKeywordNodeId||'default',state.keywordAwareness||state.contentView,keywordMode,group.id,sourceRow.id,col.id,valueLens||'default'].join('|'),
+          awareness:state.keywordAwareness ? state.keywordAwareness.replace(/-/g,' ') : viewDef(state.contentView).label,
+          matrix:activeContentLabel(),
+          row:sourceRow.name || sourceRow.repositoryHierarchy || '',
+          column:col.name || '',
+          articleType:group.type || '',
+          keywords:function(now){return valueLens?gridCellKeywords(valueLens==='process'?(now.v||now.url):'',valueLensKeywordIds(now,valueLens),valueLensExcludedIds(now,valueLens)):gridCellKeywords(now.v||now.url,now.kws,now.excludedKws);}
+        },
         seed: function(){ return (cellOf(sourceRow, col.id, defaults).v || '').trim(); },
         refreshEmpty: function(){
           const now = cellOf(sourceRow, col.id, defaults);
@@ -12216,7 +12408,7 @@ function isCanvasTab(){
           STRATEGY_ONE_TAB, PRODUCT_ARCHITECTURE_TAB,
           MATURITY_ACCESS_TAB,
           POSITIONING_TAB, POSITIONING_DOCUMENT_TAB, COMMUNICATION_STRATEGY_TAB,
-          COMPETITIVE_INTELLIGENCE_TAB, BRAND_RADAR_TAB].indexOf(state.tab) === -1;
+          COMPETITIVE_INTELLIGENCE_TAB, ARTICLES_TAB, BRAND_RADAR_TAB].indexOf(state.tab) === -1;
 }
 const openFrameDef = () => (inFrame() ? state.frames[state.frameIndex] : null);
 
@@ -12827,6 +13019,7 @@ function renderCrumb(){
             POSITIONING_TAB, POSITIONING_DOCUMENT_TAB, COMMUNICATION_STRATEGY_TAB, BRAND_RADAR_TAB, CHANNELS_TAB].indexOf(state.tab) !== -1) c = 'Strategy';
   else if (isBrandTab(state.tab)) c = 'Canvas';
   else if (state.tab === CONTENT_TAB) c = 'Keywords';
+  else if (state.tab === ARTICLES_TAB) c = 'Write';
   else if (state.tab === KEYWORDS_TAB || state.tab === DOCS_TAB || state.tab === COMPETITIVE_INTELLIGENCE_TAB) c = 'Research';
   el.textContent = c;
 }

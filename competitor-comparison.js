@@ -212,6 +212,11 @@ function renderCompetitorComparison(m){
    };
    cellControls(td,{
     ro:readOnly(),inlineMode:true,get,set,seed:()=>get().v||title,comparisonOtherId:entry.other?key:null,
+    queueContext:{
+     key:['competitor-comparison',state.tabs[CONTENT_TAB]?.activeKeywordNodeId||'default',entry.other?'other':'pair',key].join('|'),
+     awareness:'Competitor Aware',matrix:'Competitor vs. Competitor',row:title,column:'Comparison',articleType:'Competitor',
+     keywords:cell=>gridCellKeywords(cell.v||title,cell.kws,cell.excludedKws)
+    },
     refreshEmpty:updateFlags,
     rerender:()=>{paint(entry);for(const other of mirrors.get(key)||[])if(other!==entry&&other.hydrated)paint(other);}
    });
