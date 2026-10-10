@@ -47,7 +47,8 @@ const records = [
 const context = vm.createContext({
   contentRoot:()=>root,
   sharedUrlBoardContext:()=> 'AI Data Platform',
-  globalThis:{SharedUrlRepository:{workspaceFor:()=> 'ai-data-platform',records:()=>records,pageGroup:type=>type==='Landing page'?'landing':'listicle'}}
+  supportingKeywordTerms:()=>[],
+  globalThis:{SharedUrlRepository:{matchesNode:()=>true,workspaceFor:()=> 'ai-data-platform',records:()=>records,pageGroup:type=>type==='Landing page'?'landing':'listicle'}}
 });
 vm.runInContext(html.slice(start,end),context);
 const counts = context.keywordFilledCounts();

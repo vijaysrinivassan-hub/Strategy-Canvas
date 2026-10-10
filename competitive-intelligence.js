@@ -26,21 +26,23 @@
     const key=String(value || '').replace(/\/$/,'');
     return global.AskLucaKeywordImport?.classifications?.[key] || global.CompetitiveIntelligenceClassifications?.classifications?.[key] || null;
   }
-  const classificationFields = ['product','node','awarenessLevel','matrix','column'];
-  const classificationFor = (item,url,product) => ({
-    ...classificationOf(url),
-    ...(item.urlClassificationsByProduct?.[product]?.[url] || {})
-  });
+  const classificationFields = ['node','supportingNode','awarenessLevel','matrix','column','pageTitle','pageDescription','reviewNotes'];
+  const legacyClassificationFields = ['product','node','awarenessLevel','matrix','column'];
+  const classificationFor = (item,url,product) => {
+    const source=classificationOf(url)||{};
+    return {...source,pageTitle:source.pageTitle||source.auditTitle||source.auditH1||'',pageDescription:source.pageDescription||source.auditDescription||'',
+      ...(item.urlClassificationsByProduct?.[product]?.[url] || {})};
+  };
   function updateClassification(item,url,product,field,value){
     item.urlClassificationsByProduct ||= {};
     item.urlClassificationsByProduct[product] ||= {};
-    const next = Object.fromEntries(classificationFields.map(key =>
-      [key,String(classificationFor(item,url,product)[key] || '')]));
+    const next = {...classificationFor(item,url,product)};
     next[field] = String(value || '').trim();
-    if (field === 'product' && (next.product.startsWith('Different Product:') || next.product === 'Corporate')){
-      next.node = ''; next.awarenessLevel = 'Non-SEO'; next.matrix = 'Corporate & Non-SEO';
-      next.column = next.product === 'Corporate' ? 'Corporate' : 'Different Product';
+    if(field==='node'){
+      next.nodeId={'BI / reporting platform':'ai-maturity-l2-reporting','AI analytics platform':'ai-maturity-l2-analysis','Supporting Processes':'supporting-processes'}[next.node]||'';
+      if(next.node!=='Supporting Processes'){next.supportingNode='';next.supportingNodeId='';}
     }
+    if(field==='supportingNode')next.supportingNodeId={'Fivetran / Airflow':'ai-maturity-l2-etl','Snowflake / BigQuery':'ai-maturity-l2-storage','Product & web analytics':'ai-maturity-l2-analytics','Commerce platform':'ai-maturity-l2-shopify','Advertising platform':'ai-maturity-l2-ads'}[next.supportingNode]||'';
     item.urlClassificationsByProduct[product][url] = next;
   }
   const sarasStart='[CI-SARAS-AI-LAYER-V1]';
@@ -68,9 +70,9 @@
       const rows={};
       item.urls.forEach((url,index)=>{
         const tuple=payload.dictionary?.[payload.indexes[index]];
-        if(!Array.isArray(tuple)||tuple.length!==classificationFields.length)
+        if(!Array.isArray(tuple)||tuple.length!==legacyClassificationFields.length)
           throw new Error('Incomplete SaraS URL classification.');
-        rows[url]=Object.fromEntries(classificationFields.map((field,i)=>[field,tuple[i]]));
+        rows[url]=Object.fromEntries(legacyClassificationFields.map((field,i)=>[field,tuple[i]]));
       });
       item.urlClassificationsByProduct ||= {};
       item.urlClassificationsByProduct[product]={...rows,...(item.urlClassificationsByProduct[product]||{})};
@@ -227,12 +229,21 @@
       catch { options.toast?.('Clipboard permission was not available.', true); }
     };
     tools.append(search,addUrl,copy); detail.append(tools);
+    const prompts=document.createElement('details');prompts.className='ci-prompts';
+    const promptSummary=document.createElement('summary');promptSummary.textContent='AI prompts';
+    const promptInput=document.createElement('textarea');promptInput.readOnly=ro;
+    promptInput.setAttribute('aria-label','Competitive Intelligence URL classification prompt');
+    promptInput.value=tab.urlRoutingPromptsByProduct?.[options.product]||global.KeywordColumns?.competitiveIntelligencePrompt||'';
+    promptInput.onchange=()=>{tab.urlRoutingPromptsByProduct||={};tab.urlRoutingPromptsByProduct[options.product]=promptInput.value;changed();};
+    const promptCopy=document.createElement('button');promptCopy.type='button';promptCopy.textContent='Copy prompt';
+    promptCopy.onclick=async()=>{try{await navigator.clipboard.writeText(promptInput.value);options.toast?.('Classification prompt copied.');}catch{options.toast?.('Clipboard permission was not available.',true);}};
+    prompts.append(promptSummary,promptInput,promptCopy);detail.append(prompts);
     const wrap = document.createElement('div'); wrap.className = 'ci-url-wrap';
     const table = document.createElement('table'); table.className = 'ci-url-table';
     const trafficDates = snapshotDates(active);
     const thead = document.createElement('thead');
     thead.innerHTML = pilot
-      ? '<tr><th>Priority</th><th>#</th><th>URL</th><th>Product</th><th>Node</th><th>Awareness</th><th>Matrix</th><th>Column</th></tr>'
+      ? '<tr><th>Priority</th><th>#</th><th>URL</th><th>Node</th><th>Supporting node</th><th>Awareness level</th><th>Matrix</th><th>Column</th><th>Page title</th><th>Page description</th><th>Review notes</th></tr>'
       : '<tr><th>Priority</th><th>#</th><th>URL</th><th>Strategic section</th><th>Page type</th><th>Classification</th></tr>';
     table.classList.toggle('ci-url-table-pilot',pilot);
     const headRow = thead.querySelector('tr');
@@ -249,9 +260,8 @@
       if (pilot) visible.sort((a,b) => {
         const rank = url => {
           const item = classificationFor(active,url,options.product);
-          const product = String(item.product || '');
-          return (product.startsWith('Saras iQ — AI Layer') ? '0' : product.startsWith('Different Product:') ? '1' : '2') +
-            '|' + [item.matrix,item.column,item.node].map(value => String(value || '')).join('|');
+          const order={'BI / reporting platform':0,'AI analytics platform':1,'Supporting Processes':2,'Out of scope':3};
+          return String(order[item.node]??4)+'|'+[item.matrix,item.column,item.supportingNode].map(value=>String(value||'')).join('|');
         };
         return rank(a).localeCompare(rank(b));
       });
@@ -280,7 +290,7 @@
           classificationFields.forEach(field => {
             const td = document.createElement('td'), input = document.createElement('input');
             input.type = 'text'; input.className = 'ci-meta-input'; input.value = meta?.[field] || '';
-            input.placeholder = 'Unclassified'; input.readOnly = ro;
+            input.placeholder = field==='supportingNode'&&meta?.node!=='Supporting Processes'?'Not applicable':field==='reviewNotes'?'': 'Unclassified'; input.readOnly = ro;
             input.setAttribute('aria-label',field + ' for ' + url);
             input.onchange = () => { updateClassification(active,url,options.product,field,input.value); changed(); draw(); };
             td.append(input); row.append(td);

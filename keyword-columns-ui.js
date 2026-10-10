@@ -14,7 +14,7 @@ async function readKeywordSettings(records){
   if(keywordSettings.promptRevision!==KeywordColumns.PROMPT_REVISION){
    const draft=JSON.parse(JSON.stringify(keywordSettings));
    draft.promptRevision=KeywordColumns.PROMPT_REVISION;
-   draft.routingInstruction=KeywordColumns.strategyPrompt+'\n\n'+KeywordColumns.comparisonRouting;
+   draft.routingInstruction=draft.routingInstruction?.includes('COMPETITIVE INTELLIGENCE — TOPIC RELEVANCE AND NODE ROUTING')?draft.routingInstruction:draft.routingInstruction?KeywordColumns.competitiveIntelligencePrompt+'\n\n'+draft.routingInstruction:KeywordColumns.strategyPrompt+'\n\n'+KeywordColumns.comparisonRouting;
    await saveUniversalColumns(draft,keywordSettingsRecord);
   }
  }

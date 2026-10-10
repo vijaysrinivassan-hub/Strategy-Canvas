@@ -35,11 +35,12 @@
     const classifications=new Map(Object.entries(source.classifications||{}));
     Object.entries(overlay?.classifications||{}).forEach(([url,meta])=>classifications.set(url,meta));
     indexedRecords=[...classifications].map(([url,sourceMeta])=>{
-      const meta={...sourceMeta,...(AI_DATA_URL_OVERRIDES[normalizeUrl(url)]||{})};
+      const meta={...sourceMeta,...(sourceMeta.classificationRevision?{}:AI_DATA_URL_OVERRIDES[normalizeUrl(url)]||{})};
       const owner=owners.get(normalizeUrl(url))||{};
       const measuredTraffic=owner.competitorId==='saras-analytics'?global.SarasAnalyticsOrganicTraffic?.trafficFor(url):null;
       return {id:normalizeUrl(url),url,traffic:measuredTraffic==null?(meta.traffic||''):String(measuredTraffic),shared:true,competitorId:owner.competitorId||'',competitor:owner.competitor||'',workspace:meta.workspace||owner.workspace||'aeo-agency',awareness:meta.awareness||'',
         section:meta.section||'',pageType:meta.pageType||'',hierarchy:meta.hierarchy||'General',axis:meta.axis||'General',icpSegment:meta.icpSegment||'',
+        node:meta.node||'',nodeId:meta.nodeId||'',supportingNode:meta.supportingNode||'',supportingNodeId:meta.supportingNodeId||'',matrix:meta.matrix||'',column:meta.column||meta.axis||'',classificationRevision:meta.classificationRevision||'',
         topicGroup:meta.topicGroup||normalizeUrl(url),topic:meta.topic||meta.hierarchy||'URL topic',groupOrder:Number(meta.groupOrder)||0,
         groupSize:Number(meta.groupSize)||1,covered:!!meta.covered,represented:owner.competitorId==='maximus-labs'||!!meta.representedCompany,representedCompany:meta.representedCompany||'',comparison:Array.isArray(meta.comparison)?meta.comparison:[],sourceSheet:meta.sourceSheet||'',sourceCell:meta.sourceCell||''};
     });indexedSource=source;indexedOverlayRevision=overlayRevision;return indexedRecords;
@@ -56,6 +57,13 @@
     return records().filter(record=>(!spec.workspace||record.workspace===spec.workspace)&&(!spec.awareness||record.awareness===spec.awareness)&&(!spec.section||record.section===spec.section)&&(!spec.pageType||record.pageType===spec.pageType)
       &&(!spec.hierarchy||record.hierarchy===spec.hierarchy)&&(!spec.axis||record.axis===spec.axis)
       &&(!spec.topicGroup||record.topicGroup===spec.topicGroup));
+  }
+  function matchesNode(record,options={}){
+    const nodeId=String(options.keywordNodeId||'');if(!nodeId)return true;
+    if(record.classificationRevision||record.nodeId)return record.nodeId===nodeId;
+    const evidence=normalizeName([record.hierarchy,record.axis,record.topic,record.url].join(' '));
+    const supporting=/data integration|\betl\b|data ingestion|normalization|data collection|connector|data warehouse|storage/.test(evidence)||(options.supportingTerms||[]).map(normalizeName).filter(term=>term.length>2).some(term=>evidence===term||evidence.includes(term));
+    return nodeId==='supporting-processes'?supporting:!supporting;
   }
   function resolve(queries,overrides){
     const seen=new Set(),out=[];
@@ -141,8 +149,8 @@
     for(const values of Object.values(aliases))if(values.includes(key))return values;
     return [key];
   }
-  function ensureColumn(viewId,view,group,axis,mode,types){
-    const columns=columnsFor(view,group),key=normalizeName(axis),aliases=viewId==='product'?[key]:aliasesFor(viewId,axis);
+  function ensureColumn(viewId,view,group,axis,mode,types,exact=false){
+    const columns=columnsFor(view,group),key=normalizeName(axis),aliases=exact||viewId==='product'?[key]:aliasesFor(viewId,axis);
     let column=columns.find(item=>normalizeName(item.name)===key)
       ||columns.find(item=>aliases.includes(normalizeName(item.name)));
     if(!column){
@@ -205,6 +213,10 @@
     return shared.length>=Math.min(2,at.size,bt.size);
   };
   const categoryPlacement=(record,options,workspace)=>{
+    if(record.classificationRevision){
+      if(record.nodeId==='supporting-processes')return {hierarchy:record.supportingNode,superHierarchy:'Supporting process'};
+      return {hierarchy:record.node==='BI / reporting platform'?'Reporting':'Data Analysis',superHierarchy:'Prime category'};
+    }
     const source=String(record.hierarchy||'').trim()||'Category';
     const evidence=normalizeName([record.hierarchy,record.topic,record.url].join(' '));
     const taxonomy=options?.categoryTaxonomy||{};
@@ -304,6 +316,7 @@
     Object.values(root.views||{}).forEach(view=>(view.rows||[]).forEach(row=>Object.values(row.cells||{}).forEach(cell=>{
       if(!cell?.repositoryQueries?.length)return;
       const imported=resolve(cell.repositoryQueries,cell.repositoryUrlOverrides);
+      if(imported.some(item=>item.classificationRevision)&&cell.st)return;
       const manualCount=Array.isArray(cell.pageUrls)?cell.pageUrls.filter(item=>String(item?.url||'').trim()).length:0;
       const represented=imported.find(item=>item.represented);
       if(represented)cell.url=represented.url;
@@ -413,10 +426,11 @@
   function hasScopedMappings(view,workspace,awareness,section){
     return !!view&&(view.rows||[]).some(row=>Object.values(row.cells||{}).some(cell=>(cell?.repositoryQueries||[]).some(query=>query.workspace===workspace&&query.awareness===awareness&&(!section||query.section===section))));
   }
-  function clearScopedMappings(view,workspace,awareness,section,preserveCells=false){
+  function clearScopedMappings(view,workspace,awareness,section,preserveCells=false,preserveReviewed=false){
     if(!view)return;
     (view.rows||[]).forEach(row=>Object.entries(row.cells||{}).forEach(([id,cell])=>{
       const queries=cell?.repositoryQueries||[];
+      if(preserveReviewed&&queries.some(query=>data()?.classifications?.[query.topicGroup]?.classificationRevision))return;
       if(!queries.some(query=>query.workspace===workspace&&query.awareness===awareness&&(!section||query.section===section)))return;
       if(!preserveCells){delete row.cells[id];return;}
       const remaining=queries.filter(query=>query.workspace!==workspace||query.awareness!==awareness||(section&&query.section!==section));
@@ -455,6 +469,25 @@
     if(/report|reporting|dashboard|scorecard|summary|template|forecast|alert/.test(text))return 'output';
     return 'process';
   }
+  function installReviewedGridMappings(view,viewId,mode,awareness,workspace,options,types,preserved=new Map()){
+    const matrix=viewId==='product'?'Product Aware':({category:'Category',icp:'ICP',value:'Value'}[viewId])+' '+mode.toUpperCase();
+    const wanted=records().filter(record=>record.classificationRevision&&record.workspace===workspace&&record.matrix===matrix&&record.awareness===awareness&&matchesNode(record,options));
+    const uid=options.uid||(()=>Math.random().toString(36).slice(2)),slots=new Map();
+    for(const record of wanted){
+      const group=pageGroup(record.pageType);if(!group)throw new Error('Reviewed URL has no page format: '+record.url);
+      const column=ensureColumn(viewId,view,group,record.column,mode,types,true);
+      const category=categoryPlacement(record,options,workspace);
+      const hierarchy=viewId==='icp'?(record.icpSegment||record.hierarchy):category.hierarchy;
+      const key=[group,hierarchy,column.id].join('|');let slot=slots.get(key)||0;
+      let row=ensureRow(view,group,hierarchy,slot,uid,viewId==='icp'?record.hierarchy:category.superHierarchy);
+      while(row.cells[column.id]&&!row.cells[column.id].repositoryQueries?.some(query=>query.topicGroup===record.topicGroup))row=ensureRow(view,group,hierarchy,++slot,uid,viewId==='icp'?record.hierarchy:category.superHierarchy);
+      slots.set(key,slot+1);row.repositoryWorkspace=workspace;
+      const saved=options.reviewedStates?.[record.url]||preserved.get(record.topicGroup)||{},current=row.cells[column.id]||{};
+      const spec={workspace,awareness:record.awareness,section:record.section,pageType:record.pageType,hierarchy:record.hierarchy,axis:record.axis,topicGroup:record.topicGroup};
+      row.cells[column.id]={...current,...saved,v:repositoryTitle(record,current,saved),url:repositorySlug(record,current,saved),mode,type:saved.type||typeId(types,group),aw:saved.aw||'',st:saved.st||'for_review',cfg:true,repositoryQueries:[spec]};
+    }
+    return wanted.length;
+  }
   function installScopedMappings(root,types,options){
     const workspace=options.workspace,viewId=options.contentView;
     if(!['product','category','icp','value'].includes(viewId)||!options.activeView)return false;
@@ -462,29 +495,21 @@
     const mode=viewId==='product'?'aeo':viewId==='category'?(options.mode||'aeo'):(options.mode||(awareness==='solution-aware'?'aeo':'seo'));
     const section=sectionFor(viewId,mode);
     const keywordNodeId=String(options.keywordNodeId||'');
-    const supportingTerms=(options.supportingTerms||[]).map(normalizeName).filter(term=>term.length>2);
-    const recordIsSupporting=record=>{
-      const evidence=normalizeName([record.hierarchy,record.axis,record.topic,record.url].join(' '));
-      if(/data integration|\betl\b|data ingestion|normalization|data collection|connector|data warehouse|storage/.test(evidence))return true;
-      return supportingTerms.some(term=>evidence===term||evidence.includes(term));
-    };
-    const nodeScopedRecords=()=>records().filter(record=>{
-      if(!keywordNodeId)return true;
-      const supporting=recordIsSupporting(record);
-      return keywordNodeId==='supporting-processes'?supporting:!supporting;
-    });
+    const nodeScopedRecords=()=>records().filter(record=>matchesNode(record,options));
     const scope=[workspace,keywordNodeId||'default',awareness,viewId,mode].join(':');
     // Include overlay imports in the persisted migration key. Otherwise a
     // board that already installed the Saras/base repository incorrectly
     // treats a newly shipped represented-company import as already applied.
-    const revision=(data().classifiedAt||'classification')+':'+(global.AskLucaKeywordImport?.REVISION||'base')+':'+scope+':v23';
+    const revision=(data().classifiedAt||'classification')+':'+(global.AskLucaKeywordImport?.REVISION||'base')+':'+scope+':v24';
     root.sharedUrlRepositoryRevisions ||= {};
     const view=options.activeView,uid=options.uid||(()=>Math.random().toString(36).slice(2));
     const fixedAiDataValueMatrix=workspace==='ai-data-platform'&&viewId==='value'&&mode==='aeo';
     if(fixedAiDataValueMatrix){
       const sourceSection=['problem-unaware','problem-aware'].includes(awareness)?'Value SEO':section;
       const before=JSON.stringify({rows:view.rows||[],columns:view.pageColumns?.matrix||[]});
-      clearScopedMappings(view,workspace,awareness,sourceSection,true);
+      const preserved=captureRepositoryState({views:{value:view}});
+      clearScopedMappings(view,workspace,awareness,sourceSection,true,sourceSection==='Value SEO');
+      if(sourceSection!=='Value AEO')clearScopedMappings(view,workspace,awareness,'Value AEO');
       view.rows=(view.rows||[]).filter(row=>row.pageGroup!=='value-overview'&&(row.pageGroup!=='matrix'||['process','subprocess'].includes(row.processLevel)));
       if(view.pageColumns){delete view.pageColumns['value-overview'];delete view.pageOrders?.['value-overview'];}
       const taxonomyColumnIds=new Set((view.rows||[]).filter(row=>row.pageGroup==='matrix').flatMap(row=>Object.keys(row.cells||{})));
@@ -493,7 +518,7 @@
       const taxonomyRows=new Map((view.rows||[]).filter(row=>row.pageGroup==='matrix').map(row=>[normalizeName(row.name||row.topicCell?.v),row]));
       const taxonomyColumns=new Map((view.pageColumns?.matrix||[]).map(column=>[normalizeName(column.name),column]));
       let linked=0;
-      nodeScopedRecords().filter(record=>record.workspace===workspace&&record.awareness===awareness&&record.section===sourceSection)
+      nodeScopedRecords().filter(record=>!record.classificationRevision&&record.workspace===workspace&&record.awareness===awareness&&record.section===sourceSection)
         .sort((a,b)=>Number(b.represented)-Number(a.represented)||a.groupOrder-b.groupOrder)
         .forEach(record=>{
         const structureOnly=sourceSection==='Value SEO';
@@ -514,6 +539,7 @@
           mode:'aeo',type:current.type||typeId(types,pageGroup(record.pageType)||'landing'),cfg:true,repositoryQueries:queries};
         linked++;
       });
+      linked+=installReviewedGridMappings(view,viewId,mode,awareness,workspace,options,types,preserved);
       applyRepositoryStatuses({views:{value:view}});
       root.sharedUrlRepositoryRevisions[scope]=revision;
       root.sharedUrlLinkedCount=(root.sharedUrlLinkedCount||0)+linked;
@@ -527,7 +553,7 @@
     clearScopedMappings(view,workspace,awareness,section);
     let linked=0;
     const mappedSlots=new Map();
-    nodeScopedRecords().filter(record=>record.workspace===workspace&&record.awareness===awareness&&record.section===section)
+    nodeScopedRecords().filter(record=>!record.classificationRevision&&record.workspace===workspace&&record.awareness===awareness&&record.section===section)
       .sort((a,b)=>Number(b.represented)-Number(a.represented)||a.groupOrder-b.groupOrder)
       .forEach(record=>{
       if(record.section==='Corporate & Non-SEO')return;
@@ -604,6 +630,7 @@
       ensureColumn('product',view,'landing','Features','aeo',types);
       view.pageOrders.landing=columnsFor(view,'landing').map(column=>column.id);
     }
+    linked+=installReviewedGridMappings(view,viewId,mode,awareness,workspace,options,types,preserved);
     compactRepositoryCells(view,viewId);
     mappedRowsFirst(view,viewId);
     applyRepositoryStatuses({views:{[viewId]:view}});
@@ -618,11 +645,12 @@
   }
   function installCompetitorMappings(root,types,options={}){
     const matrix=root?.views?.competitor,workspace=workspaceFor(options.product);if(!matrix||!workspace)return false;
-    const imported=records().filter(record=>record.workspace===workspace&&record.awareness==='competitor-aware'&&record.section==='Competitor AEO');
+    const imported=records().filter(record=>record.workspace===workspace&&record.awareness==='competitor-aware'&&record.section==='Competitor AEO'&&matchesNode(record,options));
     if(!imported.length)return false;
-    const scope=workspace+':competitor-aware',revision=(data()?.classifiedAt||'classification')+':'+(global.AskLucaKeywordImport?.REVISION||'base')+':competitor-v2';
+    const scope=workspace+':'+(options.keywordNodeId||'default')+':competitor-aware',revision=(data()?.classifiedAt||'classification')+':'+(global.AskLucaKeywordImport?.REVISION||'base')+':competitor-v3';
     root.sharedCompetitorUrlRepositoryRevisions ||= {};
-    if(root.sharedCompetitorUrlRepositoryRevisions[scope]===revision)return false;
+    const existingQueries=new Set([...Object.values(matrix.cells||{}),...Object.values(matrix.comparisonCells||{})].flatMap(cell=>(cell?.repositoryQueries||[]).map(query=>query.topicGroup)));
+    if(root.sharedCompetitorUrlRepositoryRevisions[scope]===revision&&imported.every(record=>existingQueries.has(record.topicGroup)))return false;
     const uid=options.uid||(()=>Math.random().toString(36).slice(2));matrix.rows ||= [];matrix.types ||= [];matrix.cells ||= {};matrix.comparisonCells ||= {};
     const typeByName=new Map(['Alternatives','Reviews','Pricing','Features'].map(name=>[normalizeName(name),ensureNamed(matrix.types,name,uid)]));
     const articleType=(types||[]).find(item=>normalizeName(item.name)==='competitor')?.id||'';
@@ -630,7 +658,8 @@
       current=current&&typeof current==='object'?current:{};
       const queries=Array.isArray(current.repositoryQueries)?current.repositoryQueries.slice():[];
       if(!queries.some(query=>query.topicGroup===spec.topicGroup))queries.push(spec);
-      return {...current,v:repositoryTitle(record,current),url:repositorySlug(record,current),mode:'aeo',type:current.type||articleType,aw:'Competitor aware',st:record.covered?'written':(current.st||'for_review'),cfg:true,repositoryQueries:queries,repositoryUrlOverrides:current.repositoryUrlOverrides||{}};
+      const saved=options.reviewedStates?.[record.url]||{};
+      return {...current,...saved,v:repositoryTitle(record,current,saved),url:repositorySlug(record,current,saved),mode:'aeo',type:saved.type||current.type||articleType,aw:'Competitor aware',st:record.covered?'written':(saved.st||current.st||'for_review'),cfg:true,repositoryQueries:queries,repositoryUrlOverrides:saved.repositoryUrlOverrides||current.repositoryUrlOverrides||{}};
     };
     for(const record of imported){
       const spec={workspace,awareness:record.awareness,section:record.section,pageType:record.pageType,hierarchy:record.hierarchy,axis:record.axis,topicGroup:record.topicGroup};
@@ -645,6 +674,6 @@
     }
     root.sharedCompetitorUrlRepositoryRevisions[scope]=revision;return true;
   }
-  global.SharedUrlRepository={load,records,query,resolve,installMappings,installCompetitorMappings,productMatches,workspaceFor,pageGroup,sectionFor};
+  global.SharedUrlRepository={load,records,query,resolve,installMappings,installCompetitorMappings,productMatches,workspaceFor,pageGroup,sectionFor,matchesNode};
   if(typeof module!=='undefined')module.exports=global.SharedUrlRepository;
 })(typeof globalThis!=='undefined'?globalThis:this);

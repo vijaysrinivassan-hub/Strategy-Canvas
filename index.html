@@ -3115,22 +3115,22 @@
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="keyword-assignments.js?v=value-lenses-v2"></script>
 <script src="keyword-page-tables.js?v=product-capabilities-v2"></script>
-<script src="keyword-columns.js?v=awareness-structure-v31"></script>
+<script src="keyword-columns.js?v=topic-routing-v35"></script>
 <script src="ai-data-icp-matrix.js?v=icp-solution-taxonomy-v17"></script>
-<script src="keyword-columns-ui.js"></script>
+<script src="keyword-columns-ui.js?v=topic-routing-v35"></script>
 <script src="high-priority-links.js"></script>
 <script src="eor-provider-india-keywords.js"></script>
 <script src="ai-data-value-keywords.js?v=value-keywords-v9"></script>
 <script src="ai-data-search-metrics.js?v=search-metrics-v5"></script>
 <script src="competitor-comparison.js?v=writing-queue-v1"></script>
-<link rel="stylesheet" href="competitive-intelligence.css?v=organic-traffic-v1">
+<link rel="stylesheet" href="competitive-intelligence.css?v=topic-routing-v2">
 <script src="competitive-intelligence-seed.js"></script>
 <script src="ask-luca-competitive-intelligence.js"></script>
 <script src="ask-luca-keyword-import.js?v=represented-content-v1"></script>
 <script src="saras-analytics-organic-traffic.js?v=2026-10-04"></script>
 <script src="saras-analytics-competitive-intelligence.js?v=organic-traffic-v1"></script>
-<script src="competitive-intelligence.js?v=organic-traffic-v1"></script>
-<script src="shared-url-repository.js?v=supporting-processes-v28"></script>
+<script src="competitive-intelligence.js?v=topic-routing-v2"></script>
+<script src="shared-url-repository.js?v=topic-routing-v29"></script>
 <link rel="stylesheet" href="icp-workflows.css">
 <script src="icp-workflows.js"></script>
 <link rel="stylesheet" href="icp-table.css">
@@ -3726,7 +3726,7 @@ function keywordFilledCounts(){
   const repository = globalThis.SharedUrlRepository;
   const context = typeof sharedUrlBoardContext === 'function' ? sharedUrlBoardContext() : '';
   const workspace = repository?.workspaceFor(context) || '';
-  const records = repository?.records?.() || [];
+  const records = (repository?.records?.() || []).filter(record=>repository.matchesNode(record,{keywordNodeId:root.activeKeywordNodeId||'',supportingTerms:supportingKeywordTerms()}));
   const hasScopedRepository = !!records.some(record => record.workspace === workspace && record.awareness);
   const stages = [
     { id:'problem-unaware', mode:'SEO', group:'informational' },
@@ -3742,7 +3742,7 @@ function keywordFilledCounts(){
       const fixedAiDataValueMatrix = workspace === 'ai-data-platform' && stage.id === 'solution-aware' && viewId === 'value';
       const awarenessValueMatrix = viewId === 'value' && ['problem-unaware','problem-aware'].includes(stage.id) && !!view?.pageColumns?.matrix?.length;
       const repositoryCount = fixedAiDataValueMatrix || awarenessValueMatrix ? 0 : keywordRepositoryCount(records, workspace, stage.id, sectionName + ' ' + stage.mode);
-      const manualCount = keywordCountGrid(view, awarenessValueMatrix ? 'matrix' : stage.group, hasScopedRepository && repositoryCount > 0);
+      const manualCount = keywordCountGrid(view, awarenessValueMatrix ? 'matrix' : stage.group, hasScopedRepository && repositoryCount > 0)+(awarenessValueMatrix?keywordCountGrid(view,'informational',false):0);
       result[stage.id][viewId] = repositoryCount + manualCount;
     });
     result[stage.id].total = result[stage.id].icp + result[stage.id].value;
@@ -8694,13 +8694,13 @@ function sharedUrlBoardContext(){
 function ensureSharedUrlCellMappings(){
   const repositoryContext = sharedUrlBoardContext();
   if (!window.SharedUrlRepository?.productMatches(repositoryContext)) return;
-  const mappingKey = [state.boardId,state.workspaceProductId,repositoryContext,state.keywordAwareness,state.contentView,keywordMode].join('|');
+  const mappingKey = [state.boardId,state.workspaceProductId,state.tabs[CONTENT_TAB]?.activeKeywordNodeId,repositoryContext,state.keywordAwareness,state.contentView,keywordMode].join('|');
   if (sharedUrlMappingPending || sharedUrlRepositoryReadyFor === mappingKey) return;
   sharedUrlMappingPending = window.SharedUrlRepository.load().then(function(){
     const board = state.boardId;
     const activeView = ['product','category','icp','value'].includes(state.contentView) ? matrixState() : null;
     const changed = window.SharedUrlRepository.installMappings(contentRoot(), articleTypes(), {product:repositoryContext,uid,awareness:state.keywordAwareness||'problem-aware',contentView:state.contentView,mode:keywordMode,activeView,categoryTaxonomy:selectedMaturityCategoryTaxonomy(),keywordNodeId:state.tabs[CONTENT_TAB]?.activeKeywordNodeId||'',supportingTerms:supportingKeywordTerms()});
-    const competitorChanged = state.contentView === 'competitor' && window.SharedUrlRepository.installCompetitorMappings(contentRoot(), articleTypes(), {product:repositoryContext,uid});
+    const competitorChanged = state.contentView === 'competitor' && window.SharedUrlRepository.installCompetitorMappings(contentRoot(), articleTypes(), {product:repositoryContext,uid,keywordNodeId:state.tabs[CONTENT_TAB]?.activeKeywordNodeId||'',supportingTerms:supportingKeywordTerms()});
     const firstReadyPaint = sharedUrlRepositoryReadyFor !== mappingKey;
     sharedUrlRepositoryReadyFor = mappingKey;
     if ((changed || competitorChanged) && !readOnly()) markDirty();
@@ -8760,6 +8760,9 @@ function renderGrid(){
     const groups=state.contentView==='value'
       ? [{id:'matrix',label:'Process matrix',type:''}]
       : [{id:'matrix',label:'ICP matrix',type:''}];
+    for(const group of KeywordPageTables.groups.filter(item=>item.id!=='informational')){
+      if((v.rows||[]).some(row=>row.pageGroup===group.id&&Object.values(row.cells||{}).some(cell=>cell?.repositoryQueries?.some(query=>globalThis.SharedUrlRepository?.resolve(query).some(record=>record.classificationRevision)))))groups.push(group);
+    }
     for(const group of groups){
       const section = document.createElement('section');section.className = 'keyword-page-section keyword-page-section-'+group.id;
       const title = document.createElement('h3');title.textContent = group.label;

@@ -6,7 +6,7 @@ import KeywordColumns from './keyword-columns.js';
 const asset=JSON.parse(fs.readFileSync(new URL('./competitive-intelligence-classifications.json',import.meta.url),'utf8'));
 // Preserve the original taxonomy as a regression fixture; the AI Layer pilot has
 // a separate test for the new product-gated routing.
-for(const meta of Object.values(asset.classifications))if(meta.previousRouting)Object.assign(meta,meta.previousRouting);
+Object.assign(asset.classifications,JSON.parse(fs.readFileSync(new URL('./tools/saras-legacy-classification-fixture.json',import.meta.url),'utf8')));
 const manifest=JSON.parse(fs.readFileSync(new URL('./tools/saras-category-aware-audit.json',import.meta.url),'utf8'));
 const records=Object.entries(asset.classifications).filter(([,meta])=>meta.workspace==='ai-data-platform');
 assert.equal(records.length,770);
