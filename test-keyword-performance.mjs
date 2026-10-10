@@ -2,17 +2,17 @@ import fs from 'node:fs';import vm from 'node:vm';import assert from 'node:asser
 import K from './keyword-columns.js';
 const html=fs.readFileSync(new URL('./index.html',import.meta.url),'utf8');
 let normalizations=0;
-const ctx=vm.createContext({state:{tabs:{content:{articleTypes:[{id:'a',name:'Article'}]}}},CONTENT_TAB:'content',contentRoot:()=>{normalizations++;throw Error('Unexpected full normalization')},uid:()=>'',DEFAULT_ARTICLE_TYPES:[]});
+const ctx=vm.createContext({state:{tabs:{content:{articleTypes:[{id:'a',name:'Article'}],articleTypesRevision:2}}},CONTENT_TAB:'content',contentRoot:()=>{normalizations++;throw Error('Unexpected full normalization')},uid:()=>'',DEFAULT_ARTICLE_TYPES:[],ARTICLE_TYPES_REVISION:2});
 vm.runInContext(html.slice(html.indexOf('function articleTypes(){'),html.indexOf('function columnTools(')),ctx);
 for(let i=0;i<10000;i++)ctx.articleTypes();
 assert.equal(normalizations,0);
 // Refresh renders once and ignores older requests after a table switch.
-let renders=0;const pending=[],state={boardId:'a',contentView:'category',tab:'content',screen:'board'};
+let renders=0;const pending=[],state={boardId:'a',contentView:'category',tab:'content',screen:'board',tabs:{content:{activeKeywordNodeId:''}}};
 const table={setAttribute(){},removeAttribute(){}},setup={};
 const refresh=vm.createContext({state,CONTENT_TAB:'content',$:id=>id==='mxTable'?table:setup,loadKeywords:()=>new Promise(r=>pending.push(r)),renderContentView:()=>renders++});
 vm.runInContext(html.slice(html.indexOf('let matrixRefreshRequest ='),html.indexOf('function renderContentView(){')),refresh);
-const first=refresh.refreshMatrix();assert.equal(renders,0);
-state.contentView='icp';const second=refresh.refreshMatrix();
+const first=refresh.refreshMatrix();await Promise.resolve();assert.equal(renders,0);
+state.contentView='icp';const second=refresh.refreshMatrix();await Promise.resolve();
 pending[0](null);await first;assert.equal(renders,0);
 pending[1](null);await second;assert.equal(renders,1);
 // Reorder moves existing cell nodes instead of invoking a renderer.

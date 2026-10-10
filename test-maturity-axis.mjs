@@ -29,6 +29,11 @@ assert.ok(html.includes("architecture.aiDataIndustryCleanupRevision=1"));
 assert.ok(html.includes('Do not add raw material, input types, descriptions, maps or nested product sections.'));
 for (const stage of ['L1 - Reporting', 'L2 - Analysis', 'L3 - Forecasting', 'L4 - Optimization'])
   assert.ok(html.includes(stage), 'missing maturity row ' + stage);
+for (const card of ['BI / reporting platform','AI analytics platform','Data integration / ETL platform','Cloud data warehouse'])
+  assert.ok(html.includes(card), 'missing technology card ' + card);
+for (const example of ['Looker / Tableau / Triple Whale / Daasity / Analyst','Fivetran / Airbyte / Airflow'])
+  assert.ok(html.includes(example), 'missing actor examples ' + example);
+assert.ok(html.includes('architecture.aiDataTechnologyCardsRevision=1'));
 for (const field of ['processRole', 'pillarState', 'actorType', 'capabilities'])
   assert.ok(html.includes(field), 'missing maturity field ' + field);
 assert.match(html, /data-process-role="supporting"/);
@@ -45,6 +50,9 @@ for (const phrase of ['PILLAR PROCESS', 'SUPPORTING PROCESS', 'Features when the
   assert.ok(prompts.maturity_axis.prompt.includes(phrase), 'prompt missing ' + phrase);
 assert.ok(!prompts.maturity_axis.prompt.includes('define department maps'));
 assert.ok(!prompts.maturity_axis.prompt.includes('major input types'));
+assert.ok(prompts.maturity_technology_cards?.prompt.includes('Who or what does it?'));
+assert.ok(prompts.maturity_technology_cards.prompt.includes('Triple Whale / Daasity'));
+assert.ok(prompts.keyword_supporting_processes?.prompt.includes('one aggregate Supporting Processes workspace'));
 
 assert.match(tools, /registerTool\('maturity_axis_get'/);
 assert.match(tools, /registerTool\('maturity_axis_set'/);

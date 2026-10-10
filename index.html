@@ -3113,7 +3113,7 @@
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="keyword-assignments.js?v=value-lenses-v2"></script>
 <script src="keyword-page-tables.js?v=product-capabilities-v2"></script>
-<script src="keyword-columns.js?v=category-synonyms-v29"></script>
+<script src="keyword-columns.js?v=supporting-processes-v30"></script>
 <script src="ai-data-icp-matrix.js?v=icp-solution-taxonomy-v17"></script>
 <script src="keyword-columns-ui.js"></script>
 <script src="high-priority-links.js"></script>
@@ -3128,7 +3128,7 @@
 <script src="saras-analytics-organic-traffic.js?v=2026-10-04"></script>
 <script src="saras-analytics-competitive-intelligence.js?v=organic-traffic-v1"></script>
 <script src="competitive-intelligence.js?v=organic-traffic-v1"></script>
-<script src="shared-url-repository.js?v=category-synonyms-v26"></script>
+<script src="shared-url-repository.js?v=supporting-processes-v27"></script>
 <link rel="stylesheet" href="icp-workflows.css">
 <script src="icp-workflows.js"></script>
 <link rel="stylesheet" href="icp-table.css">
@@ -3148,7 +3148,7 @@ const SUPABASE_URL = 'https://cskamgfvebryahkljlll.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_MdkD-TxMCIwlu69seSHA3Q_A39GADsK';
 const CLIENT_ID    = '1059013355751-6g50dsgm7df37htl2fdqrtlkh5hmrc0c.apps.googleusercontent.com';
 const ALLOWED      = ['vijaysrinivassan@gmail.com'];
-const BUILD        = 'v8.68';
+const BUILD        = 'v8.69';
 
 const STRATEGY_ONE_TAB = 'Strategy 1 — Brand Strategy';
 const PRODUCT_EVOLUTION_TAB = 'Strategy 1 — Product Evolution';
@@ -6970,15 +6970,19 @@ async function ensureSarasAnalyticsCompetitiveIntelligenceSeed(){
   finally { sarasAnalyticsCompetitiveIntelligenceSeedPending = null; }
 }
 
+const SUPPORTING_KEYWORD_NODE_ID='supporting-processes';
+const SUPPORTING_KEYWORD_WORKSPACE_REVISION=1;
 function selectedMaturityKeywordNodes(){
   const architecture = state.tabs[MATURITY_ACCESS_TAB]?.architecture;
   if (!architecture || !Array.isArray(architecture.nodes)) return [];
   const systemOrder = new Map((architecture.systems || []).map((system,index) => [system.id,index]));
-  return architecture.nodes.filter(node => node && node.replacementSelected === true).map((node,index) => ({
+  const nodes=architecture.nodes.filter(node => node && node.replacementSelected === true && node.processRole !== 'supporting').map((node,index) => ({
     id:String(node.id),
     label:String((typeof maturityProcessName === 'function' ? maturityProcessName(node) : node.label) || 'Process').trim() || 'Process',
     order:(systemOrder.get(node.systemId) ?? 999) * 1000 + index
   })).sort((a,b) => a.order - b.order);
+  nodes.push({id:SUPPORTING_KEYWORD_NODE_ID,label:'Supporting Processes',order:Number.MAX_SAFE_INTEGER,supporting:true});
+  return nodes;
 }
 function selectedMaturityCategoryTaxonomy(){
   const architecture = state.tabs[MATURITY_ACCESS_TAB]?.architecture;
@@ -6995,19 +6999,20 @@ function selectedMaturityCategoryTaxonomy(){
   };
   const systems = (architecture.systems || []).filter(system => system.selected === true);
   const activeNodeId = String(state.tabs[CONTENT_TAB]?.activeKeywordNodeId || '');
+  const supportingMode = activeNodeId === SUPPORTING_KEYWORD_NODE_ID;
   const activeNode = architecture.nodes.find(node => String(node.id) === activeNodeId && node.replacementSelected === true);
   const systemIds = new Set(activeNode ? [activeNode.systemId] : systems.map(system => system.id));
   const inScope = architecture.nodes.filter(node => systemIds.has(node.systemId));
   const checked = activeNode ? [activeNode] : inScope.filter(node => node.replacementSelected === true);
-  let primeNodes = checked.filter(node => node.processRole === 'pillar');
-  if (!primeNodes.length) primeNodes = inScope.filter(node => node.processRole === 'pillar' && node.pillarState === 'current');
-  if (!primeNodes.length) primeNodes = checked;
+  let primeNodes = supportingMode ? [] : checked.filter(node => node.processRole === 'pillar');
+  if (!primeNodes.length && !supportingMode) primeNodes = inScope.filter(node => node.processRole === 'pillar' && node.pillarState === 'current');
+  if (!primeNodes.length && !supportingMode) primeNodes = checked;
   const unique = values => [...new Set(values.map(value => String(value || '').trim()).filter(Boolean))];
   const primary = unique(primeNodes.map(canonicalName));
   const supporting = unique(inScope.filter(node => node.processRole === 'supporting').map(canonicalName))
     .filter(name => !primary.includes(name));
   if (/ai data platform|data analytics/.test(context)){
-    if (!primary.length) primary.push('Data Analysis');
+    if (!primary.length && !supportingMode) primary.push('Data Analysis');
     if (!supporting.includes('Data Integration & ETL')) supporting.unshift('Data Integration & ETL');
   }
   return {primary,supporting};
@@ -7035,6 +7040,76 @@ function createFreshKeywordNodeProjection(root){
   contentRoot();
   return cloneKeywordNodeProjection(root);
 }
+function supportingKeywordTerms(){
+  const architecture=state.tabs[MATURITY_ACCESS_TAB]?.architecture;
+  if(!architecture||!Array.isArray(architecture.nodes))return [];
+  const selectedSystems=new Set((architecture.systems||[]).filter(system=>system.selected===true).map(system=>system.id));
+  const scope=selectedSystems.size?architecture.nodes.filter(node=>selectedSystems.has(node.systemId)):architecture.nodes;
+  const terms=scope.filter(node=>node.processRole==='supporting').flatMap(node=>[
+    typeof maturityProcessName==='function'?maturityProcessName(node):node.processName,
+    node.processName,node.label
+  ]).map(value=>String(value||'').trim().toLowerCase()).filter(value=>value.length>2);
+  const context=(String(state.client||'')+' '+String(state.clientProduct||'')+' '+String(architecture.name||'')).toLowerCase();
+  if(/ai data platform|data analytics/.test(context))terms.push('data integration & etl','data integration','etl','data ingestion','ingestion','normalization','data collection','data connector','data warehouse','storage');
+  return [...new Set(terms)];
+}
+function supportingKeywordMatch(row,cell,terms){
+  const queries=Array.isArray(cell?.repositoryQueries)?cell.repositoryQueries:[];
+  const text=[row?.repositorySuperHierarchy,row?.repositoryHierarchy,row?.processName,row?.name,cell?.repositorySuperHierarchy,cell?.repositoryHierarchy,
+    ...queries.flatMap(query=>[query?.repositorySuperHierarchy,query?.repositoryHierarchy,query?.superHierarchy,query?.hierarchy,query?.topicGroup])]
+    .map(value=>String(value||'').trim().toLowerCase()).filter(Boolean).join(' | ');
+  if(/supporting (process|category)/.test(text))return true;
+  return terms.some(term=>text===term||text.includes(term));
+}
+function splitSupportingKeywordProjection(projection,terms){
+  const source=cloneKeywordNodeProjection(projection),supporting=cloneKeywordNodeProjection(projection);
+  const splitBucket=(sourceBucket,supportBucket)=>{
+    for(const [key,sourceView] of Object.entries(sourceBucket||{})){
+      const supportView=supportBucket?.[key];if(!supportView||!Array.isArray(sourceView.rows)){if(supportView)supportView.rows=[];continue;}
+      const kept=[],moved=[];
+      sourceView.rows.forEach(row=>{
+        const rowMatch=supportingKeywordMatch(row,null,terms),sourceCells=row.cells&&typeof row.cells==='object'?row.cells:{},supportCells={};
+        if(rowMatch){moved.push(JSON.parse(JSON.stringify(row)));return;}
+        for(const [columnId,cell] of Object.entries(sourceCells))if(supportingKeywordMatch(row,cell,terms)){supportCells[columnId]=JSON.parse(JSON.stringify(cell));delete sourceCells[columnId];}
+        kept.push(row);
+        if(Object.keys(supportCells).length)moved.push({...JSON.parse(JSON.stringify(row)),cells:supportCells});
+      });
+      sourceView.rows=kept;supportView.rows=moved;
+    }
+  };
+  splitBucket(source.views,supporting.views);splitBucket(source.awarenessViews,supporting.awarenessViews);
+  return {source,supporting};
+}
+function mergeSupportingKeywordProjection(target,addition){
+  if(!target)return cloneKeywordNodeProjection(addition);
+  const mergeBucket=(targetBucket,additionBucket)=>{
+    for(const [key,view] of Object.entries(additionBucket||{})){
+      if(!targetBucket[key]){targetBucket[key]=JSON.parse(JSON.stringify(view));continue;}
+      const rows=targetBucket[key].rows||(targetBucket[key].rows=[]);
+      for(const row of view.rows||[]){
+        const existing=rows.find(candidate=>String(candidate.id)===String(row.id));
+        if(!existing){rows.push(JSON.parse(JSON.stringify(row)));continue;}
+        existing.cells={...(existing.cells||{}),...(JSON.parse(JSON.stringify(row.cells||{})))};
+      }
+    }
+  };
+  mergeBucket(target.views,addition.views);mergeBucket(target.awarenessViews,addition.awarenessViews);return target;
+}
+function ensureSupportingKeywordWorkspace(root){
+  if(root.supportingKeywordWorkspaceRevision===SUPPORTING_KEYWORD_WORKSPACE_REVISION)return false;
+  root.keywordNodeWorkspaces||={};snapshotActiveKeywordNodeWorkspace();
+  const active=String(root.activeKeywordNodeId||''),terms=supportingKeywordTerms();let combined=null;
+  for(const [nodeId,projection] of Object.entries(root.keywordNodeWorkspaces)){
+    if(nodeId===SUPPORTING_KEYWORD_NODE_ID)continue;
+    const partition=splitSupportingKeywordProjection(projection,terms);
+    root.keywordNodeWorkspaces[nodeId]=partition.source;
+    combined=mergeSupportingKeywordProjection(combined,partition.supporting);
+  }
+  if(combined)root.keywordNodeWorkspaces[SUPPORTING_KEYWORD_NODE_ID]=mergeSupportingKeywordProjection(root.keywordNodeWorkspaces[SUPPORTING_KEYWORD_NODE_ID],combined);
+  if(active&&root.keywordNodeWorkspaces[active])installKeywordNodeProjection(root,root.keywordNodeWorkspaces[active]);
+  root.supportingKeywordWorkspaceRevision=SUPPORTING_KEYWORD_WORKSPACE_REVISION;
+  return true;
+}
 function ensureKeywordNodeScope(){
   const nodes = selectedMaturityKeywordNodes();
   if (!nodes.length) return {nodes,active:''};
@@ -7054,6 +7129,7 @@ function ensureKeywordNodeScope(){
     root.activeKeywordNodeId = target;
     changed = true;
   }
+  if(ensureSupportingKeywordWorkspace(root))changed=true;
   if (changed && !readOnly()) setTimeout(markDirty,0);
   return {nodes,active:String(root.activeKeywordNodeId || '')};
 }
@@ -7092,14 +7168,40 @@ function switchKeywordNode(nodeId){
   rememberLocation();
 }
 
+const AWARENESS_VALUE_AEO_REVISION=1;
+function ensureAwarenessValueAeoMatrices(root){
+  if(root.awarenessValueAeoRevision===AWARENESS_VALUE_AEO_REVISION)return false;
+  const archive={};
+  const migrate=(projection,scopeId)=>{
+    if(!projection?.views?.value)return;
+    projection.awarenessViews||={};
+    for(const layer of ['problem-unaware','problem-aware']){
+      const key=layer+':value';
+      if(projection.awarenessViews[key])archive[scopeId+':'+key]=JSON.parse(JSON.stringify(projection.awarenessViews[key]));
+      projection.awarenessViews[key]=JSON.parse(JSON.stringify(projection.views.value));
+    }
+  };
+  if(root.keywordNodeWorkspaces&&Object.keys(root.keywordNodeWorkspaces).length){
+    snapshotActiveKeywordNodeWorkspace();
+    for(const [nodeId,projection] of Object.entries(root.keywordNodeWorkspaces))migrate(projection,nodeId);
+    const active=String(root.activeKeywordNodeId||'');
+    if(active&&root.keywordNodeWorkspaces[active])installKeywordNodeProjection(root,root.keywordNodeWorkspaces[active]);
+  }else migrate(root,'unscoped');
+  if(Object.keys(archive).length)root.awarenessValueSeoArchive=archive;
+  root.awarenessValueAeoRevision=AWARENESS_VALUE_AEO_REVISION;
+  if(!readOnly())setTimeout(markDirty,0);
+  return true;
+}
+
 function matrixState(){
   const root = contentRoot();
-  if (state.keywordAwareness === 'problem-unaware' && ['icp','value'].includes(state.contentView)){
+  ensureAwarenessValueAeoMatrices(root);
+  if (['problem-unaware','problem-aware'].includes(state.keywordAwareness) && ['icp','value'].includes(state.contentView)){
     if (!root.awarenessViews || typeof root.awarenessViews !== 'object') root.awarenessViews = {};
-    const key = 'problem-unaware:' + state.contentView;
+    const key = state.keywordAwareness + ':' + state.contentView;
     if (!root.awarenessViews[key]){
-      /* Start as a true replica of the current SEO matrix, then persist it as
-         its own editable bucket so Problem Unaware and Problem Aware diverge. */
+      /* Start from the shared structure, then persist an independent bucket so
+         every awareness stage can diverge without changing the others. */
       root.awarenessViews[key] = JSON.parse(JSON.stringify(root.views[state.contentView]));
       if (!readOnly()) setTimeout(markDirty, 0);
     }
@@ -7894,13 +7996,20 @@ function gridCellKeywords(text, manualIds, excludedIds){
 /* ---- article types ----
    The kinds of article a cell can become. Kept on the board so each client can
    have their own, edited under Settings. */
-const DEFAULT_ARTICLE_TYPES = ['Listicle', 'List item', 'Informational', 'Competitor'];
+const DEFAULT_ARTICLE_TYPES = ['Listicle', 'List item', 'Informational', 'Competitor', 'Guides', 'How-to articles', 'Explainers', 'Trends', 'Topic vs Topic'];
+const ARTICLE_TYPES_REVISION=2;
 
 function articleTypes(){
   // Rendering a dropdown is a read, not a request to normalize every table.
   const root = state.tabs[CONTENT_TAB] || contentRoot();
   if (!Array.isArray(root.articleTypes) || !root.articleTypes.length){
     root.articleTypes = DEFAULT_ARTICLE_TYPES.map(function(x){ return { id: uid(), name: x }; });
+  }
+  if(root.articleTypesRevision!==ARTICLE_TYPES_REVISION){
+    const present=new Set(root.articleTypes.map(type=>String(type.name||'').trim().toLowerCase()));
+    DEFAULT_ARTICLE_TYPES.forEach(name=>{if(!present.has(name.toLowerCase()))root.articleTypes.push({id:uid(),name});});
+    root.articleTypesRevision=ARTICLE_TYPES_REVISION;
+    if(!readOnly())setTimeout(markDirty,0);
   }
   return root.articleTypes;
 }
@@ -8462,7 +8571,7 @@ function ensureSharedUrlCellMappings(){
   sharedUrlMappingPending = window.SharedUrlRepository.load().then(function(){
     const board = state.boardId;
     const activeView = ['product','category','icp','value'].includes(state.contentView) ? matrixState() : null;
-    const changed = window.SharedUrlRepository.installMappings(contentRoot(), articleTypes(), {product:repositoryContext,uid,awareness:state.keywordAwareness||'problem-aware',contentView:state.contentView,mode:keywordMode,activeView,categoryTaxonomy:selectedMaturityCategoryTaxonomy()});
+    const changed = window.SharedUrlRepository.installMappings(contentRoot(), articleTypes(), {product:repositoryContext,uid,awareness:state.keywordAwareness||'problem-aware',contentView:state.contentView,mode:keywordMode,activeView,categoryTaxonomy:selectedMaturityCategoryTaxonomy(),keywordNodeId:state.tabs[CONTENT_TAB]?.activeKeywordNodeId||'',supportingTerms:supportingKeywordTerms()});
     const competitorChanged = state.contentView === 'competitor' && window.SharedUrlRepository.installCompetitorMappings(contentRoot(), articleTypes(), {product:repositoryContext,uid});
     const firstReadyPaint = sharedUrlRepositoryReadyFor !== mappingKey;
     sharedUrlRepositoryReadyFor = mappingKey;
@@ -8525,7 +8634,7 @@ function renderGrid(){
       const table = document.createElement('table');table.className = 'mx-table';
       section.append(title);
       if(group.id==='matrix'){
-        if(state.contentView==='value'&&state.keywordAwareness==='solution-aware')renderValueMatrixLensToolbar(section,v);
+        if(state.contentView==='value')renderValueMatrixLensToolbar(section,v);
         const prompt = document.createElement('details');prompt.className='matrix-ai-prompt';
         const summary=document.createElement('summary');summary.textContent='AI prompt';
         const editor=document.createElement('textarea');editor.value=v.matrixAiPrompt||'';editor.disabled=readOnly();editor.placeholder='Instructions for an AI classifying this matrix…';
@@ -8587,7 +8696,7 @@ function renderGridTable(v, group, table){
   $('btnAddType').hidden = ro;
 
   const isPositioningMatrix = ['icp','value'].includes(state.contentView) && group.id === 'matrix';
-  const isValueAeoProcessMatrix = state.contentView === 'value' && state.keywordAwareness === 'solution-aware' && keywordMode === 'aeo' && group.id === 'matrix';
+  const isValueAeoProcessMatrix = state.contentView === 'value' && ['problem-unaware','problem-aware','solution-aware'].includes(state.keywordAwareness) && keywordMode === 'aeo' && group.id === 'matrix';
   const isValueOverview = state.contentView === 'value' && group.id === 'value-overview';
   const isIcpMatrix = state.contentView === 'icp' && isPositioningMatrix;
   const isIcpSeoMatrix = (state.contentView === 'icp' && keywordMode === 'seo' && group.id === 'informational') || state.contentView === 'category';
@@ -9059,7 +9168,7 @@ function renderAwarenessPicker(){
   const filledCounts = keywordFilledCounts()[state.keywordAwareness] || {icp:0,value:0};
   [
     {id:'icp', title:'ICP', text:keywordMode === 'seo' ? 'Open the ICP SEO matrix.' : 'Open the ICP AEO matrix.'},
-    {id:'value', title:'Value', text:keywordMode === 'seo' ? 'Open the Value SEO matrix.' : 'Open the Value AEO matrix.'}
+    {id:'value', title:'Value', text:'Open the Value AEO process-by-department matrix.'}
   ].forEach(function(option){
     const button = document.createElement('button'); button.type = 'button'; button.className = 'awareness-picker-card';
     const strong = document.createElement('strong'); strong.textContent = option.title;
@@ -9131,7 +9240,7 @@ function switchAwarenessContent(layer, id){
   if (!['icp','value'].includes(id)) return;
   state.keywordAwareness = layer;
   state.keywordAwarenessPicker = false;
-  keywordMode = layer === 'solution-aware' ? 'aeo' : 'seo';
+  keywordMode = id === 'value' || layer === 'solution-aware' ? 'aeo' : 'seo';
   switchContentView(id);
 }
 
@@ -10099,36 +10208,38 @@ function dataPlatformMaturityArchitecture(){
       const node = archFlowNode(system.id, label, actorType === 'people' ? 'people' : 'technology', x, y, details);
       nodes[key] = node; architecture.nodes.push(node); return node;
     };
-    add('shopify', 'Shopify data source', 12, 64, {
-      processRole:'supporting', pillarState:'', actorType:'technology', actor:'Shopify - orders & revenue',
+    add('shopify', 'Commerce platform', 12, 64, {
+      processName:'Commerce data collection',processRole:'supporting', pillarState:'', actorType:'technology', actor:'Shopify / BigCommerce / WooCommerce',
       nodalBenefit:'Supplies commerce transactions and revenue data.', capabilities:['Orders','Revenue']
     });
-    add('analytics', 'Google Analytics data source', 12, 238, {
-      processRole:'supporting', pillarState:'', actorType:'technology', actor:'Google Analytics - web & product',
+    add('analytics', 'Product & web analytics', 12, 238, {
+      processName:'Behavior data collection',processRole:'supporting', pillarState:'', actorType:'technology', actor:'Google Analytics / Adobe Analytics / Mixpanel',
       nodalBenefit:'Supplies web and product behaviour data.', capabilities:['Web behaviour','Product behaviour']
     });
-    add('ads', 'Advertising data source', 12, 412, {
-      processRole:'supporting', pillarState:'', actorType:'technology', actor:'Meta / Google Ads - marketing spend',
+    add('ads', 'Advertising platform', 12, 412, {
+      processName:'Advertising data collection',processRole:'supporting', pillarState:'', actorType:'technology', actor:'Meta Ads / Google Ads / TikTok Ads',
       nodalBenefit:'Supplies campaign delivery and spend data.', capabilities:['Campaigns','Marketing spend']
     });
-    add('etl', 'Ingestion / ETL', 214, 238, {
-      processRole:'supporting', pillarState:'', actorType:'technology', actor:'Fivetran / Airflow',
+    add('etl', 'Data integration / ETL platform', 214, 238, {
+      processName:'Ingestion / ETL',processRole:'supporting', pillarState:'', actorType:'technology', actor:'Fivetran / Airbyte / Airflow',
       nodalBenefit:'Pulls, normalizes and ingests raw data on a schedule.', capabilities:['Pull','Normalize','Ingest','Schedule']
     });
-    add('storage', 'Storage', 416, 238, {
-      processRole:'supporting', pillarState:'', actorType:'technology', actor:'Snowflake / BigQuery',
+    add('storage', 'Cloud data warehouse', 416, 238, {
+      processName:'Storage',processRole:'supporting', pillarState:'', actorType:'technology', actor:'Snowflake / BigQuery / Redshift',
       nodalBenefit:'Creates one clean, queryable source of truth.', capabilities:['Store','Govern','Query']
     });
     const pillarPositions = pillars.length <= 2 ? [[618,238],[816,238]] :
       pillars.length === 3 ? [[618,92],[816,92],[618,370]] :
       [[618,72],[816,72],[618,372],[816,372]];
-    pillars.forEach((pillar, index) => add(pillar.key, pillar.label, pillarPositions[index][0], pillarPositions[index][1], {
+    pillars.forEach((pillar, index) => add(pillar.key, pillar.nodeLabel || pillar.label, pillarPositions[index][0], pillarPositions[index][1], {
+      processName:pillar.label,
       processRole:'pillar', pillarState:index === pillars.length - 1 ? 'current' : 'inherited',
       actorType:pillar.actorType, actor:pillar.actor, nodalBenefit:pillar.benefit, capabilities:pillar.capabilities
     }));
     const decisionPosition = pillars.length === 1 ? [840,238] : pillars.length === 2 ? [816,440] :
       pillars.length === 3 ? [816,370] : [816,610];
-    if (decision) add('decision', decision.label, decisionPosition[0], decisionPosition[1], {
+    if (decision) add('decision', decision.nodeLabel || decision.label, decisionPosition[0], decisionPosition[1], {
+      processName:decision.label,
       processRole:'supporting', pillarState:'', actorType:decision.actorType, actor:decision.actor,
       nodalBenefit:decision.benefit, capabilities:decision.capabilities
     });
@@ -10141,25 +10252,25 @@ function dataPlatformMaturityArchitecture(){
     });
     if (decision) architecture.edges.push(archFlowEdge(prior.id, nodes.decision.id, decision.input));
   };
-  const reporting = {key:'reporting',label:'Reporting',actorType:'technology_or_people',actor:'Looker / Tableau / Analyst',
+  const reporting = {key:'reporting',label:'Reporting',nodeLabel:'BI / reporting platform',actorType:'technology_or_people',actor:'Looker / Tableau / Triple Whale / Daasity / Analyst',
     benefit:'Auto-dashboards and scheduled KPI reports show what happened.',
     capabilities:['Tracking','Monitoring','Dashboards','Reports'],input:'Queryable data'};
-  const analysis = {key:'analysis',label:'Analysis',actorType:'technology_or_people',actor:'AI analyst / chat-with-data',
+  const analysis = {key:'analysis',label:'Analysis',nodeLabel:'AI analytics platform',actorType:'technology_or_people',actor:'Saras iQ / Ask Luca / ThoughtSpot / AI analyst',
     benefit:'Lets teams ask data questions in plain English and run ad-hoc deep dives.',
     capabilities:['Cohort','Funnel','Attribution','Retention','Segmentation'],input:'Reported performance'};
-  const forecasting = {key:'forecasting',label:'Forecasting',actorType:'technology_or_people',actor:'ML platform / Data scientist',
+  const forecasting = {key:'forecasting',label:'Forecasting',nodeLabel:'Predictive analytics platform',actorType:'technology_or_people',actor:'Amazon Forecast / Vertex AI / Data scientist',
     benefit:'Predicts demand, churn and lifetime value to show what happens next.',
     capabilities:['Demand','Churn / propensity','LTV','Scenario'],input:'Analyzed patterns'};
-  const optimization = {key:'optimization',label:'Optimization',actorType:'technology',actor:'Optimization & automation engine',
+  const optimization = {key:'optimization',label:'Optimization',nodeLabel:'Decision optimization platform',actorType:'technology',actor:'Dynamic Yield / Optimizely / Automation engine',
     benefit:'Recommends and automatically runs the next best action.',
     capabilities:['Allocation','Recommendations','Experimentation','Automation'],input:'Predicted outcomes'};
-  const dashboard = {label:'Deliver',actorType:'technology',actor:'Dashboards',
+  const dashboard = {label:'Deliver',nodeLabel:'BI / delivery surface',actorType:'technology',actor:'Looker / Tableau / Power BI',
     benefit:'Puts the answer in front of the decision-maker.',capabilities:['Dashboards','Scheduled delivery'],input:'Decision-ready answer'};
   addRow('L1 - Reporting', 0, [reporting], dashboard);
   addRow('L2 - Analysis', 1, [reporting,analysis], dashboard);
   addRow('L3 - Forecasting', 2, [reporting,analysis,forecasting], dashboard);
   addRow('L4 - Optimization', 3, [reporting,analysis,forecasting,optimization], {
-    label:'Decision surface',actorType:'technology_or_people',actor:'Auto-actions / Decision-maker',
+    label:'Decision surface',nodeLabel:'Decision / activation surface',actorType:'technology_or_people',actor:'Automation platform / Decision-maker',
     benefit:'Acts on the recommendation so the operating loop closes.',
     capabilities:['Auto-actions','Human decision'],input:'Recommended action'
   });
@@ -10316,6 +10427,8 @@ if (tab.architectureFeaturePromptRevision !== 1){
   architecture.nodes = architecture.nodes.filter(node => architecture.systems.some(system => system.id === node.systemId));
   const analysisContext = /ai data platform|data analytics/.test(
     (String(state.client || '') + ' ' + String(architecture.name || '')).toLowerCase());
+  const migrateAiDataTechnologyCards = tabKey === MATURITY_ACCESS_TAB && analysisContext &&
+    architecture.aiDataTechnologyCardsRevision !== 1;
   const migrateAnalysisSubProcesses = tabKey === MATURITY_ACCESS_TAB && analysisContext &&
     architecture.analysisSubprocessRevision !== 1;
   architecture.nodes.forEach(node => {
@@ -10333,6 +10446,21 @@ if (tab.architectureFeaturePromptRevision !== 1){
       {id:uid(),name:item,description:''} : {
         id:item.id || uid(), name:String(item.name || '').trim(), description:String(item.description || '').trim()
       }).filter(item => item.name);
+    if(migrateAiDataTechnologyCards){
+      const originalProcess=maturityProcessName(node),match=(pattern)=>pattern.test((originalProcess+' '+node.label).toLowerCase());
+      const card=match(/commerce data|shopify data source/)?['Commerce data collection','Commerce platform','Shopify / BigCommerce / WooCommerce']:
+        match(/behavior data|google analytics data source/)?['Behavior data collection','Product & web analytics','Google Analytics / Adobe Analytics / Mixpanel']:
+        match(/advertising data|advertising data source/)?['Advertising data collection','Advertising platform','Meta Ads / Google Ads / TikTok Ads']:
+        match(/ingestion|\betl\b/)?['Ingestion / ETL','Data integration / ETL platform','Fivetran / Airbyte / Airflow']:
+        match(/storage/)?['Storage','Cloud data warehouse','Snowflake / BigQuery / Redshift']:
+        match(/^reporting\b/)?['Reporting','BI / reporting platform','Looker / Tableau / Triple Whale / Daasity / Analyst']:
+        match(/^analysis\b/)?['Analysis','AI analytics platform','Saras iQ / Ask Luca / ThoughtSpot / AI analyst']:
+        match(/^forecasting\b/)?['Forecasting','Predictive analytics platform','Amazon Forecast / Vertex AI / Data scientist']:
+        match(/^optimization\b/)?['Optimization','Decision optimization platform','Dynamic Yield / Optimizely / Automation engine']:
+        match(/^deliver\b|dashboards/)?['Deliver','BI / delivery surface','Looker / Tableau / Power BI']:
+        match(/decision surface/)?['Decision surface','Decision / activation surface','Automation platform / Decision-maker']:null;
+      if(card){node.processName=card[0];node.label=card[1];node.actor=card[2];}
+    }
     if (migrateAnalysisSubProcesses && maturityProcessName(node) === 'Analysis'){
       const existing = new Set(node.subProcesses.map(item => item.name.toLowerCase()));
       seededAnalysisSubProcesses().forEach(item => {
@@ -10351,6 +10479,10 @@ if (tab.architectureFeaturePromptRevision !== 1){
   if (migrateAnalysisSubProcesses){
     architecture.analysisSubprocessRevision = 1;
     if (!readOnly()) setTimeout(markDirty,0);
+  }
+  if(migrateAiDataTechnologyCards){
+    architecture.aiDataTechnologyCardsRevision=1;
+    if(!readOnly())setTimeout(markDirty,0);
   }
   architecture.edges = architecture.edges.filter(edge =>
     architecture.nodes.some(node => node.id === edge.from) &&

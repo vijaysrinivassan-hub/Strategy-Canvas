@@ -428,16 +428,28 @@
     const workspace=options.workspace,viewId=options.contentView;
     if(!['product','category','icp','value'].includes(viewId)||!options.activeView)return false;
     const awareness=['product','category'].includes(viewId)?'category-aware':(options.awareness||'problem-aware');
-    const mode=viewId==='product'?'aeo':viewId==='category'?(options.mode||'aeo'):(awareness==='solution-aware'?'aeo':'seo');
+    const mode=viewId==='product'?'aeo':viewId==='category'?(options.mode||'aeo'):(options.mode||(awareness==='solution-aware'?'aeo':'seo'));
     const section=sectionFor(viewId,mode);
-    const scope=[workspace,awareness,viewId,mode].join(':');
+    const keywordNodeId=String(options.keywordNodeId||'');
+    const supportingTerms=(options.supportingTerms||[]).map(normalizeName).filter(term=>term.length>2);
+    const recordIsSupporting=record=>{
+      const evidence=normalizeName([record.hierarchy,record.axis,record.topic,record.url].join(' '));
+      if(/data integration|\betl\b|data ingestion|normalization|data collection|connector|data warehouse|storage/.test(evidence))return true;
+      return supportingTerms.some(term=>evidence===term||evidence.includes(term));
+    };
+    const nodeScopedRecords=()=>records().filter(record=>{
+      if(!keywordNodeId)return true;
+      const supporting=recordIsSupporting(record);
+      return keywordNodeId==='supporting-processes'?supporting:!supporting;
+    });
+    const scope=[workspace,keywordNodeId||'default',awareness,viewId,mode].join(':');
     // Include overlay imports in the persisted migration key. Otherwise a
     // board that already installed the Saras/base repository incorrectly
     // treats a newly shipped represented-company import as already applied.
     const revision=(data().classifiedAt||'classification')+':'+(global.AskLucaKeywordImport?.REVISION||'base')+':'+scope+':v22';
     root.sharedUrlRepositoryRevisions ||= {};
     const view=options.activeView,uid=options.uid||(()=>Math.random().toString(36).slice(2));
-    const fixedAiDataValueMatrix=workspace==='ai-data-platform'&&awareness==='solution-aware'&&viewId==='value'&&mode==='aeo';
+    const fixedAiDataValueMatrix=workspace==='ai-data-platform'&&viewId==='value'&&mode==='aeo';
     if(fixedAiDataValueMatrix){
       const before=JSON.stringify({rows:view.rows||[],columns:view.pageColumns?.matrix||[]});
       clearScopedMappings(view,workspace,awareness,section,true);
@@ -449,7 +461,7 @@
       const taxonomyRows=new Map((view.rows||[]).filter(row=>row.pageGroup==='matrix').map(row=>[normalizeName(row.name||row.topicCell?.v),row]));
       const taxonomyColumns=new Map((view.pageColumns?.matrix||[]).map(column=>[normalizeName(column.name),column]));
       let linked=0;
-      records().filter(record=>record.workspace===workspace&&record.awareness===awareness&&record.section===section)
+      nodeScopedRecords().filter(record=>record.workspace===workspace&&record.awareness===awareness&&record.section===section)
         .sort((a,b)=>Number(b.represented)-Number(a.represented)||a.groupOrder-b.groupOrder)
         .forEach(record=>{
         const row=taxonomyRows.get(normalizeName(record.hierarchy));
@@ -476,7 +488,7 @@
     clearScopedMappings(view,workspace,awareness,section);
     let linked=0;
     const mappedSlots=new Map();
-    records().filter(record=>record.workspace===workspace&&record.awareness===awareness&&record.section===section)
+    nodeScopedRecords().filter(record=>record.workspace===workspace&&record.awareness===awareness&&record.section===section)
       .sort((a,b)=>Number(b.represented)-Number(a.represented)||a.groupOrder-b.groupOrder)
       .forEach(record=>{
       if(record.section==='Corporate & Non-SEO')return;
