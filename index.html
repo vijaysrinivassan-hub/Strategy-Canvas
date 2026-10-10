@@ -1405,11 +1405,17 @@
   .arch-flow-system-head .maturity-process-head-toggle{border-color:#78b98b; background:#edf8f0;
     color:#28613c; font-weight:800}
   .arch-flow-system-head .system-remove{border-color:transparent; background:transparent; color:#9a6c68}
-  .arch-system-fields{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:10px;padding:12px;border:1px solid #cfd2cc;border-top:0;background:#f7f8f5}
-  .arch-system-field{display:grid;grid-template-columns:minmax(120px,.38fr) minmax(180px,1fr) auto;align-items:start;gap:8px;padding:9px;background:#fff;border:1px solid #dfe3dd}
-  .arch-system-field input,.arch-system-field textarea{width:100%;min-width:0;box-sizing:border-box;border:1px solid #d5dbd5;background:#fff;color:#2e342f;font:inherit;font-size:11px;padding:7px 8px}
-  .arch-system-field input{font-weight:750}.arch-system-field textarea{min-height:72px;resize:vertical;line-height:1.45}
-  .arch-system-field-remove{width:26px;height:26px;padding:0;border:0;background:transparent;color:#8d6a67;font-size:16px}
+  .arch-system-fields{display:grid;grid-template-columns:210px minmax(420px,1fr);width:100%;min-height:190px;border:1px solid #cfd2cc;border-top:0;background:#fff}
+  .arch-system-field-tabs{display:flex;flex-direction:column;border-right:1px solid #cfd2cc;background:#f1f3ef}
+  .arch-system-field-tab{display:grid;grid-template-columns:minmax(0,1fr) 28px;border-bottom:1px solid #d9ddd7;background:#f1f3ef}
+  .arch-system-field-tab.active{background:#fff;box-shadow:inset 3px 0 0 #171b19}
+  .arch-system-field-tab-select{min-width:0;justify-content:flex-start;padding:11px 10px;border:0;background:transparent;color:#4c524d;font-size:11px;font-weight:750;text-align:left}
+  .arch-system-field-tab-select span{display:block;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .arch-system-field-tab.active .arch-system-field-tab-select{color:#111}
+  .arch-system-field-remove{width:28px;height:100%;padding:0;border:0;background:transparent;color:#8d6a67;font-size:16px;justify-content:center}
+  .arch-system-field-panel{display:flex;flex-direction:column;gap:10px;min-width:0;padding:14px;background:#fff}
+  .arch-system-field-heading,.arch-system-field-content{width:100%;min-width:0;box-sizing:border-box;border:1px solid #d5dbd5;background:#fff;color:#2e342f;font:inherit;padding:9px 10px}
+  .arch-system-field-heading{font-size:12px;font-weight:800}.arch-system-field-content{flex:1;min-height:145px;resize:vertical;font-size:12px;line-height:1.55}
   .arch-node-group{position:absolute; z-index:3; border:1px dashed #91b49a; background:rgba(222,242,228,.22);
                    cursor:move; pointer-events:auto}
   .arch-node-group-head{position:absolute; left:8px; top:-11px; display:flex; align-items:center; gap:4px;
@@ -3117,7 +3123,7 @@ const SUPABASE_URL = 'https://cskamgfvebryahkljlll.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_MdkD-TxMCIwlu69seSHA3Q_A39GADsK';
 const CLIENT_ID    = '1059013355751-6g50dsgm7df37htl2fdqrtlkh5hmrc0c.apps.googleusercontent.com';
 const ALLOWED      = ['vijaysrinivassan@gmail.com'];
-const BUILD        = 'v8.63';
+const BUILD        = 'v8.64';
 
 const STRATEGY_ONE_TAB = 'Strategy 1 — Brand Strategy';
 const PRODUCT_EVOLUTION_TAB = 'Strategy 1 — Product Evolution';
@@ -9912,6 +9918,7 @@ let architectureConnection = null;
 let architectureSelection = new Set();
 let architectureSelectedEdge = '';
 let maturityProcessViewNodeId = '';
+const architectureFieldTabs = new Map();
 
 const ANALYSIS_SUBPROCESSES = [
   ['Descriptive analysis','What happened?'],
@@ -10850,28 +10857,49 @@ function renderArchitectureSystemFields(system){
   const fields = document.createElement('section');
   fields.className = 'arch-system-fields';
   fields.setAttribute('aria-label', system.name + ' custom fields');
-  system.customFields.forEach(field => {
-    const item = document.createElement('label'); item.className = 'arch-system-field';
-    const label = document.createElement('input'); label.type = 'text';
-    label.value = field.label; label.placeholder = 'Field name'; label.readOnly = readOnly();
-    label.setAttribute('aria-label','Custom field name');
-    label.oninput = () => { field.label = label.value; markDirty(); };
-    const value = document.createElement('textarea');
-    value.value = field.value; value.placeholder = 'Write here…'; value.readOnly = readOnly();
-    value.setAttribute('aria-label', (field.label || 'Custom field') + ' value');
-    value.oninput = () => { field.value = value.value; markDirty(); };
-    item.append(label,value);
+  const tabs = document.createElement('div'); tabs.className = 'arch-system-field-tabs';
+  const remembered = architectureFieldTabs.get(system.id);
+  const active = system.customFields.find(field => field.id === remembered) || system.customFields[0];
+  architectureFieldTabs.set(system.id, active.id);
+  system.customFields.forEach((field,index) => {
+    const tab = document.createElement('div');
+    tab.className = 'arch-system-field-tab' + (field.id === active.id ? ' active' : '');
+    const select = document.createElement('button'); select.type = 'button'; select.className = 'arch-system-field-tab-select';
+    select.setAttribute('aria-pressed', String(field.id === active.id));
+    const tabLabel = document.createElement('span'); tabLabel.textContent = field.label || 'Untitled field ' + (index + 1);
+    select.append(tabLabel);
+    select.onclick = () => { architectureFieldTabs.set(system.id,field.id); renderProductArchitecture(); };
+    tab.append(select);
     if (!readOnly()){
       const remove = document.createElement('button'); remove.type = 'button';
       remove.className = 'arch-system-field-remove'; remove.textContent = '×'; remove.title = 'Remove field';
       remove.onclick = () => {
+        const removedIndex = system.customFields.findIndex(candidate => candidate.id === field.id);
         system.customFields = system.customFields.filter(candidate => candidate.id !== field.id);
+        const next = system.customFields[Math.min(Math.max(0,removedIndex),system.customFields.length - 1)];
+        if (next) architectureFieldTabs.set(system.id,next.id); else architectureFieldTabs.delete(system.id);
         markDirty(); renderProductArchitecture();
       };
-      item.append(remove);
+      tab.append(remove);
     }
-    fields.append(item);
+    tabs.append(tab);
   });
+  const panel = document.createElement('label'); panel.className = 'arch-system-field-panel';
+  const heading = document.createElement('input'); heading.type = 'text'; heading.className = 'arch-system-field-heading';
+  heading.value = active.label; heading.placeholder = 'Field heading'; heading.readOnly = readOnly();
+  heading.setAttribute('aria-label','Field heading');
+  const content = document.createElement('textarea'); content.className = 'arch-system-field-content';
+  content.value = active.value; content.placeholder = 'Write here…'; content.readOnly = readOnly();
+  content.setAttribute('aria-label', (active.label || 'Custom field') + ' content');
+  const activeTabLabel = tabs.querySelector('.arch-system-field-tab.active span');
+  heading.oninput = () => {
+    active.label = heading.value;
+    if (activeTabLabel) activeTabLabel.textContent = active.label || 'Untitled field';
+    markDirty();
+  };
+  content.oninput = () => { active.value = content.value; markDirty(); };
+  panel.append(heading,content);
+  fields.append(tabs,panel);
   return fields;
 }
 
@@ -10923,11 +10951,12 @@ function renderArchitectureSystem(system, index, architecture, siblings){
       const fieldButton = document.createElement('button'); fieldButton.type = 'button'; fieldButton.textContent = '+ Field';
       fieldButton.title = 'Add a custom field beneath this canvas';
       fieldButton.onclick = () => {
-        system.customFields.push({ id: uid(), label: '', value: '' });
+        const field = { id: uid(), label: '', value: '' };
+        system.customFields.push(field); architectureFieldTabs.set(system.id,field.id);
         markDirty(); renderProductArchitecture();
         requestAnimationFrame(() => {
           const fields = document.querySelector('[data-system-id="' + system.id + '"]')?.parentElement?.querySelector('.arch-system-fields');
-          fields?.querySelector('.arch-system-field:last-child input')?.focus();
+          fields?.querySelector('.arch-system-field-heading')?.focus();
         });
       };
       head.append(fieldButton);
@@ -10953,6 +10982,7 @@ function renderArchitectureSystem(system, index, architecture, siblings){
       architecture.nodes = architecture.nodes.filter(node => node.systemId !== system.id);
       architecture.edges = architecture.edges.filter(edge => !removed.has(edge.from) && !removed.has(edge.to));
       architecture.groups = architecture.groups.filter(group => group.systemId !== system.id);
+      architectureFieldTabs.delete(system.id);
       removed.forEach(id => architectureSelection.delete(id));
       markDirty(); renderProductArchitecture();
     }; head.append(remove);
