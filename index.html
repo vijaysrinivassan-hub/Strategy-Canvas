@@ -3113,7 +3113,7 @@
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="keyword-assignments.js?v=value-lenses-v2"></script>
 <script src="keyword-page-tables.js?v=product-capabilities-v2"></script>
-<script src="keyword-columns.js?v=supporting-processes-v30"></script>
+<script src="keyword-columns.js?v=awareness-structure-v31"></script>
 <script src="ai-data-icp-matrix.js?v=icp-solution-taxonomy-v17"></script>
 <script src="keyword-columns-ui.js"></script>
 <script src="high-priority-links.js"></script>
@@ -3148,7 +3148,7 @@ const SUPABASE_URL = 'https://cskamgfvebryahkljlll.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_MdkD-TxMCIwlu69seSHA3Q_A39GADsK';
 const CLIENT_ID    = '1059013355751-6g50dsgm7df37htl2fdqrtlkh5hmrc0c.apps.googleusercontent.com';
 const ALLOWED      = ['vijaysrinivassan@gmail.com'];
-const BUILD        = 'v8.69';
+const BUILD        = 'v8.70';
 
 const STRATEGY_ONE_TAB = 'Strategy 1 — Brand Strategy';
 const PRODUCT_EVOLUTION_TAB = 'Strategy 1 — Product Evolution';
@@ -7168,17 +7168,98 @@ function switchKeywordNode(nodeId){
   rememberLocation();
 }
 
-const AWARENESS_VALUE_AEO_REVISION=1;
+const AWARENESS_VALUE_AEO_REVISION=2;
+function emptyValueAeoCell(){
+  return {v:'',url:'',mode:'aeo',type:'',on:false,aw:'',st:'',writtenBy:'',cfg:true,kws:[],pageUrls:[],valueLensKeywords:{},valueLensExcludedKeywords:{},valueLensStatuses:{}};
+}
+function cloneValueAeoStructure(source){
+  const view=JSON.parse(JSON.stringify(source||{}));
+  view.activeValueMatrixLens='process';
+  view.pageColumns||={};view.pageOrders||={};
+  view.pageColumns.matrix=(view.pageColumns.matrix||view.columns||[]).map(column=>{
+    const copy=JSON.parse(JSON.stringify(column));delete copy.topicCell;delete copy.keywordIdeas;return copy;
+  });
+  view.pageOrders.matrix=view.pageColumns.matrix.map(column=>column.id);
+  const columnIds=new Set(view.pageColumns.matrix.map(column=>String(column.id)));
+  view.rows=(view.rows||[]).filter(row=>row.pageGroup==='matrix'&&['process','subprocess'].includes(row.processLevel)).map(row=>{
+    const copy=JSON.parse(JSON.stringify(row));delete copy.topicCell;delete copy.keywordIdeas;copy.cells={};
+    for(const columnId of columnIds)copy.cells[columnId]=emptyValueAeoCell();
+    return copy;
+  });
+  return view;
+}
+function valueAeoStructureView(view){
+  return !!view?.pageColumns?.matrix?.length&&(view.rows||[]).some(row=>row.pageGroup==='matrix'&&['process','subprocess'].includes(row.processLevel));
+}
+function valueCellEvidence(row,cell){
+  return [row?.repositorySuperHierarchy,row?.repositoryHierarchy,row?.name,cell?.v,cell?.url,
+    ...(cell?.repositoryQueries||[]).flatMap(query=>[query?.repositorySuperHierarchy,query?.repositoryHierarchy,query?.hierarchy,query?.axis,query?.topicGroup])]
+    .map(value=>String(value||'').trim().toLowerCase()).filter(Boolean).join(' | ');
+}
+function mergeUniqueValues(left,right,key){
+  const out=[],seen=new Set();for(const item of [...(left||[]),...(right||[])]){const token=key?key(item):JSON.stringify(item);if(!token||seen.has(token))continue;seen.add(token);out.push(JSON.parse(JSON.stringify(item)));}return out;
+}
+function mergeValueLensMaps(left,right){
+  const a=normalizeValueLensKeywordMap(left),b=normalizeValueLensKeywordMap(right),out={};
+  for(const lens of ['process','output','outcome','benefits','tools']){const values=mergeUniqueValues(a[lens],b[lens],value=>String(value));if(values.length)out[lens]=values;}
+  return out;
+}
+function mergeLegacyValueCell(target,source,sourceLabel){
+  const merged={...target,mode:'aeo',cfg:true};
+  for(const field of ['v','url','type','aw','st','writtenBy'])if(!merged[field]&&source?.[field]&&String(source[field]).trim()!=='Title....')merged[field]=source[field];
+  merged.on=!!(merged.on||source?.on);
+  merged.kws=mergeUniqueValues(merged.kws,source?.kws,value=>String(value));
+  merged.pageUrls=mergeUniqueValues(merged.pageUrls,normalizePageUrls(source?.pageUrls).map(item=>({...item,lens:item.lens||'process'})),item=>String(item.url||item.id));
+  merged.repositoryQueries=mergeUniqueValues(merged.repositoryQueries,source?.repositoryQueries);
+  merged.repositoryUrlOverrides={...(source?.repositoryUrlOverrides||{}),...(merged.repositoryUrlOverrides||{})};
+  merged.valueLensKeywords=mergeValueLensMaps(merged.valueLensKeywords,source?.valueLensKeywords);
+  merged.valueLensExcludedKeywords=mergeValueLensMaps(merged.valueLensExcludedKeywords,source?.valueLensExcludedKeywords);
+  merged.valueLensStatuses={...normalizeValueLensStatusMap(source?.valueLensStatuses),...normalizeValueLensStatusMap(merged.valueLensStatuses)};
+  if(source?.st&&!merged.valueLensStatuses.process)merged.valueLensStatuses.process=source.st;
+  merged.valueLensUrlLens='process';
+  merged.restoredValueSources=mergeUniqueValues(merged.restoredValueSources,[sourceLabel],value=>String(value));
+  return merged;
+}
+function restoreLegacyValueContent(structure,legacy){
+  if(!legacy)return structure;
+  const rows=(structure.rows||[]).filter(row=>row.pageGroup==='matrix'&&row.processLevel==='subprocess');
+  const fallbackRows=rows.length?rows:(structure.rows||[]).filter(row=>row.pageGroup==='matrix');
+  const columns=structure.pageColumns?.matrix||[];if(!fallbackRows.length||!columns.length)return structure;
+  const normalized=value=>String(value||'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
+  const rowFor=evidence=>{
+    const rules=[
+      [/root cause/,'root cause'],[/comparative|comparison/,'comparative'],[/anomaly|trend|forecast/,'anomaly and trend'],
+      [/revenue|profit|margin|cash flow/,'revenue and profitability'],[/marketing|campaign|roas/,'marketing performance'],
+      [/product|sku/,'product and sku'],[/lifetime|\bclv\b/,'customer lifetime'],[/retention|churn/,'retention and churn'],
+      [/segment/,'segmentation'],[/attribution/,'attribution'],[/funnel|conversion/,'funnel'],[/cohort|customer analytics/,'cohort'],
+      [/diagnostic|why/,'diagnostic'],[/descriptive|reporting|business intelligence|data analysis|general value|ai analytics/,'descriptive']
+    ];
+    const wanted=rules.find(([pattern])=>pattern.test(evidence))?.[1]||'descriptive';
+    return fallbackRows.find(row=>normalized(row.name).includes(wanted))||fallbackRows[0];
+  };
+  const columnFor=evidence=>{
+    const wanted=/finance|profit|margin|cash/.test(evidence)?'finance':/sales|pipeline|deal|revenue/.test(evidence)?'sales':/marketing|campaign|attribution|roas/.test(evidence)?'marketing':/product|sku|customer|cohort|retention|funnel|segment/.test(evidence)?'product':'product';
+    return columns.find(column=>normalized(column.name)===wanted)||columns[0];
+  };
+  for(const oldRow of legacy.rows||[])for(const [oldColumnId,cell] of Object.entries(oldRow.cells||{})){
+    if(!keywordCountCellFilled(cell))continue;
+    const evidence=valueCellEvidence(oldRow,cell),row=rowFor(evidence),column=columnFor(evidence);row.cells||={};
+    row.cells[column.id]=mergeLegacyValueCell(row.cells[column.id]||emptyValueAeoCell(),cell,[oldRow.name||oldRow.repositoryHierarchy||'Value',oldColumnId].join(' / '));
+  }
+  return structure;
+}
 function ensureAwarenessValueAeoMatrices(root){
   if(root.awarenessValueAeoRevision===AWARENESS_VALUE_AEO_REVISION)return false;
-  const archive={};
+  const archive={...(root.awarenessValueSeoArchive||{})};
   const migrate=(projection,scopeId)=>{
     if(!projection?.views?.value)return;
     projection.awarenessViews||={};
     for(const layer of ['problem-unaware','problem-aware']){
       const key=layer+':value';
-      if(projection.awarenessViews[key])archive[scopeId+':'+key]=JSON.parse(JSON.stringify(projection.awarenessViews[key]));
-      projection.awarenessViews[key]=JSON.parse(JSON.stringify(projection.views.value));
+      const archiveKey=scopeId+':'+key,current=projection.awarenessViews[key];
+      const legacy=archive[archiveKey]||(!valueAeoStructureView(current)?current:null);
+      if(legacy&&!archive[archiveKey])archive[archiveKey]=JSON.parse(JSON.stringify(legacy));
+      projection.awarenessViews[key]=restoreLegacyValueContent(cloneValueAeoStructure(projection.views.value),legacy);
     }
   };
   if(root.keywordNodeWorkspaces&&Object.keys(root.keywordNodeWorkspaces).length){
