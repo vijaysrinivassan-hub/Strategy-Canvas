@@ -22,6 +22,10 @@ assert(html.includes('valueLensExcludedKeywords'));
 assert(html.includes('function valueLensForPageUrl(row,cell)'));
 assert(html.includes('function valueLensPageUrls(cell,lens)'));
 assert(html.includes('function valueLensStatus(cell,lens)'));
+assert(html.includes('function valueLensFilledCellCount(view,lens)'));
+assert(html.includes("badge.className='value-lens-count'"));
+assert(html.includes('badge.dataset.lens=lens.id'));
+assert(html.includes('if(valueLens)updateValueLensCountBadges(v)'));
 assert(html.includes('valueLensStatuses:normalizeValueLensStatusMap(c.valueLensStatuses)'));
 assert(html.includes('const displayStatus=valueLens?valueLensStatus(cell,valueLens):cell.st'));
 assert(html.includes("pageUrls.push({ id: uid(), url: '', traffic: '', ...(o.keywordLens?{lens:o.keywordLens}:{}) })"));
@@ -40,4 +44,13 @@ assert.equal(vm.runInContext("valueLensStatus("+JSON.stringify(cell)+",'tools')"
 for(const lens of ['process','output','outcome','benefits'])assert.equal(vm.runInContext("valueLensStatus("+JSON.stringify(cell)+",'"+lens+"')",context),'',lens);
 const overridden={...cell,valueLensStatuses:{tools:'planned'}};
 assert.equal(vm.runInContext("valueLensStatus("+JSON.stringify(overridden)+",'tools')",context),'planned');
+context.window.SharedUrlRepository.resolve=()=>[];
+const countView={pageColumns:{matrix:[{id:'marketing'}]},rows:[
+  {pageGroup:'matrix',cells:{marketing:{kws:['process-keyword']}}},
+  {pageGroup:'matrix',cells:{marketing:{valueLensKeywords:{tools:['tool-keyword']}}}},
+  {pageGroup:'informational',cells:{marketing:{kws:['not-in-matrix']}}}
+]};
+assert.equal(context.valueLensFilledCellCount(countView,'process'),1);
+assert.equal(context.valueLensFilledCellCount(countView,'tools'),1);
+assert.equal(context.valueLensFilledCellCount(countView,'output'),0);
 console.log('PASS: Value AEO uses a five-column viewport including the row header, five persistent keyword lenses with copy, and no ocean controls.');
