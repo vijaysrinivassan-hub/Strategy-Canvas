@@ -14,6 +14,7 @@ assert.equal((html.match(/selling:'(?:technology|process|people|input)',buying:'
 assert.equal((html.match(/,b2c:\{market:/g)||[]).length,16);
 assert(html.includes("buying.marketAudience = 'b2b'"));
 assert(html.includes("[['b2b','B2B'],['b2c','B2C']]"));
+assert(html.includes('matrixWrap.append(audienceSwitch, grid);\n  host.append(preview, matrixWrap);'));
 assert(html.includes("grid.className = 'industry-market-grid'"));
 assert(html.includes("button.className = 'industry-market-cell'"));
 assert(html.includes("evolutionState().axis = model.selling;"));
@@ -27,6 +28,8 @@ assert(!html.includes('<section class="gtm-market-system"'));
 assert(html.includes("renderGtmMarketStep(panel,locked,ro)"));
 assert(html.includes('.gtm-onboarding-market .industry-fit{display:grid;grid-template-columns:minmax(0,1fr)'));
 assert(html.includes('.gtm-onboarding-market .industry-market-grid{grid-template-columns:104px repeat(4,minmax(0,1fr));width:100%;min-width:0}'));
+assert(html.includes('.gtm-onboarding-market .industry-fit-preview-piece{min-height:0;aspect-ratio:1;padding:18px}'));
+assert(html.includes('.gtm-onboarding-market .industry-market-cell strong,.gtm-onboarding-market .industry-market-cell span{width:100%;white-space:normal;overflow-wrap:anywhere;word-break:normal}'));
 assert(html.includes('renderIcpCards(p, ro, activeBuyingIndustryAxis())'));
 assert(html.includes("rowHead.className = 'industry-market-row'"));
 assert(html.includes("column.className = 'industry-market-column'"));
