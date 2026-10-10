@@ -27,7 +27,11 @@ const architectureSchema = z.object({
   industries:z.array(z.string()).optional(),
   industryMode:z.enum(['single','multi']).optional(),
   activeIndustry:z.string().optional(),
-  systems: z.array(z.object({id:z.string().min(1),name:z.string().min(1),height:z.number().min(230),width:z.number().min(640).optional(),row:z.number().int().min(0).optional(),selected:z.boolean().optional()})),
+  systems: z.array(z.object({
+    id:z.string().min(1),name:z.string().min(1),height:z.number().min(230),width:z.number().min(640).optional(),
+    row:z.number().int().min(0).optional(),selected:z.boolean().optional(),
+    customFields:z.array(z.object({id:z.string().min(1),label:z.string(),value:z.string()})).optional()
+  })),
   nodes: z.array(z.object({
     id:z.string().min(1),systemId:z.string(),label:z.string().min(1),type:z.enum(['technology','people']),x:z.number().min(10),y:z.number().min(54),
     processRole:z.enum(['supporting','pillar']).optional(),pillarState:z.enum(['current','inherited']).or(z.literal('')).optional(),
@@ -68,7 +72,7 @@ export function registerArchitectureTools(server:McpServer) {
   });
   server.registerTool('product_architecture_set', {
     title:'Save product architecture workflows',
-    description:'Save the complete workflow architecture to Strategy Product Architecture. Read first, preserve existing work unless replacement was requested, and supply its revision. Each system is a process canvas; row groups canvases horizontally and omitted row defaults to the first row. Nodes are Technology or People; each technology has exactly two features and each person exactly two skills; edge labels are outputs. Keep 154px-wide nodes and groups inside canvas bounds with space between labels. Omitted prior nodes are removed.',
+    description:'Save the complete workflow architecture to Strategy Product Architecture. Read first, preserve existing work unless replacement was requested, and supply its revision. Each system is a process canvas; row groups canvases horizontally and omitted row defaults to the first row. Preserve each system customFields list; these are editable fields displayed beneath that canvas. Nodes are Technology or People; each technology has exactly two features and each person exactly two skills; edge labels are outputs. Keep 154px-wide nodes and groups inside canvas bounds with space between labels. Omitted prior nodes or fields are removed.',
     inputSchema:{board_id:z.string(),revision:z.string(),architecture:architectureSchema},
     annotations:{readOnlyHint:false,destructiveHint:true,idempotentHint:false}
   }, async({board_id,revision,architecture})=>{
