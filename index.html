@@ -146,6 +146,15 @@
   .tab-sub.sub-add{color:var(--accent); font-weight:500}
   .tab-sub.sub-add:hover{background:var(--accent-soft)}
 
+  /* WordPress-style navigation flyouts: menus open beside the sidebar rather than expanding it. */
+  .nav-flyout-group{position:relative;flex:none}
+  .nav-flyout-menu{position:fixed;z-index:260;min-width:230px;max-width:300px;padding:6px 0;
+    background:#171b19;border:1px solid #2e332f;box-shadow:0 10px 28px rgba(0,0,0,.22)}
+  .nav-flyout-menu .tab-sub{padding:9px 14px;border:0;border-left:3px solid transparent;
+    border-radius:0;color:#e7e9e7;background:transparent;font-size:12.5px}
+  .nav-flyout-menu .tab-sub:hover{background:#2a302b;color:#fff}
+  .nav-flyout-menu .tab-sub.active{background:#fff;color:#111;border-left-color:#57c982;box-shadow:none}
+
   .tab .n{margin-left:auto; font-size:9.5px; font-weight:700; letter-spacing:.04em;
           color:var(--faint); background:#f0f0f1; padding:2px 6px; border-radius:5px; flex:none}
   .tab.active .n{color:var(--accent); background:#fff}
@@ -2164,8 +2173,7 @@
   /* ---- Settings: a footer button in the sidebar, and one page for all of it ---- */
   .side-footer{flex:none; padding:8px 12px 8px; border-top:1px solid var(--line-2)}
   .side-footer .tab{margin:0}
-  .settings-subnav{padding:0 0 5px}
-  .settings-subnav .tab-sub{padding-left:38px}
+  .settings-subnav{padding:6px 0}
   .side-footer .save-line{padding:6px 10px 2px}
   .settings{flex:1; min-height:0; overflow-y:auto; padding:26px 32px 48px}
   .set-sec{max-width:1180px}.set-sec[hidden]{display:none}
@@ -2203,7 +2211,7 @@
   .tab.active .n{background:#333; color:#fff}
   .side-footer{padding:0; border-top:1px solid var(--line)}
   .side-footer .tab{padding:11px 16px}
-  .side-footer .settings-subnav .tab-sub{padding:8px 16px 8px 42px}
+  .side-footer .settings-subnav .tab-sub{padding:9px 14px}
   .side-footer .save-line{padding:8px 18px 10px}
   .toolbar{padding:13px 18px; border-bottom:1px solid #cfcfca; background:#fff}
   .main{background:#fff}
@@ -2569,7 +2577,7 @@
     <!-- Settings lives in the footer and expands into independent pages. -->
     <div class="side-footer" id="sideFooter">
       <button class="tab" id="navSettings" type="button"><span>Settings</span></button>
-      <div class="settings-subnav" id="settingsSubnav" hidden></div>
+      <div class="settings-subnav nav-flyout-menu" id="settingsSubnav" hidden></div>
       <div class="save-line" id="saveState"></div>
     </div>
   </aside>
@@ -3109,7 +3117,7 @@ const SUPABASE_URL = 'https://cskamgfvebryahkljlll.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_MdkD-TxMCIwlu69seSHA3Q_A39GADsK';
 const CLIENT_ID    = '1059013355751-6g50dsgm7df37htl2fdqrtlkh5hmrc0c.apps.googleusercontent.com';
 const ALLOWED      = ['vijaysrinivassan@gmail.com'];
-const BUILD        = 'v8.62';
+const BUILD        = 'v8.63';
 
 const STRATEGY_ONE_TAB = 'Strategy 1 — Brand Strategy';
 const PRODUCT_EVOLUTION_TAB = 'Strategy 1 — Product Evolution';
@@ -3262,7 +3270,7 @@ const state = {
   keywordAwareness: '',          /* problem-unaware | problem-aware | solution-aware */
   keywordAwarenessPicker: false, /* the full-page ICP / Value choice is open */
   navOpen: { strategy1: false, brand: false, content: false, positioningDocument: false, settings: false, frames: false, canvas: false },
-  positioningDocumentPart: 'positioning_statement',
+  positioningDocumentPart: 'core',
   frames: [],                     /* the Obsidian Frames folder, loaded once */
   frameEdits: {},                 /* frame name -> your edited copy, saved with the board */
   frameIndex: -1,                 /* which frame is open, -1 for none */
@@ -3292,7 +3300,7 @@ function rememberLocation(){
       keywordAwarenessPicker: !!state.keywordAwarenessPicker,
       keywordMode: typeof keywordMode === 'string' ? keywordMode : 'aeo',
       frameIndex: state.frameIndex,
-      positioningDocumentPart: state.positioningDocumentPart || 'positioning_statement',
+      positioningDocumentPart: state.positioningDocumentPart || 'core',
       settingsPart: state.settingsPart || ''
     }));
   } catch (e) {}
@@ -3320,8 +3328,9 @@ function restoreLocation(location){
   }
   state.screen = location.screen === 'settings' && !clientView() ? 'settings' : 'board';
   state.settingsPart = typeof location.settingsPart === 'string' ? location.settingsPart : '';
-  state.positioningDocumentPart = POSITIONING_DOCUMENT_FIELDS.some(field => field[0] === location.positioningDocumentPart)
-    ? location.positioningDocumentPart : 'positioning_statement';
+  const rememberedDocumentPart = String(location.positioningDocumentPart || '');
+  state.positioningDocumentPart = POSITIONING_DOCUMENT_CORE_KEYS.includes(rememberedDocumentPart) ? 'core' :
+    POSITIONING_DOCUMENT_SECTIONS.some(section => section.id === rememberedDocumentPart) ? rememberedDocumentPart : 'core';
   if (clientView() && (state.tab === KEYWORDS_TAB || state.tab === FRAME_TAB)) state.tab = TABS[0];
   if (state.screen === 'board'){
     if (state.tab === POSITIONING_DOCUMENT_TAB) openNav('positioningDocument');
@@ -3760,6 +3769,7 @@ function renderTabs(){
       button.classList.toggle('active', state.screen === 'settings' &&
         button.dataset.settingsPart === activeSettingsSection().id);
     });
+    placeFlyout(settingsSubnav, foot, true);
   }
 
   function tabButton(name, displayLabel){
@@ -3791,20 +3801,34 @@ function renderTabs(){
     return b;
   }
 
-  function groupButton(label, iconName, open, onClick){
+  function groupButton(label, iconName, open, onClick, showChevron = true){
     const b = document.createElement('button');
     b.className = 'tab' + (open ? ' open' : '');
     b.append(tabIcon(iconName));
     const lab = document.createElement('span');
     lab.textContent = label;
     b.append(lab);
-    const chev = document.createElement('span');
-    chev.className = 'chev';
-    chev.textContent = '\u25b6';
-    b.append(chev);
-    b.title = open ? 'Collapse' : 'Expand';
+    if (showChevron){
+      const chev = document.createElement('span');
+      chev.className = 'chev';
+      chev.textContent = '\u25b6';
+      b.append(chev);
+    }
+    b.title = open ? 'Close menu' : 'Open menu';
     b.onclick = onClick;
     return b;
+  }
+
+  function placeFlyout(menu, anchor, alignBottom){
+    if (!menu || menu.hidden || !anchor) return;
+    requestAnimationFrame(() => {
+      if (menu.hidden || !anchor.isConnected) return;
+      const rect = anchor.getBoundingClientRect();
+      const maxTop = Math.max(8, window.innerHeight - menu.offsetHeight - 8);
+      menu.style.left = Math.round(rect.right) + 'px';
+      menu.style.top = Math.round(Math.max(8, Math.min(maxTop,
+        alignBottom ? rect.bottom - menu.offsetHeight : rect.top))) + 'px';
+    });
   }
 
   function subButton(label, active, onClick, count){
@@ -3864,15 +3888,21 @@ function renderTabs(){
           if (documentOpen) closeNav(); else openNav('positioningDocument');
           renderTabs(); rememberLocation();
         }
-      });
+      }, false);
       documentParent.classList.toggle('active', onBoard && state.tab === POSITIONING_DOCUMENT_TAB);
-      box.append(documentParent);
+      documentParent.classList.add('positioning-document-parent');
+      const documentGroup = document.createElement('div'); documentGroup.className = 'nav-flyout-group';
+      documentGroup.append(documentParent);
       if (documentOpen){
-        POSITIONING_DOCUMENT_FIELDS.forEach(field => {
-          box.append(subButton(field[1], onBoard && state.tab === POSITIONING_DOCUMENT_TAB &&
-            state.positioningDocumentPart === field[0], () => openPositioningDocumentField(field[0])));
+        const documentMenu = document.createElement('div'); documentMenu.className = 'nav-flyout-menu positioning-document-subnav';
+        POSITIONING_DOCUMENT_SECTIONS.forEach(section => {
+          documentMenu.append(subButton(section.label, onBoard && state.tab === POSITIONING_DOCUMENT_TAB &&
+            activePositioningDocumentSection().id === section.id, () => openPositioningDocumentField(section.id)));
         });
+        documentGroup.append(documentMenu);
+        placeFlyout(documentMenu, documentParent, false);
       }
+      box.append(documentGroup);
       box.append(tabButton(COMMUNICATION_STRATEGY_TAB, 'Communication Strategy'));
       return;
     }
@@ -4052,7 +4082,7 @@ function renderTabs(){
       : state.tab === PRODUCT_ARCHITECTURE_TAB ? 'Product Architecture'
       : state.tab === MATURITY_ACCESS_TAB ? 'Maturity Axis'
       : state.tab === POSITIONING_TAB ? 'Positioning Canvas'
-      : state.tab === POSITIONING_DOCUMENT_TAB ? activePositioningDocumentField()[1]
+      : state.tab === POSITIONING_DOCUMENT_TAB ? activePositioningDocumentSection().label
       : state.tab === COMMUNICATION_STRATEGY_TAB ? 'Communication Strategy'
       : state.tab === BRAND_RADAR_TAB ? 'Brand Radar' : state.tab;
   }
@@ -11970,16 +12000,27 @@ const POSITIONING_DOCUMENT_FIELDS = [
   ['messaging_framework', 'Messaging Framework', 'messaging'],
   ['high_priority_links', 'High Priority Links', 'links']
 ];
+const POSITIONING_DOCUMENT_CORE_KEYS = [
+  'positioning_statement', 'icp_positioning', 'category_positioning',
+  'competitive_positioning', 'value_positioning'
+];
+const POSITIONING_DOCUMENT_SECTIONS = [
+  { id: 'core', label: 'Positioning', fields: POSITIONING_DOCUMENT_CORE_KEYS },
+  { id: 'trust_signals', label: 'Trust Signals', fields: ['trust_signals'] },
+  { id: 'framing', label: 'Framing', fields: ['framing'] },
+  { id: 'messaging_framework', label: 'Messaging Framework', fields: ['messaging_framework'] },
+  { id: 'high_priority_links', label: 'High Priority Links', fields: ['high_priority_links'] }
+];
 
-function activePositioningDocumentField(){
-  return POSITIONING_DOCUMENT_FIELDS.find(field => field[0] === state.positioningDocumentPart) ||
-    POSITIONING_DOCUMENT_FIELDS[0];
+function activePositioningDocumentSection(){
+  return POSITIONING_DOCUMENT_SECTIONS.find(section => section.id === state.positioningDocumentPart) ||
+    POSITIONING_DOCUMENT_SECTIONS[0];
 }
 
 function openPositioningDocumentField(id){
-  const field = POSITIONING_DOCUMENT_FIELDS.find(candidate => candidate[0] === id);
-  if (!field) return;
-  state.positioningDocumentPart = field[0];
+  const section = POSITIONING_DOCUMENT_SECTIONS.find(candidate => candidate.id === id);
+  if (!section) return;
+  state.positioningDocumentPart = section.id;
   if (state.tab !== POSITIONING_DOCUMENT_TAB) switchTab(POSITIONING_DOCUMENT_TAB);
   openNav('positioningDocument');
   renderPositioningDocument(); renderTabs(); rememberLocation();
@@ -12004,7 +12045,8 @@ function renderPositioningDocument(){
   const fields = positioningDocumentState();
   const host = $('positioningDocumentFields');
   host.innerHTML = '';
-  [activePositioningDocumentField()].forEach(field => {
+  const section = activePositioningDocumentSection();
+  POSITIONING_DOCUMENT_FIELDS.filter(field => section.fields.includes(field[0])).forEach(field => {
     const isLinks = field[2] === 'links';
     const isMessaging = field[2] === 'messaging';
     const wrapper = document.createElement(isLinks || isMessaging ? 'section' : 'label');
@@ -12054,7 +12096,7 @@ function renderPositioningDocument(){
     }
     host.append(wrapper);
   });
-  $('tabTitle').textContent = activePositioningDocumentField()[1];
+  $('tabTitle').textContent = section.label;
 }
 
 /* ===================================================================
@@ -15071,7 +15113,7 @@ setTimeout(function(){
   columnSection.append(columnTitle, columnHost); page.insertBefore(columnSection, $('setTypes'));
   const nav = $('navSettings');
   nav.prepend(tabIcon('Settings'));
-  const chev = document.createElement('span'); chev.className = 'chev'; chev.textContent = '\u25b6'; nav.append(chev);
+  nav.classList.add('settings-parent');
   nav.onclick = () => {
     if (state.screen === 'settings'){
       state.navOpen.settings = !state.navOpen.settings;
@@ -15086,6 +15128,11 @@ setTimeout(function(){
     button.append(label);
     button.onclick = () => goScreen(item.id);
     subnav.append(button);
+  });
+  document.addEventListener('click', event => {
+    if (!state.navOpen.settings && !state.navOpen.positioningDocument) return;
+    if (event.target.closest('#tabs,#sideFooter,.nav-flyout-menu,.settings-parent,.positioning-document-parent')) return;
+    closeNav(); renderTabs(); rememberLocation();
   });
 })();
 

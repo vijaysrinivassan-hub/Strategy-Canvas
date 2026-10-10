@@ -7,10 +7,12 @@ assert(html.includes("['trust_signals', 'Trust Signals']"));
 assert(html.includes("['framing', 'Framing']"));
 assert(html.includes("navOpen: { strategy1: false, brand: false, content: false, positioningDocument: false"));
 assert(html.includes("const documentParent = groupButton('Positioning Document'"));
-assert(html.includes("state.positioningDocumentPart === field[0]"));
-assert(html.includes("box.append(subButton(field[1]"));
-assert(html.includes("[activePositioningDocumentField()].forEach(field =>"));
-assert(html.includes("positioningDocumentPart: state.positioningDocumentPart || 'positioning_statement'"));
+assert(html.includes("{ id: 'core', label: 'Positioning', fields: POSITIONING_DOCUMENT_CORE_KEYS }"));
+assert(html.includes("const documentMenu = document.createElement('div'); documentMenu.className = 'nav-flyout-menu positioning-document-subnav'"));
+assert(html.includes("documentMenu.append(subButton(section.label"));
+assert(html.includes("POSITIONING_DOCUMENT_FIELDS.filter(field => section.fields.includes(field[0])).forEach(field =>"));
+assert(html.includes("positioningDocumentPart: state.positioningDocumentPart || 'core'"));
+assert(html.includes("}, false);"));
 
 const tool=fs.readFileSync(new URL('./mcp-server/src/tools/positioning-document.ts',import.meta.url),'utf8');
 assert(tool.includes('"trust_signals"'));
