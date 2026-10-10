@@ -500,7 +500,7 @@
     // Include overlay imports in the persisted migration key. Otherwise a
     // board that already installed the Saras/base repository incorrectly
     // treats a newly shipped represented-company import as already applied.
-    const revision=(data().classifiedAt||'classification')+':'+(global.AskLucaKeywordImport?.REVISION||'base')+':'+scope+':v24';
+    const revision=(data().classifiedAt||'classification')+':'+(global.AskLucaKeywordImport?.REVISION||'base')+':'+scope+':v25';
     root.sharedUrlRepositoryRevisions ||= {};
     const view=options.activeView,uid=options.uid||(()=>Math.random().toString(36).slice(2));
     const fixedAiDataValueMatrix=workspace==='ai-data-platform'&&viewId==='value'&&mode==='aeo';

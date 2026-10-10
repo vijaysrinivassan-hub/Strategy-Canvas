@@ -64,10 +64,16 @@ export function registerCompetitiveIntelligenceTools(server:McpServer){
     const result=ReviewedRouting.apply(body,asset,config.routingInstruction);
     if(dry_run)return ok({saved:false,dry_run:true,revision,...result});
     await writeFile(backup_path,JSON.stringify({board:row,keywordSettings:{...settings.data,body:JSON.stringify(prior)}},null,2),{flag:'wx'});
-    const savedPrompt=await db().from('reports').update({body:JSON.stringify(config),updated_at:new Date().toISOString()}).eq('id',settings.data.id).eq('updated_at',settings.data.updated_at).select('updated_at');
-    if(savedPrompt.error||!savedPrompt.data?.length)throw new ToolError(savedPrompt.error?.message||'The keyword prompt changed; read again.');
-    const saved=await db().from('reports').update({body:JSON.stringify(body),updated_at:new Date().toISOString()}).eq('id',board_id).eq('updated_at',revision).select('updated_at');
-    if(saved.error||!saved.data?.length)throw new ToolError(saved.error?.message||'Concurrent board edit detected. The updated prompt is saved; read the board again before retrying.');
+    if(JSON.stringify(config)!==JSON.stringify(prior)){
+      const savedPrompt=await db().from('reports').update({body:JSON.stringify(config),updated_at:new Date().toISOString()}).eq('id',settings.data.id).eq('updated_at',settings.data.updated_at).select('updated_at');
+      if(savedPrompt.error||!savedPrompt.data?.length)throw new ToolError(savedPrompt.error?.message||'The keyword prompt changed; read again.');
+    }
+    let saved:any;
+    for(let attempt=0;attempt<3;attempt++){
+      saved=await db().from('reports').update({body:JSON.stringify(body),updated_at:new Date().toISOString()}).eq('id',board_id).eq('updated_at',revision).select('updated_at');
+      if(!saved.error||!/statement timeout/i.test(saved.error.message))break;
+    }
+    if(saved.error||!saved.data?.length)throw new ToolError(saved.error?.message||'Concurrent board edit detected. Read the board again before retrying.');
     return ok({saved:true,revision:saved.data[0].updated_at,...result});
   });
   server.registerTool('competitive_intelligence_get', {
