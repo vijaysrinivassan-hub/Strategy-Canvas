@@ -56,6 +56,10 @@ export function registerBoardTools(server: McpServer) {
           summary[tab] = {
             opened: !!slot.guide?.opened,
             ocean: slot.guide?.ocean || null,
+            onboarding: {
+              active_step: slot.guide?.onboarding?.activeStep || "company",
+              locked: slot.guide?.onboarding?.locked || {}
+            },
             channels: Array.isArray(slot.channels?.items)
               ? slot.channels.items.map((item: any) => ({
                   name: item.name, on: !!item.on, motion: item.motion || "inbound"

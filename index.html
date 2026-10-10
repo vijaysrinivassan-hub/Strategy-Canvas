@@ -978,6 +978,19 @@
   .brand-channel-host{width:min(1200px,100%); margin:0 auto; padding-left:0}
   .brand-channel-host .chan{min-height:0; overflow:visible; padding:0; background:transparent}
   .brand-channel-host .chan-head{padding-top:0; border-top:0}
+  .gtm-onboarding{display:grid;grid-template-columns:250px minmax(420px,1fr);width:min(1100px,100%);margin:0 auto 22px;border:1px solid #d5d8d3;background:#fff}
+  .gtm-onboarding-steps{border-right:1px solid #d5d8d3;background:#f2f3f0}
+  .gtm-onboarding-step{display:grid;grid-template-columns:28px minmax(0,1fr) 20px;align-items:center;gap:8px;width:100%;padding:12px 11px;border:0;border-bottom:1px solid #dadcd7;background:transparent;text-align:left;color:#5d625d}
+  .gtm-onboarding-step:hover:not(:disabled){background:#e9ece8}.gtm-onboarding-step.active{background:#fff;box-shadow:inset 3px 0 0 #171b19;color:#171b19}
+  .gtm-onboarding-step:disabled{opacity:.46}.gtm-onboarding-step-index{display:grid;place-items:center;width:22px;height:22px;border:1px solid #bdc2bd;border-radius:50%;font-size:9px;font-weight:850}
+  .gtm-onboarding-step.locked .gtm-onboarding-step-index{border-color:#4c9c66;background:#eaf7ee;color:#23713e}
+  .gtm-onboarding-step-copy{min-width:0}.gtm-onboarding-step-copy b,.gtm-onboarding-step-copy small{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .gtm-onboarding-step-copy b{font-size:11px}.gtm-onboarding-step-copy small{margin-top:2px;color:#8a8e89;font-size:9px;font-weight:500}.gtm-onboarding-step-lock{font-size:12px;color:#5e866b}
+  .gtm-onboarding-panel{min-height:290px;padding:24px}.gtm-onboarding-panel-kicker{display:block;margin-bottom:5px;color:#838781;font-size:8px;font-weight:850;letter-spacing:.12em;text-transform:uppercase}
+  .gtm-onboarding-panel h4{margin:0 0 6px;font-size:18px}.gtm-onboarding-panel p{max-width:660px;margin:0 0 20px;color:#6d716c;font-size:11px;line-height:1.55}
+  .gtm-onboarding-control{display:block;width:100%;max-width:none;padding:11px 12px;border:1px solid #cfd3ce;background:#fff;color:#232623;font:inherit;font-size:13px}
+  .gtm-onboarding-control:disabled{background:#f6f7f5;color:#4c514c;opacity:1}.gtm-onboarding-actions{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:18px}
+  .gtm-onboarding-source{color:#7d827d;font-size:9px}.gtm-onboarding-complete{color:#287243;font-weight:750}.gtm-workspace[hidden]{display:none}
   .gtm-canvas{position:relative; overflow-x:auto}
   .gtm-canvas .chan-flow{width:max-content; min-width:100%; min-height:780px; padding:32px 240px 70px}
   .gtm-canvas .sg-about{top:24px; right:24px}
@@ -1042,6 +1055,7 @@
     .chan{padding:14px 14px 30px}.chan-flow{padding:36px 28px 52px}.chan-head{align-items:center}
     .brand-channel-host{padding-left:0}
     .gtm-canvas .sg-about{width:230px}
+    .gtm-onboarding{grid-template-columns:1fr}.gtm-onboarding-steps{border-right:0;border-bottom:1px solid #d5d8d3}.gtm-onboarding-panel{min-height:250px;padding:18px}
   }
 
   /* ================= clickable brand-strategy canvas ================= */
@@ -2689,6 +2703,11 @@
           <p>See the company, target product, sales motion, active channels and buyer journey in one connected view.</p>
         </div>
       </div>
+      <section class="gtm-onboarding" id="gtmOnboarding" aria-label="GTM onboarding">
+        <nav class="gtm-onboarding-steps" id="gtmOnboardingSteps" aria-label="Company setup steps"></nav>
+        <div class="gtm-onboarding-panel" id="gtmOnboardingPanel"></div>
+      </section>
+      <div class="gtm-workspace" id="gtmWorkspace" hidden>
       <section class="gtm-market-system" aria-labelledby="gtmMarketSystemTitle">
         <div class="gtm-market-system-head">
           <div>
@@ -2734,6 +2753,7 @@
           </div>
           <button class="gtm-reset" id="btnGtmReset" type="button">Reset canvas</button>
         </div>
+      </div>
       </div>
     </div>
 
@@ -3123,7 +3143,7 @@ const SUPABASE_URL = 'https://cskamgfvebryahkljlll.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_MdkD-TxMCIwlu69seSHA3Q_A39GADsK';
 const CLIENT_ID    = '1059013355751-6g50dsgm7df37htl2fdqrtlkh5hmrc0c.apps.googleusercontent.com';
 const ALLOWED      = ['vijaysrinivassan@gmail.com'];
-const BUILD        = 'v8.64';
+const BUILD        = 'v8.65';
 
 const STRATEGY_ONE_TAB = 'Strategy 1 — Brand Strategy';
 const PRODUCT_EVOLUTION_TAB = 'Strategy 1 — Product Evolution';
@@ -6349,6 +6369,9 @@ function openClientSettings(){
     closeModal();
     await saveBoard(true);
     if (state.screen === 'settings') renderClients();   /* the list lives on the settings page now */
+    if (state.screen === 'board' && (state.tab === STRATEGY_ONE_TAB || state.tab === CHANNELS_TAB)){
+      renderStrategyGuide(); renderChannels();
+    }
     toast('Client updated.');
   };
   foot.append(cancel, save);
@@ -14819,7 +14842,100 @@ function strategyOneState(){
   delete t.guide.posture;
   delete t.guide.ocean;
   if (typeof t.guide.opened !== 'boolean') t.guide.opened = false;
+  if (!t.guide.onboarding || typeof t.guide.onboarding !== 'object'){
+    t.guide.onboarding = { activeStep: 'company', locked: {} };
+  }
+  if (!t.guide.onboarding.locked || typeof t.guide.onboarding.locked !== 'object') t.guide.onboarding.locked = {};
   return t.guide;
+}
+
+const GTM_ONBOARDING_STEPS = [
+  { id:'company', label:'Company', question:'What is the company name?', detail:'The client identity used throughout this board.',
+    get:()=>state.client || '', set:value=>{ state.client=value; } },
+  { id:'product', label:'Target product', question:'Which product are we taking to market?', detail:'This becomes the active product workspace and GTM target.',
+    get:()=>state.clientProduct || '', set:value=>{
+      const catalog=ensureProductWorkspace(), product=activeGtmProduct(catalog);
+      if (product) product.name=value; else { const created={id:uid(),name:value}; catalog.products.push(created); catalog.activeProductId=created.id; state.workspaceProductId=created.id; }
+      state.clientProduct=value;
+    } },
+  { id:'industry', label:'Industry type', question:'What type of company is this?', detail:'Choose the operating context used to frame the strategy.', type:'select',
+    options:[['','Choose industry type'],...CLIENT_TYPES.map(item=>[item.id,item.label])],
+    get:()=>state.clientType || '', set:value=>{ state.clientType=value; } },
+  { id:'goal', label:'Primary goal', question:'What is the primary GTM goal?', detail:'State the result this strategy is expected to drive.',
+    get:()=>state.clientGoal || 'Customer Acquisition', set:value=>{ state.clientGoal=value; } },
+  { id:'sales_motion', label:'Sales motion', question:'How is the product sold?', detail:'Choose the primary motion. You can revise it later.', type:'select',
+    options:[['','Choose sales motion'],['plg','Product-led growth (PLG)'],['slg','Sales-led growth (SLG)']],
+    get:()=>state.clientSalesMotion || '', set:value=>{ state.clientSalesMotion=value; } },
+  { id:'icp', label:'Primary ICP', question:'Who is the first ideal customer profile?', detail:'Name the first customer segment this GTM motion should serve.',
+    get:()=>state.clientIcp1 || 'New Entrants', set:value=>{ state.clientIcp1=value; } }
+];
+
+function gtmOnboardingValue(step){
+  const value=String(step.get() || '');
+  if (step.type==='select') return (step.options.find(option=>option[0]===value)||[])[1] || 'Not selected';
+  return value || 'Not answered';
+}
+
+function renderGtmOnboarding(){
+  const guide=strategyOneState(), onboarding=guide.onboarding, ro=readOnly();
+  const completedBefore=index=>GTM_ONBOARDING_STEPS.slice(0,index).every(step=>onboarding.locked[step.id]===true);
+  const firstOpen=GTM_ONBOARDING_STEPS.find((step,index)=>completedBefore(index) && onboarding.locked[step.id]!==true);
+  if (!GTM_ONBOARDING_STEPS.some(step=>step.id===onboarding.activeStep) ||
+      !completedBefore(GTM_ONBOARDING_STEPS.findIndex(step=>step.id===onboarding.activeStep))){
+    onboarding.activeStep=(firstOpen || GTM_ONBOARDING_STEPS[0]).id;
+  }
+  const active=GTM_ONBOARDING_STEPS.find(step=>step.id===onboarding.activeStep) || GTM_ONBOARDING_STEPS[0];
+  const steps=$('gtmOnboardingSteps'); steps.replaceChildren();
+  GTM_ONBOARDING_STEPS.forEach((step,index)=>{
+    const locked=onboarding.locked[step.id]===true;
+    const button=document.createElement('button'); button.type='button';
+    button.className='gtm-onboarding-step'+(step.id===active.id?' active':'')+(locked?' locked':'');
+    button.disabled=!locked && !completedBefore(index) && step.id!==active.id;
+    const number=document.createElement('span'); number.className='gtm-onboarding-step-index'; number.textContent=locked?'✓':String(index+1);
+    const copy=document.createElement('span'); copy.className='gtm-onboarding-step-copy';
+    const name=document.createElement('b'); name.textContent=step.label;
+    const answer=document.createElement('small'); answer.textContent=gtmOnboardingValue(step);
+    copy.append(name,answer);
+    const lock=document.createElement('span'); lock.className='gtm-onboarding-step-lock'; lock.textContent=locked?'●':'';
+    button.append(number,copy,lock);
+    button.onclick=()=>{ onboarding.activeStep=step.id; markDirty(); renderGtmOnboarding(); };
+    steps.append(button);
+  });
+
+  const panel=$('gtmOnboardingPanel'); panel.replaceChildren();
+  const kicker=document.createElement('span'); kicker.className='gtm-onboarding-panel-kicker';
+  kicker.textContent='Step '+(GTM_ONBOARDING_STEPS.indexOf(active)+1)+' of '+GTM_ONBOARDING_STEPS.length;
+  const title=document.createElement('h4'); title.textContent=active.question;
+  const description=document.createElement('p'); description.textContent=active.detail;
+  const control=document.createElement(active.type==='select'?'select':'input');
+  control.className='gtm-onboarding-control';
+  if (control.tagName==='INPUT') control.type='text';
+  if (active.type==='select') active.options.forEach(option=>{
+    const element=document.createElement('option'); element.value=option[0]; element.textContent=option[1]; control.append(element);
+  });
+  control.value=active.get() || '';
+  const locked=onboarding.locked[active.id]===true;
+  control.disabled=ro || locked;
+  const actions=document.createElement('div'); actions.className='gtm-onboarding-actions';
+  const source=document.createElement('span'); source.className='gtm-onboarding-source';
+  source.textContent=locked?'Locked source · shared with Client settings':'Prefilled from Client settings';
+  const action=document.createElement('button'); action.type='button'; action.className='primary';
+  action.hidden=ro;
+  action.textContent=locked?'Edit answer':'Lock & continue';
+  action.onclick=()=>{
+    if (locked){ onboarding.locked[active.id]=false; onboarding.activeStep=active.id; markDirty(); renderGtmOnboarding(); requestAnimationFrame(()=>$('gtmOnboardingPanel')?.querySelector('.gtm-onboarding-control')?.focus()); return; }
+    const value=String(control.value || '').trim();
+    if (!value){ toast('Complete this answer before locking it.',true); control.focus(); return; }
+    active.set(value); onboarding.locked[active.id]=true;
+    const next=GTM_ONBOARDING_STEPS.find((step,index)=>completedBefore(index) && onboarding.locked[step.id]!==true);
+    onboarding.activeStep=(next || active).id;
+    markDirty(); renderBrand(); renderTabs(); renderStrategyGuide();
+  };
+  if (ro){ source.textContent=locked?'Locked source':'Not locked'; }
+  actions.append(source,action); panel.append(kicker,title,description,control,actions);
+  const complete=GTM_ONBOARDING_STEPS.every(step=>onboarding.locked[step.id]===true);
+  $('gtmWorkspace').hidden=!complete && !ro;
+  if (complete){ source.textContent='Onboarding complete · click any step to review'; source.classList.add('gtm-onboarding-complete'); }
 }
 
 function strategyNode(host, value, title, detail, current){
@@ -14897,6 +15013,7 @@ function drawStrategyWires(){
 }
 
 function renderStrategyGuide(){
+  renderGtmOnboarding();
   $('sgAboutGoal').textContent = state.clientGoal || 'Customer Acquisition';
   $('sgAboutProduct').textContent = state.clientProduct || 'Not selected';
   $('sgAboutIndustry').textContent = state.clientType ? clientTypeLabel(state.clientType) : 'Not selected';
