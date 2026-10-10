@@ -9,7 +9,9 @@ const FIELD_KEYS = [
   "icp_positioning",
   "category_positioning",
   "competitive_positioning",
-  "value_positioning"
+  "value_positioning",
+  "trust_signals",
+  "framing"
 ] as const;
 
 const fieldsSchema = z.object({
@@ -17,7 +19,9 @@ const fieldsSchema = z.object({
   icp_positioning: z.string().optional(),
   category_positioning: z.string().optional(),
   competitive_positioning: z.string().optional(),
-  value_positioning: z.string().optional()
+  value_positioning: z.string().optional(),
+  trust_signals: z.string().optional(),
+  framing: z.string().optional()
 });
 
 function fieldsOf(body: any): Record<(typeof FIELD_KEYS)[number], string> {
@@ -35,8 +39,8 @@ export function registerPositioningDocumentTools(server: McpServer) {
     {
       title: "Read positioning document",
       description:
-        "Read the five narrative fields in a board's Positioning Document: the positioning " +
-        "statement plus ICP, category, competitive and value positioning.",
+        "Read the seven narrative fields in a board's Positioning Document: the positioning " +
+        "statement; ICP, category, competitive and value positioning; Trust Signals; and Framing.",
       inputSchema: {
         board_id: z.string().describe("Board uuid from board_list")
       },

@@ -69,7 +69,9 @@ export function registerBoardTools(server: McpServer) {
               icp_positioning: slot.fields?.icp_positioning || "",
               category_positioning: slot.fields?.category_positioning || "",
               competitive_positioning: slot.fields?.competitive_positioning || "",
-              value_positioning: slot.fields?.value_positioning || ""
+              value_positioning: slot.fields?.value_positioning || "",
+              trust_signals: slot.fields?.trust_signals || "",
+              framing: slot.fields?.framing || ""
             }
           };
         } else if (tab === "Strategy 1 — Product Architecture" || tab === "Strategy 1 — Maturity Axis") {
