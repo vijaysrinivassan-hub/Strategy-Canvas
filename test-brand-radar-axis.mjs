@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import vm from 'node:vm';
 import assert from 'node:assert/strict';
 
-const html=fs.readFileSync(new URL('./index.html',import.meta.url),'utf8');
+const html=fs.readFileSync(new URL('./index.html',import.meta.url),'utf8').replace(/\r\n/g,'\n');
 assert(html.includes('What is the axis of product evolution?'));
 assert(html.includes('id="btnRadarAxis"'));
 assert(html.includes('Product evolution axis'));

@@ -978,7 +978,7 @@
   .brand-channel-host{width:min(1200px,100%); margin:0 auto; padding-left:0}
   .brand-channel-host .chan{min-height:0; overflow:visible; padding:0; background:transparent}
   .brand-channel-host .chan-head{padding-top:0; border-top:0}
-  .gtm-onboarding{display:grid;grid-template-columns:250px minmax(420px,1fr);width:min(1100px,100%);margin:0 auto 22px;border:1px solid #d5d8d3;background:#fff}
+  .gtm-onboarding{display:grid;grid-template-columns:250px minmax(0,1fr);width:min(1200px,100%);margin:0 auto 22px;border:1px solid #d5d8d3;background:#fff}
   .gtm-onboarding-steps{border-right:1px solid #d5d8d3;background:#f2f3f0}
   .gtm-onboarding-step{display:grid;grid-template-columns:28px minmax(0,1fr) 20px;align-items:center;gap:8px;width:100%;padding:12px 11px;border:0;border-bottom:1px solid #dadcd7;background:transparent;text-align:left;color:#5d625d}
   .gtm-onboarding-step:hover:not(:disabled){background:#e9ece8}.gtm-onboarding-step.active{background:#fff;box-shadow:inset 3px 0 0 #171b19;color:#171b19}
@@ -986,11 +986,22 @@
   .gtm-onboarding-step.locked .gtm-onboarding-step-index{border-color:#4c9c66;background:#eaf7ee;color:#23713e}
   .gtm-onboarding-step-copy{min-width:0}.gtm-onboarding-step-copy b,.gtm-onboarding-step-copy small{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .gtm-onboarding-step-copy b{font-size:11px}.gtm-onboarding-step-copy small{margin-top:2px;color:#8a8e89;font-size:9px;font-weight:500}.gtm-onboarding-step-lock{font-size:12px;color:#5e866b}
-  .gtm-onboarding-panel{min-height:290px;padding:24px}.gtm-onboarding-panel-kicker{display:block;margin-bottom:5px;color:#838781;font-size:8px;font-weight:850;letter-spacing:.12em;text-transform:uppercase}
+  .gtm-onboarding-panel{min-height:390px;padding:24px;overflow:hidden}.gtm-onboarding-panel-kicker{display:block;margin-bottom:5px;color:#838781;font-size:8px;font-weight:850;letter-spacing:.12em;text-transform:uppercase}
   .gtm-onboarding-panel h4{margin:0 0 6px;font-size:18px}.gtm-onboarding-panel p{max-width:660px;margin:0 0 20px;color:#6d716c;font-size:11px;line-height:1.55}
   .gtm-onboarding-control{display:block;width:100%;max-width:none;padding:11px 12px;border:1px solid #cfd3ce;background:#fff;color:#232623;font:inherit;font-size:13px}
   .gtm-onboarding-control:disabled{background:#f6f7f5;color:#4c514c;opacity:1}.gtm-onboarding-actions{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:18px}
   .gtm-onboarding-source{color:#7d827d;font-size:9px}.gtm-onboarding-complete{color:#287243;font-weight:750}.gtm-workspace[hidden]{display:none}
+  .gtm-onboarding-products{display:flex;flex-direction:column;gap:8px}.gtm-onboarding-product{display:grid;grid-template-columns:26px minmax(0,1fr) 28px;gap:8px;align-items:center;padding:8px;border:1px solid #d7dbd6;background:#fafbf9}
+  .gtm-onboarding-product input[type=radio]{margin:0;accent-color:#2f8b50}.gtm-onboarding-product input[type=text]{width:100%;padding:9px 10px;border:1px solid #cfd3ce;background:#fff;font:inherit;font-size:12px}
+  .gtm-onboarding-product button{padding:2px 7px;border:0;background:transparent;color:#92968f;font-size:15px}.gtm-onboarding-product button:hover:not(:disabled){background:#fff0f0;color:var(--danger)}
+  .gtm-onboarding-add{align-self:flex-start;margin-top:2px;padding:7px 10px;background:#fff;color:#386b49;font-size:10px}.gtm-onboarding-hint{display:block;margin-top:8px;color:#80857f;font-size:9px}
+  .gtm-onboarding-routes{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-bottom:16px}.gtm-onboarding-route,.gtm-onboarding-choice{display:flex;align-items:flex-start;gap:9px;padding:11px;border:1px solid #d5d9d4;background:#fff;color:#343934;text-align:left}
+  .gtm-onboarding-route.on,.gtm-onboarding-choice.on{border-color:#6fbe88;background:#eff9f2}.gtm-onboarding-route input,.gtm-onboarding-choice input{margin:2px 0 0;accent-color:#2f8b50}
+  .gtm-onboarding-route b,.gtm-onboarding-choice b{display:block;font-size:11px}.gtm-onboarding-route small,.gtm-onboarding-choice small{display:block;margin-top:3px;color:#7e837d;font-size:9px;line-height:1.4}
+  .gtm-onboarding-channel-section{margin-top:14px;padding-top:12px;border-top:1px solid #e1e4df}.gtm-onboarding-channel-section>strong{display:block;margin-bottom:8px;color:#575d57;font-size:9px;letter-spacing:.08em;text-transform:uppercase}
+  .gtm-onboarding-choices{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:7px}.gtm-onboarding-aeo{margin-top:12px;padding:12px;border-left:3px solid #66b980;background:#f5faf6}
+  .gtm-onboarding-market{width:100%;margin-top:14px}.gtm-onboarding-market .industry-fit{display:grid;grid-template-columns:1fr;width:100%;min-width:0;margin:0}.gtm-onboarding-market .industry-fit-preview,.gtm-onboarding-market .industry-matrix-wrap{width:100%;box-sizing:border-box}
+  .gtm-onboarding-market .industry-market-grid{min-width:760px}.gtm-onboarding-market .industry-market-cell{min-height:98px}.gtm-onboarding-market .industry-market-row{min-height:98px}
   .gtm-canvas{position:relative; overflow-x:auto}
   .gtm-canvas .chan-flow{width:max-content; min-width:100%; min-height:780px; padding:32px 240px 70px}
   .gtm-canvas .sg-about{top:24px; right:24px}
@@ -2708,16 +2719,6 @@
         <div class="gtm-onboarding-panel" id="gtmOnboardingPanel"></div>
       </section>
       <div class="gtm-workspace" id="gtmWorkspace" hidden>
-      <section class="gtm-market-system" aria-labelledby="gtmMarketSystemTitle">
-        <div class="gtm-market-system-head">
-          <div>
-            <span class="pos-axis-label">Market system</span>
-            <h4 id="gtmMarketSystemTitle">Selling component → buying component</h4>
-            <p>Select one of the 16 intersections. The selling axis shows where the offer's advantage comes from; the buying axis shows what the customer is trying to change.</p>
-          </div>
-        </div>
-        <div class="industry-fit" id="gtmIndustryFit"></div>
-      </section>
       <div class="chan-canvas gtm-canvas">
         <div class="chan-flow" id="chanFlow">
           <svg class="chan-wires" id="chanWires" aria-hidden="true"></svg>
@@ -3143,7 +3144,7 @@ const SUPABASE_URL = 'https://cskamgfvebryahkljlll.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_MdkD-TxMCIwlu69seSHA3Q_A39GADsK';
 const CLIENT_ID    = '1059013355751-6g50dsgm7df37htl2fdqrtlkh5hmrc0c.apps.googleusercontent.com';
 const ALLOWED      = ['vijaysrinivassan@gmail.com'];
-const BUILD        = 'v8.65';
+const BUILD        = 'v8.66';
 
 const STRATEGY_ONE_TAB = 'Strategy 1 — Brand Strategy';
 const PRODUCT_EVOLUTION_TAB = 'Strategy 1 — Product Evolution';
@@ -13512,6 +13513,14 @@ const DEFAULT_CHANNELS = [
   { name: 'ABM',               on: false, motion: 'outbound' }
 ];
 const CORE_INBOUND_CHANNELS = ['AEO', 'SEO', 'Listicle Outreach', 'Reddit'];
+const AEO_ACTIVITIES = [
+  'AI visibility and citation audit',
+  'Prompt and answer monitoring',
+  'Entity and topical authority',
+  'Answer-ready content',
+  'Citation and mention building',
+  'Schema and technical readiness'
+];
 let activeJourneyChannel = '';
 let gtmRevealDepth = 0;
 let gtmOpenMotions = {};
@@ -13535,6 +13544,13 @@ function channelState(){
   if (typeof t.motionLabels.inbound !== 'string' || !t.motionLabels.inbound.trim()) t.motionLabels.inbound = 'Inbound';
   if (typeof t.motionLabels.outbound !== 'string' || !t.motionLabels.outbound.trim()) t.motionLabels.outbound = 'Outbound';
   if (!Array.isArray(t.products)) t.products = [];
+  if (!t.channelMotions || typeof t.channelMotions !== 'object'){
+    t.channelMotions = {
+      inbound: t.items.some(item => item.motion !== 'outbound' && item.on),
+      outbound: t.items.some(item => item.motion === 'outbound' && item.on)
+    };
+  }
+  if (!Array.isArray(t.aeoActivities)) t.aeoActivities = [];
   const seededProduct = (state.clientProduct || '').trim();
   if (!t.products.length){
     t.products.push({ id: uid(), name: seededProduct || 'Product name' });
@@ -13667,6 +13683,7 @@ function revealGtmMotion(motion){
 function addGtmProduct(){
   if (readOnly()) return;
   const t = ensureProductWorkspace();
+  if (t.products.length >= 3){ toast('This GTM flow supports up to 3 products.', true); return; }
   const product = { id: uid(), name: 'New product' };
   t.products.push(product);
   activateProduct(product.id);
@@ -13732,7 +13749,7 @@ function renderChannels(){
   $('gtmMotions').hidden = depth < 3;
   $('gtmCompanyNode').setAttribute('aria-expanded', depth >= 1 ? 'true' : 'false');
   $('gtmStrategyNode').setAttribute('aria-expanded', depth >= 3 ? 'true' : 'false');
-  $('btnAddGtmProduct').hidden = readOnly();
+  $('btnAddGtmProduct').hidden = readOnly() || t.products.length >= 3;
   t.products.forEach(product => {
     const card = document.createElement('div');
     card.className = 'gtm-node gtm-product' + (product.id === t.activeProductId ? ' on' : '');
@@ -14852,12 +14869,7 @@ function strategyOneState(){
 const GTM_ONBOARDING_STEPS = [
   { id:'company', label:'Company', question:'What is the company name?', detail:'The client identity used throughout this board.',
     get:()=>state.client || '', set:value=>{ state.client=value; } },
-  { id:'product', label:'Target product', question:'Which product are we taking to market?', detail:'This becomes the active product workspace and GTM target.',
-    get:()=>state.clientProduct || '', set:value=>{
-      const catalog=ensureProductWorkspace(), product=activeGtmProduct(catalog);
-      if (product) product.name=value; else { const created={id:uid(),name:value}; catalog.products.push(created); catalog.activeProductId=created.id; state.workspaceProductId=created.id; }
-      state.clientProduct=value;
-    } },
+  { id:'product', label:'Products', question:'Which products are we taking to market?', detail:'Add one, two or three products. Choose the active product whose strategy workspace you want to edit.', type:'products' },
   { id:'industry', label:'Industry type', question:'What type of company is this?', detail:'Choose the operating context used to frame the strategy.', type:'select',
     options:[['','Choose industry type'],...CLIENT_TYPES.map(item=>[item.id,item.label])],
     get:()=>state.clientType || '', set:value=>{ state.clientType=value; } },
@@ -14867,13 +14879,152 @@ const GTM_ONBOARDING_STEPS = [
     options:[['','Choose sales motion'],['plg','Product-led growth (PLG)'],['slg','Sales-led growth (SLG)']],
     get:()=>state.clientSalesMotion || '', set:value=>{ state.clientSalesMotion=value; } },
   { id:'icp', label:'Primary ICP', question:'Who is the first ideal customer profile?', detail:'Name the first customer segment this GTM motion should serve.',
-    get:()=>state.clientIcp1 || 'New Entrants', set:value=>{ state.clientIcp1=value; } }
+    get:()=>state.clientIcp1 || 'New Entrants', set:value=>{ state.clientIcp1=value; } },
+  { id:'market', label:'Market system', question:'How does the selling system meet the buying component?', detail:'Choose the selling component and buying component together, or select their exact intersection in the matrix.', type:'market' },
+  { id:'channels', label:'Channels', question:'Are we using inbound, outbound or both?', detail:'Choose the motion, its channels, and the AEO workstreams when AEO is part of the plan.', type:'channels' }
 ];
 
 function gtmOnboardingValue(step){
+  if (step.type==='products'){
+    const catalog=channelState(), count=catalog.products.length;
+    return count+' product'+(count===1?'':'s');
+  }
+  if (step.type==='market'){
+    const selling=evolutionState().axis || brandRadarState().sourceAxis || '';
+    const buying=activeBuyingIndustryAxis();
+    const labels={technology:'Technology',process:'Process',people:'People',input:'Input'};
+    return selling && buying ? labels[selling]+' → '+labels[buying] : 'Not selected';
+  }
+  if (step.type==='channels'){
+    const channels=channelState(), motions=[];
+    if (channels.channelMotions.inbound) motions.push('Inbound');
+    if (channels.channelMotions.outbound) motions.push('Outbound');
+    const selected=channels.items.filter(item=>item.on && channels.channelMotions[item.motion==='outbound'?'outbound':'inbound']).length;
+    return motions.length ? motions.join(' + ')+' · '+selected+' channel'+(selected===1?'':'s') : 'Not selected';
+  }
   const value=String(step.get() || '');
   if (step.type==='select') return (step.options.find(option=>option[0]===value)||[])[1] || 'Not selected';
   return value || 'Not answered';
+}
+
+function renderGtmProductStep(host, locked, ro){
+  const catalog=ensureProductWorkspace();
+  const list=document.createElement('div'); list.className='gtm-onboarding-products';
+  catalog.products.slice(0,3).forEach(product=>{
+    const row=document.createElement('div'); row.className='gtm-onboarding-product';
+    const active=document.createElement('input'); active.type='radio'; active.name='gtm-active-product';
+    active.checked=product.id===catalog.activeProductId; active.disabled=ro || locked;
+    active.title='Use this as the active product workspace';
+    active.onchange=()=>{ activateProduct(product.id); markDirty(); renderGtmOnboarding(); renderChannels(); };
+    const input=document.createElement('input'); input.type='text'; input.value=product.name || ''; input.placeholder='Product name';
+    input.disabled=ro || locked; input.setAttribute('aria-label','Product name');
+    input.oninput=()=>{
+      product.name=input.value;
+      if (product.id===catalog.activeProductId){ state.clientProduct=input.value; }
+      markDirty();
+    };
+    const remove=document.createElement('button'); remove.type='button'; remove.innerHTML='&times;'; remove.title='Remove product';
+    remove.disabled=ro || locked || catalog.products.length===1;
+    remove.onclick=()=>{ removeGtmProduct(product.id); renderGtmOnboarding(); };
+    row.append(active,input,remove); list.append(row);
+  });
+  if (catalog.products.length<3){
+    const add=document.createElement('button'); add.type='button'; add.className='gtm-onboarding-add'; add.textContent='+ Add product'; add.disabled=ro || locked;
+    add.onclick=()=>{
+      const product={id:uid(),name:'New product'}; catalog.products.push(product); activateProduct(product.id);
+      markDirty(); renderGtmOnboarding(); renderChannels();
+      requestAnimationFrame(()=>{
+        const inputs=$('gtmOnboardingPanel')?.querySelectorAll('.gtm-onboarding-product input[type=text]');
+        const last=inputs && inputs[inputs.length-1]; if (last){ last.focus(); last.select(); }
+      });
+    };
+    list.append(add);
+  }
+  const hint=document.createElement('small'); hint.className='gtm-onboarding-hint'; hint.textContent='The selected product controls the active Product Architecture, Maturity Axis, Positioning and Keywords workspace.';
+  host.append(list,hint);
+}
+
+function renderGtmMarketStep(host, locked, ro){
+  const wrap=document.createElement('div'); wrap.className='gtm-onboarding-market';
+  const fit=document.createElement('div'); fit.className='industry-fit'; fit.id='gtmIndustryFit';
+  wrap.append(fit); host.append(wrap);
+  requestAnimationFrame(()=>renderIndustryFit(ro || locked));
+}
+
+function renderGtmChannelsStep(host, locked, ro){
+  const channels=channelState(), disabled=ro || locked;
+  const routes=document.createElement('div'); routes.className='gtm-onboarding-routes';
+  [['inbound','Inbound','Earn and capture demand through discoverable, trusted channels.'],['outbound','Outbound','Create demand through direct, targeted outreach.']].forEach(([motion,label,detail])=>{
+    const card=document.createElement('label'); card.className='gtm-onboarding-route'+(channels.channelMotions[motion]?' on':'');
+    const input=document.createElement('input'); input.type='checkbox'; input.checked=!!channels.channelMotions[motion]; input.disabled=disabled;
+    const copy=document.createElement('span'); const strong=document.createElement('b'); strong.textContent=label; const small=document.createElement('small'); small.textContent=detail; copy.append(strong,small);
+    input.onchange=()=>{ channels.channelMotions[motion]=input.checked; markDirty(); renderGtmOnboarding(); };
+    card.append(input,copy); routes.append(card);
+  });
+  host.append(routes);
+
+  ['inbound','outbound'].forEach(motion=>{
+    if (!channels.channelMotions[motion]) return;
+    const section=document.createElement('section'); section.className='gtm-onboarding-channel-section';
+    const heading=document.createElement('strong'); heading.textContent=(motion==='inbound'?'Inbound':'Outbound')+' channels';
+    const choices=document.createElement('div'); choices.className='gtm-onboarding-choices';
+    channels.items.filter(item=>(item.motion==='outbound'?'outbound':'inbound')===motion).forEach(item=>{
+      const card=document.createElement('label'); card.className='gtm-onboarding-choice'+(item.on?' on':'');
+      const input=document.createElement('input'); input.type='checkbox'; input.checked=!!item.on; input.disabled=disabled;
+      const copy=document.createElement('span'); const strong=document.createElement('b'); strong.textContent=item.name;
+      const small=document.createElement('small'); small.textContent=motion==='inbound'?'Use this channel to earn or capture demand.':'Use this channel for direct outreach.';
+      copy.append(strong,small);
+      input.onchange=()=>{ item.on=input.checked; markDirty(); renderGtmOnboarding(); };
+      card.append(input,copy); choices.append(card);
+    });
+    section.append(heading,choices); host.append(section);
+  });
+
+  const aeo=channels.items.find(item=>String(item.name||'').trim().toLowerCase()==='aeo');
+  if (channels.channelMotions.inbound && aeo?.on){
+    const section=document.createElement('section'); section.className='gtm-onboarding-channel-section gtm-onboarding-aeo';
+    const heading=document.createElement('strong'); heading.textContent='AEO workstreams';
+    const choices=document.createElement('div'); choices.className='gtm-onboarding-choices';
+    AEO_ACTIVITIES.forEach(activity=>{
+      const selected=channels.aeoActivities.includes(activity);
+      const card=document.createElement('label'); card.className='gtm-onboarding-choice'+(selected?' on':'');
+      const input=document.createElement('input'); input.type='checkbox'; input.checked=selected; input.disabled=disabled;
+      const copy=document.createElement('span'); const strong=document.createElement('b'); strong.textContent=activity; copy.append(strong);
+      input.onchange=()=>{
+        channels.aeoActivities=input.checked ? [...new Set([...channels.aeoActivities,activity])] : channels.aeoActivities.filter(item=>item!==activity);
+        markDirty(); renderGtmOnboarding();
+      };
+      card.append(input,copy); choices.append(card);
+    });
+    section.append(heading,choices); host.append(section);
+  }
+}
+
+function validateGtmOnboardingStep(step, control){
+  if (step.type==='products'){
+    const catalog=channelState(), names=catalog.products.map(product=>String(product.name||'').trim());
+    if (!names.length || names.length>3 || names.some(name=>!name || /^(new product|product name)$/i.test(name))){ toast('Name each product before locking this step.',true); return false; }
+    if (!validProductNames(catalog.products)) return false;
+    const active=activeGtmProduct(catalog); state.clientProduct=active?.name || names[0];
+    return true;
+  }
+  if (step.type==='market'){
+    if (!(evolutionState().axis || brandRadarState().sourceAxis) || !activeBuyingIndustryAxis()){
+      toast('Choose both the selling component and buying component.',true); return false;
+    }
+    return true;
+  }
+  if (step.type==='channels'){
+    const channels=channelState(), motions=['inbound','outbound'].filter(motion=>channels.channelMotions[motion]);
+    if (!motions.length){ toast('Choose inbound, outbound or both.',true); return false; }
+    const selected=channels.items.filter(item=>item.on && motions.includes(item.motion==='outbound'?'outbound':'inbound'));
+    if (!selected.length){ toast('Choose at least one channel.',true); return false; }
+    if (selected.some(item=>String(item.name||'').trim().toLowerCase()==='aeo') && !channels.aeoActivities.length){ toast('Choose at least one AEO workstream.',true); return false; }
+    return true;
+  }
+  const value=String(control?.value || '').trim();
+  if (!value){ toast('Complete this answer before locking it.',true); control?.focus(); return false; }
+  step.set(value); return true;
 }
 
 function renderGtmOnboarding(){
@@ -14907,32 +15058,40 @@ function renderGtmOnboarding(){
   kicker.textContent='Step '+(GTM_ONBOARDING_STEPS.indexOf(active)+1)+' of '+GTM_ONBOARDING_STEPS.length;
   const title=document.createElement('h4'); title.textContent=active.question;
   const description=document.createElement('p'); description.textContent=active.detail;
-  const control=document.createElement(active.type==='select'?'select':'input');
-  control.className='gtm-onboarding-control';
-  if (control.tagName==='INPUT') control.type='text';
-  if (active.type==='select') active.options.forEach(option=>{
-    const element=document.createElement('option'); element.value=option[0]; element.textContent=option[1]; control.append(element);
-  });
-  control.value=active.get() || '';
   const locked=onboarding.locked[active.id]===true;
-  control.disabled=ro || locked;
+  panel.append(kicker,title,description);
+  let control=null;
+  if (active.type==='products') renderGtmProductStep(panel,locked,ro);
+  else if (active.type==='market') renderGtmMarketStep(panel,locked,ro);
+  else if (active.type==='channels') renderGtmChannelsStep(panel,locked,ro);
+  else {
+    control=document.createElement(active.type==='select'?'select':'input');
+    control.className='gtm-onboarding-control';
+    if (control.tagName==='INPUT') control.type='text';
+    if (active.type==='select') active.options.forEach(option=>{
+      const element=document.createElement('option'); element.value=option[0]; element.textContent=option[1]; control.append(element);
+    });
+    control.value=active.get() || '';
+    control.disabled=ro || locked;
+    panel.append(control);
+  }
   const actions=document.createElement('div'); actions.className='gtm-onboarding-actions';
   const source=document.createElement('span'); source.className='gtm-onboarding-source';
-  source.textContent=locked?'Locked source · shared with Client settings':'Prefilled from Client settings';
+  const sourceLabel=active.type==='market'?'Shared with Product Evolution and Positioning':active.type==='channels'?'Shared with the GTM channel canvas':active.type==='products'?'Shared with product workspaces and Client settings':'Prefilled from Client settings';
+  source.textContent=locked?'Locked source · '+sourceLabel:sourceLabel;
   const action=document.createElement('button'); action.type='button'; action.className='primary';
   action.hidden=ro;
   action.textContent=locked?'Edit answer':'Lock & continue';
   action.onclick=()=>{
     if (locked){ onboarding.locked[active.id]=false; onboarding.activeStep=active.id; markDirty(); renderGtmOnboarding(); requestAnimationFrame(()=>$('gtmOnboardingPanel')?.querySelector('.gtm-onboarding-control')?.focus()); return; }
-    const value=String(control.value || '').trim();
-    if (!value){ toast('Complete this answer before locking it.',true); control.focus(); return; }
-    active.set(value); onboarding.locked[active.id]=true;
+    if (!validateGtmOnboardingStep(active,control)) return;
+    onboarding.locked[active.id]=true;
     const next=GTM_ONBOARDING_STEPS.find((step,index)=>completedBefore(index) && onboarding.locked[step.id]!==true);
     onboarding.activeStep=(next || active).id;
     markDirty(); renderBrand(); renderTabs(); renderStrategyGuide();
   };
   if (ro){ source.textContent=locked?'Locked source':'Not locked'; }
-  actions.append(source,action); panel.append(kicker,title,description,control,actions);
+  actions.append(source,action); panel.append(actions);
   const complete=GTM_ONBOARDING_STEPS.every(step=>onboarding.locked[step.id]===true);
   $('gtmWorkspace').hidden=!complete && !ro;
   if (complete){ source.textContent='Onboarding complete · click any step to review'; source.classList.add('gtm-onboarding-complete'); }

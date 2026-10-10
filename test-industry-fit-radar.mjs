@@ -3,9 +3,10 @@ import vm from 'node:vm';
 import assert from 'node:assert/strict';
 
 const html=fs.readFileSync(new URL('./index.html',import.meta.url),'utf8').replace(/\r\n/g,'\n');
-assert(html.includes('id="gtmIndustryFit"'));
+assert(html.includes("fit.id='gtmIndustryFit'"));
 assert(!html.includes('id="icpIndustryFit"'));
-assert(html.includes('Selling component → buying component'));
+assert(html.includes("id:'market', label:'Market system'"));
+assert(html.includes('selling component and buying component together'));
 assert(html.includes("market:'IT / Infrastructure market'"));
 assert(html.includes("market:'B2B SaaS market'"));
 assert(html.includes("market:'Prosumer SaaS market'"));
@@ -32,7 +33,9 @@ assert(html.includes("renderIndustryFit(readOnly());\n  const t = channelState()
 assert(html.includes("sharedPagesLabel.textContent = 'Pages to create'"));
 assert(/\.industry-market-grid\{[^}]*grid-template-columns:126px repeat\(4,minmax\(174px,1fr\)\)/.test(html));
 assert(/\.industry-market-cell\{[^}]*min-height:112px/.test(html));
-assert(html.indexOf('id="gtmIndustryFit"') < html.indexOf('id="chanFlow"'));
+assert(!html.includes('<section class="gtm-market-system"'));
+assert(html.includes("renderGtmMarketStep(panel,locked,ro)"));
+assert(html.includes('.gtm-onboarding-market .industry-fit{display:grid;grid-template-columns:1fr'));
 assert(html.includes('renderIcpCards(p, ro, activeBuyingIndustryAxis())'));
 assert(html.includes("rowHead.className = 'industry-market-row'"));
 assert(html.includes("column.className = 'industry-market-column'"));
