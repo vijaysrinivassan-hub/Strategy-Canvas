@@ -12913,6 +12913,8 @@ async function renderCompetitiveIntelligence(){
   if (seeded && !readOnly()) markDirty();
   window.CompetitiveIntelligence.render($('ciHost'), model, {
     readOnly: readOnly(),
+    client: state.client,
+    product: state.clientProduct,
     onChange: markDirty,
     toast: toast
   });

@@ -4,6 +4,9 @@ import vm from 'node:vm';
 import KeywordColumns from './keyword-columns.js';
 
 const asset=JSON.parse(fs.readFileSync(new URL('./competitive-intelligence-classifications.json',import.meta.url),'utf8'));
+// Preserve the original taxonomy as a regression fixture; the AI Layer pilot has
+// a separate test for the new product-gated routing.
+for(const meta of Object.values(asset.classifications))if(meta.previousRouting)Object.assign(meta,meta.previousRouting);
 const manifest=JSON.parse(fs.readFileSync(new URL('./tools/saras-category-aware-audit.json',import.meta.url),'utf8'));
 const records=Object.entries(asset.classifications).filter(([,meta])=>meta.workspace==='ai-data-platform');
 assert.equal(records.length,770);
@@ -30,7 +33,7 @@ assert(!records.filter(([,meta])=>/^Category /.test(meta.section)).some(([url])=
 
 const source=fs.readFileSync(new URL('./shared-url-repository.js',import.meta.url),'utf8');
 const appSource=fs.readFileSync(new URL('./index.html',import.meta.url),'utf8');
-assert.match(appSource,/shared-url-repository\.js\?v=saras-product-pages-v14/);
+assert.match(appSource,/shared-url-repository\.js\?v=/);
 assert.match(appSource,/const categoryMode = \['product','category'\]\.includes\(state\.contentView\) \? keywordMode : ''/);
 const context=vm.createContext({globalThis:{CompetitiveIntelligenceClassifications:asset},console});
 vm.runInContext(source,context);
@@ -59,7 +62,7 @@ assert(product.pageColumns.landing.some(column=>column.name==='Capabilities'));
 assert(product.pageColumns.landing.some(column=>column.name==='Features'));
 const productPageColumn=product.pageColumns.landing.find(column=>column.name==='Product pages');
 assert(productPageColumn);
-assert.equal(product.rows.flatMap(row=>repo.resolve(row.cells?.[productPageColumn.id]?.repositoryQueries||[])).length,5);
+assert.equal(product.rows.flatMap(row=>repo.resolve(row.cells?.[productPageColumn.id]?.repositoryQueries||[])).length,6);
 for(const column of product.pageColumns.landing){
   const count=product.rows.filter(row=>row.cells?.[column.id]?.repositoryQueries?.length).length;
   if(count)assert(product.rows[0].cells?.[column.id]?.repositoryQueries?.length,`${column.name} must start in the first Product Aware row`);

@@ -4,6 +4,9 @@ import vm from 'node:vm';
 import Matrix from './ai-data-icp-matrix.js';
 
 const asset=JSON.parse(fs.readFileSync(new URL('./competitive-intelligence-classifications.json',import.meta.url),'utf8'));
+// Preserve the original taxonomy as a regression fixture; the AI Layer pilot has
+// a separate test for the new product-gated routing.
+for(const meta of Object.values(asset.classifications))if(meta.previousRouting)Object.assign(meta,meta.previousRouting);
 const taxonomyAudit=JSON.parse(fs.readFileSync(new URL('./tools/saras-keyword-taxonomy-audit.json',import.meta.url),'utf8'));
 assert.equal(taxonomyAudit.reviewed,770);
 assert.equal(taxonomyAudit.read,768);

@@ -3,6 +3,9 @@ import vm from 'node:vm';
 import assert from 'node:assert/strict';
 import Matrix from './ai-data-icp-matrix.js';
 const asset=JSON.parse(fs.readFileSync(new URL('./competitive-intelligence-classifications.json',import.meta.url),'utf8'));
+// Preserve the original taxonomy as a regression fixture; the AI Layer pilot has
+// a separate test for the new product-gated routing.
+for(const meta of Object.values(asset.classifications))if(meta.previousRouting)Object.assign(meta,meta.previousRouting);
 const source=fs.readFileSync(new URL('./shared-url-repository.js',import.meta.url),'utf8');
 const html=fs.readFileSync(new URL('./index.html',import.meta.url),'utf8');
 const context=vm.createContext({globalThis:{CompetitiveIntelligenceClassifications:asset},console});vm.runInContext(source,context);

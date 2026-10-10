@@ -26,6 +26,58 @@
     const key=String(value || '').replace(/\/$/,'');
     return global.AskLucaKeywordImport?.classifications?.[key] || global.CompetitiveIntelligenceClassifications?.classifications?.[key] || null;
   }
+  const classificationFields = ['product','node','awarenessLevel','matrix','column'];
+  const classificationFor = (item,url,product) => ({
+    ...classificationOf(url),
+    ...(item.urlClassificationsByProduct?.[product]?.[url] || {})
+  });
+  function updateClassification(item,url,product,field,value){
+    item.urlClassificationsByProduct ||= {};
+    item.urlClassificationsByProduct[product] ||= {};
+    const next = Object.fromEntries(classificationFields.map(key =>
+      [key,String(classificationFor(item,url,product)[key] || '')]));
+    next[field] = String(value || '').trim();
+    if (field === 'product' && (next.product.startsWith('Different Product:') || next.product === 'Corporate')){
+      next.node = ''; next.awarenessLevel = 'Non-SEO'; next.matrix = 'Corporate & Non-SEO';
+      next.column = next.product === 'Corporate' ? 'Corporate' : 'Different Product';
+    }
+    item.urlClassificationsByProduct[product][url] = next;
+  }
+  const sarasStart='[CI-SARAS-AI-LAYER-V1]';
+  const sarasEnd='[/CI-SARAS-AI-LAYER-V1]';
+  function urlListHash(urls){
+    let hash=2166136261;
+    for(const url of urls){
+      for(const char of url+'\n'){
+        hash^=char.charCodeAt(0);
+        hash=Math.imul(hash,16777619);
+      }
+    }
+    return (hash>>>0).toString(16);
+  }
+  function hydrateSarasNote(tab,client,product){
+    if(String(client||'').trim().toLowerCase()!=='ai data platform'||
+       String(product||'').trim().toLowerCase()!=='ai layer')return false;
+    const item=tab.competitors.find(candidate=>candidate.id==='saras-analytics');
+    const note=String(item?.note||''),start=note.indexOf(sarasStart),end=note.indexOf(sarasEnd);
+    if(start<0||end<start)return false;
+    try{
+      const payload=JSON.parse(note.slice(start+sarasStart.length,end));
+      if(payload.urlsHash!==urlListHash(item.urls)||payload.indexes?.length!==item.urls.length)
+        throw new Error('SaraS URL inventory changed; classification migration was not applied.');
+      const rows={};
+      item.urls.forEach((url,index)=>{
+        const tuple=payload.dictionary?.[payload.indexes[index]];
+        if(!Array.isArray(tuple)||tuple.length!==classificationFields.length)
+          throw new Error('Incomplete SaraS URL classification.');
+        rows[url]=Object.fromEntries(classificationFields.map((field,i)=>[field,tuple[i]]));
+      });
+      item.urlClassificationsByProduct ||= {};
+      item.urlClassificationsByProduct[product]={...rows,...(item.urlClassificationsByProduct[product]||{})};
+      item.note=(note.slice(0,start)+note.slice(end+sarasEnd.length)).trim();
+      return true;
+    }catch(error){console.error(error);return false;}
+  }
   const snapshotDates = item => Object.keys(item?.trafficSnapshots || {}).sort();
   function snapshotTraffic(item,date,url){
     const snapshot = item?.trafficSnapshots?.[date];
@@ -52,6 +104,7 @@
   }
   function ensure(tab, client, product){
     normalize(tab);
+    const hydrated=hydrateSarasNote(tab,client,product);
     const seed = global.CompetitiveIntelligenceSeed;
     const productName = String(product || '').trim().toLowerCase();
     const clientName = String(client || '').trim().toLowerCase();
@@ -83,7 +136,7 @@
       tab.seedId = seed.id; tab.seededAt = seed.fetchedAt;
       return true;
     }
-    return false;
+    return hydrated;
   }
   const statusLabel = status => ({
     complete:'Sitemap complete', indexed_snapshot:'Indexed snapshot',
@@ -114,6 +167,9 @@
       empty.innerHTML = '<div><b>No competitors yet</b>Add the first competitor to begin its sitemap and URL inventory.</div>';
       detail.append(empty); board.append(list,detail); host.append(board); return;
     }
+    const pilot = String(options.client || '').trim().toLowerCase() === 'ai data platform' &&
+      String(options.product || '').trim().toLowerCase() === 'ai layer' &&
+      (active.id === 'saras-analytics' || String(active.name || '').trim().toLowerCase() === 'saras analytics');
     const head = document.createElement('div'); head.className = 'ci-detail-head';
     const identity = document.createElement('div'); identity.className = 'ci-identity';
     const name = document.createElement('input'); name.className = 'ci-name'; name.value = active.name; name.readOnly = ro;
@@ -174,21 +230,34 @@
     const wrap = document.createElement('div'); wrap.className = 'ci-url-wrap';
     const table = document.createElement('table'); table.className = 'ci-url-table';
     const trafficDates = snapshotDates(active);
-    const thead = document.createElement('thead'); thead.innerHTML = '<tr><th>Priority</th><th>#</th><th>URL</th><th>Strategic section</th><th>Page type</th><th>Classification</th></tr>';
+    const thead = document.createElement('thead');
+    thead.innerHTML = pilot
+      ? '<tr><th>Priority</th><th>#</th><th>URL</th><th>Product</th><th>Node</th><th>Awareness</th><th>Matrix</th><th>Column</th></tr>'
+      : '<tr><th>Priority</th><th>#</th><th>URL</th><th>Strategic section</th><th>Page type</th><th>Classification</th></tr>';
+    table.classList.toggle('ci-url-table-pilot',pilot);
     const headRow = thead.querySelector('tr');
     trafficDates.forEach(date => { const th = document.createElement('th'); th.className = 'ci-traffic-date'; th.textContent = date; th.title = 'Current organic traffic fetched on ' + date; headRow.append(th); });
     const body = document.createElement('tbody'); table.append(thead,body); wrap.append(table); detail.append(wrap);
     const draw = () => {
       const query = search.value.trim().toLowerCase(); body.innerHTML = '';
       const visible = active.urls.filter(url => {
-        const meta = classificationOf(url);
-        const haystack = [url,meta?.section,meta?.pageType,meta?.hierarchy,meta?.axis].filter(Boolean).join(' ').toLowerCase();
+        const meta = pilot ? classificationFor(active,url,options.product) : classificationOf(url);
+        const haystack = [url,meta?.section,meta?.pageType,meta?.hierarchy,meta?.axis,
+          ...classificationFields.map(field=>meta?.[field])].filter(Boolean).join(' ').toLowerCase();
         return !query || haystack.includes(query);
       });
+      if (pilot) visible.sort((a,b) => {
+        const rank = url => {
+          const item = classificationFor(active,url,options.product);
+          const product = String(item.product || '');
+          return (product.startsWith('Saras iQ — AI Layer') ? '0' : product.startsWith('Different Product:') ? '1' : '2') +
+            '|' + [item.matrix,item.column,item.node].map(value => String(value || '')).join('|');
+        };
+        return rank(a).localeCompare(rank(b));
+      });
       visible.forEach((url,index) => {
-        const meta = classificationOf(url);
+        const meta = pilot ? classificationFor(active,url,options.product) : classificationOf(url);
         const row = document.createElement('tr'), priority = document.createElement('td'), num = document.createElement('td'), cell = document.createElement('td');
-        const section = document.createElement('td'), pageType = document.createElement('td'), classification = document.createElement('td');
         const star = document.createElement('button'); star.type = 'button'; star.className = 'ci-priority-star';
         const paintStar = () => {
           const starred = !!global.HighPriorityLinks?.has(tab,url);
@@ -206,11 +275,24 @@
         };
         paintStar(); priority.append(star);
         num.textContent = String(index + 1); const link = document.createElement('a'); link.href = url; link.target = '_blank'; link.rel = 'noopener noreferrer'; link.textContent = url;
-        const sectionCode = document.createElement('code'); sectionCode.textContent = meta?.section || 'Unclassified';
-        const pageTypeCode = document.createElement('code'); pageTypeCode.textContent = meta?.pageType || 'Unclassified';
-        const classificationCode = document.createElement('code'); classificationCode.textContent = [meta?.hierarchy,meta?.axis].filter(Boolean).join(' · ') || 'Unclassified';
-        cell.append(link); section.append(sectionCode); pageType.append(pageTypeCode); classification.append(classificationCode);
-        row.append(priority,num,cell,section,pageType,classification);
+        cell.append(link); row.append(priority,num,cell);
+        if (pilot){
+          classificationFields.forEach(field => {
+            const td = document.createElement('td'), input = document.createElement('input');
+            input.type = 'text'; input.className = 'ci-meta-input'; input.value = meta?.[field] || '';
+            input.placeholder = 'Unclassified'; input.readOnly = ro;
+            input.setAttribute('aria-label',field + ' for ' + url);
+            input.onchange = () => { updateClassification(active,url,options.product,field,input.value); changed(); draw(); };
+            td.append(input); row.append(td);
+          });
+        } else {
+          const section = document.createElement('td'), pageType = document.createElement('td'), classification = document.createElement('td');
+          const sectionCode = document.createElement('code'); sectionCode.textContent = meta?.section || 'Unclassified';
+          const pageTypeCode = document.createElement('code'); pageTypeCode.textContent = meta?.pageType || 'Unclassified';
+          const classificationCode = document.createElement('code'); classificationCode.textContent = [meta?.hierarchy,meta?.axis].filter(Boolean).join(' · ') || 'Unclassified';
+          section.append(sectionCode); pageType.append(pageTypeCode); classification.append(classificationCode);
+          row.append(section,pageType,classification);
+        }
         trafficDates.forEach(date => {
           const traffic = snapshotTraffic(active,date,url), trafficCell = document.createElement('td');
           trafficCell.className = 'ci-organic-traffic';
