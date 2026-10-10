@@ -41,6 +41,17 @@ repo.installMappings(aiRoot,types,{product:'AI Data Platform',awareness:'solutio
 const refreshedKeywordCell=aiValue.rows.flatMap(row=>Object.values(row.cells||{})).find(cell=>cell.repositoryQueries?.some(query=>query.topicGroup===keywordBackedTopic));
 assert.deepEqual(refreshedKeywordCell.kws,['process-keyword']);
 assert.deepEqual(refreshedKeywordCell.valueLensKeywords,{output:['output-keyword'],outcome:['outcome-keyword'],benefits:['benefit-keyword'],tools:['tool-keyword']});
+for(const awareness of ['problem-unaware','problem-aware']){
+  const awarenessRoot={views:{product:{columns:[],rows:[]},category:{columns:[],rows:[]},icp:{columns:[],rows:[]},value:{columns:[],rows:[]}}};
+  assert.equal(Matrix.ensure(awarenessRoot,'AI Data Platform','0jgsw8bx554d'),true);
+  const awarenessValue=awarenessRoot.views.value;
+  assert.equal(repo.installMappings(awarenessRoot,types,{product:'AI Data Platform',awareness,contentView:'value',mode:'aeo',activeView:awarenessValue,uid:()=>awareness+'-'+(++n)}),true);
+  const expected=repo.query({workspace:'ai-data-platform',awareness,section:'Value SEO'});
+  const linked=awarenessValue.rows.flatMap(row=>Object.values(row.cells||{})).flatMap(cell=>repo.resolve(cell.repositoryQueries||[]));
+  assert.equal(new Set(linked.map(record=>record.url)).size,expected.length,awareness+' Value URLs');
+  assert(linked.every(record=>record.section==='Value SEO'));
+  assert(awarenessValue.rows.filter(row=>row.pageGroup==='matrix').every(row=>['process','subprocess'].includes(row.processLevel)));
+}
 const aiProduct=aiRoot.views.product;
 repo.installMappings(aiRoot,types,{product:'AI Data Platform',awareness:'category-aware',contentView:'product',mode:'aeo',activeView:aiProduct,uid:()=>'ai-product-'+(++n)});
 assert.deepEqual(aiProduct.pageColumns.listicle.map(column=>column.name),['Capabilities','Features']);

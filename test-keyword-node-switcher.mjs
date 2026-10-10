@@ -21,7 +21,7 @@ assert.ok(html.includes("keywordNodeId:state.tabs[CONTENT_TAB]?.activeKeywordNod
 assert.ok(html.includes('supportingTerms:supportingKeywordTerms()'));
 const repository = fs.readFileSync(new URL('./shared-url-repository.js', import.meta.url), 'utf8');
 assert.ok(html.includes('keyword-columns.js?v=awareness-structure-v31'));
-assert.ok(html.includes('shared-url-repository.js?v=supporting-processes-v27'));
+assert.ok(html.includes('shared-url-repository.js?v=supporting-processes-v28'));
 assert.ok(repository.includes("keywordNodeId==='supporting-processes'?supporting:!supporting"));
 assert.ok(repository.includes("const scope=[workspace,keywordNodeId||'default',awareness,viewId,mode].join(':')"));
 assert.ok(html.includes('root.keywordNodeWorkspaces[nodeId] = createFreshKeywordNodeProjection(root);'));

@@ -424,6 +424,37 @@
     }));
     if(!preserveCells)view.rows=(view.rows||[]).filter(row=>!row.repositoryWorkspace||row.repositoryWorkspace!==workspace||Object.values(row.cells||{}).some(hasUserContent));
   }
+  const VALUE_PROCESS_RULES=[
+    [/root cause|5 whys/,'root cause'],[/comparative|comparison|benchmark|competitor analysis/,'comparative'],
+    [/anomaly|trend|forecast|monitoring/,'anomaly and trend'],[/revenue|profit|margin|cash flow|cogs|average order value|\baov\b/,'revenue and profitability'],
+    [/marketing performance|campaign|customer acquisition cost|\bcac\b/,'marketing performance'],[/product|\bsku\b|inventory|catalog|demand/,'product and sku'],
+    [/lifetime value|\bltv\b|\bclv\b/,'customer lifetime'],[/retention|churn|loyalty|reactivation/,'retention and churn'],
+    [/segment|customer analytics|customer behavior/,'segmentation'],[/attribution|\broas\b|touchpoint|customer journey/,'attribution'],
+    [/funnel|conversion rate|checkout|drop off/,'funnel'],[/cohort/,'cohort'],[/diagnostic|why did|diagnosis/,'diagnostic'],
+    [/descriptive|reporting|business intelligence|dashboard|scorecard|\bkpi\b|general value|business performance|data analysis/,'descriptive']
+  ];
+  function valueMatrixProcessRow(record,rows){
+    const hierarchy=normalizeName(record.hierarchy),evidence=normalizeName([record.hierarchy,record.topic,record.url].join(' '));
+    const exact=(rows||[]).find(row=>{const name=normalizeName(row.name||row.topicCell?.v);return name===hierarchy||name.replace(/ analysis$/,'')===hierarchy.replace(/ analysis$/,'');});
+    if(exact)return exact;
+    const wanted=VALUE_PROCESS_RULES.find(([pattern])=>pattern.test(evidence))?.[1]||'descriptive';
+    return (rows||[]).find(row=>normalizeName(row.name||row.topicCell?.v).includes(wanted))||(rows||[])[0];
+  }
+  function valueMatrixDepartmentColumn(record,columns){
+    const evidence=normalizeName([record.hierarchy,record.topic,record.url].join(' '));
+    const wanted=/finance|financial|profit|margin|cash|cogs|accounting/.test(evidence)?'finance':
+      /sales|pipeline|deal|order to cash/.test(evidence)?'sales':
+      /marketing|campaign|advertis|attribution|roas|acquisition|conversion/.test(evidence)?'marketing':'product';
+    return (columns||[]).find(column=>normalizeName(column.name)===wanted)||(columns||[])[0];
+  }
+  function valueMatrixRecordLens(record){
+    const text=normalizeName([record.topic,record.url,record.pageType,record.axis].join(' '));
+    if(/\btool\b|\btools\b|software|platform|system|\bapp\b|\bapps\b|solution/.test(text))return 'tools';
+    if(/benefit|advantage|\broi\b|saving|efficiency|efficient|faster/.test(text))return 'benefits';
+    if(/outcome|result|growth|increase|improve|improvement|revenue|profit|conversion/.test(text))return 'outcome';
+    if(/report|reporting|dashboard|scorecard|summary|template|forecast|alert/.test(text))return 'output';
+    return 'process';
+  }
   function installScopedMappings(root,types,options){
     const workspace=options.workspace,viewId=options.contentView;
     if(!['product','category','icp','value'].includes(viewId)||!options.activeView)return false;
@@ -446,13 +477,14 @@
     // Include overlay imports in the persisted migration key. Otherwise a
     // board that already installed the Saras/base repository incorrectly
     // treats a newly shipped represented-company import as already applied.
-    const revision=(data().classifiedAt||'classification')+':'+(global.AskLucaKeywordImport?.REVISION||'base')+':'+scope+':v22';
+    const revision=(data().classifiedAt||'classification')+':'+(global.AskLucaKeywordImport?.REVISION||'base')+':'+scope+':v23';
     root.sharedUrlRepositoryRevisions ||= {};
     const view=options.activeView,uid=options.uid||(()=>Math.random().toString(36).slice(2));
     const fixedAiDataValueMatrix=workspace==='ai-data-platform'&&viewId==='value'&&mode==='aeo';
     if(fixedAiDataValueMatrix){
+      const sourceSection=['problem-unaware','problem-aware'].includes(awareness)?'Value SEO':section;
       const before=JSON.stringify({rows:view.rows||[],columns:view.pageColumns?.matrix||[]});
-      clearScopedMappings(view,workspace,awareness,section,true);
+      clearScopedMappings(view,workspace,awareness,sourceSection,true);
       view.rows=(view.rows||[]).filter(row=>row.pageGroup!=='value-overview'&&(row.pageGroup!=='matrix'||['process','subprocess'].includes(row.processLevel)));
       if(view.pageColumns){delete view.pageColumns['value-overview'];delete view.pageOrders?.['value-overview'];}
       const taxonomyColumnIds=new Set((view.rows||[]).filter(row=>row.pageGroup==='matrix').flatMap(row=>Object.keys(row.cells||{})));
@@ -461,18 +493,25 @@
       const taxonomyRows=new Map((view.rows||[]).filter(row=>row.pageGroup==='matrix').map(row=>[normalizeName(row.name||row.topicCell?.v),row]));
       const taxonomyColumns=new Map((view.pageColumns?.matrix||[]).map(column=>[normalizeName(column.name),column]));
       let linked=0;
-      nodeScopedRecords().filter(record=>record.workspace===workspace&&record.awareness===awareness&&record.section===section)
+      nodeScopedRecords().filter(record=>record.workspace===workspace&&record.awareness===awareness&&record.section===sourceSection)
         .sort((a,b)=>Number(b.represented)-Number(a.represented)||a.groupOrder-b.groupOrder)
         .forEach(record=>{
-        const row=taxonomyRows.get(normalizeName(record.hierarchy));
-        const column=taxonomyColumns.get(normalizeName(record.axis));
+        const structureOnly=sourceSection==='Value SEO';
+        const row=structureOnly?valueMatrixProcessRow(record,[...taxonomyRows.values()]):taxonomyRows.get(normalizeName(record.hierarchy));
+        const column=structureOnly?valueMatrixDepartmentColumn(record,[...taxonomyColumns.values()]):taxonomyColumns.get(normalizeName(record.axis));
         if(!row||!column)return;
         row.cells ||= {};
         const current=row.cells[column.id]&&typeof row.cells[column.id]==='object'?row.cells[column.id]:{};
         const spec={workspace,awareness,section:record.section,pageType:record.pageType,hierarchy:record.hierarchy,axis:record.axis,topicGroup:record.topicGroup};
         const queries=Array.isArray(current.repositoryQueries)?current.repositoryQueries.slice():[];
+        const alreadyRepresented=resolve(queries,current.repositoryUrlOverrides).some(item=>item.represented);
         if(!queries.some(query=>query.topicGroup===record.topicGroup))queries.push(spec);
-        row.cells[column.id]={...current,v:repositoryTitle(record,current),url:repositorySlug(record,current),mode:'aeo',type:current.type||typeId(types,pageGroup(record.pageType)||'landing'),cfg:true,repositoryQueries:queries};
+        const useRepresentedSlug=record.represented&&!alreadyRepresented;
+        row.cells[column.id]={...current,
+          v:useRepresentedSlug?(record.topic||record.hierarchy||''):(current.v||repositoryTitle(record,current)),
+          url:useRepresentedSlug?record.url:(current.url||repositorySlug(record,current)),
+          ...(useRepresentedSlug?{valueLensUrlLens:valueMatrixRecordLens(record)}:{}),
+          mode:'aeo',type:current.type||typeId(types,pageGroup(record.pageType)||'landing'),cfg:true,repositoryQueries:queries};
         linked++;
       });
       applyRepositoryStatuses({views:{value:view}});

@@ -18,13 +18,17 @@ assert.ok(html.includes("appendKeywordCount(b, counts[viewId].total);"));
 assert.ok(html.includes("keywordFilledCounts()[state.keywordAwareness]"));
 assert.ok(html.includes("count.className = 'awareness-picker-count'"));
 assert.ok(html.includes("count.textContent = String(filledCounts[option.id] || 0) + ' filled cells';"));
-assert.ok(html.includes("root.awarenessViews?.['problem-unaware:' + viewId]"));
+assert.ok(html.includes("root.awarenessViews?.[stage.id + ':' + viewId]"));
 assert.ok(html.includes("record.awareness === 'category-aware'"));
 
 const start = html.indexOf('function keywordCountCellFilled(cell)');
 const end = html.indexOf('function appendKeywordCount(button, count)');
 const root = {
-  awarenessViews:{'problem-unaware:icp':{rows:[{pageGroup:'informational',cells:{manual:{v:'Manual ICP topic'}}}]}},
+  awarenessViews:{
+    'problem-unaware:icp':{rows:[{pageGroup:'informational',cells:{manual:{v:'Manual ICP topic'}}}]},
+    'problem-unaware:value':{pageColumns:{matrix:[{id:'marketing'}]},rows:[{pageGroup:'matrix',cells:{marketing:{repositoryQueries:[{}]}}}]},
+    'problem-aware:value':{pageColumns:{matrix:[{id:'marketing'}]},rows:[{pageGroup:'matrix',cells:{marketing:{valueLensKeywords:{output:['keyword']}}}}]}
+  },
   views:{
     icp:{rows:[{pageGroup:'informational',cells:{mapped:{v:'Mapped',repositoryQueries:[{}]}}},{pageGroup:'matrix',cells:{solution:{v:'Solution'}}}]},
     value:{rows:[{pageGroup:'informational',cells:{manual:{pageUrls:[{url:'https://example.com'}]}}}]},
@@ -47,7 +51,7 @@ const context = vm.createContext({
 });
 vm.runInContext(html.slice(start,end),context);
 const counts = context.keywordFilledCounts();
-assert.deepEqual(JSON.parse(JSON.stringify(counts['problem-unaware'])),{icp:2,value:0,total:2});
+assert.deepEqual(JSON.parse(JSON.stringify(counts['problem-unaware'])),{icp:2,value:1,total:3});
 assert.deepEqual(JSON.parse(JSON.stringify(counts['problem-aware'])),{icp:1,value:1,total:2});
 assert.deepEqual(JSON.parse(JSON.stringify(counts['solution-aware'])),{icp:1,value:0,total:1});
 assert.equal(counts.category.total,2);
