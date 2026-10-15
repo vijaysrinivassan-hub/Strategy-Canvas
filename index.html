@@ -1661,7 +1661,7 @@
   .comm-stump{position:absolute; left:50%; bottom:0; width:1px; height:118px; border:0; border-radius:0;
               background:#202320; box-shadow:none; transform:none}
   .comm-stump::before,.comm-stump::after{display:none}
-  .comm-axis-name{top:0; width:72px; padding:3px 2px 5px; border-bottom:1px solid #c9cdc9;
+  .comm-axis-name{top:auto; bottom:-33px; width:82px; padding:5px 2px 3px; border-top:1px solid #c9cdc9;
                   color:#202320; font-size:8px; font-weight:700}
   .comm-axis-remove{top:-7px; right:-6px; width:16px; height:16px; border-radius:0;
                     background:#fff; color:#777; box-shadow:none}
@@ -1684,16 +1684,20 @@
   .comm-document-note-head strong{font-size:12px}.comm-document-note-head button{margin-left:auto; padding:3px 6px; background:#fff; font-size:8px}
   .comm-document-note textarea{width:100%; height:260px; margin-top:10px; padding:0; resize:none; border:0; outline:0;
                                background:transparent; color:#444a45; font:9px/1.55 ui-monospace,SFMono-Regular,Consolas,monospace}
-  .comm-canvas-framework{position:absolute; left:690px; top:294px; width:210px}
+  .comm-canvas-framework{position:absolute; left:410px; top:294px; width:210px}
   .comm-canvas-framework .comm-framework{width:100%}
-  .comm-canvas-factors{position:absolute; left:500px; top:560px; display:flex; align-items:flex-start; justify-content:center;
+  .comm-canvas-factors{position:absolute; left:270px; top:560px; display:flex; align-items:flex-start; justify-content:center;
                        gap:34px; width:590px}
   .comm-canvas-factors .comm-factor{width:128px; min-height:38px; padding:10px 27px 8px 10px; background:#fff}
   .comm-canvas-factors .comm-add-small{position:absolute; left:0; top:62px}
-  .comm-canvas-messages{position:absolute; left:1080px; top:98px; width:220px}
+  .comm-canvas-messages{position:absolute; left:760px; top:98px; width:220px}
   .comm-canvas-messages .comm-message-title{margin-bottom:14px}.comm-canvas-messages .comm-message-grid{display:flex; flex-direction:column; gap:28px}
   .comm-canvas-messages .comm-message{min-height:70px; padding:10px; border-radius:3px; background:#fff}
   .comm-canvas-messages .comm-message textarea{height:34px}
+  .comm-canvas-offers{position:absolute;left:1080px;top:98px;width:220px}
+  .comm-offer-title{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}.comm-offer-title strong{font-size:13px}.comm-offer-title span{color:#7d837e;font-size:8px}
+  .comm-offer-grid{display:flex;flex-direction:column;gap:28px}.comm-offer{display:block;min-height:70px;padding:10px;border:1px solid #cfd3cf;border-radius:3px;background:#fff}
+  .comm-offer b{display:block;margin-bottom:6px;font-size:8px}.comm-offer textarea{width:100%;height:34px;resize:none;border:0;outline:0;background:transparent;color:#59605a;font-size:8px;line-height:1.4}
   .comm-canvas-perceptions{position:absolute; left:1410px; top:172px; width:340px; min-width:340px}
   .comm-canvas-perceptions .comm-perception{min-height:300px}
   .comm-canvas-perceptions .comm-wicket-stage{height:204px}
@@ -1711,7 +1715,8 @@
   .comm-wire.selected{stroke:#202320; stroke-width:3}
   .comm-canvas-framework .comm-framework{display:block; width:100%; min-height:72px; box-sizing:border-box; white-space:normal}
   .comm-canvas-framework .comm-framework strong{display:block; overflow-wrap:anywhere}
-  .comm-canvas-factors{flex-wrap:wrap; width:790px}
+  .comm-canvas-factors{flex-wrap:wrap; width:790px}.comm-canvas-factors .comm-factor{padding-right:10px}
+  .comm-factor-preview{display:block;overflow:hidden;margin-top:4px;color:#818781;font-size:8px;line-height:1.3;text-overflow:ellipsis;white-space:nowrap}
 
   /* ================= brand radar ================= */
   .radar{flex:1; min-height:0; overflow:auto; padding:30px;
@@ -2060,10 +2065,6 @@
   .positioning-document-index-nav button:hover{background:#e7ebe5;color:#1f2921}
   .positioning-document-index-nav button.active{background:#142019;color:#fff;box-shadow:inset 3px 0 #57c982}
   .positioning-document-nav-group{display:flex;flex-direction:column;gap:3px}
-  .positioning-document-submenu{display:flex;flex-direction:column;gap:2px;margin:1px 0 5px 11px;padding-left:9px;border-left:1px solid #cbd1ca}
-  .positioning-document-index-nav .positioning-document-submenu button{padding:7px 9px;font-size:10px;font-weight:600}
-  .positioning-document-index-nav .positioning-document-submenu button.active{background:#dfeee3;color:#1d5e32;box-shadow:inset 2px 0 #57c982}
-  .positioning-document-index-nav .positioning-document-submenu .add-frame{color:#2d7143;font-weight:750}
   .positioning-document-page{min-width:0;min-height:0;display:flex;flex-direction:column;overflow:hidden}
   .positioning-document-actions{display:flex;justify-content:flex-end;padding:12px 18px;border-bottom:1px solid #deded9;background:#fff}
   .positioning-document-narrative{flex:1;min-height:0;overflow:auto;padding:30px}
@@ -2089,7 +2090,11 @@
   .positioning-document-field textarea:read-only{background:#fafaf8; color:#4c4e49}
   .positioning-document-narrative.framing-workspace{display:flex;flex-direction:column;min-height:0;overflow:hidden;padding:20px}
   .framing-workspace .positioning-document-sheet{display:flex;flex:1;min-height:0;width:100%;max-width:none;margin:0;padding:0}
-  .framing-workspace .positioning-document-fields{display:flex;flex:1;min-height:0;width:100%}
+  .framing-workspace .positioning-document-fields{display:grid;grid-template-columns:180px minmax(0,1fr);gap:14px;flex:1;min-height:0;width:100%}
+  .framing-content-nav{display:flex;min-height:0;flex-direction:column;gap:3px;overflow:auto;padding:12px;border:1px solid #d5d7d1;background:#f4f6f2}
+  .framing-content-nav button{width:100%;padding:9px 10px;border:0;background:transparent;text-align:left;font-size:11px}
+  .framing-content-nav button.active{background:#142019;color:#fff;box-shadow:inset 3px 0 #57c982}
+  .framing-content-nav button.add-frame{margin-top:6px;color:#2d7143;font-weight:750}
   .positioning-document-field.framing-frame-field{display:flex;flex:1;min-height:0;flex-direction:column}
   .positioning-document-field.framing-frame-field textarea{flex:1;min-height:0;height:100%;resize:none}
   .positioning-document-field-head{display:flex;align-items:center;gap:9px;margin-bottom:9px}
@@ -2107,7 +2112,7 @@
   @media(max-width:780px){
     .positioning-document-workspace{grid-template-columns:150px minmax(0,1fr)}
     .positioning-document-index{padding:12px 7px}.positioning-document-narrative{padding:14px}.positioning-document-sheet{padding:14px}
-    .positioning-document-field{padding:12px}
+    .positioning-document-field{padding:12px}.framing-workspace .positioning-document-fields{grid-template-columns:130px minmax(0,1fr)}
   }
 
   .toast{position:fixed; left:50%; bottom:80px; transform:translateX(-50%); z-index:200;
@@ -2858,8 +2863,8 @@
             <p>Turn positioning into a deliberate message system, then define the perception signals those messages must establish.</p>
           </div>
           <div class="comm-head-actions">
-            <button id="btnCommAddFactor" type="button">+ Node</button>
-            <button id="btnCommAddPerception" type="button">+ Perception goal</button>
+            <button id="btnCommAddFactor" type="button" hidden>+ Node</button>
+            <button id="btnCommAddPerception" type="button" hidden>+ Perception goal</button>
           </div>
         </div>
         <section class="comm-stage" id="commStage">
@@ -3211,7 +3216,7 @@ const SUPABASE_URL = 'https://cskamgfvebryahkljlll.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_MdkD-TxMCIwlu69seSHA3Q_A39GADsK';
 const CLIENT_ID    = '1059013355751-6g50dsgm7df37htl2fdqrtlkh5hmrc0c.apps.googleusercontent.com';
 const ALLOWED      = ['vijaysrinivassan@gmail.com'];
-const BUILD        = 'v8.88';
+const BUILD        = 'v8.89';
 
 const STRATEGY_ONE_TAB = 'Strategy 1 — Brand Strategy';
 const PRODUCT_EVOLUTION_TAB = 'Strategy 1 — Product Evolution';
@@ -12462,33 +12467,12 @@ function renderPositioningDocumentNavigation(){
   const active = activePositioningDocumentSection();
   host.innerHTML = '';
   POSITIONING_DOCUMENT_SECTIONS.forEach(section => {
-    const group = document.createElement('div');
-    group.className = 'positioning-document-nav-group';
     const button = document.createElement('button');
     button.type = 'button'; button.textContent = section.label;
     button.className = section.id === active.id ? 'active' : '';
     if (section.id === active.id) button.setAttribute('aria-current','page');
     button.onclick = () => openPositioningDocumentField(section.id);
-    group.append(button);
-    if (section.id === 'framing' && active.id === 'framing'){
-      const tab = state.tabs[POSITIONING_DOCUMENT_TAB];
-      const frames = positioningDocumentState().framing_frames;
-      const activeFrameId = tab.framingActiveFrameId;
-      const submenu = document.createElement('div'); submenu.className = 'positioning-document-submenu';
-      frames.forEach(frame => {
-        const frameButton = document.createElement('button'); frameButton.type = 'button';
-        frameButton.textContent = frame.label; frameButton.className = frame.id === activeFrameId ? 'active' : '';
-        if (frame.id === activeFrameId) frameButton.setAttribute('aria-current','page');
-        frameButton.onclick = () => openPositioningFrame(frame.id);
-        submenu.append(frameButton);
-      });
-      if (!readOnly()){
-        const add = document.createElement('button'); add.type = 'button'; add.className = 'add-frame'; add.textContent = '+ Add frame';
-        add.onclick = addPositioningFrame; submenu.append(add);
-      }
-      group.append(submenu);
-    }
-    host.append(group);
+    host.append(button);
   });
 }
 
@@ -12630,6 +12614,17 @@ function renderPositioningDocument(){
     }else if(field[0] === 'framing'){
       const tab=state.tabs[POSITIONING_DOCUMENT_TAB];
       const frame=fields.framing_frames.find(candidate=>candidate.id===tab.framingActiveFrameId) || fields.framing_frames[0];
+      const frameNav=document.createElement('nav'); frameNav.className='framing-content-nav'; frameNav.setAttribute('aria-label','Framing frames');
+      fields.framing_frames.forEach(candidate=>{
+        const button=document.createElement('button'); button.type='button'; button.textContent=candidate.label;
+        button.className=candidate.id===frame.id?'active':'';
+        if(candidate.id===frame.id)button.setAttribute('aria-current','page');
+        button.onclick=()=>openPositioningFrame(candidate.id); frameNav.append(button);
+      });
+      if(!readOnly()){
+        const add=document.createElement('button'); add.type='button'; add.className='add-frame'; add.textContent='+ Add frame';
+        add.onclick=addPositioningFrame; frameNav.append(add);
+      }
       wrapper.classList.add('framing-frame-field');
       label.textContent=frame.label;
       const textarea = document.createElement('textarea');
@@ -12639,7 +12634,7 @@ function renderPositioningDocument(){
         if (frame===fields.framing_frames[0]) fields.framing=frame.text;
         markDirty();
       };
-      wrapper.append(label,textarea);
+      wrapper.append(label,textarea); host.append(frameNav);
     }else{
       const textarea = document.createElement('textarea');
       textarea.value = fields[field[0]];
@@ -12663,6 +12658,7 @@ function renderPositioningDocument(){
 const COMMUNICATION_AWARENESS = [
   'Competitor-aware', 'Category-aware', 'Solution-aware', 'Problem-aware'
 ];
+const COMMUNICATION_FACTORS = ['Writing Style','Framing','Buying Trigger','Offer'];
 function newCommunicationFactor(label){
   return { id: uid(), label: label || 'New messaging factor' };
 }
@@ -12671,30 +12667,38 @@ function newCommunicationAxis(name){
 }
 function newCommunicationPerception(name){
   return { id: uid(), name: name || 'Brand Perception',
-    axes: [newCommunicationAxis('Trust'), newCommunicationAxis('Accuracy'), newCommunicationAxis('Reliability')] };
+    axes: [] };
 }
 function communicationState(){
   const tab = state.tabs[COMMUNICATION_STRATEGY_TAB] ||
     (state.tabs[COMMUNICATION_STRATEGY_TAB] = { nodes: [], edges: [] });
   if (!tab.communication || typeof tab.communication !== 'object'){
     tab.communication = {
-      factors: [newCommunicationFactor('Writing styles'), newCommunicationFactor('Framing')],
+      factors: COMMUNICATION_FACTORS.map(newCommunicationFactor),
       messages: COMMUNICATION_AWARENESS.map(name => ({ id: uid(), name, text: '' })),
+      offers: COMMUNICATION_AWARENESS.map(name => ({ id: uid(), messageName:name, name:name+' Offer', text:'' })),
       perceptions: [newCommunicationPerception('Brand Perception')]
     };
   }
   const model = tab.communication;
   if (!Array.isArray(model.deletedConnectors)) model.deletedConnectors = [];
   if (!Array.isArray(model.factors)) model.factors = [];
-  model.factors = model.factors.map(factor => ({
-    id: factor && factor.id || uid(),
-    label: factor && typeof factor.label === 'string' ? factor.label : ''
-  }));
+  const existingFactors=new Map(model.factors.map(factor=>[String(factor?.label||'').toLowerCase().replace(/s$/,''),factor]));
+  model.factors=COMMUNICATION_FACTORS.map(label=>{
+    const factor=existingFactors.get(label.toLowerCase().replace(/s$/,''))||{};
+    return {id:factor.id||uid(),label};
+  });
   if (!Array.isArray(model.messages)) model.messages = [];
   const existingMessages = new Map(model.messages.map(message => [message.name, message]));
   model.messages = COMMUNICATION_AWARENESS.map(name => {
     const message = existingMessages.get(name) || {};
     return { id: message.id || uid(), name, text: typeof message.text === 'string' ? message.text : '' };
+  });
+  if (!Array.isArray(model.offers)) model.offers=[];
+  const existingOffers=new Map(model.offers.map(offer=>[offer.messageName,offer]));
+  model.offers=COMMUNICATION_AWARENESS.map(messageName=>{
+    const offer=existingOffers.get(messageName)||{};
+    return {id:offer.id||uid(),messageName,name:messageName+' Offer',text:typeof offer.text==='string'?offer.text:''};
   });
   if (!Array.isArray(model.perceptions) || !model.perceptions.length)
     model.perceptions = [newCommunicationPerception('Brand Perception')];
@@ -12707,6 +12711,20 @@ function communicationState(){
       : [newCommunicationAxis('Trust')]
   }));
   return model;
+}
+
+function syncCommunicationPerceptionFrames(model,fields){
+  const frames=fields.framing_frames||[];
+  let changed=false;
+  model.perceptions.forEach(perception=>{
+    const existing=new Map((perception.axes||[]).map(axis=>[axis.frameId||'',axis]));
+    const axes=frames.map(frame=>{
+      const axis=existing.get(frame.id)||{};
+      return {id:axis.id||uid(),frameId:frame.id,name:frame.label};
+    });
+    if(JSON.stringify(perception.axes)!==JSON.stringify(axes)){perception.axes=axes;changed=true;}
+  });
+  return changed;
 }
 function communicationPoint(element, side, stageRect){
   const rect = element.getBoundingClientRect();
@@ -12727,40 +12745,6 @@ function communicationPath(from, to, fromSide = 'right', toSide = 'left'){
   const c2 = {x:to.x + endVector.x * bend,y:to.y + endVector.y * bend};
   return 'M ' + from.x + ' ' + from.y + ' C ' + c1.x + ' ' + c1.y + ', ' +
     c2.x + ' ' + c2.y + ', ' + to.x + ' ' + to.y;
-}
-function drawCommunicationWires(){
-  if (state.tab !== POSITIONING_DOCUMENT_TAB || activePositioningDocumentSection().id !== 'communication_strategy' || $('communicationPane').hidden) return;
-  const stage = $('commStage'), svg = $('commWires');
-  if (!stage || !svg) return;
-  const rect = stage.getBoundingClientRect();
-  const width = Math.max(stage.clientWidth, stage.scrollWidth), height = Math.max(stage.clientHeight, stage.scrollHeight);
-  svg.setAttribute('viewBox','0 0 ' + width + ' ' + height);
-  svg.setAttribute('width',width); svg.setAttribute('height',height);
-  svg.innerHTML = '<defs><marker id="commArrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="#78927e"/></marker></defs>';
-  const add = (fromElement, toElement, kind, fromSide, toSide) => {
-    if (!fromElement || !toElement) return;
-    const path = document.createElementNS('http://www.w3.org/2000/svg','path');
-    path.setAttribute('class','comm-wire' + (kind ? ' ' + kind : ''));
-    path.setAttribute('d',communicationPath(
-      communicationPoint(fromElement,fromSide || 'right',rect),
-      communicationPoint(toElement,toSide || 'left',rect),
-      fromSide || 'right',toSide || 'left'));
-    svg.append(path);
-  };
-  const positioning = stage.querySelector('[data-comm-node="positioning"]');
-  const framework = stage.querySelector('[data-comm-node="framework"]');
-  const messages = stage.querySelector('[data-comm-node="messages"]');
-  const positioningFragments = stage.querySelectorAll('[data-comm-positioning-fragment]');
-  const messageNodes = stage.querySelectorAll('[data-comm-message]');
-  positioningFragments.forEach(fragment => add(fragment,positioning,'','right','left'));
-  add(positioning,framework,'','right','left');
-  if (messageNodes.length) messageNodes.forEach(message => add(framework,message,'','right','left'));
-  else add(framework,messages,'','right','left');
-  stage.querySelectorAll('[data-comm-factor]').forEach(factor => add(factor,framework,'factor','top','bottom'));
-  stage.querySelectorAll('[data-comm-perception]').forEach(perception => {
-    if (messageNodes.length) messageNodes.forEach(message => add(message,perception,'','right','left'));
-    else add(messages,perception,'','right','left');
-  });
 }
 let selectedCommunicationConnector = '';
 function drawCommunicationWires(){
@@ -12786,23 +12770,26 @@ function drawCommunicationWires(){
     };
     svg.append(path);
   };
-  const positioning = stage.querySelector('[data-comm-node="positioning"]');
   const framework = stage.querySelector('[data-comm-node="framework"]');
   const messages = stage.querySelector('[data-comm-node="messages"]');
   const fragments = stage.querySelectorAll('[data-comm-positioning-fragment]');
   const messageNodes = stage.querySelectorAll('[data-comm-message]');
-  fragments.forEach(fragment => add(fragment,positioning,'right','left',
-    'positioning:' + fragment.dataset.commPositioningFragment + '>document'));
-  add(positioning,framework,'right','left','document>framework');
+  const offerNodes = stage.querySelectorAll('[data-comm-offer]');
+  const messagesById = new Map(Array.from(messageNodes).map(message=>[message.dataset.commMessage,message]));
+  fragments.forEach(fragment => add(fragment,framework,'right','left',
+    'positioning:' + fragment.dataset.commPositioningFragment + '>framework'));
   if (messageNodes.length){
     messageNodes.forEach(message => add(framework,message,'right','left','framework>message:' + message.dataset.commMessage));
   } else add(framework,messages,'right','left','framework>messages');
   stage.querySelectorAll('[data-comm-factor]').forEach(factor => add(factor,framework,'top','bottom',
     'factor:' + factor.dataset.commFactor + '>framework'));
+  offerNodes.forEach(offer=>{
+    const message=messagesById.get(offer.dataset.commMessage);
+    add(message,offer,'right','left','message:'+offer.dataset.commMessage+'>offer:'+offer.dataset.commOffer);
+  });
   stage.querySelectorAll('[data-comm-perception]').forEach(perception => {
-    if (messageNodes.length) messageNodes.forEach(message => add(message,perception,'right','left',
-      'message:' + message.dataset.commMessage + '>perception:' + perception.dataset.commPerception));
-    else add(messages,perception,'right','left','messages>perception:' + perception.dataset.commPerception);
+    offerNodes.forEach(offer=>add(offer,perception,'right','left',
+      'offer:'+offer.dataset.commOffer+'>perception:'+perception.dataset.commPerception));
   });
 }
 document.addEventListener('keydown',event => {
@@ -12881,7 +12868,7 @@ function renderCommunicationStrategy(){
     const kicker = document.createElement('span'); kicker.className = 'comm-card-kicker'; kicker.textContent = 'Intended customer feeling';
     const title = document.createElement('input'); title.value = perception.name; title.placeholder = 'Brand perception';
     title.readOnly = ro; title.oninput = () => { perception.name = title.value; markDirty(); };
-    const hint = document.createElement('small'); hint.textContent = 'Each vertical line is one perception signal.';
+    const hint = document.createElement('small'); hint.textContent = 'Each vertical line is one Framing frame.';
     titleWrap.append(kicker,title,hint); head.append(titleWrap);
     if (!ro && model.perceptions.length > 1){
       const remove = document.createElement('button'); remove.type = 'button'; remove.textContent = 'Remove';
@@ -12987,21 +12974,12 @@ function makeCommunicationNodeDraggable(element,key,model){
 function renderCommunicationStrategyCanvas(){
   const model = communicationState(), fields = positioningDocumentState(), ro = readOnly(), flow = $('commFlow');
   flow.innerHTML = '';
+  if (syncCommunicationPerceptionFrames(model,fields) && !ro) markDirty();
   $('commWires').onclick = event => {
     if (event.target.closest('.comm-wire')) return;
     if (!selectedCommunicationConnector) return;
     selectedCommunicationConnector = ''; drawCommunicationWires();
   };
-
-  let seededFactors = false;
-  if (!model.canvasLayoutSeeded){
-    ['Buying Trigger','Framing','Writing Styles','Offer'].forEach(label => {
-      if (model.factors.some(item => String(item.label || '').trim().toLowerCase() === label.toLowerCase())) return;
-      model.factors.push(newCommunicationFactor(label)); seededFactors = true;
-    });
-    model.canvasLayoutSeeded = true; seededFactors = true;
-  }
-  if (seededFactors && !ro) markDirty();
 
   const sourceFields = [
     ['competitive_positioning','Competitive Positioning'],
@@ -13019,18 +12997,6 @@ function renderCommunicationStrategyCanvas(){
     makeCommunicationNodeDraggable(card,'positioning:' + key,model); sources.append(card);
   });
 
-  const documentNote = document.createElement('section');
-  documentNote.className = 'comm-card comm-document-note'; documentNote.dataset.commNode = 'positioning';
-  const documentHead = document.createElement('div'); documentHead.className = 'comm-document-note-head';
-  const documentTitle = document.createElement('strong'); documentTitle.textContent = 'Positioning Document';
-  const openDocument = document.createElement('button'); openDocument.type = 'button'; openDocument.textContent = 'Open';
-  openDocument.onclick = () => openPositioningDocumentField('core'); documentHead.append(documentTitle,openDocument);
-  const documentText = document.createElement('textarea'); documentText.value = fields.positioning_statement || '';
-  documentText.placeholder = 'Write the positioning statement here or open the Positioning Document.';
-  documentText.readOnly = ro; documentText.oninput = () => { fields.positioning_statement = documentText.value; markDirty(); };
-  documentNote.append(documentHead,documentText);
-  makeCommunicationNodeDraggable(documentNote,'positioning-document',model);
-
   const frameworkWrap = document.createElement('div'); frameworkWrap.className = 'comm-canvas-framework';
   const framework = document.createElement('button'); framework.type = 'button';
   framework.className = 'comm-card comm-framework'; framework.dataset.commNode = 'framework';
@@ -13040,16 +13006,22 @@ function renderCommunicationStrategyCanvas(){
 
   const factorList = document.createElement('div'); factorList.className = 'comm-factor-list comm-canvas-factors';
   model.factors.forEach(factor => {
-    const card = document.createElement('label'); card.className = 'comm-factor'; card.dataset.commFactor = factor.id;
-    const input = document.createElement('input'); input.value = factor.label; input.placeholder = 'Messaging factor';
-    input.readOnly = ro; input.oninput = () => { factor.label = input.value; markDirty(); }; card.append(input);
-    if (!ro){
-      const remove = document.createElement('button'); remove.type = 'button'; remove.className = 'comm-mini-remove';
-      remove.textContent = '\u00d7'; remove.title = 'Remove factor'; remove.onclick = event => {
-        event.preventDefault(); model.factors = model.factors.filter(item => item.id !== factor.id);
-        markDirty(); renderCommunicationStrategyCanvas();
-      }; card.append(remove);
-    }
+    const card = document.createElement('button'); card.type='button'; card.className = 'comm-factor'; card.dataset.commFactor = factor.id;
+    const title=document.createElement('strong'); title.textContent=factor.label;
+    const preview=document.createElement('small'); preview.className='comm-factor-preview';
+    if(factor.label==='Framing')preview.textContent=fields.framing_frames.length+' framing frame'+(fields.framing_frames.length===1?'':'s');
+    else if(factor.label==='Offer')preview.textContent=fields.offer||'Open Offer';
+    else if(factor.label==='Buying Trigger'){
+      const positioning=positioningState(),icp=positioning.icps.find(item=>item.id===positioning.selectedIcp);
+      preview.textContent=icp?.buyingTrigger||'Select an ICP buying trigger';
+    }else preview.textContent='Writing style input';
+    card.append(title,preview);
+    card.onclick=()=>{
+      if(factor.label==='Framing')openPositioningDocumentField('framing');
+      else if(factor.label==='Offer')openPositioningDocumentField('offer');
+      else if(factor.label==='Buying Trigger')switchTab(POSITIONING_TAB);
+      else openPositioningDocumentField('messaging_framework');
+    };
     makeCommunicationNodeDraggable(card,'factor:' + factor.id,model); factorList.append(card);
   });
   const messageHub = document.createElement('section'); messageHub.className = 'comm-canvas-messages';
@@ -13068,6 +13040,20 @@ function renderCommunicationStrategyCanvas(){
   });
   messageHub.append(messageTitle,messageGrid);
 
+  const offerHub=document.createElement('section'); offerHub.className='comm-canvas-offers'; offerHub.dataset.commNode='offers';
+  const offerTitle=document.createElement('div'); offerTitle.className='comm-offer-title'; offerTitle.innerHTML='<strong>Offer</strong><span>One per audience state</span>';
+  const offerGrid=document.createElement('div'); offerGrid.className='comm-offer-grid';
+  ['Problem-aware','Solution-aware','Category-aware','Competitor-aware'].forEach(name=>{
+    const message=model.messages.find(item=>item.name===name),offer=model.offers.find(item=>item.messageName===name);
+    if(!message||!offer)return;
+    const card=document.createElement('label'); card.className='comm-offer'; card.dataset.commOffer=offer.id; card.dataset.commMessage=message.id;
+    const title=document.createElement('b'); title.textContent=offer.name;
+    const textarea=document.createElement('textarea'); textarea.value=offer.text; textarea.placeholder='Write the '+offer.name.toLowerCase(); textarea.readOnly=ro;
+    textarea.oninput=()=>{offer.text=textarea.value;markDirty();}; card.append(title,textarea);
+    makeCommunicationNodeDraggable(card,'offer:'+offer.id,model); offerGrid.append(card);
+  });
+  offerHub.append(offerTitle,offerGrid);
+
   const perceptions = document.createElement('div'); perceptions.className = 'comm-perceptions comm-canvas-perceptions';
   const perceptionWidth = Math.max(340,...model.perceptions.map(perception =>
     56 + Math.max(1,perception.axes.length) * 92));
@@ -13082,7 +13068,7 @@ function renderCommunicationStrategyCanvas(){
     const kicker = document.createElement('span'); kicker.className = 'comm-card-kicker'; kicker.textContent = 'Intended customer feeling';
     const title = document.createElement('input'); title.value = perception.name; title.placeholder = 'Brand perception';
     title.readOnly = ro; title.oninput = () => { perception.name = title.value; markDirty(); };
-    const hint = document.createElement('small'); hint.textContent = 'Each vertical line is one perception signal.';
+    const hint = document.createElement('small'); hint.textContent = 'Each vertical line is one Framing frame.';
     titleWrap.append(kicker,title,hint); head.append(titleWrap);
     const axisStage = document.createElement('div'); axisStage.className = 'comm-wicket-stage';
     const axisLine = document.createElement('div'); axisLine.className = 'comm-wicket';
@@ -13090,34 +13076,19 @@ function renderCommunicationStrategyCanvas(){
       const axisHost = document.createElement('div'); axisHost.className = 'comm-axis';
       const stick = document.createElement('div'); stick.className = 'comm-stump';
       const axisName = document.createElement('input'); axisName.className = 'comm-axis-name'; axisName.value = axis.name;
-      axisName.placeholder = 'Signal'; axisName.readOnly = ro; axisName.oninput = () => { axis.name = axisName.value; markDirty(); };
+      axisName.placeholder = 'Frame'; axisName.readOnly = true; axisName.title='Pulled from Positioning Document > Framing';
       axisHost.append(stick,axisName);
-      if (!ro && perception.axes.length > 1){
-        const remove = document.createElement('button'); remove.type = 'button'; remove.className = 'comm-axis-remove';
-        remove.textContent = '\u00d7'; remove.title = 'Remove signal'; remove.onclick = () => {
-          perception.axes = perception.axes.filter(item => item.id !== axis.id); markDirty(); renderCommunicationStrategyCanvas();
-        }; axisHost.append(remove);
-      }
       axisLine.append(axisHost);
     });
     axisStage.append(axisLine);
     const actions = document.createElement('div'); actions.className = 'comm-perception-actions';
-    if (!ro){
-      const add = document.createElement('button'); add.type = 'button'; add.textContent = '+ Add signal';
-      add.onclick = () => { perception.axes.push(newCommunicationAxis()); markDirty(); renderCommunicationStrategyCanvas(); };
-      actions.append(add);
-    }
+    const sourceHint=document.createElement('small'); sourceHint.textContent='Frames are managed in Positioning Document > Framing.'; actions.append(sourceHint);
     panel.append(head,axisStage,actions);
     makeCommunicationNodeDraggable(panel,'perception:' + perception.id,model); perceptions.append(panel);
   });
 
-  flow.append(sources,documentNote,frameworkWrap,factorList,messageHub,perceptions);
-  $('btnCommAddFactor').hidden = ro;
-  $('btnCommAddFactor').onclick = () => {
-    const label = String(prompt('Node name','New node') || '').trim();
-    if (!label) return;
-    model.factors.push(newCommunicationFactor(label)); markDirty(); renderCommunicationStrategyCanvas();
-  };
+  flow.append(sources,frameworkWrap,factorList,messageHub,offerHub,perceptions);
+  $('btnCommAddFactor').hidden = true;
   $('btnCommAddPerception').hidden = true;
   requestAnimationFrame(drawCommunicationWires);
 }
