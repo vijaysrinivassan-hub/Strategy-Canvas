@@ -996,6 +996,7 @@
   .gtm-onboarding-product input[type=radio]{margin:0;accent-color:#2f8b50}.gtm-onboarding-product input[type=text]{width:100%;padding:9px 10px;border:1px solid #cfd3ce;background:#fff;font:inherit;font-size:12px}
   .gtm-onboarding-product button{padding:2px 7px;border:0;background:transparent;color:#92968f;font-size:15px}.gtm-onboarding-product button:hover:not(:disabled){background:#fff0f0;color:var(--danger)}
   .gtm-onboarding-add{align-self:flex-start;margin-top:2px;padding:7px 10px;background:#fff;color:#386b49;font-size:10px}.gtm-onboarding-hint{display:block;margin-top:8px;color:#80857f;font-size:9px}
+  .channel-frame-pane{height:100%;overflow:auto;background:#f5f7f4;padding:28px}.channel-frame-shell{width:min(1080px,100%);min-height:520px;margin:0 auto;padding:24px;border:1px solid #d8dcd7;background:#fff}.channel-frame-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:22px;padding-bottom:16px;border-bottom:1px solid #e1e4df}.channel-frame-head h3{margin:0 0 5px;font-size:20px}.channel-frame-head p{margin:0;color:#727772;font-size:11px}.channel-frame-body{min-width:0}
   .gtm-onboarding-routes{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-bottom:16px}.gtm-onboarding-route,.gtm-onboarding-choice{display:flex;align-items:flex-start;gap:9px;padding:11px;border:1px solid #d5d9d4;background:#fff;color:#343934;text-align:left}
   .gtm-onboarding-route.on,.gtm-onboarding-choice.on{border-color:#6fbe88;background:#eff9f2}.gtm-onboarding-route input,.gtm-onboarding-choice input{margin:2px 0 0;accent-color:#2f8b50}
   .gtm-onboarding-route b,.gtm-onboarding-choice b{display:block;font-size:11px}.gtm-onboarding-route small,.gtm-onboarding-choice small{display:block;margin-top:3px;color:#7e837d;font-size:9px;line-height:1.4}
@@ -2743,12 +2744,12 @@
       <button class="repo-newrow" id="btnAddColumn">+ Add row</button>
     </div>
 
-    <!-- One GTM onboarding flow: products, industries, market system and channels. -->
+    <!-- The onboarding form contains products and the market system. Channels live under Research > GTM Strategy. -->
     <div class="chan gtm-canvas-pane" id="chanPane" hidden>
       <div class="chan-head">
         <div>
-          <h3>GTM Strategy</h3>
-          <p>Set the products, market system and active channels in one connected onboarding flow.</p>
+          <h3>Onboarding Form</h3>
+          <p>Set the products and market system here. Configure channels under Research &rsaquo; GTM Strategy.</p>
         </div>
       </div>
       <section class="gtm-onboarding" id="gtmOnboarding" aria-label="GTM onboarding">
@@ -2793,6 +2794,15 @@
         </div>
       </div>
       </div>
+    </div>
+
+    <div class="channel-frame-pane" id="channelFramePane" hidden>
+      <section class="channel-frame-shell" aria-labelledby="channelFrameTitle">
+        <div class="channel-frame-head">
+          <div><h3 id="channelFrameTitle">GTM Strategy</h3><p>Choose the inbound and outbound motions, their channels, and the AEO workstreams used for this product.</p></div>
+        </div>
+        <div class="channel-frame-body" id="channelFrameBody"></div>
+      </section>
     </div>
 
     <!-- GTM Strategy hosts the unified canvas above. -->
@@ -3191,7 +3201,7 @@ const SUPABASE_URL = 'https://cskamgfvebryahkljlll.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_MdkD-TxMCIwlu69seSHA3Q_A39GADsK';
 const CLIENT_ID    = '1059013355751-6g50dsgm7df37htl2fdqrtlkh5hmrc0c.apps.googleusercontent.com';
 const ALLOWED      = ['vijaysrinivassan@gmail.com'];
-const BUILD        = 'v8.86';
+const BUILD        = 'v8.87';
 
 const STRATEGY_ONE_TAB = 'Strategy 1 — Brand Strategy';
 const PRODUCT_EVOLUTION_TAB = 'Strategy 1 — Product Evolution';
@@ -3267,6 +3277,7 @@ const NAV = [
   { kind: 'label',  text: 'Write' },
   { kind: 'tab',    name: ARTICLES_TAB },
   { kind: 'label',  text: 'Research' },
+  { kind: 'tab',    name: 'Channel Strategy', label: 'GTM Strategy' },
   { kind: 'tab',    name: COMPETITIVE_INTELLIGENCE_TAB },
   { kind: 'tab',    name: 'Keyword Repo' },
   { kind: 'tab',    name: 'Grounded Evidences' },
@@ -3412,8 +3423,9 @@ function restoreLocation(location){
   if (clientView() && (state.tab === KEYWORDS_TAB || state.tab === FRAME_TAB)) state.tab = TABS[0];
   if (state.screen === 'board'){
     if (state.tab === POSITIONING_DOCUMENT_TAB) openNav('strategy1');
+    else if (state.tab === CHANNELS_TAB) closeNav();
     else if ([STRATEGY_ONE_TAB, PRODUCT_ARCHITECTURE_TAB, MATURITY_ACCESS_TAB, POSITIONING_TAB,
-         COMMUNICATION_STRATEGY_TAB, BRAND_RADAR_TAB, CHANNELS_TAB].indexOf(state.tab) !== -1) openNav('strategy1');
+         COMMUNICATION_STRATEGY_TAB, BRAND_RADAR_TAB].indexOf(state.tab) !== -1) openNav('strategy1');
     else if (state.tab === CONTENT_TAB) openNav('content');
     else if (state.tab === FRAME_TAB) openNav('frames');
   }
@@ -3972,10 +3984,10 @@ function renderTabs(){
       return;
     }
 
-    /* Strategy is intentionally flat. Channel Strategy lives inside Brand
-       Strategy rather than taking another sidebar row. */
+    /* Strategy stays flat. Channel planning lives separately under Research
+       so Onboarding Form only contains its source-setting steps. */
     if (item.kind === 'strategy1-tabs'){
-      box.append(tabButton(STRATEGY_ONE_TAB, 'GTM Strategy'));
+      box.append(tabButton(STRATEGY_ONE_TAB, 'Onboarding Form'));
       box.append(tabButton(PRODUCT_ARCHITECTURE_TAB, 'Product Architecture'));
       box.append(tabButton(MATURITY_ACCESS_TAB, 'Maturity Axis'));
       box.append(tabButton(POSITIONING_TAB, 'Positioning Canvas'));
@@ -4084,7 +4096,7 @@ function renderTabs(){
       return;
     }
 
-    if (item.kind === 'tab'){ box.append(tabButton(item.name)); return; }
+    if (item.kind === 'tab'){ box.append(tabButton(item.name,item.label)); return; }
 
     if (item.kind === 'screen'){
       const b = document.createElement('button');
@@ -4154,7 +4166,8 @@ function renderTabs(){
   if (onBoard && !inFrame()){
     /* The Keywords section uses the selected matrix as its page title. */
     $('tabTitle').textContent = state.tab === CONTENT_TAB ? activeContentLabel()
-      : state.tab === STRATEGY_ONE_TAB || state.tab === CHANNELS_TAB ? 'GTM Strategy'
+      : state.tab === STRATEGY_ONE_TAB ? 'Onboarding Form'
+      : state.tab === CHANNELS_TAB ? 'GTM Strategy'
       : state.tab === PRODUCT_ARCHITECTURE_TAB ? 'Product Architecture'
       : state.tab === MATURITY_ACCESS_TAB ? 'Maturity Axis'
       : state.tab === POSITIONING_TAB ? 'Positioning Canvas'
@@ -4581,8 +4594,9 @@ function switchTab(name){
   state.frameIndex = -1;
   state.screen = 'board';
   if (name === POSITIONING_DOCUMENT_TAB) openNav('strategy1');
+  else if (name === CHANNELS_TAB) closeNav();
   else if ([STRATEGY_ONE_TAB, PRODUCT_ARCHITECTURE_TAB, MATURITY_ACCESS_TAB,
-       POSITIONING_TAB, COMMUNICATION_STRATEGY_TAB, BRAND_RADAR_TAB, CHANNELS_TAB].indexOf(name) !== -1) openNav('strategy1');
+       POSITIONING_TAB, COMMUNICATION_STRATEGY_TAB, BRAND_RADAR_TAB].indexOf(name) !== -1) openNav('strategy1');
   else if (isBrandTab(name)) closeNav();
   else if (name === CONTENT_TAB) openNav('content');
   clearSel();
@@ -6111,7 +6125,7 @@ function applyTabMode(){
   $('mcpPane').hidden = !onSettings;
   if (onSettings){
     $('viewport').hidden = true; $('docsPane').hidden = true;
-    $('chanPane').hidden = true; $('kwPane').hidden = true; $('mxPane').hidden = true;
+    $('chanPane').hidden = true; $('channelFramePane').hidden = true; $('kwPane').hidden = true; $('mxPane').hidden = true;
     $('strategyGuidePane').hidden = true; $('evoPane').hidden = true; $('architecturePane').hidden = true;
     $('positioningPane').hidden = true;
     $('positioningDocumentPane').hidden = true;
@@ -6144,9 +6158,10 @@ function applyTabMode(){
 
   const isDocs = state.tab === DOCS_TAB;
   const isChan = state.tab === CHANNELS_TAB;
+  const isChannelFrame = isChan;
   const isKw   = state.tab === KEYWORDS_TAB;
   const isMx   = state.tab === CONTENT_TAB;
-  const isGuide = state.tab === STRATEGY_ONE_TAB || isChan;
+  const isGuide = state.tab === STRATEGY_ONE_TAB;
   const isEvo = false;
   const isArchitecture = isArchitectureTab(state.tab);
   const isPositioning = state.tab === POSITIONING_TAB;
@@ -6170,6 +6185,7 @@ function applyTabMode(){
   $('viewport').hidden = !isCanvas;
   $('docsPane').hidden = !isDocs;
   $('chanPane').hidden = !isGuide;
+  $('channelFramePane').hidden = !isChannelFrame;
   $('kwPane').hidden   = !isKw;
   $('mxPane').hidden   = !isMx;
   $('strategyGuidePane').hidden = !isGuide;
@@ -6188,7 +6204,8 @@ function applyTabMode(){
   if (isDocs && state.user) refreshDocs();
   if (isKw && state.user) refreshKeywords();
   if (isMx) refreshMatrix();   /* grids need no database, so no user check */
-  if (isGuide){ renderStrategyGuide(); renderChannels(); }
+  if (isGuide) renderStrategyGuide();
+  if (isChannelFrame) renderChannelFrame();
   if (isPositioning){
     renderPositioning();
     renderProblemEvidence();
@@ -13721,11 +13738,11 @@ function renderCrumb(){
   if (state.screen !== 'board') c = 'Account';
   else if (inFrame()) c = 'Frames';
   else if ([STRATEGY_ONE_TAB, PRODUCT_ARCHITECTURE_TAB, MATURITY_ACCESS_TAB,
-            POSITIONING_TAB, POSITIONING_DOCUMENT_TAB, COMMUNICATION_STRATEGY_TAB, BRAND_RADAR_TAB, CHANNELS_TAB].indexOf(state.tab) !== -1) c = 'Strategy';
+            POSITIONING_TAB, POSITIONING_DOCUMENT_TAB, COMMUNICATION_STRATEGY_TAB, BRAND_RADAR_TAB].indexOf(state.tab) !== -1) c = 'Strategy';
   else if (isBrandTab(state.tab)) c = 'Canvas';
   else if (state.tab === CONTENT_TAB) c = 'Keywords';
   else if (state.tab === ARTICLES_TAB) c = 'Write';
-  else if (state.tab === KEYWORDS_TAB || state.tab === DOCS_TAB || state.tab === COMPETITIVE_INTELLIGENCE_TAB) c = 'Research';
+  else if (state.tab === CHANNELS_TAB || state.tab === KEYWORDS_TAB || state.tab === DOCS_TAB || state.tab === COMPETITIVE_INTELLIGENCE_TAB) c = 'Research';
   el.textContent = c;
 }
 
@@ -15271,7 +15288,9 @@ function strategyOneState(){
   if (!t.guide.onboarding.locked || typeof t.guide.onboarding.locked !== 'object') t.guide.onboarding.locked = {};
   const onboarding=t.guide.onboarding, locked=onboarding.locked;
   if (onboarding.activeStep === 'company') onboarding.activeStep='product';
+  if (onboarding.activeStep === 'channels') onboarding.activeStep='market';
   delete locked.company;
+  delete locked.channels;
   if (['setup','industries','industry','goal','sales_motion','icp'].includes(onboarding.activeStep)) onboarding.activeStep='market';
   delete locked.setup; delete locked.industries; delete locked.industry; delete locked.goal; delete locked.sales_motion; delete locked.icp;
   return t.guide;
@@ -15279,8 +15298,7 @@ function strategyOneState(){
 
 const GTM_ONBOARDING_STEPS = [
   { id:'product', label:'Products', question:'Which products are we taking to market?', detail:'Add one, two or three products, then capture the source text or notes for each. Choose the active product whose strategy workspace you want to edit.', type:'products' },
-  { id:'market', label:'Market system', question:'How does the selling system meet the buying component?', detail:'Choose the exact market intersection on the left, then complete the GTM questions on its right.', type:'market' },
-  { id:'channels', label:'Channels', question:'Are we using inbound, outbound or both?', detail:'Choose the motion, its channels, and the AEO workstreams when AEO is part of the plan.', type:'channels' }
+  { id:'market', label:'Market system', question:'How does the selling system meet the buying component?', detail:'Choose the exact market intersection on the left, then complete the GTM questions on its right.', type:'market' }
 ];
 
 function gtmOnboardingValue(step){
@@ -15296,13 +15314,6 @@ function gtmOnboardingValue(step){
     const motion=state.clientSalesMotion==='plg'?'PLG':state.clientSalesMotion==='slg'?'SLG':'Motion not selected';
     const axes=selling && buying ? labels[selling]+' → '+labels[buying] : 'Axes not selected';
     return type+' · '+(config.mode==='multi'?'Multi Industry':'Single Industry')+' · '+motion+' · '+axes;
-  }
-  if (step.type==='channels'){
-    const channels=channelState(), motions=[];
-    if (channels.channelMotions.inbound) motions.push('Inbound');
-    if (channels.channelMotions.outbound) motions.push('Outbound');
-    const selected=channels.items.filter(item=>item.on && channels.channelMotions[item.motion==='outbound'?'outbound':'inbound']).length;
-    return motions.length ? motions.join(' + ')+' · '+selected+' channel'+(selected===1?'':'s') : 'Not selected';
   }
   const value=String(step.get() || '');
   if (step.type==='select') return (step.options.find(option=>option[0]===value)||[])[1] || 'Not selected';
@@ -15399,14 +15410,14 @@ function renderGtmMarketStep(host, locked, ro){
   requestAnimationFrame(()=>renderIndustryFit(ro||locked));
 }
 
-function renderGtmChannelsStep(host, locked, ro){
+function renderGtmChannelsStep(host, locked, ro, rerender=renderGtmOnboarding){
   const channels=channelState(), disabled=ro || locked;
   const routes=document.createElement('div'); routes.className='gtm-onboarding-routes';
   [['inbound','Inbound','Earn and capture demand through discoverable, trusted channels.'],['outbound','Outbound','Create demand through direct, targeted outreach.']].forEach(([motion,label,detail])=>{
     const card=document.createElement('label'); card.className='gtm-onboarding-route'+(channels.channelMotions[motion]?' on':'');
     const input=document.createElement('input'); input.type='checkbox'; input.checked=!!channels.channelMotions[motion]; input.disabled=disabled;
     const copy=document.createElement('span'); const strong=document.createElement('b'); strong.textContent=label; const small=document.createElement('small'); small.textContent=detail; copy.append(strong,small);
-    input.onchange=()=>{ channels.channelMotions[motion]=input.checked; markDirty(); renderGtmOnboarding(); };
+    input.onchange=()=>{ channels.channelMotions[motion]=input.checked; markDirty(); rerender(); };
     card.append(input,copy); routes.append(card);
   });
   host.append(routes);
@@ -15422,7 +15433,7 @@ function renderGtmChannelsStep(host, locked, ro){
       const copy=document.createElement('span'); const strong=document.createElement('b'); strong.textContent=item.name;
       const small=document.createElement('small'); small.textContent=motion==='inbound'?'Use this channel to earn or capture demand.':'Use this channel for direct outreach.';
       copy.append(strong,small);
-      input.onchange=()=>{ item.on=input.checked; markDirty(); renderGtmOnboarding(); };
+      input.onchange=()=>{ item.on=input.checked; markDirty(); rerender(); };
       card.append(input,copy); choices.append(card);
     });
     section.append(heading,choices); host.append(section);
@@ -15440,12 +15451,19 @@ function renderGtmChannelsStep(host, locked, ro){
       const copy=document.createElement('span'); const strong=document.createElement('b'); strong.textContent=activity; copy.append(strong);
       input.onchange=()=>{
         channels.aeoActivities=input.checked ? [...new Set([...channels.aeoActivities,activity])] : channels.aeoActivities.filter(item=>item!==activity);
-        markDirty(); renderGtmOnboarding();
+        markDirty(); rerender();
       };
       card.append(input,copy); choices.append(card);
     });
     section.append(heading,choices); host.append(section);
   }
+}
+
+function renderChannelFrame(){
+  const host=$('channelFrameBody');
+  if (!host) return;
+  host.replaceChildren();
+  renderGtmChannelsStep(host,false,readOnly(),renderChannelFrame);
 }
 
 function validateGtmOnboardingStep(step, control){
@@ -15469,14 +15487,6 @@ function validateGtmOnboardingStep(step, control){
       toast('Choose both the selling component and buying component.',true); return false;
     }
     architecture.industries=names; architecture.activeIndustry=names.includes(architecture.activeIndustry)?architecture.activeIndustry:names[0];
-    return true;
-  }
-  if (step.type==='channels'){
-    const channels=channelState(), motions=['inbound','outbound'].filter(motion=>channels.channelMotions[motion]);
-    if (!motions.length){ toast('Choose inbound, outbound or both.',true); return false; }
-    const selected=channels.items.filter(item=>item.on && motions.includes(item.motion==='outbound'?'outbound':'inbound'));
-    if (!selected.length){ toast('Choose at least one channel.',true); return false; }
-    if (selected.some(item=>String(item.name||'').trim().toLowerCase()==='aeo') && !channels.aeoActivities.length){ toast('Choose at least one AEO workstream.',true); return false; }
     return true;
   }
   const value=String(control?.value || '').trim();
@@ -15520,7 +15530,6 @@ function renderGtmOnboarding(){
   let control=null;
   if (active.type==='products') renderGtmProductStep(panel,locked,ro);
   else if (active.type==='market') renderGtmMarketStep(panel,locked,ro);
-  else if (active.type==='channels') renderGtmChannelsStep(panel,locked,ro);
   else {
     control=document.createElement(active.type==='select'?'select':'input');
     control.className='gtm-onboarding-control';
@@ -15534,7 +15543,7 @@ function renderGtmOnboarding(){
   }
   const actions=document.createElement('div'); actions.className='gtm-onboarding-actions';
   const source=document.createElement('span'); source.className='gtm-onboarding-source';
-  const sourceLabel=active.type==='market'?'Shared with Client settings, Maturity Axis, Product Evolution and Positioning':active.type==='channels'?'Shared with the GTM channel canvas':active.type==='products'?'Shared with product workspaces and Client settings':'Prefilled from Client settings';
+  const sourceLabel=active.type==='market'?'Shared with Client settings, Maturity Axis, Product Evolution and Positioning':active.type==='products'?'Shared with product workspaces and Client settings':'Prefilled from Client settings';
   source.textContent=locked?'Locked source · '+sourceLabel:sourceLabel;
   const action=document.createElement('button'); action.type='button'; action.className='primary';
   action.hidden=ro;
