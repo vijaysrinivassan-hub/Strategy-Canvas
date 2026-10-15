@@ -6,7 +6,7 @@ const html=fs.readFileSync(new URL('./index.html',import.meta.url),'utf8').repla
 assert(html.includes("fit.id='gtmIndustryFit'"));
 assert(!html.includes('id="icpIndustryFit"'));
 assert(html.includes("id:'market', label:'Market system'"));
-assert(html.includes('Choose the exact market intersection on the left'));
+assert(html.includes('Choose the selling and buying components in the puzzle on the left'));
 for(const market of ['IT / Infrastructure market','B2B SaaS market','Consumer technology market','Consumer software market','Personal enablement app market','Consumer professional services market','Personal Care / Wellness market','Household Materials market']){
   assert(html.includes(`market:'${market}'`),`missing market example: ${market}`);
 }
@@ -26,9 +26,9 @@ assert(/\.industry-market-grid\{[^}]*grid-template-columns:126px repeat\(4,minma
 assert(/\.industry-market-cell\{[^}]*min-height:112px/.test(html));
 assert(!html.includes('<section class="gtm-market-system"'));
 assert(html.includes("renderGtmMarketStep(panel,locked,ro)"));
-assert(html.includes("top.append(fit,questions); wrap.append(top,matrix)"));
-assert(html.includes("const onboardingMatrixSlot=host.closest('.gtm-onboarding-market')?.querySelector('.gtm-onboarding-market-matrix')"));
-assert(html.includes('if(onboardingMatrixSlot)onboardingMatrixSlot.append(matrixWrap)'));
+assert(html.includes('top.append(fit,questions); wrap.append(top)'));
+assert(html.includes("if(host.closest('.gtm-onboarding-market'))matrixWrap.remove()"));
+assert(!html.includes("matrix.className='gtm-onboarding-market-matrix'"));
 assert(/\.gtm-onboarding-market-top\{[^}]*grid-template-columns:minmax\(0,1fr\) 290px/.test(html));
 assert(/\.gtm-onboarding-market \.industry-fit-preview\{[^}]*margin:0/.test(html));
 assert(html.includes('.gtm-onboarding-market .industry-fit{display:grid;grid-template-columns:minmax(0,1fr)'));
@@ -43,4 +43,4 @@ assert(html.includes('white-space:normal; overflow-wrap:anywhere'));
 const scripts=[...html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/g)]
   .map(match=>match[1]).filter(source=>source.trim());
 scripts.forEach(source=>new vm.Script(source));
-console.log('PASS: GTM Strategy aligns the puzzle left, places the GTM questions right and keeps the matrix below.');
+console.log('PASS: GTM Strategy aligns the puzzle left, places the GTM questions right and removes the canvas below.');
