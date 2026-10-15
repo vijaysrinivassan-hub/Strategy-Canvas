@@ -2742,12 +2742,12 @@
       <button class="repo-newrow" id="btnAddColumn">+ Add row</button>
     </div>
 
-    <!-- One GTM onboarding flow: products, industries and channels. -->
+    <!-- One GTM onboarding flow: products, industries, market system and channels. -->
     <div class="chan gtm-canvas-pane" id="chanPane" hidden>
       <div class="chan-head">
         <div>
           <h3>GTM Strategy</h3>
-          <p>Set the products, industries and active channels in one connected onboarding flow.</p>
+          <p>Set the products, industries, market system and active channels in one connected onboarding flow.</p>
         </div>
       </div>
       <section class="gtm-onboarding" id="gtmOnboarding" aria-label="GTM onboarding">
@@ -3190,7 +3190,7 @@ const SUPABASE_URL = 'https://cskamgfvebryahkljlll.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_MdkD-TxMCIwlu69seSHA3Q_A39GADsK';
 const CLIENT_ID    = '1059013355751-6g50dsgm7df37htl2fdqrtlkh5hmrc0c.apps.googleusercontent.com';
 const ALLOWED      = ['vijaysrinivassan@gmail.com'];
-const BUILD        = 'v8.82';
+const BUILD        = 'v8.83';
 
 const STRATEGY_ONE_TAB = 'Strategy 1 — Brand Strategy';
 const PRODUCT_EVOLUTION_TAB = 'Strategy 1 — Product Evolution';
@@ -15270,14 +15270,14 @@ function strategyOneState(){
   if (onboarding.activeStep === 'company') onboarding.activeStep='product';
   delete locked.company;
   if (['setup','industry','goal','sales_motion','icp'].includes(onboarding.activeStep)) onboarding.activeStep='industries';
-  if (onboarding.activeStep === 'market') onboarding.activeStep='channels';
-  delete locked.setup; delete locked.industry; delete locked.goal; delete locked.sales_motion; delete locked.icp; delete locked.market;
+  delete locked.setup; delete locked.industry; delete locked.goal; delete locked.sales_motion; delete locked.icp;
   return t.guide;
 }
 
 const GTM_ONBOARDING_STEPS = [
   { id:'product', label:'Products', question:'Which products are we taking to market?', detail:'Add one, two or three products, then capture the source text or notes for each. Choose the active product whose strategy workspace you want to edit.', type:'products' },
   { id:'industries', label:'Industries', question:'Is this Single Industry or Multi Industry?', detail:'Choose the industry model, then enter one industry name or all applicable industry names.', type:'industries' },
+  { id:'market', label:'Market system', question:'How does the selling system meet the buying component?', detail:'Choose the selling component and buying component together, or select their exact intersection in the matrix.', type:'market' },
   { id:'channels', label:'Channels', question:'Are we using inbound, outbound or both?', detail:'Choose the motion, its channels, and the AEO workstreams when AEO is part of the plan.', type:'channels' }
 ];
 
@@ -15289,6 +15289,12 @@ function gtmOnboardingValue(step){
   if (step.type==='industries'){
     const config=maturityIndustryConfiguration();
     return (config.mode==='multi'?'Multi Industry':'Single Industry')+' · '+config.industries.join(', ');
+  }
+  if (step.type==='market'){
+    const selling=evolutionState().axis || brandRadarState().sourceAxis || '';
+    const buying=activeBuyingIndustryAxis();
+    const labels={technology:'Technology',process:'Process',people:'People',input:'Input'};
+    return selling && buying ? labels[selling]+' → '+labels[buying] : 'Not selected';
   }
   if (step.type==='channels'){
     const channels=channelState(), motions=[];
@@ -15382,6 +15388,13 @@ function renderGtmIndustryStep(host, locked, ro){
   host.append(list);
 }
 
+function renderGtmMarketStep(host, locked, ro){
+  const wrap=document.createElement('div'); wrap.className='gtm-onboarding-market';
+  const fit=document.createElement('div'); fit.className='industry-fit'; fit.id='gtmIndustryFit';
+  wrap.append(fit); host.append(wrap);
+  requestAnimationFrame(()=>renderIndustryFit(ro || locked));
+}
+
 function renderGtmChannelsStep(host, locked, ro){
   const channels=channelState(), disabled=ro || locked;
   const routes=document.createElement('div'); routes.className='gtm-onboarding-routes';
@@ -15448,6 +15461,12 @@ function validateGtmOnboardingStep(step, control){
     architecture.industries=names; architecture.activeIndustry=names.includes(architecture.activeIndustry)?architecture.activeIndustry:names[0];
     return true;
   }
+  if (step.type==='market'){
+    if (!(evolutionState().axis || brandRadarState().sourceAxis) || !activeBuyingIndustryAxis()){
+      toast('Choose both the selling component and buying component.',true); return false;
+    }
+    return true;
+  }
   if (step.type==='channels'){
     const channels=channelState(), motions=['inbound','outbound'].filter(motion=>channels.channelMotions[motion]);
     if (!motions.length){ toast('Choose inbound, outbound or both.',true); return false; }
@@ -15497,6 +15516,7 @@ function renderGtmOnboarding(){
   let control=null;
   if (active.type==='products') renderGtmProductStep(panel,locked,ro);
   else if (active.type==='industries') renderGtmIndustryStep(panel,locked,ro);
+  else if (active.type==='market') renderGtmMarketStep(panel,locked,ro);
   else if (active.type==='channels') renderGtmChannelsStep(panel,locked,ro);
   else {
     control=document.createElement(active.type==='select'?'select':'input');
@@ -15511,7 +15531,7 @@ function renderGtmOnboarding(){
   }
   const actions=document.createElement('div'); actions.className='gtm-onboarding-actions';
   const source=document.createElement('span'); source.className='gtm-onboarding-source';
-  const sourceLabel=active.type==='channels'?'Shared with the GTM channel canvas':active.type==='products'?'Shared with product workspaces and Client settings':active.type==='industries'?'Shared with Maturity Axis and Positioning Canvas':'Prefilled from Client settings';
+  const sourceLabel=active.type==='market'?'Shared with Product Evolution and Positioning':active.type==='channels'?'Shared with the GTM channel canvas':active.type==='products'?'Shared with product workspaces and Client settings':active.type==='industries'?'Shared with Maturity Axis and Positioning Canvas':'Prefilled from Client settings';
   source.textContent=locked?'Locked source · '+sourceLabel:sourceLabel;
   const action=document.createElement('button'); action.type='button'; action.className='primary';
   action.hidden=ro;

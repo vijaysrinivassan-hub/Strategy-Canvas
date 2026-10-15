@@ -27,6 +27,8 @@ assert.ok(html.includes("if (!ro && architecture.industryMode==='multi')"));
 assert.ok(html.includes('id="positioningIndustryStrip"'));
 assert.ok(html.includes('function renderPositioningIndustryStrip(ro)'));
 assert.ok(html.includes("pencil.textContent='\\u270e'"));
+assert.ok(html.includes('host.append(edit,tabs)'));
+assert.match(html, /\.positioning-industry-tabs\{[^}]*justify-content:flex-end/);
 assert.ok(html.includes("config.mode==='multi'&&!ro"));
 assert.ok(html.includes("architecture.industries=['E-commerce']"));
 assert.ok(html.includes("architecture.aiDataIndustryCleanupRevision=1"));

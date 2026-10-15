@@ -6,10 +6,10 @@ const html=fs.readFileSync(new URL('./index.html',import.meta.url),'utf8');
 assert(html.includes('id="gtmOnboardingSteps"'));
 assert(html.includes('id="gtmOnboardingPanel"'));
 assert(html.includes('id="gtmWorkspace" hidden'));
-assert(html.includes('Set the products, industries and active channels in one connected onboarding flow.'));
+assert(html.includes('Set the products, industries, market system and active channels in one connected onboarding flow.'));
 assert(!html.includes('See the company, target product, sales motion, active channels and buyer journey in one connected view.'));
 assert(html.includes("t.guide.onboarding = { activeStep: 'product', locked: {} }"));
-for(const id of ['product','industries','channels']){
+for(const id of ['product','industries','market','channels']){
   assert(html.includes(`id:'${id}'`),`missing ${id} onboarding step`);
 }
 assert(!html.includes("id:'company', label:'Company'"));
@@ -20,21 +20,21 @@ assert(html.includes("product.description=description.value"));
 assert(!html.includes("id:'icp', label:'Primary ICP'"));
 assert(html.includes("type:'products'"));
 assert(html.includes("type:'industries'"));
+assert(html.includes("type:'market'"));
 assert(html.includes("type:'channels'"));
 assert(html.includes("if (t.products.length >= 3){ toast('This GTM flow supports up to 3 products.'"));
 assert(html.includes("$('btnAddGtmProduct').hidden = readOnly() || t.products.length >= 3"));
 assert(!html.includes('function renderGtmSetupStep(host, locked, ro)'));
-assert(!html.includes('function renderGtmMarketStep(host, locked, ro)'));
+assert(html.includes('function renderGtmMarketStep(host, locked, ro)'));
 assert(html.includes('function renderGtmIndustryStep(host, locked, ro)'));
 assert(html.includes("if (['setup','industry','goal','sales_motion','icp'].includes(onboarding.activeStep)) onboarding.activeStep='industries'"));
-assert(html.includes("if (onboarding.activeStep === 'market') onboarding.activeStep='channels'"));
 assert(html.includes("active.type==='industries'?'Shared with Maturity Axis and Positioning Canvas'"));
 assert(!html.includes('<section class="gtm-market-system" aria-labelledby="gtmMarketSystemTitle">'));
 for(const activity of ['AI visibility and citation audit','Prompt and answer monitoring','Entity and topical authority','Answer-ready content','Citation and mention building','Schema and technical readiness']){
   assert(html.includes(`'${activity}'`),`missing AEO activity: ${activity}`);
 }
 assert(html.includes("action.textContent=locked?'Edit answer':'Lock & continue'"));
-assert(html.includes("const sourceLabel=active.type==='channels'"));
+assert(html.includes("const sourceLabel=active.type==='market'"));
 assert(html.includes("$('gtmWorkspace').hidden=!complete && !ro"));
 assert(html.includes('if (!validateGtmOnboardingStep(active,control)) return;'));
 assert(html.includes("if (state.screen === 'board' && (state.tab === STRATEGY_ONE_TAB || state.tab === CHANNELS_TAB))"));
@@ -48,11 +48,12 @@ assert(gtmPrompt.includes('do not create a separate Company onboarding step'));
 assert(gtmPrompt.includes('supplied source text, description, notes'));
 assert(gtmPrompt.includes('Single Industry or Multi Industry'));
 assert(gtmPrompt.includes('Do not create a separate Primary ICP onboarding step'));
-assert(gtmPrompt.includes('Do not add a Market system step'));
+assert(gtmPrompt.includes('Treat the selling component/buying component choice and the 4x4 market matrix as one step'));
+assert(gtmPrompt.includes('compact B2B/B2C switch'));
 assert(gtmPrompt.includes('Choose Inbound, Outbound or both'));
 assert(gtmPrompt.includes('If AEO is selected'));
 
 const scripts=[...html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/gi)]
   .map(match=>match[1]).filter(code=>code.trim());
 scripts.forEach(code=>new vm.Script(code));
-console.log('PASS: GTM onboarding contains only Products, Industries and Channels, without Company, GTM Setup or Market system steps.');
+console.log('PASS: GTM onboarding keeps Products, Industries, Market system and Channels while removing the old Company and GTM Setup questions.');
