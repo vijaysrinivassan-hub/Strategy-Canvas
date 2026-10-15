@@ -37,11 +37,13 @@ assert(html.includes("makeCommunicationNodeDraggable(panel,'perception:' + perce
 assert(html.includes('drawCommunicationWires();'));
 assert(html.includes("const COMMUNICATION_FACTORS = ['Writing Style','Framing','Buying Trigger','Offer']"));
 assert(html.includes("else if(factor.label==='Offer')openValuePositioningField('offer')"));
-assert(html.includes('function syncCommunicationPerceptionFrames(model,fields)'));
+assert(html.includes("if(factor.label==='Framing')openValuePositioningField('framing')"));
+assert(html.includes('function syncCommunicationPerceptionFrames(model)'));
+assert(html.includes('const frames=valuePositioningFrames()'));
 assert(html.includes("frameId:frame.id,name:frame.label"));
 assert(html.includes("axisName.readOnly = true"));
-assert(html.includes("axisName.title='Pulled from Positioning Document > Framing'"));
-assert(html.includes("sourceHint.textContent='Frames are managed in Positioning Document > Framing.'"));
+assert(html.includes("axisName.title='Pulled from Positioning Canvas > Value Positioning > Framing'"));
+assert(html.includes("sourceHint.textContent='Frames are managed under each value in Positioning Canvas > Value Positioning.'"));
 assert(html.includes(".comm-canvas-node::before,.comm-canvas-node::after{display:none}"));
 assert(html.includes("stroke-dasharray:none; pointer-events:stroke; cursor:pointer"));
 assert(html.includes(".comm-wire.selected{stroke:#202320; stroke-width:3}"));

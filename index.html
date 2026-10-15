@@ -2023,6 +2023,20 @@
                        outline:none; background:transparent; color:#292a27;
                        font:inherit; font-size:11.5px; line-height:1.4}
   .value-card textarea:focus{border-color:#57c982}
+  .value-framing{margin-top:12px;padding:13px 14px;border:1px solid #d0d1cc;border-radius:6px;background:#f7f9f6}
+  .value-framing-head{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+  .value-framing-head strong{color:#5e615b;font-size:8.5px;font-weight:850;letter-spacing:.09em;text-transform:uppercase}
+  .value-framing-head small{color:#858a83;font-size:9px}
+  .value-framing-head button{margin-left:auto;padding:5px 8px;border:1px solid #cbd8ce;background:#fff;color:#3f7550;font-size:9px}
+  .value-frame-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+  .value-frame{padding:10px;border:1px solid #d6dad5;border-radius:5px;background:#fff}
+  .value-frame-head{display:flex;align-items:center;gap:8px;margin-bottom:7px}
+  .value-frame-head input{min-width:0;flex:1;padding:5px 2px;border:0;border-bottom:1px solid #deded9;background:transparent;color:#343833;font:inherit;font-size:10px;font-weight:750;outline:none}
+  .value-frame-head input:focus{border-color:#57c982}
+  .value-frame-head button{padding:2px 5px;border:0;background:transparent;color:#8d918b;font-size:12px}
+  .value-frame textarea{display:block;width:100%;min-height:72px;resize:vertical;padding:7px 8px;border:1px solid #e0e2de;border-radius:3px;outline:none;background:#fdfdfc;color:#292a27;font:inherit;font-size:10.5px;line-height:1.45}
+  .value-frame textarea:focus{border-color:#57c982;box-shadow:0 0 0 2px rgba(87,201,130,.1)}
+  .value-frame input:read-only,.value-frame textarea:read-only{background:#fafaf8;color:#4c4e49}
   .value-add-row{width:min(920px,100%); margin:12px auto 0; padding:8px 10px;
                  border-color:#cbd8ce; background:#fff; color:#3f7550; font-size:10px}
   .value-positioning-narratives{width:min(920px,100%);margin:18px auto 0;padding:16px;
@@ -2052,6 +2066,7 @@
     .cat-status{position:absolute; right:12px; top:10px}.cat-competitor{grid-template-columns:1fr}
     .competitive-card{grid-template-columns:64px 1fr}.competitive-status{position:absolute; right:12px; top:10px}
     .competitive-controls{grid-column:1/-1}.value-row-grid{grid-template-columns:1fr 1fr}
+    .value-frame-list{grid-template-columns:1fr}
     .value-positioning-narratives-grid{grid-template-columns:1fr}
     .industry-fit-preview{grid-template-columns:minmax(0,1fr) 42px minmax(0,1fr); gap:10px}
     .industry-model-choice{grid-template-columns:minmax(0,1fr) 42px minmax(0,1fr); gap:10px}
@@ -3238,7 +3253,7 @@ const SUPABASE_URL = 'https://cskamgfvebryahkljlll.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_MdkD-TxMCIwlu69seSHA3Q_A39GADsK';
 const CLIENT_ID    = '1059013355751-6g50dsgm7df37htl2fdqrtlkh5hmrc0c.apps.googleusercontent.com';
 const ALLOWED      = ['vijaysrinivassan@gmail.com'];
-const BUILD        = 'v8.91';
+const BUILD        = 'v8.92';
 
 const STRATEGY_ONE_TAB = 'Strategy 1 — Brand Strategy';
 const PRODUCT_EVOLUTION_TAB = 'Strategy 1 — Product Evolution';
@@ -11825,6 +11840,15 @@ const VALUE_POSITIONING_FIELDS = [
   ['monetary', 'Monetary benefit', 'What are the monetary benefits?'],
   ['strategic', 'Strategic benefit', 'What strategic benefit do they get in their interconnected systems?']
 ];
+const VALUE_POSITIONING_FRAME_LIMIT = 3;
+function newValuePositioningFrame(seed,index){
+  const frame = seed && typeof seed === 'object' ? seed : {};
+  return {
+    id:String(frame.id || uid()),
+    label:String(frame.label || 'Frame ' + ((Number(index) || 0) + 1)),
+    text:String(frame.text || '')
+  };
+}
 function positioningState(){
   const t = state.tabs[POSITIONING_TAB] ||
             (state.tabs[POSITIONING_TAB] = { nodes: [], edges: [] });
@@ -11873,6 +11897,21 @@ function positioningState(){
   });
   if (!p.valueRows.length) p.valueRows.push(newValuePositioningRow());
   p.valueRows = p.valueRows.map(row => newValuePositioningRow(row));
+  if (p.valueFramingRevision !== 1){
+    const legacyFields=state.tabs[POSITIONING_DOCUMENT_TAB]?.fields;
+    const legacyFrames=Array.isArray(legacyFields?.framing_frames) ? legacyFields.framing_frames :
+      (String(legacyFields?.framing || '').trim() ? [{label:'Frame 1',text:legacyFields.framing}] : []);
+    const meaningful=legacyFrames.filter((frame,index)=>String(frame?.text||'').trim() ||
+      String(frame?.label||'').trim() !== 'Frame '+(index+1));
+    if (meaningful.length && p.valueRows[0]){
+      p.valueRows[0].frames=meaningful.map((frame,index)=>newValuePositioningFrame(frame,index));
+      while(p.valueRows[0].frames.length<2){
+        p.valueRows[0].frames.push(newValuePositioningFrame(null,p.valueRows[0].frames.length));
+      }
+    }
+    p.valueFramingRevision=1;
+    if (!readOnly()) setTimeout(markDirty,0);
+  }
   if (!p.icps.some(x => x.id === p.selectedIcp)) p.selectedIcp = '';
   if (!p.categories.some(x => x.id === p.selectedCategory)) p.selectedCategory = '';
   if (!p.competitive.stages.some(x => x.id === p.competitive.selectedStage)) p.competitive.selectedStage = '';
@@ -11886,7 +11925,20 @@ function newValuePositioningRow(seed){
   VALUE_POSITIONING_FIELDS.forEach(field => {
     if (typeof row[field[0]] !== 'string') row[field[0]] = '';
   });
+  const frames=Array.isArray(row.frames) ? row.frames : [];
+  row.frames=frames.length ? frames.map((frame,index)=>newValuePositioningFrame(frame,index)) :
+    [newValuePositioningFrame(null,0),newValuePositioningFrame(null,1)];
   return row;
+}
+
+function valuePositioningFrames(){
+  return positioningState().valueRows.flatMap((row,rowIndex)=>(row.frames||[]).map((frame,frameIndex)=>({
+    id:frame.id,
+    label:frame.label || 'Frame '+(frameIndex+1),
+    text:frame.text || '',
+    valueId:row.id,
+    valueIndex:rowIndex
+  })));
 }
 
 function syncPositioningCompetitors(category){
@@ -12397,7 +12449,35 @@ function renderPositioning(){
       card.append(label, textarea);
       grid.append(card);
     });
-    row.append(head, grid);
+    const framing=document.createElement('section'); framing.className='value-framing'; framing.dataset.valueFraming=valueRow.id;
+    const framingHead=document.createElement('div'); framingHead.className='value-framing-head';
+    const framingTitle=document.createElement('strong'); framingTitle.textContent='Framing';
+    const framingCount=document.createElement('small'); framingCount.textContent=valueRow.frames.length+' frame'+(valueRow.frames.length===1?'':'s');
+    framingHead.append(framingTitle,framingCount);
+    if(!ro && valueRow.frames.length<VALUE_POSITIONING_FRAME_LIMIT){
+      const addFrame=document.createElement('button'); addFrame.type='button'; addFrame.textContent='+ Add frame';
+      addFrame.onclick=()=>{
+        valueRow.frames.push(newValuePositioningFrame(null,valueRow.frames.length));
+        markDirty(); renderPositioning();
+      };
+      framingHead.append(addFrame);
+    }
+    const frameList=document.createElement('div'); frameList.className='value-frame-list';
+    valueRow.frames.forEach((frame,frameIndex)=>{
+      const frameCard=document.createElement('article'); frameCard.className='value-frame'; frameCard.dataset.valueFrame=frame.id;
+      const frameHead=document.createElement('div'); frameHead.className='value-frame-head';
+      const frameName=positioningInput(frame.label,'Frame '+(frameIndex+1),ro,value=>{frame.label=value;});
+      frameHead.append(frameName);
+      if(!ro && valueRow.frames.length>2){
+        const removeFrame=document.createElement('button'); removeFrame.type='button'; removeFrame.textContent='×'; removeFrame.title='Remove this frame';
+        removeFrame.onclick=()=>{valueRow.frames=valueRow.frames.filter(item=>item.id!==frame.id);markDirty();renderPositioning();};
+        frameHead.append(removeFrame);
+      }
+      const frameText=positioningTextarea(frame.text,'Add this framing angle',ro,value=>{frame.text=value;});
+      frameCard.append(frameHead,frameText); frameList.append(frameCard);
+    });
+    framing.append(framingHead,frameList);
+    row.append(head, grid, framing);
     valueHost.append(row);
   });
   const narrativeFields = positioningDocumentState();
@@ -12413,10 +12493,10 @@ function renderPositioning(){
 }
 
 function openValuePositioningField(field){
-  const id = field === 'usp' ? 'positioningValueUsp' : 'positioningValueOffer';
+  const id = field === 'usp' ? 'positioningValueUsp' : field === 'offer' ? 'positioningValueOffer' : '';
   if (state.tab !== POSITIONING_TAB) switchTab(POSITIONING_TAB);
   requestAnimationFrame(() => {
-    const input = $(id);
+    const input = id ? $(id) : document.querySelector('[data-value-framing] textarea');
     if (!input) return;
     input.scrollIntoView({behavior:'smooth',block:'center'});
     if (!readOnly()) input.focus();
@@ -12483,7 +12563,6 @@ const POSITIONING_DOCUMENT_SECTIONS = [
   { id: 'core', label: 'Positioning', fields: POSITIONING_DOCUMENT_CORE_KEYS },
   { id: 'brand_radar', label: 'Brand Radar', fields: [], view: 'brand_radar' },
   { id: 'trust_signals', label: 'Trust Signals', fields: ['trust_signals'] },
-  { id: 'framing', label: 'Framing', fields: ['framing'] },
   { id: 'messaging_framework', label: 'Messaging Framework', fields: ['messaging_framework'] },
   { id: 'distribution_plate', label: 'Distribution Plate', fields: ['distribution_plate'] },
   { id: 'high_priority_links', label: 'High Priority Links', fields: ['high_priority_links'] },
@@ -12745,8 +12824,8 @@ function communicationState(){
   return model;
 }
 
-function syncCommunicationPerceptionFrames(model,fields){
-  const frames=fields.framing_frames||[];
+function syncCommunicationPerceptionFrames(model){
+  const frames=valuePositioningFrames();
   let changed=false;
   model.perceptions.forEach(perception=>{
     const existing=new Map((perception.axes||[]).map(axis=>[axis.frameId||'',axis]));
@@ -13000,7 +13079,7 @@ function makeCommunicationNodeDraggable(element,key,model){
 function renderCommunicationStrategyCanvas(){
   const model = communicationState(), fields = positioningDocumentState(), ro = readOnly(), flow = $('commFlow');
   flow.innerHTML = '';
-  if (syncCommunicationPerceptionFrames(model,fields) && !ro) markDirty();
+  if (syncCommunicationPerceptionFrames(model) && !ro) markDirty();
   $('commWires').onclick = event => {
     if (event.target.closest('.comm-wire')) return;
     if (!selectedCommunicationConnector) return;
@@ -13035,7 +13114,10 @@ function renderCommunicationStrategyCanvas(){
     const card = document.createElement('button'); card.type='button'; card.className = 'comm-factor'; card.dataset.commFactor = factor.id;
     const title=document.createElement('strong'); title.textContent=factor.label;
     const preview=document.createElement('small'); preview.className='comm-factor-preview';
-    if(factor.label==='Framing')preview.textContent=fields.framing_frames.length+' framing frame'+(fields.framing_frames.length===1?'':'s');
+    if(factor.label==='Framing'){
+      const frames=valuePositioningFrames();
+      preview.textContent=frames.length+' value frame'+(frames.length===1?'':'s');
+    }
     else if(factor.label==='Offer')preview.textContent=fields.offer||'Open Offer';
     else if(factor.label==='Buying Trigger'){
       const positioning=positioningState(),icp=positioning.icps.find(item=>item.id===positioning.selectedIcp);
@@ -13043,7 +13125,7 @@ function renderCommunicationStrategyCanvas(){
     }else preview.textContent='Writing style input';
     card.append(title,preview);
     card.onclick=()=>{
-      if(factor.label==='Framing')openPositioningDocumentField('framing');
+      if(factor.label==='Framing')openValuePositioningField('framing');
       else if(factor.label==='Offer')openValuePositioningField('offer');
       else if(factor.label==='Buying Trigger')switchTab(POSITIONING_TAB);
       else openPositioningDocumentField('messaging_framework');
@@ -13088,13 +13170,13 @@ function renderCommunicationStrategyCanvas(){
       const axisHost = document.createElement('div'); axisHost.className = 'comm-axis';
       const stick = document.createElement('div'); stick.className = 'comm-stump';
       const axisName = document.createElement('input'); axisName.className = 'comm-axis-name'; axisName.value = axis.name;
-      axisName.placeholder = 'Frame'; axisName.readOnly = true; axisName.title='Pulled from Positioning Document > Framing';
+      axisName.placeholder = 'Frame'; axisName.readOnly = true; axisName.title='Pulled from Positioning Canvas > Value Positioning > Framing';
       axisHost.append(stick,axisName);
       axisLine.append(axisHost);
     });
     axisStage.append(axisLine);
     const actions = document.createElement('div'); actions.className = 'comm-perception-actions';
-    const sourceHint=document.createElement('small'); sourceHint.textContent='Frames are managed in Positioning Document > Framing.'; actions.append(sourceHint);
+    const sourceHint=document.createElement('small'); sourceHint.textContent='Frames are managed under each value in Positioning Canvas > Value Positioning.'; actions.append(sourceHint);
     panel.append(head,axisStage,actions);
     makeCommunicationNodeDraggable(panel,'perception:' + perception.id,model); perceptions.append(panel);
   });

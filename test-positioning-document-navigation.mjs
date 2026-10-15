@@ -5,6 +5,7 @@ import assert from 'node:assert/strict';
 const html=fs.readFileSync(new URL('./index.html',import.meta.url),'utf8');
 assert(html.includes("['trust_signals', 'Trust Signals']"));
 assert(html.includes("['framing', 'Framing']"));
+assert(!html.includes("{ id: 'framing', label: 'Framing', fields: ['framing'] }"));
 assert(html.includes("['usp', 'USP']"));
 assert(html.includes("['offer', 'Offer']"));
 assert(!html.includes("{ id: 'usp', label: 'USP', fields: ['usp'] }"));
