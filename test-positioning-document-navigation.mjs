@@ -7,6 +7,8 @@ assert(html.includes("['trust_signals', 'Trust Signals']"));
 assert(html.includes("['framing', 'Framing']"));
 assert(html.includes("['usp', 'USP']"));
 assert(html.includes("{ id: 'usp', label: 'USP', fields: ['usp'] }"));
+assert(html.includes("['offer', 'Offer']"));
+assert(html.includes("{ id: 'offer', label: 'Offer', fields: ['offer'] }"));
 assert(html.includes("['distribution_plate', 'Distribution Plate', 'distribution']"));
 for(const label of ['50 words','100 words','200 words','400 words'])assert(html.includes(`'${label}'`));
 assert(html.includes("navOpen: { strategy1: false, brand: false, content: false, positioningDocument: false"));
@@ -22,13 +24,15 @@ const tool=fs.readFileSync(new URL('./mcp-server/src/tools/positioning-document.
 assert(tool.includes('"trust_signals"'));
 assert(tool.includes('"framing"'));
 assert(tool.includes('"usp"'));
+assert(tool.includes('"offer"'));
 assert(tool.includes('"words_50"'));
 assert(tool.includes('"words_400"'));
-assert(tool.includes('Read the eight narrative fields and Distribution Plate'));
+assert(tool.includes('Read the nine narrative fields and Distribution Plate'));
 const prompt=JSON.parse(fs.readFileSync(new URL('./ai-prompts.json',import.meta.url),'utf8')).positioning_document.prompt;
 assert(prompt.includes('Trust Signals'));
 assert(prompt.includes('Framing'));
 assert(prompt.includes('USP'));
+assert(prompt.includes('Offer'));
 assert(prompt.includes('Distribution Plate'));
 for(const length of ['50-word','100-word','200-word','400-word'])assert(prompt.includes(length));
 

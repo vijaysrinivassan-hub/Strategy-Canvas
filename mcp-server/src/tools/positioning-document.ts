@@ -11,6 +11,7 @@ const FIELD_KEYS = [
   "competitive_positioning",
   "value_positioning",
   "usp",
+  "offer",
   "trust_signals",
   "framing"
 ] as const;
@@ -30,6 +31,7 @@ const fieldsSchema = z.object({
   competitive_positioning: z.string().optional(),
   value_positioning: z.string().optional(),
   usp: z.string().optional(),
+  offer: z.string().optional(),
   trust_signals: z.string().optional(),
   framing: z.string().optional(),
   distribution_plate: distributionPlateSchema.optional()
@@ -56,9 +58,9 @@ export function registerPositioningDocumentTools(server: McpServer) {
     {
       title: "Read positioning document",
       description:
-        "Read the eight narrative fields and Distribution Plate in a board's Positioning Document: " +
+        "Read the nine narrative fields and Distribution Plate in a board's Positioning Document: " +
         "the positioning statement; ICP, category, competitive and value positioning; Trust Signals; " +
-        "Framing; USP; and the 50-, 100-, 200- and 400-word Distribution Plate versions.",
+        "Framing; USP; Offer; and the 50-, 100-, 200- and 400-word Distribution Plate versions.",
       inputSchema: {
         board_id: z.string().describe("Board uuid from board_list")
       },
