@@ -3,21 +3,21 @@ import fs from 'node:fs';
 import vm from 'node:vm';
 
 const html=fs.readFileSync(new URL('./index.html',import.meta.url),'utf8');
-assert(html.includes('const VALUE_POSITIONING_FRAME_LIMIT = 3'));
-assert(html.includes('function newValuePositioningFrame(seed,index)'));
-assert(html.includes('function valuePositioningFrames()'));
-assert(html.includes("[newValuePositioningFrame(null,0),newValuePositioningFrame(null,1)]"));
-assert(html.includes("framingTitle.textContent='Framing'"));
-assert(html.includes("addFrame.textContent='+ Add frame'"));
-assert(html.includes('valueRow.frames.length<VALUE_POSITIONING_FRAME_LIMIT'));
-assert(html.includes('valueRow.frames.length>2'));
-assert(html.includes("frame.text,'Add this framing angle'"));
-assert(html.includes('p.valueFramingRevision !== 1'));
-assert(html.includes('legacyFields?.framing_frames'));
-assert(html.includes('meaningful.map((frame,index)=>newValuePositioningFrame(frame,index))'));
-assert(!html.includes("{ id: 'framing', label: 'Framing', fields: ['framing'] }"));
+assert(!html.includes('const VALUE_POSITIONING_FRAME_LIMIT'));
+assert(!html.includes("framingTitle.textContent='Framing'"));
+assert(!html.includes('data-value-framing'));
+assert(html.includes("{ id: 'framing', label: 'Perception and Framing', fields: ['framing'] }"));
+assert(html.includes("const IDEAL_BRAND_PERCEPTION_ID = 'ideal_brand_perception'"));
+assert(html.includes("const FRAMING_NAME_PLACEHOLDERS = ['Brand Level Framing','Capability','Value','Category']"));
+assert(html.includes("idealButton.textContent='Ideal Brand Perception'"));
+assert(html.includes("label.textContent='Brand Level Framing'"));
+assert(html.includes("frameName.placeholder=framingFramePlaceholder(frameIndex)"));
+assert(html.includes("fields.framing_frames.push({id,label:'',text:''})"));
+assert(html.includes('positioning.valueFramingRevision !== 2'));
+assert(html.includes('(Array.isArray(row.frames)?row.frames:[])'));
+assert(html.includes('delete row.frames'));
 
 const scripts=[...html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/gi)]
   .map(match=>match[1]).filter(code=>code.trim());
 scripts.forEach(code=>new vm.Script(code));
-console.log('PASS: every Value Positioning row owns two to three editable frames and legacy framing migrates without remaining in Positioning Document navigation.');
+console.log('PASS: per-value framing is removed, migrated and restored as Ideal Brand Perception plus brand-level and placeholder-named frames.');

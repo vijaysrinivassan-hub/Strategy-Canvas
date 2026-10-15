@@ -5,7 +5,8 @@ import assert from 'node:assert/strict';
 const html=fs.readFileSync(new URL('./index.html',import.meta.url),'utf8');
 assert(html.includes("['trust_signals', 'Trust Signals']"));
 assert(html.includes("['framing', 'Framing']"));
-assert(!html.includes("{ id: 'framing', label: 'Framing', fields: ['framing'] }"));
+assert(html.includes("['ideal_brand_perception', 'Ideal Brand Perception']"));
+assert(html.includes("{ id: 'framing', label: 'Perception and Framing', fields: ['framing'] }"));
 assert(html.includes("['usp', 'USP']"));
 assert(html.includes("['offer', 'Offer']"));
 assert(!html.includes("{ id: 'usp', label: 'USP', fields: ['usp'] }"));
@@ -22,6 +23,7 @@ const sectionOrder=[
   "{ id: 'messaging_framework', label: 'Messaging Framework'",
   "{ id: 'distribution_plate', label: 'Distribution Plate'",
   "{ id: 'trust_signals', label: 'Trust Signals'",
+  "{ id: 'framing', label: 'Perception and Framing'",
   "{ id: 'communication_strategy', label: 'Communication Strategy'",
   "{ id: 'brand_radar', label: 'Brand Radar'",
   "{ id: 'high_priority_links', label: 'High-priority Links'"
@@ -32,10 +34,12 @@ assert(html.includes('class="positioning-document-index-nav" id="positioningDocu
 assert(html.includes('function renderPositioningDocumentNavigation()'));
 assert(html.includes("button.onclick = () => openPositioningDocumentField(section.id)"));
 assert(html.includes("const DEFAULT_FRAMING_COUNT = 4"));
-assert(html.includes("label:'Frame '+(index+1)"));
+assert(html.includes("label:index===0 ? 'Brand Level Framing' : ''"));
 assert(html.includes("frameNav.className='framing-content-nav'"));
 assert(html.includes("button.onclick=()=>openPositioningFrame(candidate.id)"));
 assert(html.includes("add.textContent='+ Add frame'"));
+assert(html.includes("idealButton.textContent='Ideal Brand Perception'"));
+assert(html.includes("frameName.placeholder=framingFramePlaceholder(frameIndex)"));
 assert(!html.includes("className = 'positioning-document-submenu'"));
 assert(html.includes('function openPositioningFrame(id)'));
 assert(html.includes('function addPositioningFrame()'));
@@ -59,6 +63,7 @@ assert(!html.includes('id="positioningDocumentEvolutionHost"'));
 const tool=fs.readFileSync(new URL('./mcp-server/src/tools/positioning-document.ts',import.meta.url),'utf8');
 assert(tool.includes('"trust_signals"'));
 assert(tool.includes('"framing"'));
+assert(tool.includes('"ideal_brand_perception"'));
 assert(tool.includes('framing_frames'));
 assert(tool.includes('DEFAULT_FRAMING_COUNT = 4'));
 assert(tool.includes('"usp"'));

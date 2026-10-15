@@ -13,6 +13,7 @@ const FIELD_KEYS = [
   "usp",
   "offer",
   "trust_signals",
+  "ideal_brand_perception",
   "framing"
 ] as const;
 const DISTRIBUTION_PLATE_KEYS = ["words_50", "words_100", "words_200", "words_400"] as const;
@@ -40,6 +41,7 @@ const fieldsSchema = z.object({
   usp: z.string().optional(),
   offer: z.string().optional(),
   trust_signals: z.string().optional(),
+  ideal_brand_perception: z.string().optional(),
   framing: z.string().optional(),
   framing_frames: z.array(framingFrameSchema).optional(),
   distribution_plate: distributionPlateSchema.optional()
@@ -60,18 +62,20 @@ function fieldsOf(body: any): Record<string, any> {
   if (!Array.isArray(slot.fields.framing_frames)) {
     slot.fields.framing_frames = Array.from({ length: DEFAULT_FRAMING_COUNT }, (_, index) => ({
       id: `frame_${index + 1}`,
-      label: `Frame ${index + 1}`,
+      label: index === 0 ? "Brand Level Framing" : "",
       text: index === 0 ? slot.fields.framing : ""
     }));
   }
   slot.fields.framing_frames = slot.fields.framing_frames.map((frame: any, index: number) => ({
     id: String(frame?.id || `frame_${index + 1}`),
-    label: String(frame?.label || `Frame ${index + 1}`),
+    label: index === 0
+      ? "Brand Level Framing"
+      : (typeof frame?.label === "string" && !/^Frame\s+\d+$/i.test(frame.label) ? frame.label : ""),
     text: String(frame?.text || "")
   }));
   while (slot.fields.framing_frames.length < DEFAULT_FRAMING_COUNT) {
     const index = slot.fields.framing_frames.length;
-    slot.fields.framing_frames.push({ id: `frame_${index + 1}`, label: `Frame ${index + 1}`, text: "" });
+    slot.fields.framing_frames.push({ id: `frame_${index + 1}`, label: index === 0 ? "Brand Level Framing" : "", text: "" });
   }
   return slot.fields;
 }
@@ -84,7 +88,7 @@ export function registerPositioningDocumentTools(server: McpServer) {
       description:
         "Read the nine narrative fields and Distribution Plate in a board's Positioning Document: " +
         "the positioning statement; ICP, category, competitive and value positioning; Trust Signals; " +
-        "Framing frames; USP; Offer; and the 50-, 100-, 200- and 400-word Distribution Plate versions.",
+        "Ideal Brand Perception and Framing frames; USP; Offer; and the 50-, 100-, 200- and 400-word Distribution Plate versions.",
       inputSchema: {
         board_id: z.string().describe("Board uuid from board_list")
       },
