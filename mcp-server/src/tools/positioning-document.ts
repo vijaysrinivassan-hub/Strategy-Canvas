@@ -17,7 +17,7 @@ const FIELD_KEYS = [
   "framing"
 ] as const;
 const DISTRIBUTION_PLATE_KEYS = ["words_50", "words_100", "words_200", "words_400"] as const;
-const DEFAULT_FRAMING_COUNT = 4;
+const DEFAULT_FRAMING_COUNT = 2;
 
 const distributionPlateSchema = z.object({
   words_50: z.string().optional(),
@@ -73,6 +73,17 @@ function fieldsOf(body: any): Record<string, any> {
       : (typeof frame?.label === "string" && !/^Frame\s+\d+$/i.test(frame.label) ? frame.label : ""),
     text: String(frame?.text || "")
   }));
+  const defaults = slot.fields.framing_frames.slice(1, 4);
+  const defaultNames = ["capability", "value", "category"];
+  if (defaults.length === 3 && defaults.every((frame: any, index: number) => {
+    const name = String(frame.label || "").trim().toLowerCase();
+    return !name || name === defaultNames[index] || name === `frame ${index + 2}`;
+  })) {
+    const combined = defaults[0];
+    combined.label = "";
+    combined.text = defaults.map((frame: any) => String(frame.text || "").trim()).filter(Boolean).join("\n\n");
+    slot.fields.framing_frames.splice(1, 3, combined);
+  }
   while (slot.fields.framing_frames.length < DEFAULT_FRAMING_COUNT) {
     const index = slot.fields.framing_frames.length;
     slot.fields.framing_frames.push({ id: `frame_${index + 1}`, label: index === 0 ? "Brand Level Framing" : "", text: "" });

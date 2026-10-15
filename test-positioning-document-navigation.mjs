@@ -33,7 +33,8 @@ sectionOrder.forEach(section=>{const next=html.indexOf(section);assert(next>prio
 assert(html.includes('class="positioning-document-index-nav" id="positioningDocumentIndex"'));
 assert(html.includes('function renderPositioningDocumentNavigation()'));
 assert(html.includes("button.onclick = () => openPositioningDocumentField(section.id)"));
-assert(html.includes("const DEFAULT_FRAMING_COUNT = 4"));
+assert(html.includes("const DEFAULT_FRAMING_COUNT = 2"));
+assert(html.includes("const FRAMING_NAME_PLACEHOLDERS = ['Brand Level Framing','Capability, Value, Category']"));
 assert(html.includes("label:index===0 ? 'Brand Level Framing' : ''"));
 assert(html.includes("frameNav.className='framing-content-nav'"));
 assert(html.includes("button.onclick=()=>openPositioningFrame(candidate.id)"));
@@ -65,7 +66,7 @@ assert(tool.includes('"trust_signals"'));
 assert(tool.includes('"framing"'));
 assert(tool.includes('"ideal_brand_perception"'));
 assert(tool.includes('framing_frames'));
-assert(tool.includes('DEFAULT_FRAMING_COUNT = 4'));
+assert(tool.includes('DEFAULT_FRAMING_COUNT = 2'));
 assert(tool.includes('"usp"'));
 assert(tool.includes('"offer"'));
 assert(tool.includes('"words_50"'));
