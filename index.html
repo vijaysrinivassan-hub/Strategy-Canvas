@@ -2056,6 +2056,9 @@
   .positioning-document-radar-host{flex:1;min-height:0;overflow:auto;width:100%;margin:0;padding:30px}
   .positioning-document-radar-host .radar-canvas{width:min(980px,100%);margin:0 auto;padding:24px;
     border:1px solid #deded9;background:#fbfbfa}
+  .positioning-document-evolution-host{margin-top:16px}
+  .positioning-document-evolution-host .evo-canvas{width:100%;min-height:0;padding:28px 24px 34px;
+    border:1px solid #d5d7d1;background:#fff}
   .positioning-document-sheet{width:min(980px,100%); margin:0 auto; padding:24px;
     border:1px solid #deded9; background-color:#fbfbfa;
     background-image:radial-gradient(circle at 1px 1px,#d4d5cf 1.1px,transparent 1.2px);
@@ -2999,6 +3002,7 @@
           <div class="positioning-document-narrative" id="positioningDocumentNarrative">
             <section class="positioning-document-sheet">
               <div class="positioning-document-fields" id="positioningDocumentFields"></div>
+              <div class="positioning-document-evolution-host" id="positioningDocumentEvolutionHost" hidden></div>
             </section>
           </div>
           <div class="positioning-radar-host positioning-document-radar-host" id="positioningRadarHost" hidden></div>
@@ -3178,7 +3182,7 @@ const SUPABASE_URL = 'https://cskamgfvebryahkljlll.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_MdkD-TxMCIwlu69seSHA3Q_A39GADsK';
 const CLIENT_ID    = '1059013355751-6g50dsgm7df37htl2fdqrtlkh5hmrc0c.apps.googleusercontent.com';
 const ALLOWED      = ['vijaysrinivassan@gmail.com'];
-const BUILD        = 'v8.78';
+const BUILD        = 'v8.79';
 
 const STRATEGY_ONE_TAB = 'Strategy 1 — Brand Strategy';
 const PRODUCT_EVOLUTION_TAB = 'Strategy 1 — Product Evolution';
@@ -3300,6 +3304,7 @@ function closeNav(){
 const $ = id => document.getElementById(id);
 const uid = () => Math.random().toString(36).slice(2, 10) + Date.now().toString(36).slice(-4);
 $('brandChannelHost').append($('chanPane'));
+$('positioningDocumentEvolutionHost').append($('evoPane').querySelector('.evo-canvas'));
 $('positioningRadarHost').append($('brandRadarPane').querySelector('.radar-canvas'));
 $('positioningDocumentPage').append($('communicationPane'));
 
@@ -12428,11 +12433,13 @@ function renderPositioningDocument(){
   const section = activePositioningDocumentSection();
   const isCommunication = section.view === 'communication';
   const isBrandRadar = section.view === 'brand_radar';
+  const showProductEvolution = section.id === 'usp';
   renderPositioningDocumentNavigation();
   $('positioningDocumentNarrative').hidden = isCommunication || isBrandRadar;
   $('positioningDocumentActions').hidden = isCommunication || isBrandRadar;
   $('communicationPane').hidden = !isCommunication;
   $('positioningRadarHost').hidden = !isBrandRadar;
+  $('positioningDocumentEvolutionHost').hidden = !showProductEvolution;
   if (isCommunication){
     $('tabTitle').textContent = section.label;
     return;
@@ -12509,6 +12516,7 @@ function renderPositioningDocument(){
     }
     host.append(wrapper);
   });
+  if (showProductEvolution) renderEvolution();
   $('tabTitle').textContent = section.label;
 }
 

@@ -25,6 +25,10 @@ assert(html.includes("POSITIONING_DOCUMENT_FIELDS.filter(field => section.fields
 assert(html.includes("positioningDocumentPart: state.positioningDocumentPart || 'core'"));
 assert(html.includes("$('positioningDocumentPage').append($('communicationPane'))"));
 assert(html.includes('class="positioning-radar-host positioning-document-radar-host" id="positioningRadarHost" hidden'));
+assert(html.includes('class="positioning-document-evolution-host" id="positioningDocumentEvolutionHost" hidden'));
+assert(html.includes("$('positioningDocumentEvolutionHost').append($('evoPane').querySelector('.evo-canvas'))"));
+assert(html.includes("const showProductEvolution = section.id === 'usp';"));
+assert(html.includes('if (showProductEvolution) renderEvolution();'));
 
 const tool=fs.readFileSync(new URL('./mcp-server/src/tools/positioning-document.ts',import.meta.url),'utf8');
 assert(tool.includes('"trust_signals"'));

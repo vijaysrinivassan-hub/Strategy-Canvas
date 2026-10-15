@@ -6,6 +6,8 @@ const html=fs.readFileSync(new URL('./index.html',import.meta.url),'utf8').repla
 assert(html.includes('id="btnRadarAxis"'));
 assert(!html.includes('id="btnOpenProductEvolution"'));
 assert(!html.includes('id="positioningEvolutionHost"'));
+assert(html.includes('id="positioningDocumentEvolutionHost"'));
+assert(html.includes("$('positioningDocumentEvolutionHost').append($('evoPane').querySelector('.evo-canvas'))"));
 assert(html.includes('id="positioningRadarHost"'));
 assert(html.includes("$('positioningRadarHost').append($('brandRadarPane').querySelector('.radar-canvas'))"));
 assert(!html.includes("box.append(tabButton(BRAND_RADAR_TAB, 'Brand Radar'))"));
