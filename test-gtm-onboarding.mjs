@@ -36,7 +36,7 @@ for(const activity of ['AI visibility and citation audit','Prompt and answer mon
 }
 assert(html.includes("action.textContent=locked?'Edit answer':'Lock & continue'"));
 assert(html.includes("const sourceLabel=active.type==='market'"));
-assert(html.includes("$('gtmWorkspace').hidden=!complete && !ro"));
+assert(html.includes("$('gtmWorkspace').hidden=true"));
 assert(html.includes('if (!validateGtmOnboardingStep(active,control)) return;'));
 assert(html.includes("if (state.screen === 'board' && (state.tab === STRATEGY_ONE_TAB || state.tab === CHANNELS_TAB))"));
 
@@ -49,9 +49,10 @@ assert(gtmPrompt.includes('do not create a separate Company onboarding step'));
 assert(gtmPrompt.includes('supplied source text, description, notes'));
 assert(gtmPrompt.includes('Single Industry or Multi Industry'));
 assert(gtmPrompt.includes('Do not create a separate Primary ICP onboarding step'));
-assert(gtmPrompt.includes('Treat the selling component/buying component puzzle and the compact GTM question panel as one Market system step'));
+assert(gtmPrompt.includes('Treat the selling component/buying component choice, the compact GTM question panel and the 4x4 market matrix as one step'));
 assert(gtmPrompt.includes('Do not create standalone GTM Setup or Industries steps'));
-assert(gtmPrompt.includes('Do not render the 4x4 market canvas beneath this box'));
+assert(gtmPrompt.includes('compact B2B/B2C switch'));
+assert(gtmPrompt.includes('Do not create or display a separate dotted GTM strategy canvas beneath the onboarding flow'));
 assert(gtmPrompt.includes('Choose Inbound, Outbound or both'));
 assert(gtmPrompt.includes('If AEO is selected'));
 
