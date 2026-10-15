@@ -15,8 +15,19 @@ for(const label of ['50 words','100 words','200 words','400 words'])assert(html.
 assert(html.includes("navOpen: { strategy1: false, brand: false, content: false, positioningDocument: false"));
 assert(html.includes("box.append(tabButton(POSITIONING_DOCUMENT_TAB, 'Positioning Document'))"));
 assert(html.includes("{ id: 'core', label: 'Positioning', fields: POSITIONING_DOCUMENT_CORE_KEYS }"));
-assert(html.includes("{ id: 'brand_radar', label: 'Brand Radar', fields: [], view: 'brand_radar' }"));
+assert(html.includes("{ id: 'brand_radar', label: 'Brand Data', fields: [], view: 'brand_radar' }"));
 assert(html.includes("{ id: 'communication_strategy', label: 'Communication Strategy', fields: [], view: 'communication' }"));
+const sectionOrder=[
+  "{ id: 'core', label: 'Positioning'",
+  "{ id: 'messaging_framework', label: 'Messaging Framework'",
+  "{ id: 'distribution_plate', label: 'Distribution Plate'",
+  "{ id: 'trust_signals', label: 'Precedence'",
+  "{ id: 'communication_strategy', label: 'Communication Strategy'",
+  "{ id: 'brand_radar', label: 'Brand Data'",
+  "{ id: 'high_priority_links', label: 'High-priority Links'"
+];
+let prior=-1;
+sectionOrder.forEach(section=>{const next=html.indexOf(section);assert(next>prior,'wrong Positioning Document submenu order: '+section);prior=next;});
 assert(html.includes('class="positioning-document-index-nav" id="positioningDocumentIndex"'));
 assert(html.includes('function renderPositioningDocumentNavigation()'));
 assert(html.includes("button.onclick = () => openPositioningDocumentField(section.id)"));

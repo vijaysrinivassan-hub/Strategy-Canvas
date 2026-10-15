@@ -12,7 +12,7 @@ assert(html.includes("$('positioningValueEvolutionHost').append($('evoPane').que
 assert(html.includes('id="positioningRadarHost"'));
 assert(html.includes("$('positioningRadarHost').append($('brandRadarPane').querySelector('.radar-canvas'))"));
 assert(!html.includes("box.append(tabButton(BRAND_RADAR_TAB, 'Brand Radar'))"));
-assert(html.includes("{ id: 'brand_radar', label: 'Brand Radar', fields: [], view: 'brand_radar' }"));
+assert(html.includes("{ id: 'brand_radar', label: 'Brand Data', fields: [], view: 'brand_radar' }"));
 assert(html.includes("if (isBrandRadar){\n    $('tabTitle').textContent = section.label;\n    renderBrandRadar();"));
 
 const renderStart=html.indexOf('function renderBrandRadar()');
