@@ -6,12 +6,12 @@ const html=fs.readFileSync(new URL('./index.html',import.meta.url),'utf8');
 assert(html.includes('id="gtmOnboardingSteps"'));
 assert(html.includes('id="gtmOnboardingPanel"'));
 assert(html.includes('id="gtmWorkspace" hidden'));
-assert(html.includes('Set the products and market system here. Configure channels under Research &rsaquo; GTM Strategy.'));
+assert(html.includes('Set the products and market system, then review the Market Mapping axes. Configure channels under Research &rsaquo; GTM Strategy.'));
 assert(html.includes('id="channelFramePane"'));
 assert(html.includes('id="channelFrameBody"'));
 assert(!html.includes('See the company, target product, sales motion, active channels and buyer journey in one connected view.'));
 assert(html.includes("t.guide.onboarding = { activeStep: 'product', locked: {} }"));
-for(const id of ['product','market']){
+for(const id of ['product','market','market_mapping']){
   assert(html.includes(`id:'${id}'`),`missing ${id} onboarding step`);
 }
 assert(!html.includes("{ id:'channels', label:'Channels'"));
@@ -24,11 +24,18 @@ assert(html.includes("product.description=description.value"));
 assert(!html.includes("id:'icp', label:'Primary ICP'"));
 assert(html.includes("type:'products'"));
 assert(html.includes("type:'market'"));
+assert(html.includes("type:'market-map'"));
 assert(html.includes("if (t.products.length >= 3){ toast('This GTM flow supports up to 3 products.'"));
 assert(html.includes("$('btnAddGtmProduct').hidden = readOnly() || t.products.length >= 3"));
 assert(!html.includes('function renderGtmSetupStep(host, locked, ro)'));
 assert(html.includes('function renderGtmMarketStep(host, locked, ro)'));
 assert(html.includes('function renderGtmMarketQuestions(host, locked, ro)'));
+assert(html.includes('function renderGtmMarketMappingStep(host)'));
+for(const label of ['Customer awareness level','Most aware','Least aware','Lower value delivered','Higher value delivered','Value delivered = value provided by the company − price paid by the customer']){
+  assert(html.includes(label),`missing Market Mapping axis label: ${label}`);
+}
+assert(html.includes("note.textContent='No companies, customers, segments or points are prefilled.'"));
+assert(html.includes("if (step.type==='market-map') return true;"));
 assert(!html.includes('function renderGtmIndustryStep(host, locked, ro)'));
 assert(html.includes("if (['setup','industries','industry','goal','sales_motion','icp'].includes(onboarding.activeStep)) onboarding.activeStep='market'"));
 assert(html.includes("if (onboarding.activeStep === 'channels') onboarding.activeStep='market'"));

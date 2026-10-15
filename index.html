@@ -1007,8 +1007,18 @@
   .gtm-onboarding-market .industry-fit-preview{grid-template-columns:minmax(0,1fr) 30px minmax(0,1fr);width:min(620px,100%);height:auto;margin:0;padding:12px}.gtm-onboarding-market .industry-fit-preview-piece{min-height:0;aspect-ratio:1;padding:18px}.gtm-onboarding-market .industry-fit-preview-name::after{right:-23px;width:22px;height:42px}.gtm-onboarding-market .industry-fit-preview-axis::before{width:22px;height:42px}
   .gtm-market-setup{display:flex;flex-direction:column;gap:11px;padding:13px;border:1px solid #d7dbd6;background:#fafbf9}.gtm-market-setup-title{margin:0;color:#4f554f;font-size:10px;font-weight:850;letter-spacing:.08em;text-transform:uppercase}.gtm-market-question{display:flex;min-width:0;flex-direction:column;gap:5px}.gtm-market-question>label{color:#6b706b;font-size:8px;font-weight:850;letter-spacing:.07em;text-transform:uppercase}.gtm-market-question .gtm-onboarding-control{padding:8px 9px;font-size:11px}.gtm-market-industry-names{display:flex;flex-direction:column;gap:5px}.gtm-market-industry-row{display:grid;grid-template-columns:minmax(0,1fr) 25px;gap:5px}.gtm-market-industry-row button{padding:0;border:1px solid #d5d9d4;background:#fff;color:#8a8f89}.gtm-market-industry-row button:hover:not(:disabled){color:var(--danger)}.gtm-market-add-industry{align-self:flex-start;padding:5px 7px;background:#fff;color:#356d47;font-size:9px}.gtm-onboarding-market-matrix{margin-top:16px;min-width:0}
   .gtm-onboarding-market .industry-market-grid{grid-template-columns:104px repeat(4,minmax(0,1fr));width:100%;min-width:0}.gtm-onboarding-market .industry-market-cell,.gtm-onboarding-market .industry-market-row{min-width:0;min-height:122px;white-space:normal;overflow:hidden}.gtm-onboarding-market .industry-market-cell{padding:9px 8px}.gtm-onboarding-market .industry-market-cell strong,.gtm-onboarding-market .industry-market-cell span{width:100%;white-space:normal;overflow-wrap:anywhere;word-break:normal}.gtm-onboarding-market .industry-market-cell strong{font-size:9px}.gtm-onboarding-market .industry-market-cell span{font-size:8px}
+  .gtm-market-map{width:min(880px,100%);margin:8px auto 0;padding:22px 24px 18px;border:1px solid #d7dbd6;background:#fbfcfa}
+  .gtm-market-map-canvas{position:relative;height:440px;margin:0 30px 78px 108px;border-left:2px solid #171b19;border-bottom:2px solid #171b19;background:#fff}
+  .gtm-market-map-canvas::before{content:'';position:absolute;left:-7px;top:-1px;width:11px;height:11px;border-top:2px solid #171b19;border-left:2px solid #171b19;transform:rotate(45deg);transform-origin:center}
+  .gtm-market-map-canvas::after{content:'';position:absolute;right:-1px;bottom:-7px;width:11px;height:11px;border-top:2px solid #171b19;border-right:2px solid #171b19;transform:rotate(45deg);transform-origin:center}
+  .gtm-market-map-y-title{position:absolute;left:-104px;top:50%;width:300px;color:#303530;font-size:10px;font-weight:850;letter-spacing:.08em;text-align:center;text-transform:uppercase;transform:translate(-50%,-50%) rotate(-90deg)}
+  .gtm-market-map-y-high,.gtm-market-map-y-low,.gtm-market-map-x-low,.gtm-market-map-x-high{position:absolute;color:#6f756f;font-size:9px;font-weight:750;letter-spacing:.04em;text-transform:uppercase}
+  .gtm-market-map-y-high{left:-82px;top:0;transform:translateY(-50%)}.gtm-market-map-y-low{left:-82px;bottom:0;transform:translateY(50%)}
+  .gtm-market-map-x-low{left:0;bottom:-30px}.gtm-market-map-x-high{right:0;bottom:-30px;text-align:right}
+  .gtm-market-map-x-title{position:absolute;left:50%;bottom:-70px;width:min(620px,94%);color:#303530;font-size:10px;font-weight:850;letter-spacing:.04em;text-align:center;transform:translateX(-50%)}
+  .gtm-market-map-note{margin:0;color:#858a84;font-size:9px;text-align:center}
   .industry-audience-switch{display:flex;align-items:center;justify-content:flex-end;gap:7px;margin:0 0 10px}.industry-audience-switch>span{color:#777c77;font-size:8px;font-weight:800;letter-spacing:.08em;text-transform:uppercase}.industry-audience-toggle{display:inline-flex;padding:2px;border:1px solid #cfd4cf;border-radius:4px;background:#f0f2ef}.industry-audience-toggle button{min-width:42px;padding:5px 9px;border:0;border-radius:3px;background:transparent;color:#666c66;font-size:9px;font-weight:850;letter-spacing:.05em}.industry-audience-toggle button.on{background:#fff;color:#216c3d;box-shadow:0 1px 3px rgba(20,35,24,.16)}
-  @media(max-width:1050px){.gtm-onboarding-market-top{grid-template-columns:minmax(0,1fr)}.gtm-market-setup{width:100%}}@media(max-width:900px){.gtm-onboarding{grid-template-columns:210px minmax(0,1fr)}.gtm-onboarding-setup{grid-template-columns:1fr}.gtm-onboarding-market .industry-matrix-wrap{overflow-x:auto}.gtm-onboarding-market .industry-market-grid{min-width:680px}}
+  @media(max-width:1050px){.gtm-onboarding-market-top{grid-template-columns:minmax(0,1fr)}.gtm-market-setup{width:100%}}@media(max-width:900px){.gtm-onboarding{grid-template-columns:210px minmax(0,1fr)}.gtm-onboarding-setup{grid-template-columns:1fr}.gtm-onboarding-market .industry-matrix-wrap{overflow-x:auto}.gtm-onboarding-market .industry-market-grid{min-width:680px}.gtm-market-map{padding-inline:14px}.gtm-market-map-canvas{height:380px;margin-left:94px}.gtm-market-map-y-title{left:-93px}}
   .gtm-canvas{position:relative; overflow-x:auto}
   .gtm-canvas .chan-flow{width:max-content; min-width:100%; min-height:780px; padding:32px 240px 70px}
   .gtm-canvas .sg-about{top:24px; right:24px}
@@ -2775,12 +2785,12 @@
       <button class="repo-newrow" id="btnAddColumn">+ Add row</button>
     </div>
 
-    <!-- The onboarding form contains products and the market system. Channels live under Research > GTM Strategy. -->
+    <!-- The onboarding form contains products, the market system and an empty market-mapping canvas. Channels live under Research > GTM Strategy. -->
     <div class="chan gtm-canvas-pane" id="chanPane" hidden>
       <div class="chan-head">
         <div>
           <h3>Onboarding Form</h3>
-          <p>Set the products and market system here. Configure channels under Research &rsaquo; GTM Strategy.</p>
+          <p>Set the products and market system, then review the Market Mapping axes. Configure channels under Research &rsaquo; GTM Strategy.</p>
         </div>
       </div>
       <section class="gtm-onboarding" id="gtmOnboarding" aria-label="GTM onboarding">
@@ -3242,7 +3252,7 @@ const SUPABASE_URL = 'https://cskamgfvebryahkljlll.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_MdkD-TxMCIwlu69seSHA3Q_A39GADsK';
 const CLIENT_ID    = '1059013355751-6g50dsgm7df37htl2fdqrtlkh5hmrc0c.apps.googleusercontent.com';
 const ALLOWED      = ['vijaysrinivassan@gmail.com'];
-const BUILD        = 'v8.95';
+const BUILD        = 'v8.96';
 
 const STRATEGY_ONE_TAB = 'Strategy 1 — Brand Strategy';
 const PRODUCT_EVOLUTION_TAB = 'Strategy 1 — Product Evolution';
@@ -15423,7 +15433,8 @@ function strategyOneState(){
 
 const GTM_ONBOARDING_STEPS = [
   { id:'product', label:'Products', question:'Which products are we taking to market?', detail:'Add one, two or three products, then capture the source text or notes for each. Choose the active product whose strategy workspace you want to edit.', type:'products' },
-  { id:'market', label:'Market system', question:'How does the selling system meet the buying component?', detail:'Choose the exact market intersection on the left, then complete the GTM questions on its right.', type:'market' }
+  { id:'market', label:'Market system', question:'How does the selling system meet the buying component?', detail:'Choose the exact market intersection on the left, then complete the GTM questions on its right.', type:'market' },
+  { id:'market_mapping', label:'Market Mapping', question:'How does delivered value relate to customer awareness?', detail:'This canvas intentionally starts empty and shows only the two axes for future market mapping.', type:'market-map' }
 ];
 
 function gtmOnboardingValue(step){
@@ -15440,6 +15451,7 @@ function gtmOnboardingValue(step){
     const axes=selling && buying ? labels[selling]+' → '+labels[buying] : 'Axes not selected';
     return type+' · '+(config.mode==='multi'?'Multi Industry':'Single Industry')+' · '+motion+' · '+axes;
   }
+  if (step.type==='market-map') return 'Axes only';
   const value=String(step.get() || '');
   if (step.type==='select') return (step.options.find(option=>option[0]===value)||[])[1] || 'Not selected';
   return value || 'Not answered';
@@ -15535,6 +15547,22 @@ function renderGtmMarketStep(host, locked, ro){
   requestAnimationFrame(()=>renderIndustryFit(ro||locked));
 }
 
+function renderGtmMarketMappingStep(host){
+  const shell=document.createElement('section'); shell.className='gtm-market-map';
+  const canvas=document.createElement('div'); canvas.className='gtm-market-map-canvas';
+  canvas.setAttribute('role','img');
+  canvas.setAttribute('aria-label','Empty Market Mapping canvas. The horizontal axis is value delivered, calculated as company-provided value minus customer price paid. The vertical axis is customer awareness from least aware to most aware.');
+  const yTitle=document.createElement('span'); yTitle.className='gtm-market-map-y-title'; yTitle.textContent='Customer awareness level';
+  const yHigh=document.createElement('span'); yHigh.className='gtm-market-map-y-high'; yHigh.textContent='Most aware';
+  const yLow=document.createElement('span'); yLow.className='gtm-market-map-y-low'; yLow.textContent='Least aware';
+  const xLow=document.createElement('span'); xLow.className='gtm-market-map-x-low'; xLow.textContent='Lower value delivered';
+  const xHigh=document.createElement('span'); xHigh.className='gtm-market-map-x-high'; xHigh.textContent='Higher value delivered';
+  const xTitle=document.createElement('span'); xTitle.className='gtm-market-map-x-title'; xTitle.textContent='Value delivered = value provided by the company − price paid by the customer';
+  canvas.append(yTitle,yHigh,yLow,xLow,xHigh,xTitle);
+  const note=document.createElement('p'); note.className='gtm-market-map-note'; note.textContent='No companies, customers, segments or points are prefilled.';
+  shell.append(canvas,note); host.append(shell);
+}
+
 function renderGtmChannelsStep(host, locked, ro, rerender=renderGtmOnboarding){
   const channels=channelState(), disabled=ro || locked;
   const routes=document.createElement('div'); routes.className='gtm-onboarding-routes';
@@ -15614,6 +15642,7 @@ function validateGtmOnboardingStep(step, control){
     architecture.industries=names; architecture.activeIndustry=names.includes(architecture.activeIndustry)?architecture.activeIndustry:names[0];
     return true;
   }
+  if (step.type==='market-map') return true;
   const value=String(control?.value || '').trim();
   if (!value){ toast('Complete this answer before locking it.',true); control?.focus(); return false; }
   step.set(value); return true;
@@ -15655,6 +15684,7 @@ function renderGtmOnboarding(){
   let control=null;
   if (active.type==='products') renderGtmProductStep(panel,locked,ro);
   else if (active.type==='market') renderGtmMarketStep(panel,locked,ro);
+  else if (active.type==='market-map') renderGtmMarketMappingStep(panel);
   else {
     control=document.createElement(active.type==='select'?'select':'input');
     control.className='gtm-onboarding-control';
@@ -15668,7 +15698,7 @@ function renderGtmOnboarding(){
   }
   const actions=document.createElement('div'); actions.className='gtm-onboarding-actions';
   const source=document.createElement('span'); source.className='gtm-onboarding-source';
-  const sourceLabel=active.type==='market'?'Shared with Client settings, Maturity Axis, Product Evolution and Positioning':active.type==='products'?'Shared with product workspaces and Client settings':'Prefilled from Client settings';
+  const sourceLabel=active.type==='market'?'Shared with Client settings, Maturity Axis, Product Evolution and Positioning':active.type==='products'?'Shared with product workspaces and Client settings':active.type==='market-map'?'Empty axis canvas · no points are prefilled':'Prefilled from Client settings';
   source.textContent=locked?'Locked source · '+sourceLabel:sourceLabel;
   const action=document.createElement('button'); action.type='button'; action.className='primary';
   action.hidden=ro;
