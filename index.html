@@ -2053,6 +2053,9 @@
   .positioning-document-page{min-width:0;min-height:0;display:flex;flex-direction:column;overflow:hidden}
   .positioning-document-actions{display:flex;justify-content:flex-end;padding:12px 18px;border-bottom:1px solid #deded9;background:#fff}
   .positioning-document-narrative{flex:1;min-height:0;overflow:auto;padding:30px}
+  .positioning-document-radar-host{flex:1;min-height:0;overflow:auto;width:100%;margin:0;padding:30px}
+  .positioning-document-radar-host .radar-canvas{width:min(980px,100%);margin:0 auto;padding:24px;
+    border:1px solid #deded9;background:#fbfbfa}
   .positioning-document-sheet{width:min(980px,100%); margin:0 auto; padding:24px;
     border:1px solid #deded9; background-color:#fbfbfa;
     background-image:radial-gradient(circle at 1px 1px,#d4d5cf 1.1px,transparent 1.2px);
@@ -2926,7 +2929,6 @@
           </div>
           <div style="display:flex;gap:8px;align-items:center"><button id="btnPositioningPrompts" type="button">AI Prompts</button><button id="btnAddPositioningIcp" type="button">+ Add ICP</button></div>
         </div>
-        <div class="positioning-radar-host" id="positioningRadarHost"></div>
         <div class="icp-list" id="positioningIcps"></div>
       </section>
 
@@ -2999,6 +3001,7 @@
               <div class="positioning-document-fields" id="positioningDocumentFields"></div>
             </section>
           </div>
+          <div class="positioning-radar-host positioning-document-radar-host" id="positioningRadarHost" hidden></div>
         </main>
       </div>
     </div>
@@ -3175,7 +3178,7 @@ const SUPABASE_URL = 'https://cskamgfvebryahkljlll.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_MdkD-TxMCIwlu69seSHA3Q_A39GADsK';
 const CLIENT_ID    = '1059013355751-6g50dsgm7df37htl2fdqrtlkh5hmrc0c.apps.googleusercontent.com';
 const ALLOWED      = ['vijaysrinivassan@gmail.com'];
-const BUILD        = 'v8.77';
+const BUILD        = 'v8.78';
 
 const STRATEGY_ONE_TAB = 'Strategy 1 — Brand Strategy';
 const PRODUCT_EVOLUTION_TAB = 'Strategy 1 — Product Evolution';
@@ -6174,7 +6177,6 @@ function applyTabMode(){
   if (isGuide){ renderStrategyGuide(); renderChannels(); }
   if (isPositioning){
     renderPositioning();
-    renderBrandRadar();
     renderProblemEvidence();
     if (state.user) refreshDocs().then(() => {
       if (state.tab === POSITIONING_TAB) renderProblemEvidence();
@@ -12361,6 +12363,7 @@ const POSITIONING_DOCUMENT_CORE_KEYS = [
 ];
 const POSITIONING_DOCUMENT_SECTIONS = [
   { id: 'core', label: 'Positioning', fields: POSITIONING_DOCUMENT_CORE_KEYS },
+  { id: 'brand_radar', label: 'Brand Radar', fields: [], view: 'brand_radar' },
   { id: 'usp', label: 'USP', fields: ['usp'] },
   { id: 'offer', label: 'Offer', fields: ['offer'] },
   { id: 'trust_signals', label: 'Trust Signals', fields: ['trust_signals'] },
@@ -12424,12 +12427,19 @@ function renderPositioningDocument(){
   host.innerHTML = '';
   const section = activePositioningDocumentSection();
   const isCommunication = section.view === 'communication';
+  const isBrandRadar = section.view === 'brand_radar';
   renderPositioningDocumentNavigation();
-  $('positioningDocumentNarrative').hidden = isCommunication;
-  $('positioningDocumentActions').hidden = isCommunication;
+  $('positioningDocumentNarrative').hidden = isCommunication || isBrandRadar;
+  $('positioningDocumentActions').hidden = isCommunication || isBrandRadar;
   $('communicationPane').hidden = !isCommunication;
+  $('positioningRadarHost').hidden = !isBrandRadar;
   if (isCommunication){
     $('tabTitle').textContent = section.label;
+    return;
+  }
+  if (isBrandRadar){
+    $('tabTitle').textContent = section.label;
+    renderBrandRadar();
     return;
   }
   POSITIONING_DOCUMENT_FIELDS.filter(field => section.fields.includes(field[0])).forEach(field => {

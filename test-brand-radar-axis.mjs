@@ -9,7 +9,8 @@ assert(!html.includes('id="positioningEvolutionHost"'));
 assert(html.includes('id="positioningRadarHost"'));
 assert(html.includes("$('positioningRadarHost').append($('brandRadarPane').querySelector('.radar-canvas'))"));
 assert(!html.includes("box.append(tabButton(BRAND_RADAR_TAB, 'Brand Radar'))"));
-assert(html.includes('renderPositioning();\n    renderBrandRadar();'));
+assert(html.includes("{ id: 'brand_radar', label: 'Brand Radar', fields: [], view: 'brand_radar' }"));
+assert(html.includes("if (isBrandRadar){\n    $('tabTitle').textContent = section.label;\n    renderBrandRadar();"));
 
 const renderStart=html.indexOf('function renderBrandRadar()');
 const render=html.slice(renderStart,html.indexOf("$('btnRadarAxis')",renderStart));
@@ -22,4 +23,4 @@ assert(!evolution.includes('renderBrandRadar();'));
 assert(html.includes("if (!svg || !map || !market || !map.clientWidth || !map.clientHeight) return;"));
 assert(!html.includes("$('brandRadarPane').hidden) return"));
 assert(html.includes('radar.buyingAxis = axis.id;'));
-console.log('PASS: Product Evolution is removed from Positioning Canvas while Buying Industry continues to control Brand Radar and ICP cards.');
+console.log('PASS: Brand Radar lives inside Positioning Document and continues to follow the Buying Industry axis.');

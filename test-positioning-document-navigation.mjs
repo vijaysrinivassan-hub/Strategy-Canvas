@@ -14,6 +14,7 @@ for(const label of ['50 words','100 words','200 words','400 words'])assert(html.
 assert(html.includes("navOpen: { strategy1: false, brand: false, content: false, positioningDocument: false"));
 assert(html.includes("box.append(tabButton(POSITIONING_DOCUMENT_TAB, 'Positioning Document'))"));
 assert(html.includes("{ id: 'core', label: 'Positioning', fields: POSITIONING_DOCUMENT_CORE_KEYS }"));
+assert(html.includes("{ id: 'brand_radar', label: 'Brand Radar', fields: [], view: 'brand_radar' }"));
 assert(html.includes("{ id: 'communication_strategy', label: 'Communication Strategy', fields: [], view: 'communication' }"));
 assert(html.includes('class="positioning-document-index-nav" id="positioningDocumentIndex"'));
 assert(html.includes('function renderPositioningDocumentNavigation()'));
@@ -23,6 +24,7 @@ assert(!html.includes("box.append(tabButton(COMMUNICATION_STRATEGY_TAB, 'Communi
 assert(html.includes("POSITIONING_DOCUMENT_FIELDS.filter(field => section.fields.includes(field[0])).forEach(field =>"));
 assert(html.includes("positioningDocumentPart: state.positioningDocumentPart || 'core'"));
 assert(html.includes("$('positioningDocumentPage').append($('communicationPane'))"));
+assert(html.includes('class="positioning-radar-host positioning-document-radar-host" id="positioningRadarHost" hidden'));
 
 const tool=fs.readFileSync(new URL('./mcp-server/src/tools/positioning-document.ts',import.meta.url),'utf8');
 assert(tool.includes('"trust_signals"'));
