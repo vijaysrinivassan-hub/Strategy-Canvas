@@ -4,12 +4,14 @@ import fs from 'node:fs';
 const html = fs.readFileSync(new URL('./index.html', import.meta.url), 'utf8');
 
 assert(html.includes("const COMMUNICATION_STRATEGY_TAB = 'Strategy 1 — Communication Strategy'"));
-assert(html.includes("tabButton(COMMUNICATION_STRATEGY_TAB, 'Communication Strategy')"));
+assert(!html.includes("tabButton(COMMUNICATION_STRATEGY_TAB, 'Communication Strategy')"));
 assert(html.includes('COMMUNICATION_STRATEGY_TAB, BRAND_RADAR_TAB, CONTENT_TAB'));
-assert(html.includes("const isCommunication = state.tab === COMMUNICATION_STRATEGY_TAB"));
+assert(html.includes("const isCommunication = isPositioningDocument && activePositioningDocumentSection().id === 'communication_strategy'"));
 assert(html.includes("if (isCommunication) renderCommunicationStrategyCanvas()"));
-assert(html.includes("source.onclick = () => switchTab(POSITIONING_DOCUMENT_TAB)"));
-assert(html.includes("framework.onclick = () => switchTab('Messaging Framework')"));
+assert(html.includes("source.onclick = () => openPositioningDocumentField('core')"));
+assert(html.includes("framework.onclick = () => openPositioningDocumentField('messaging_framework')"));
+assert(html.includes("{ id: 'communication_strategy', label: 'Communication Strategy', fields: [], view: 'communication' }"));
+assert(html.includes("$('positioningDocumentPage').append($('communicationPane'))"));
 
 for (const awareness of ['Competitor-aware','Category-aware','Solution-aware','Problem-aware'])
   assert(html.includes(awareness), 'missing awareness message ' + awareness);
