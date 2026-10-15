@@ -6,9 +6,9 @@ const html=fs.readFileSync(new URL('./index.html',import.meta.url),'utf8');
 assert(html.includes("['trust_signals', 'Trust Signals']"));
 assert(html.includes("['framing', 'Framing']"));
 assert(html.includes("['usp', 'USP']"));
-assert(html.includes("{ id: 'usp', label: 'USP', fields: ['usp'] }"));
 assert(html.includes("['offer', 'Offer']"));
-assert(html.includes("{ id: 'offer', label: 'Offer', fields: ['offer'] }"));
+assert(!html.includes("{ id: 'usp', label: 'USP', fields: ['usp'] }"));
+assert(!html.includes("{ id: 'offer', label: 'Offer', fields: ['offer'] }"));
 assert(html.includes("['distribution_plate', 'Distribution Plate', 'distribution']"));
 for(const label of ['50 words','100 words','200 words','400 words'])assert(html.includes(`'${label}'`));
 assert(html.includes("navOpen: { strategy1: false, brand: false, content: false, positioningDocument: false"));
@@ -35,10 +35,14 @@ assert(html.includes("POSITIONING_DOCUMENT_FIELDS.filter(field => section.fields
 assert(html.includes("positioningDocumentPart: state.positioningDocumentPart || 'core'"));
 assert(html.includes("$('positioningDocumentPage').append($('communicationPane'))"));
 assert(html.includes('class="positioning-radar-host positioning-document-radar-host" id="positioningRadarHost" hidden'));
-assert(html.includes('class="positioning-document-evolution-host" id="positioningDocumentEvolutionHost" hidden'));
-assert(html.includes("$('positioningDocumentEvolutionHost').append($('evoPane').querySelector('.evo-canvas'))"));
-assert(html.includes("const showProductEvolution = section.id === 'usp';"));
-assert(html.includes('if (showProductEvolution) renderEvolution();'));
+assert(html.includes('id="positioningValueUsp"'));
+assert(html.includes('id="positioningValueOffer"'));
+assert(html.includes('id="positioningValueEvolutionHost"'));
+assert(html.includes("$('positioningValueEvolutionHost').append($('evoPane').querySelector('.evo-canvas'))"));
+assert(html.includes('function openValuePositioningField(field)'));
+assert(html.includes("narrativeFields.usp = usp.value"));
+assert(html.includes("narrativeFields.offer = offer.value"));
+assert(!html.includes('id="positioningDocumentEvolutionHost"'));
 
 const tool=fs.readFileSync(new URL('./mcp-server/src/tools/positioning-document.ts',import.meta.url),'utf8');
 assert(tool.includes('"trust_signals"'));
@@ -63,4 +67,4 @@ for(const length of ['50-word','100-word','200-word','400-word'])assert(prompt.i
 const scripts=[...html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/gi)]
   .map(match=>match[1]).filter(code=>code.trim());
 scripts.forEach(code=>new vm.Script(code));
-console.log('PASS: Positioning Document uses field sub-navigation and persists expandable full-height Framing frames.');
+console.log('PASS: Positioning Document navigation excludes moved USP and Offer fields while Value Positioning preserves them with Product Evolution.');

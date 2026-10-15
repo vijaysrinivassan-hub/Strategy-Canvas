@@ -2025,6 +2025,24 @@
   .value-card textarea:focus{border-color:#57c982}
   .value-add-row{width:min(920px,100%); margin:12px auto 0; padding:8px 10px;
                  border-color:#cbd8ce; background:#fff; color:#3f7550; font-size:10px}
+  .value-positioning-narratives{width:min(920px,100%);margin:18px auto 0;padding:16px;
+    border:1px solid #d0d1cc;border-radius:6px;background:rgba(255,255,255,.92);
+    box-shadow:0 1px 2px rgba(0,0,0,.04)}
+  .value-positioning-narratives-head{margin-bottom:12px}
+  .value-positioning-narratives-head h4{margin:0 0 4px;color:#292b27;font-size:13px}
+  .value-positioning-narratives-head p{margin:0;color:#72766f;font-size:10px;line-height:1.45}
+  .value-positioning-narratives-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .value-positioning-narrative{display:block;padding:13px 14px;border:1px solid #d0d1cc;
+    border-radius:6px;background:#fff}
+  .value-positioning-narrative span{display:block;margin-bottom:8px;color:#777872;font-size:8px;
+    font-weight:800;letter-spacing:.08em;text-transform:uppercase}
+  .value-positioning-narrative textarea{display:block;width:100%;min-height:112px;resize:vertical;
+    padding:8px 9px;border:1px solid #deded9;border-radius:3px;outline:none;background:#fdfdfc;
+    color:#292a27;font:inherit;font-size:11.5px;line-height:1.5}
+  .value-positioning-narrative textarea:focus{border-color:#57c982;box-shadow:0 0 0 2px rgba(87,201,130,.12)}
+  .value-positioning-narrative textarea:read-only{background:#fafaf8;color:#4c4e49}
+  .value-positioning-evolution{margin-top:16px;padding-top:16px;border-top:1px solid #d7dad5}
+  .value-positioning-evolution .evo-canvas{width:100%;min-height:0;padding:28px 24px 34px}
   @media(max-width:900px){
     .positioning{padding:14px}.pos-section{padding:18px 14px}.icp-card-head{padding-right:0}
     .icp-name{width:100%}.icp-row{grid-template-columns:28px 1fr 1fr 28px}
@@ -2034,6 +2052,7 @@
     .cat-status{position:absolute; right:12px; top:10px}.cat-competitor{grid-template-columns:1fr}
     .competitive-card{grid-template-columns:64px 1fr}.competitive-status{position:absolute; right:12px; top:10px}
     .competitive-controls{grid-column:1/-1}.value-row-grid{grid-template-columns:1fr 1fr}
+    .value-positioning-narratives-grid{grid-template-columns:1fr}
     .industry-fit-preview{grid-template-columns:minmax(0,1fr) 42px minmax(0,1fr); gap:10px}
     .industry-model-choice{grid-template-columns:minmax(0,1fr) 42px minmax(0,1fr); gap:10px}
   }
@@ -2067,9 +2086,6 @@
   .positioning-document-radar-host{flex:1;min-height:0;overflow:auto;width:100%;margin:0;padding:30px}
   .positioning-document-radar-host .radar-canvas{width:min(980px,100%);margin:0 auto;padding:24px;
     border:1px solid #deded9;background:#fbfbfa}
-  .positioning-document-evolution-host{margin-top:16px}
-  .positioning-document-evolution-host .evo-canvas{width:100%;min-height:0;padding:28px 24px 34px;
-    border:1px solid #d5d7d1;background:#fff}
   .positioning-document-sheet{width:min(980px,100%); margin:0 auto; padding:24px;
     border:1px solid #deded9; background-color:#fbfbfa;
     background-image:radial-gradient(circle at 1px 1px,#d4d5cf 1.1px,transparent 1.2px);
@@ -3003,6 +3019,17 @@
           <button id="btnAddValuePositioningRow" type="button">+ Add value</button>
         </div>
         <div class="value-map" id="positioningValues"></div>
+        <section class="value-positioning-narratives" aria-labelledby="valuePositioningNarrativesTitle">
+          <div class="value-positioning-narratives-head">
+            <h4 id="valuePositioningNarrativesTitle">USP &amp; Offer</h4>
+            <p>Define the reason to choose this product and the exact offer the buyer receives.</p>
+          </div>
+          <div class="value-positioning-narratives-grid">
+            <label class="value-positioning-narrative"><span>USP</span><textarea id="positioningValueUsp" placeholder="Add the unique selling proposition"></textarea></label>
+            <label class="value-positioning-narrative"><span>Offer</span><textarea id="positioningValueOffer" placeholder="Add the buyer offer"></textarea></label>
+          </div>
+          <div class="positioning-evolution-host value-positioning-evolution" id="positioningValueEvolutionHost"></div>
+        </section>
         <section class="pe-box" id="problemEvidenceBox">
           <div class="pe-head">
             <div>
@@ -3032,7 +3059,6 @@
           <div class="positioning-document-narrative" id="positioningDocumentNarrative">
             <section class="positioning-document-sheet">
               <div class="positioning-document-fields" id="positioningDocumentFields"></div>
-              <div class="positioning-document-evolution-host" id="positioningDocumentEvolutionHost" hidden></div>
             </section>
           </div>
           <div class="positioning-radar-host positioning-document-radar-host" id="positioningRadarHost" hidden></div>
@@ -3212,7 +3238,7 @@ const SUPABASE_URL = 'https://cskamgfvebryahkljlll.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_MdkD-TxMCIwlu69seSHA3Q_A39GADsK';
 const CLIENT_ID    = '1059013355751-6g50dsgm7df37htl2fdqrtlkh5hmrc0c.apps.googleusercontent.com';
 const ALLOWED      = ['vijaysrinivassan@gmail.com'];
-const BUILD        = 'v8.90';
+const BUILD        = 'v8.91';
 
 const STRATEGY_ONE_TAB = 'Strategy 1 — Brand Strategy';
 const PRODUCT_EVOLUTION_TAB = 'Strategy 1 — Product Evolution';
@@ -3335,7 +3361,7 @@ function closeNav(){
 const $ = id => document.getElementById(id);
 const uid = () => Math.random().toString(36).slice(2, 10) + Date.now().toString(36).slice(-4);
 $('brandChannelHost').append($('chanPane'));
-$('positioningDocumentEvolutionHost').append($('evoPane').querySelector('.evo-canvas'));
+$('positioningValueEvolutionHost').append($('evoPane').querySelector('.evo-canvas'));
 $('positioningRadarHost').append($('brandRadarPane').querySelector('.radar-canvas'));
 $('positioningDocumentPage').append($('communicationPane'));
 
@@ -12374,6 +12400,27 @@ function renderPositioning(){
     row.append(head, grid);
     valueHost.append(row);
   });
+  const narrativeFields = positioningDocumentState();
+  const usp = $('positioningValueUsp');
+  usp.value = narrativeFields.usp || '';
+  usp.readOnly = ro;
+  usp.oninput = () => { narrativeFields.usp = usp.value; markDirty(); };
+  const offer = $('positioningValueOffer');
+  offer.value = narrativeFields.offer || '';
+  offer.readOnly = ro;
+  offer.oninput = () => { narrativeFields.offer = offer.value; markDirty(); };
+  renderEvolution();
+}
+
+function openValuePositioningField(field){
+  const id = field === 'usp' ? 'positioningValueUsp' : 'positioningValueOffer';
+  if (state.tab !== POSITIONING_TAB) switchTab(POSITIONING_TAB);
+  requestAnimationFrame(() => {
+    const input = $(id);
+    if (!input) return;
+    input.scrollIntoView({behavior:'smooth',block:'center'});
+    if (!readOnly()) input.focus();
+  });
 }
 
 $('btnAddPositioningIcp').onclick = () => {
@@ -12435,8 +12482,6 @@ const POSITIONING_DOCUMENT_CORE_KEYS = [
 const POSITIONING_DOCUMENT_SECTIONS = [
   { id: 'core', label: 'Positioning', fields: POSITIONING_DOCUMENT_CORE_KEYS },
   { id: 'brand_radar', label: 'Brand Radar', fields: [], view: 'brand_radar' },
-  { id: 'usp', label: 'USP', fields: ['usp'] },
-  { id: 'offer', label: 'Offer', fields: ['offer'] },
   { id: 'trust_signals', label: 'Trust Signals', fields: ['trust_signals'] },
   { id: 'framing', label: 'Framing', fields: ['framing'] },
   { id: 'messaging_framework', label: 'Messaging Framework', fields: ['messaging_framework'] },
@@ -12535,7 +12580,6 @@ function renderPositioningDocument(){
   const section = activePositioningDocumentSection();
   const isCommunication = section.view === 'communication';
   const isBrandRadar = section.view === 'brand_radar';
-  const showProductEvolution = section.id === 'usp';
   const isFraming = section.id === 'framing';
   renderPositioningDocumentNavigation();
   $('positioningDocumentNarrative').classList.toggle('framing-workspace',isFraming);
@@ -12543,7 +12587,6 @@ function renderPositioningDocument(){
   $('positioningDocumentActions').hidden = isCommunication || isBrandRadar;
   $('communicationPane').hidden = !isCommunication;
   $('positioningRadarHost').hidden = !isBrandRadar;
-  $('positioningDocumentEvolutionHost').hidden = !showProductEvolution;
   if (isCommunication){
     $('tabTitle').textContent = section.label;
     return;
@@ -12644,7 +12687,6 @@ function renderPositioningDocument(){
     }
     host.append(wrapper);
   });
-  if (showProductEvolution) renderEvolution();
   $('tabTitle').textContent = section.label;
 }
 
@@ -13002,7 +13044,7 @@ function renderCommunicationStrategyCanvas(){
     card.append(title,preview);
     card.onclick=()=>{
       if(factor.label==='Framing')openPositioningDocumentField('framing');
-      else if(factor.label==='Offer')openPositioningDocumentField('offer');
+      else if(factor.label==='Offer')openValuePositioningField('offer');
       else if(factor.label==='Buying Trigger')switchTab(POSITIONING_TAB);
       else openPositioningDocumentField('messaging_framework');
     };

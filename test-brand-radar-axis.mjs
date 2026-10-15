@@ -6,8 +6,9 @@ const html=fs.readFileSync(new URL('./index.html',import.meta.url),'utf8').repla
 assert(html.includes('id="btnRadarAxis"'));
 assert(!html.includes('id="btnOpenProductEvolution"'));
 assert(!html.includes('id="positioningEvolutionHost"'));
-assert(html.includes('id="positioningDocumentEvolutionHost"'));
-assert(html.includes("$('positioningDocumentEvolutionHost').append($('evoPane').querySelector('.evo-canvas'))"));
+assert(!html.includes('id="positioningDocumentEvolutionHost"'));
+assert(html.includes('id="positioningValueEvolutionHost"'));
+assert(html.includes("$('positioningValueEvolutionHost').append($('evoPane').querySelector('.evo-canvas'))"));
 assert(html.includes('id="positioningRadarHost"'));
 assert(html.includes("$('positioningRadarHost').append($('brandRadarPane').querySelector('.radar-canvas'))"));
 assert(!html.includes("box.append(tabButton(BRAND_RADAR_TAB, 'Brand Radar'))"));
@@ -25,4 +26,4 @@ assert(!evolution.includes('renderBrandRadar();'));
 assert(html.includes("if (!svg || !map || !market || !map.clientWidth || !map.clientHeight) return;"));
 assert(!html.includes("$('brandRadarPane').hidden) return"));
 assert(html.includes('radar.buyingAxis = axis.id;'));
-console.log('PASS: Brand Radar lives inside Positioning Document and continues to follow the Buying Industry axis.');
+console.log('PASS: Brand Radar remains in Positioning Document while Product Evolution lives with USP in Value Positioning.');

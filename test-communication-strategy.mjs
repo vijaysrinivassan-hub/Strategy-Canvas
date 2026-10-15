@@ -36,6 +36,7 @@ assert(html.includes("makeCommunicationNodeDraggable(card,'message:' + message.i
 assert(html.includes("makeCommunicationNodeDraggable(panel,'perception:' + perception.id,model)"));
 assert(html.includes('drawCommunicationWires();'));
 assert(html.includes("const COMMUNICATION_FACTORS = ['Writing Style','Framing','Buying Trigger','Offer']"));
+assert(html.includes("else if(factor.label==='Offer')openValuePositioningField('offer')"));
 assert(html.includes('function syncCommunicationPerceptionFrames(model,fields)'));
 assert(html.includes("frameId:frame.id,name:frame.label"));
 assert(html.includes("axisName.readOnly = true"));
