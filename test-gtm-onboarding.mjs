@@ -6,10 +6,14 @@ const html=fs.readFileSync(new URL('./index.html',import.meta.url),'utf8');
 assert(html.includes('id="gtmOnboardingSteps"'));
 assert(html.includes('id="gtmOnboardingPanel"'));
 assert(html.includes('id="gtmWorkspace" hidden'));
-assert(html.includes("t.guide.onboarding = { activeStep: 'company', locked: {} }"));
-for(const id of ['company','product','setup','market','channels']){
+assert(html.includes("t.guide.onboarding = { activeStep: 'product', locked: {} }"));
+for(const id of ['product','setup','market','channels']){
   assert(html.includes(`id:'${id}'`),`missing ${id} onboarding step`);
 }
+assert(!html.includes("id:'company', label:'Company'"));
+assert(html.includes("if (onboarding.activeStep === 'company') onboarding.activeStep='product'"));
+assert(html.includes("description.placeholder='Enter the product source text, description, notes, or other onboarding context'"));
+assert(html.includes("product.description=description.value"));
 assert(!html.includes("id:'icp', label:'Primary ICP'"));
 assert(html.includes("type:'products'"));
 assert(html.includes("type:'setup'"));
@@ -36,6 +40,8 @@ const gtmPrompt=prompts.gtm_strategy_seo?.prompt || '';
 assert(gtmPrompt.includes('attached DOZ requirements prompt'));
 assert(gtmPrompt.includes('attached first-output prompt'));
 assert(gtmPrompt.includes('between one and three named products'));
+assert(gtmPrompt.includes('do not create a separate Company onboarding step'));
+assert(gtmPrompt.includes('supplied source text, description, notes'));
 assert(gtmPrompt.includes('GTM setup combines industry type, primary goal and sales motion in one step'));
 assert(gtmPrompt.includes('Do not create a separate Primary ICP onboarding step'));
 assert(gtmPrompt.includes('Treat the selling component/buying component choice and the 4x4 market matrix as one step'));

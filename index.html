@@ -991,7 +991,8 @@
   .gtm-onboarding-control{display:block;width:100%;max-width:none;padding:11px 12px;border:1px solid #cfd3ce;background:#fff;color:#232623;font:inherit;font-size:13px}
   .gtm-onboarding-control:disabled{background:#f6f7f5;color:#4c514c;opacity:1}.gtm-onboarding-actions{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:18px}
   .gtm-onboarding-source{color:#7d827d;font-size:9px}.gtm-onboarding-complete{color:#287243;font-weight:750}.gtm-workspace[hidden]{display:none}
-  .gtm-onboarding-products{display:flex;flex-direction:column;gap:8px}.gtm-onboarding-product{display:grid;grid-template-columns:26px minmax(0,1fr) 28px;gap:8px;align-items:center;padding:8px;border:1px solid #d7dbd6;background:#fafbf9}
+  .gtm-onboarding-products{display:flex;flex-direction:column;gap:8px}.gtm-onboarding-product{display:grid;grid-template-columns:26px minmax(0,1fr) 28px;gap:8px;align-items:start;padding:8px;border:1px solid #d7dbd6;background:#fafbf9}
+  .gtm-onboarding-product-fields{display:flex;min-width:0;flex-direction:column;gap:7px}.gtm-onboarding-product-fields textarea{width:100%;min-height:92px;padding:9px 10px;resize:vertical;border:1px solid #cfd3ce;background:#fff;color:#232623;font:inherit;font-size:11px;line-height:1.5}
   .gtm-onboarding-product input[type=radio]{margin:0;accent-color:#2f8b50}.gtm-onboarding-product input[type=text]{width:100%;padding:9px 10px;border:1px solid #cfd3ce;background:#fff;font:inherit;font-size:12px}
   .gtm-onboarding-product button{padding:2px 7px;border:0;background:transparent;color:#92968f;font-size:15px}.gtm-onboarding-product button:hover:not(:disabled){background:#fff0f0;color:var(--danger)}
   .gtm-onboarding-add{align-self:flex-start;margin-top:2px;padding:7px 10px;background:#fff;color:#386b49;font-size:10px}.gtm-onboarding-hint{display:block;margin-top:8px;color:#80857f;font-size:9px}
@@ -2744,7 +2745,7 @@
         </div>
       </div>
       <section class="gtm-onboarding" id="gtmOnboarding" aria-label="GTM onboarding">
-        <nav class="gtm-onboarding-steps" id="gtmOnboardingSteps" aria-label="Company setup steps"></nav>
+        <nav class="gtm-onboarding-steps" id="gtmOnboardingSteps" aria-label="GTM onboarding steps"></nav>
         <div class="gtm-onboarding-panel" id="gtmOnboardingPanel"></div>
       </section>
       <div class="gtm-workspace" id="gtmWorkspace" hidden>
@@ -3182,7 +3183,7 @@ const SUPABASE_URL = 'https://cskamgfvebryahkljlll.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_MdkD-TxMCIwlu69seSHA3Q_A39GADsK';
 const CLIENT_ID    = '1059013355751-6g50dsgm7df37htl2fdqrtlkh5hmrc0c.apps.googleusercontent.com';
 const ALLOWED      = ['vijaysrinivassan@gmail.com'];
-const BUILD        = 'v8.79';
+const BUILD        = 'v8.80';
 
 const STRATEGY_ONE_TAB = 'Strategy 1 — Brand Strategy';
 const PRODUCT_EVOLUTION_TAB = 'Strategy 1 — Product Evolution';
@@ -5266,7 +5267,7 @@ function ensureProductWorkspace(){
   }
   // The active top-level tabs are authoritative, including writes made by MCP.
   if (!catalog.products.some(p => p.id === state.workspaceProductId)){
-    catalog.products.push({id:state.workspaceProductId,name:state.clientProduct || 'Recovered product'});
+    catalog.products.push({id:state.workspaceProductId,name:state.clientProduct || 'Recovered product',description:''});
   }
   catalog.activeProductId = state.workspaceProductId;
   const active = activeGtmProduct(catalog);
@@ -5329,12 +5330,12 @@ function productNameEditor(products){
     const input = document.createElement('input'); input.className = 'modal-in';
     input.value = product.name; input.placeholder = 'Product name';
     input.setAttribute('aria-label', 'Product ' + (fields.length + 1));
-    fields.push({id:product.id || uid(),input}); host.append(input); return input;
+    fields.push({id:product.id || uid(),input,description:String(product.description || '')}); host.append(input); return input;
   };
   products.forEach(addRow);
   const add = document.createElement('button'); add.type = 'button'; add.textContent = '+ Add product';
   add.onclick = () => addRow({name:''}).focus();
-  return {host,add,values:() => fields.map(f=>({id:f.id,name:f.input.value.trim()}))};
+  return {host,add,values:() => fields.map(f=>({id:f.id,name:f.input.value.trim(),description:f.description}))};
 }
 function validProductNames(products){
   if (products.some(p=>!p.name)){ toast('Enter a name for each product.', true); return false; }
@@ -13922,7 +13923,7 @@ function channelState(){
   if (!Array.isArray(t.aeoActivities)) t.aeoActivities = [];
   const seededProduct = (state.clientProduct || '').trim();
   if (!t.products.length){
-    t.products.push({ id: uid(), name: seededProduct || 'Product name' });
+    t.products.push({ id: uid(), name: seededProduct || 'Product name', description: '' });
     t.activeProductId = t.products[0].id;
     if (!readOnly()) setTimeout(markDirty, 0);
   }
@@ -13933,6 +13934,7 @@ function channelState(){
   t.products.forEach(product => {
     if (!product.id) product.id = uid();
     product.name = String(product.name || '').trim() || 'Product name';
+    product.description = String(product.description || '');
   });
   if (!t.products.some(product => product.id === t.activeProductId)) t.activeProductId = t.products[0].id;
   t.items.forEach(item => {
@@ -14053,7 +14055,7 @@ function addGtmProduct(){
   if (readOnly()) return;
   const t = ensureProductWorkspace();
   if (t.products.length >= 3){ toast('This GTM flow supports up to 3 products.', true); return; }
-  const product = { id: uid(), name: 'New product' };
+  const product = { id: uid(), name: 'New product', description: '' };
   t.products.push(product);
   activateProduct(product.id);
   markDirty();
@@ -14070,11 +14072,11 @@ function removeGtmProduct(productId){
   if (!product) return;
   if (!confirm('Remove "' + product.name + '" from this GTM canvas?')) return;
   if (t.activeProductId === productId){
-    if (t.products.length === 1) t.products.push({id:uid(),name:'Product name'});
+    if (t.products.length === 1) t.products.push({id:uid(),name:'Product name',description:''});
     activateProduct(t.products.find(p=>p.id!==productId).id);
   }
   t.products = t.products.filter(item => item.id !== productId);
-  if (!t.products.length) t.products.push({ id: uid(), name: 'Product name' });
+  if (!t.products.length) t.products.push({ id: uid(), name: 'Product name', description: '' });
   if (t.activeProductId === productId) t.activeProductId = t.products[0].id;
   state.clientProduct = gtmProductTargetName(activeGtmProduct(t));
   markDirty();
@@ -15228,19 +15230,19 @@ function strategyOneState(){
   delete t.guide.ocean;
   if (typeof t.guide.opened !== 'boolean') t.guide.opened = false;
   if (!t.guide.onboarding || typeof t.guide.onboarding !== 'object'){
-    t.guide.onboarding = { activeStep: 'company', locked: {} };
+    t.guide.onboarding = { activeStep: 'product', locked: {} };
   }
   if (!t.guide.onboarding.locked || typeof t.guide.onboarding.locked !== 'object') t.guide.onboarding.locked = {};
   const onboarding=t.guide.onboarding, locked=onboarding.locked;
+  if (onboarding.activeStep === 'company') onboarding.activeStep='product';
+  delete locked.company;
   if (locked.setup !== true && locked.industry === true && locked.goal === true && locked.sales_motion === true) locked.setup=true;
   if (['industry','goal','sales_motion','icp'].includes(onboarding.activeStep)) onboarding.activeStep='setup';
   return t.guide;
 }
 
 const GTM_ONBOARDING_STEPS = [
-  { id:'company', label:'Company', question:'What is the company name?', detail:'The client identity used throughout this board.',
-    get:()=>state.client || '', set:value=>{ state.client=value; } },
-  { id:'product', label:'Products', question:'Which products are we taking to market?', detail:'Add one, two or three products. Choose the active product whose strategy workspace you want to edit.', type:'products' },
+  { id:'product', label:'Products', question:'Which products are we taking to market?', detail:'Add one, two or three products, then capture the source text or notes for each. Choose the active product whose strategy workspace you want to edit.', type:'products' },
   { id:'setup', label:'GTM setup', question:'What is the core GTM setup?', detail:'Set the industry type, primary goal and sales motion together.', type:'setup' },
   { id:'market', label:'Market system', question:'How does the selling system meet the buying component?', detail:'Choose the selling component and buying component together, or select their exact intersection in the matrix.', type:'market' },
   { id:'channels', label:'Channels', question:'Are we using inbound, outbound or both?', detail:'Choose the motion, its channels, and the AEO workstreams when AEO is part of the plan.', type:'channels' }
@@ -15283,6 +15285,7 @@ function renderGtmProductStep(host, locked, ro){
     active.checked=product.id===catalog.activeProductId; active.disabled=ro || locked;
     active.title='Use this as the active product workspace';
     active.onchange=()=>{ activateProduct(product.id); markDirty(); renderGtmOnboarding(); renderChannels(); };
+    const fields=document.createElement('div'); fields.className='gtm-onboarding-product-fields';
     const input=document.createElement('input'); input.type='text'; input.value=product.name || ''; input.placeholder='Product name';
     input.disabled=ro || locked; input.setAttribute('aria-label','Product name');
     input.oninput=()=>{
@@ -15290,15 +15293,20 @@ function renderGtmProductStep(host, locked, ro){
       if (product.id===catalog.activeProductId){ state.clientProduct=input.value; }
       markDirty();
     };
+    const description=document.createElement('textarea'); description.value=product.description || '';
+    description.placeholder='Enter the product source text, description, notes, or other onboarding context';
+    description.disabled=ro || locked; description.setAttribute('aria-label','Product text for '+(product.name || 'product'));
+    description.oninput=()=>{ product.description=description.value; markDirty(); };
+    fields.append(input,description);
     const remove=document.createElement('button'); remove.type='button'; remove.innerHTML='&times;'; remove.title='Remove product';
     remove.disabled=ro || locked || catalog.products.length===1;
     remove.onclick=()=>{ removeGtmProduct(product.id); renderGtmOnboarding(); };
-    row.append(active,input,remove); list.append(row);
+    row.append(active,fields,remove); list.append(row);
   });
   if (catalog.products.length<3){
     const add=document.createElement('button'); add.type='button'; add.className='gtm-onboarding-add'; add.textContent='+ Add product'; add.disabled=ro || locked;
     add.onclick=()=>{
-      const product={id:uid(),name:'New product'}; catalog.products.push(product); activateProduct(product.id);
+      const product={id:uid(),name:'New product',description:''}; catalog.products.push(product); activateProduct(product.id);
       markDirty(); renderGtmOnboarding(); renderChannels();
       requestAnimationFrame(()=>{
         const inputs=$('gtmOnboardingPanel')?.querySelectorAll('.gtm-onboarding-product input[type=text]');
