@@ -13,6 +13,14 @@ const FIELD_KEYS = [
   "trust_signals",
   "framing"
 ] as const;
+const DISTRIBUTION_PLATE_KEYS = ["words_50", "words_100", "words_200", "words_400"] as const;
+
+const distributionPlateSchema = z.object({
+  words_50: z.string().optional(),
+  words_100: z.string().optional(),
+  words_200: z.string().optional(),
+  words_400: z.string().optional()
+});
 
 const fieldsSchema = z.object({
   positioning_statement: z.string().optional(),
@@ -21,14 +29,21 @@ const fieldsSchema = z.object({
   competitive_positioning: z.string().optional(),
   value_positioning: z.string().optional(),
   trust_signals: z.string().optional(),
-  framing: z.string().optional()
+  framing: z.string().optional(),
+  distribution_plate: distributionPlateSchema.optional()
 });
 
-function fieldsOf(body: any): Record<(typeof FIELD_KEYS)[number], string> {
+function fieldsOf(body: any): Record<string, any> {
   const slot = tabSlot(body, TAB);
   if (!slot.fields || typeof slot.fields !== "object") slot.fields = {};
   for (const key of FIELD_KEYS) {
     if (typeof slot.fields[key] !== "string") slot.fields[key] = "";
+  }
+  if (!slot.fields.distribution_plate || typeof slot.fields.distribution_plate !== "object") {
+    slot.fields.distribution_plate = {};
+  }
+  for (const key of DISTRIBUTION_PLATE_KEYS) {
+    if (typeof slot.fields.distribution_plate[key] !== "string") slot.fields.distribution_plate[key] = "";
   }
   return slot.fields;
 }
@@ -39,8 +54,9 @@ export function registerPositioningDocumentTools(server: McpServer) {
     {
       title: "Read positioning document",
       description:
-        "Read the seven narrative fields in a board's Positioning Document: the positioning " +
-        "statement; ICP, category, competitive and value positioning; Trust Signals; and Framing.",
+        "Read the seven narrative fields and Distribution Plate in a board's Positioning Document: " +
+        "the positioning statement; ICP, category, competitive and value positioning; Trust Signals; " +
+        "Framing; and the 50-, 100-, 200- and 400-word Distribution Plate versions.",
       inputSchema: {
         board_id: z.string().describe("Board uuid from board_list")
       },
@@ -70,6 +86,11 @@ export function registerPositioningDocumentTools(server: McpServer) {
       const current = fieldsOf(body);
       for (const key of FIELD_KEYS) {
         if (typeof fields[key] === "string") current[key] = fields[key];
+      }
+      if (fields.distribution_plate) {
+        for (const key of DISTRIBUTION_PLATE_KEYS) {
+          if (typeof fields.distribution_plate[key] === "string") current.distribution_plate[key] = fields.distribution_plate[key];
+        }
       }
       await saveBoard(board_id, body);
       return ok({ fields: current });

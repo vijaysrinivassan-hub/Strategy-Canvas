@@ -2062,6 +2062,10 @@
   .messaging-framework-subfield{display:block;padding:11px;border:1px solid #e1e3de;background:#fafbf9}
   .messaging-framework-subfield span{margin-bottom:7px;color:#353a35;font-size:9px}
   .messaging-framework-subfield textarea{min-height:84px;background:#fff}
+  .distribution-plate-fields{display:flex;flex-direction:column;gap:10px}
+  .distribution-plate-subfield{display:block;padding:11px;border:1px solid #e1e3de;background:#fafbf9}
+  .distribution-plate-subfield span{margin-bottom:7px;color:#353a35;font-size:9px}
+  .distribution-plate-subfield textarea{min-height:92px;background:#fff}
   .high-priority-links-field textarea{min-height:150px;font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:11px;line-height:1.55}
   @media(max-width:780px){
     .positioning-document{padding:14px}.positioning-document-sheet{padding:14px}
@@ -3150,7 +3154,7 @@ const SUPABASE_URL = 'https://cskamgfvebryahkljlll.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_MdkD-TxMCIwlu69seSHA3Q_A39GADsK';
 const CLIENT_ID    = '1059013355751-6g50dsgm7df37htl2fdqrtlkh5hmrc0c.apps.googleusercontent.com';
 const ALLOWED      = ['vijaysrinivassan@gmail.com'];
-const BUILD        = 'v8.72';
+const BUILD        = 'v8.73';
 
 const STRATEGY_ONE_TAB = 'Strategy 1 — Brand Strategy';
 const PRODUCT_EVOLUTION_TAB = 'Strategy 1 — Product Evolution';
@@ -12329,6 +12333,12 @@ const MESSAGING_FRAMEWORK_FIELDS = [
   ['category_aware', 'Category-aware'],
   ['competitor_aware', 'Competitor-aware']
 ];
+const DISTRIBUTION_PLATE_FIELDS = [
+  ['words_50', '50 words'],
+  ['words_100', '100 words'],
+  ['words_200', '200 words'],
+  ['words_400', '400 words']
+];
 const POSITIONING_DOCUMENT_FIELDS = [
   ['positioning_statement', 'Positioning Statement'],
   ['icp_positioning', 'ICP Positioning'],
@@ -12338,6 +12348,7 @@ const POSITIONING_DOCUMENT_FIELDS = [
   ['trust_signals', 'Trust Signals'],
   ['framing', 'Framing'],
   ['messaging_framework', 'Messaging Framework', 'messaging'],
+  ['distribution_plate', 'Distribution Plate', 'distribution'],
   ['high_priority_links', 'High Priority Links', 'links']
 ];
 const POSITIONING_DOCUMENT_CORE_KEYS = [
@@ -12349,6 +12360,7 @@ const POSITIONING_DOCUMENT_SECTIONS = [
   { id: 'trust_signals', label: 'Trust Signals', fields: ['trust_signals'] },
   { id: 'framing', label: 'Framing', fields: ['framing'] },
   { id: 'messaging_framework', label: 'Messaging Framework', fields: ['messaging_framework'] },
+  { id: 'distribution_plate', label: 'Distribution Plate', fields: ['distribution_plate'] },
   { id: 'high_priority_links', label: 'High Priority Links', fields: ['high_priority_links'] }
 ];
 
@@ -12376,6 +12388,11 @@ function positioningDocumentState(){
       MESSAGING_FRAMEWORK_FIELDS.forEach(subfield => {
         if (typeof tab.fields[field[0]][subfield[0]] !== 'string') tab.fields[field[0]][subfield[0]] = '';
       });
+    } else if (field[2] === 'distribution'){
+      if (!tab.fields[field[0]] || typeof tab.fields[field[0]] !== 'object') tab.fields[field[0]] = {};
+      DISTRIBUTION_PLATE_FIELDS.forEach(subfield => {
+        if (typeof tab.fields[field[0]][subfield[0]] !== 'string') tab.fields[field[0]][subfield[0]] = '';
+      });
     } else if (field[2] !== 'links' && typeof tab.fields[field[0]] !== 'string') tab.fields[field[0]] = '';
   });
   return tab.fields;
@@ -12389,9 +12406,10 @@ function renderPositioningDocument(){
   POSITIONING_DOCUMENT_FIELDS.filter(field => section.fields.includes(field[0])).forEach(field => {
     const isLinks = field[2] === 'links';
     const isMessaging = field[2] === 'messaging';
-    const wrapper = document.createElement(isLinks || isMessaging ? 'section' : 'label');
+    const isDistribution = field[2] === 'distribution';
+    const wrapper = document.createElement(isLinks || isMessaging || isDistribution ? 'section' : 'label');
     wrapper.className = 'positioning-document-field' + (isLinks ? ' high-priority-links-field' : '') +
-      (isMessaging ? ' messaging-framework-field' : '');
+      (isMessaging ? ' messaging-framework-field' : '') + (isDistribution ? ' distribution-plate-field' : '');
     const label = document.createElement('span');
     label.textContent = field[1];
     if (isLinks){
@@ -12415,6 +12433,22 @@ function renderPositioningDocument(){
         const textarea = document.createElement('textarea');
         textarea.value = fields[field[0]][subfield[0]];
         textarea.placeholder = 'Add message';
+        textarea.readOnly = readOnly();
+        textarea.oninput = event => {
+          fields[field[0]][subfield[0]] = event.target.value;
+          markDirty();
+        };
+        subwrapper.append(sublabel,textarea); stack.append(subwrapper);
+      });
+      wrapper.append(label,stack);
+    }else if(isDistribution){
+      const stack = document.createElement('div'); stack.className = 'distribution-plate-fields';
+      DISTRIBUTION_PLATE_FIELDS.forEach(subfield => {
+        const subwrapper = document.createElement('label'); subwrapper.className = 'distribution-plate-subfield';
+        const sublabel = document.createElement('span'); sublabel.textContent = subfield[1];
+        const textarea = document.createElement('textarea');
+        textarea.value = fields[field[0]][subfield[0]];
+        textarea.placeholder = 'Add the ' + subfield[1] + ' version';
         textarea.readOnly = readOnly();
         textarea.oninput = event => {
           fields[field[0]][subfield[0]] = event.target.value;
