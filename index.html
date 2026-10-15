@@ -2059,6 +2059,11 @@
   .positioning-document-index-nav button{width:100%;padding:9px 10px;border:0;background:transparent;text-align:left;color:#4d534d;font-size:11px;font-weight:650}
   .positioning-document-index-nav button:hover{background:#e7ebe5;color:#1f2921}
   .positioning-document-index-nav button.active{background:#142019;color:#fff;box-shadow:inset 3px 0 #57c982}
+  .positioning-document-nav-group{display:flex;flex-direction:column;gap:3px}
+  .positioning-document-submenu{display:flex;flex-direction:column;gap:2px;margin:1px 0 5px 11px;padding-left:9px;border-left:1px solid #cbd1ca}
+  .positioning-document-index-nav .positioning-document-submenu button{padding:7px 9px;font-size:10px;font-weight:600}
+  .positioning-document-index-nav .positioning-document-submenu button.active{background:#dfeee3;color:#1d5e32;box-shadow:inset 2px 0 #57c982}
+  .positioning-document-index-nav .positioning-document-submenu .add-frame{color:#2d7143;font-weight:750}
   .positioning-document-page{min-width:0;min-height:0;display:flex;flex-direction:column;overflow:hidden}
   .positioning-document-actions{display:flex;justify-content:flex-end;padding:12px 18px;border-bottom:1px solid #deded9;background:#fff}
   .positioning-document-narrative{flex:1;min-height:0;overflow:auto;padding:30px}
@@ -2082,6 +2087,11 @@
     color:#292b27; font:inherit; font-size:12px; line-height:1.55}
   .positioning-document-field textarea:focus{border-color:#57c982; box-shadow:0 0 0 2px rgba(87,201,130,.12)}
   .positioning-document-field textarea:read-only{background:#fafaf8; color:#4c4e49}
+  .positioning-document-narrative.framing-workspace{display:flex;flex-direction:column;min-height:0;overflow:hidden;padding:20px}
+  .framing-workspace .positioning-document-sheet{display:flex;flex:1;min-height:0;width:100%;max-width:none;margin:0;padding:0}
+  .framing-workspace .positioning-document-fields{display:flex;flex:1;min-height:0;width:100%}
+  .positioning-document-field.framing-frame-field{display:flex;flex:1;min-height:0;flex-direction:column}
+  .positioning-document-field.framing-frame-field textarea{flex:1;min-height:0;height:100%;resize:none}
   .positioning-document-field-head{display:flex;align-items:center;gap:9px;margin-bottom:9px}
   .positioning-document-field-head span{margin:0;flex:1}.positioning-document-field-head small{color:#848984;font-size:10px}
   .positioning-document-field-head button{padding:6px 10px;background:#fff;font-size:10px}
@@ -3201,7 +3211,7 @@ const SUPABASE_URL = 'https://cskamgfvebryahkljlll.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_MdkD-TxMCIwlu69seSHA3Q_A39GADsK';
 const CLIENT_ID    = '1059013355751-6g50dsgm7df37htl2fdqrtlkh5hmrc0c.apps.googleusercontent.com';
 const ALLOWED      = ['vijaysrinivassan@gmail.com'];
-const BUILD        = 'v8.87';
+const BUILD        = 'v8.88';
 
 const STRATEGY_ONE_TAB = 'Strategy 1 — Brand Strategy';
 const PRODUCT_EVOLUTION_TAB = 'Strategy 1 — Product Evolution';
@@ -12402,6 +12412,7 @@ const DISTRIBUTION_PLATE_FIELDS = [
   ['words_200', '200 words'],
   ['words_400', '400 words']
 ];
+const DEFAULT_FRAMING_COUNT = 4;
 const POSITIONING_DOCUMENT_FIELDS = [
   ['positioning_statement', 'Positioning Statement'],
   ['icp_positioning', 'ICP Positioning'],
@@ -12451,12 +12462,33 @@ function renderPositioningDocumentNavigation(){
   const active = activePositioningDocumentSection();
   host.innerHTML = '';
   POSITIONING_DOCUMENT_SECTIONS.forEach(section => {
+    const group = document.createElement('div');
+    group.className = 'positioning-document-nav-group';
     const button = document.createElement('button');
     button.type = 'button'; button.textContent = section.label;
     button.className = section.id === active.id ? 'active' : '';
     if (section.id === active.id) button.setAttribute('aria-current','page');
     button.onclick = () => openPositioningDocumentField(section.id);
-    host.append(button);
+    group.append(button);
+    if (section.id === 'framing' && active.id === 'framing'){
+      const tab = state.tabs[POSITIONING_DOCUMENT_TAB];
+      const frames = positioningDocumentState().framing_frames;
+      const activeFrameId = tab.framingActiveFrameId;
+      const submenu = document.createElement('div'); submenu.className = 'positioning-document-submenu';
+      frames.forEach(frame => {
+        const frameButton = document.createElement('button'); frameButton.type = 'button';
+        frameButton.textContent = frame.label; frameButton.className = frame.id === activeFrameId ? 'active' : '';
+        if (frame.id === activeFrameId) frameButton.setAttribute('aria-current','page');
+        frameButton.onclick = () => openPositioningFrame(frame.id);
+        submenu.append(frameButton);
+      });
+      if (!readOnly()){
+        const add = document.createElement('button'); add.type = 'button'; add.className = 'add-frame'; add.textContent = '+ Add frame';
+        add.onclick = addPositioningFrame; submenu.append(add);
+      }
+      group.append(submenu);
+    }
+    host.append(group);
   });
 }
 
@@ -12477,7 +12509,43 @@ function positioningDocumentState(){
       });
     } else if (field[2] !== 'links' && typeof tab.fields[field[0]] !== 'string') tab.fields[field[0]] = '';
   });
+  if (!Array.isArray(tab.fields.framing_frames)){
+    tab.fields.framing_frames = Array.from({length:DEFAULT_FRAMING_COUNT}, (_,index) => ({
+      id:'frame_'+(index+1), label:'Frame '+(index+1), text:index===0 ? tab.fields.framing : ''
+    }));
+  }
+  tab.fields.framing_frames = tab.fields.framing_frames.map((frame,index) => ({
+    id:String(frame?.id || 'frame_'+(index+1)),
+    label:String(frame?.label || 'Frame '+(index+1)),
+    text:String(frame?.text || '')
+  }));
+  while (tab.fields.framing_frames.length < DEFAULT_FRAMING_COUNT){
+    const index=tab.fields.framing_frames.length;
+    tab.fields.framing_frames.push({id:'frame_'+(index+1),label:'Frame '+(index+1),text:''});
+  }
+  if (!tab.fields.framing_frames.some(frame => frame.id === tab.framingActiveFrameId)){
+    tab.framingActiveFrameId = tab.fields.framing_frames[0].id;
+  }
   return tab.fields;
+}
+
+function openPositioningFrame(id){
+  const fields=positioningDocumentState(), tab=state.tabs[POSITIONING_DOCUMENT_TAB];
+  if (!fields.framing_frames.some(frame => frame.id === id)) return;
+  tab.framingActiveFrameId=id;
+  state.positioningDocumentPart='framing';
+  renderPositioningDocument(); renderTabs(); rememberLocation();
+}
+
+function addPositioningFrame(){
+  if (readOnly()) return;
+  const fields=positioningDocumentState(), tab=state.tabs[POSITIONING_DOCUMENT_TAB];
+  const number=fields.framing_frames.length+1;
+  let id='frame_'+number;
+  while(fields.framing_frames.some(frame=>frame.id===id)) id='frame_'+number+'_'+uid();
+  fields.framing_frames.push({id,label:'Frame '+number,text:''});
+  tab.framingActiveFrameId=id;
+  markDirty(); renderPositioningDocument(); renderTabs(); rememberLocation();
 }
 
 function renderPositioningDocument(){
@@ -12488,7 +12556,9 @@ function renderPositioningDocument(){
   const isCommunication = section.view === 'communication';
   const isBrandRadar = section.view === 'brand_radar';
   const showProductEvolution = section.id === 'usp';
+  const isFraming = section.id === 'framing';
   renderPositioningDocumentNavigation();
+  $('positioningDocumentNarrative').classList.toggle('framing-workspace',isFraming);
   $('positioningDocumentNarrative').hidden = isCommunication || isBrandRadar;
   $('positioningDocumentActions').hidden = isCommunication || isBrandRadar;
   $('communicationPane').hidden = !isCommunication;
@@ -12557,6 +12627,19 @@ function renderPositioningDocument(){
         subwrapper.append(sublabel,textarea); stack.append(subwrapper);
       });
       wrapper.append(label,stack);
+    }else if(field[0] === 'framing'){
+      const tab=state.tabs[POSITIONING_DOCUMENT_TAB];
+      const frame=fields.framing_frames.find(candidate=>candidate.id===tab.framingActiveFrameId) || fields.framing_frames[0];
+      wrapper.classList.add('framing-frame-field');
+      label.textContent=frame.label;
+      const textarea = document.createElement('textarea');
+      textarea.value = frame.text; textarea.placeholder = 'Add text for '+frame.label; textarea.readOnly = readOnly();
+      textarea.oninput = event => {
+        frame.text=event.target.value;
+        if (frame===fields.framing_frames[0]) fields.framing=frame.text;
+        markDirty();
+      };
+      wrapper.append(label,textarea);
     }else{
       const textarea = document.createElement('textarea');
       textarea.value = fields[field[0]];

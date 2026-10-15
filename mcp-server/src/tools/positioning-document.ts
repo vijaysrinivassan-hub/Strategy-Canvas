@@ -16,12 +16,19 @@ const FIELD_KEYS = [
   "framing"
 ] as const;
 const DISTRIBUTION_PLATE_KEYS = ["words_50", "words_100", "words_200", "words_400"] as const;
+const DEFAULT_FRAMING_COUNT = 4;
 
 const distributionPlateSchema = z.object({
   words_50: z.string().optional(),
   words_100: z.string().optional(),
   words_200: z.string().optional(),
   words_400: z.string().optional()
+});
+
+const framingFrameSchema = z.object({
+  id: z.string(),
+  label: z.string(),
+  text: z.string()
 });
 
 const fieldsSchema = z.object({
@@ -34,6 +41,7 @@ const fieldsSchema = z.object({
   offer: z.string().optional(),
   trust_signals: z.string().optional(),
   framing: z.string().optional(),
+  framing_frames: z.array(framingFrameSchema).optional(),
   distribution_plate: distributionPlateSchema.optional()
 });
 
@@ -49,6 +57,22 @@ function fieldsOf(body: any): Record<string, any> {
   for (const key of DISTRIBUTION_PLATE_KEYS) {
     if (typeof slot.fields.distribution_plate[key] !== "string") slot.fields.distribution_plate[key] = "";
   }
+  if (!Array.isArray(slot.fields.framing_frames)) {
+    slot.fields.framing_frames = Array.from({ length: DEFAULT_FRAMING_COUNT }, (_, index) => ({
+      id: `frame_${index + 1}`,
+      label: `Frame ${index + 1}`,
+      text: index === 0 ? slot.fields.framing : ""
+    }));
+  }
+  slot.fields.framing_frames = slot.fields.framing_frames.map((frame: any, index: number) => ({
+    id: String(frame?.id || `frame_${index + 1}`),
+    label: String(frame?.label || `Frame ${index + 1}`),
+    text: String(frame?.text || "")
+  }));
+  while (slot.fields.framing_frames.length < DEFAULT_FRAMING_COUNT) {
+    const index = slot.fields.framing_frames.length;
+    slot.fields.framing_frames.push({ id: `frame_${index + 1}`, label: `Frame ${index + 1}`, text: "" });
+  }
   return slot.fields;
 }
 
@@ -60,7 +84,7 @@ export function registerPositioningDocumentTools(server: McpServer) {
       description:
         "Read the nine narrative fields and Distribution Plate in a board's Positioning Document: " +
         "the positioning statement; ICP, category, competitive and value positioning; Trust Signals; " +
-        "Framing; USP; Offer; and the 50-, 100-, 200- and 400-word Distribution Plate versions.",
+        "Framing frames; USP; Offer; and the 50-, 100-, 200- and 400-word Distribution Plate versions.",
       inputSchema: {
         board_id: z.string().describe("Board uuid from board_list")
       },
@@ -89,7 +113,16 @@ export function registerPositioningDocumentTools(server: McpServer) {
       const { body } = await loadBoard(board_id);
       const current = fieldsOf(body);
       for (const key of FIELD_KEYS) {
-        if (typeof fields[key] === "string") current[key] = fields[key];
+        if (typeof fields[key] === "string") {
+          current[key] = fields[key];
+          if (key === "framing" && Array.isArray(current.framing_frames) && current.framing_frames[0]) {
+            current.framing_frames[0].text = fields[key];
+          }
+        }
+      }
+      if (fields.framing_frames) {
+        current.framing_frames = fields.framing_frames.map(frame => ({ ...frame }));
+        if (current.framing_frames[0]) current.framing = current.framing_frames[0].text;
       }
       if (fields.distribution_plate) {
         for (const key of DISTRIBUTION_PLATE_KEYS) {
