@@ -59,14 +59,14 @@ assert(html.includes("const perceptionWidth = Math.max(340,...model.perceptions.
 assert(html.includes("panel.style.width = Math.max(340,56 + Math.max(1,perception.axes.length) * 92) + 'px'"));
 assert(html.includes("stage.querySelectorAll('[data-comm-perception]')"));
 assert(html.includes("stage.querySelectorAll('[data-comm-factor]')"));
-assert(html.includes("messageName,name:messageName+' Offer'"));
-assert(html.includes("offerTitle.innerHTML='<strong>Offer</strong><span>One per audience state</span>'"));
-assert(html.includes("card.dataset.commOffer=offer.id; card.dataset.commMessage=message.id"));
-assert(html.includes("add(message,offer,'right','left'"));
-assert(html.includes("offerNodes.forEach(offer=>add(offer,perception"));
-assert(html.includes("flow.append(sources,frameworkWrap,factorList,messageHub,offerHub,perceptions)"));
+assert(html.includes('delete model.offers'));
+assert(!html.includes('.comm-canvas-offers{'));
+assert(html.includes("messageNodes.forEach(message=>add(message,perception,'right','left'"));
+assert(html.includes("'message:'+message.dataset.commMessage+'>perception:'+perception.dataset.commPerception"));
+assert(html.includes("flow.append(sources,frameworkWrap,factorList,messageHub,perceptions)"));
+assert(html.includes('.comm-canvas-perceptions{position:absolute; left:1080px;'));
 assert(html.includes("$('btnCommAddFactor').hidden = true"));
 assert(html.includes('.comm-axis-name{top:auto; bottom:-33px;'));
 assert(/COMMUNICATION_STRATEGY_TAB,[\s\S]{0,120}BRAND_RADAR_TAB\]\.indexOf\(state\.tab\) === -1/.test(html));
 
-console.log('PASS: Communication Strategy connects positioning directly to fixed messaging inputs, awareness-specific offers and frame-driven perception stumps.');
+console.log('PASS: Communication Strategy connects positioning through fixed messaging inputs and direct awareness messages to frame-driven perception stumps.');

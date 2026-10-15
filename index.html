@@ -1694,11 +1694,7 @@
   .comm-canvas-messages .comm-message-title{margin-bottom:14px}.comm-canvas-messages .comm-message-grid{display:flex; flex-direction:column; gap:28px}
   .comm-canvas-messages .comm-message{min-height:70px; padding:10px; border-radius:3px; background:#fff}
   .comm-canvas-messages .comm-message textarea{height:34px}
-  .comm-canvas-offers{position:absolute;left:1080px;top:98px;width:220px}
-  .comm-offer-title{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}.comm-offer-title strong{font-size:13px}.comm-offer-title span{color:#7d837e;font-size:8px}
-  .comm-offer-grid{display:flex;flex-direction:column;gap:28px}.comm-offer{display:block;min-height:70px;padding:10px;border:1px solid #cfd3cf;border-radius:3px;background:#fff}
-  .comm-offer b{display:block;margin-bottom:6px;font-size:8px}.comm-offer textarea{width:100%;height:34px;resize:none;border:0;outline:0;background:transparent;color:#59605a;font-size:8px;line-height:1.4}
-  .comm-canvas-perceptions{position:absolute; left:1410px; top:172px; width:340px; min-width:340px}
+  .comm-canvas-perceptions{position:absolute; left:1080px; top:172px; width:340px; min-width:340px}
   .comm-canvas-perceptions .comm-perception{min-height:300px}
   .comm-canvas-perceptions .comm-wicket-stage{height:204px}
 
@@ -3216,7 +3212,7 @@ const SUPABASE_URL = 'https://cskamgfvebryahkljlll.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_MdkD-TxMCIwlu69seSHA3Q_A39GADsK';
 const CLIENT_ID    = '1059013355751-6g50dsgm7df37htl2fdqrtlkh5hmrc0c.apps.googleusercontent.com';
 const ALLOWED      = ['vijaysrinivassan@gmail.com'];
-const BUILD        = 'v8.89';
+const BUILD        = 'v8.90';
 
 const STRATEGY_ONE_TAB = 'Strategy 1 — Brand Strategy';
 const PRODUCT_EVOLUTION_TAB = 'Strategy 1 — Product Evolution';
@@ -12676,7 +12672,6 @@ function communicationState(){
     tab.communication = {
       factors: COMMUNICATION_FACTORS.map(newCommunicationFactor),
       messages: COMMUNICATION_AWARENESS.map(name => ({ id: uid(), name, text: '' })),
-      offers: COMMUNICATION_AWARENESS.map(name => ({ id: uid(), messageName:name, name:name+' Offer', text:'' })),
       perceptions: [newCommunicationPerception('Brand Perception')]
     };
   }
@@ -12694,12 +12689,7 @@ function communicationState(){
     const message = existingMessages.get(name) || {};
     return { id: message.id || uid(), name, text: typeof message.text === 'string' ? message.text : '' };
   });
-  if (!Array.isArray(model.offers)) model.offers=[];
-  const existingOffers=new Map(model.offers.map(offer=>[offer.messageName,offer]));
-  model.offers=COMMUNICATION_AWARENESS.map(messageName=>{
-    const offer=existingOffers.get(messageName)||{};
-    return {id:offer.id||uid(),messageName,name:messageName+' Offer',text:typeof offer.text==='string'?offer.text:''};
-  });
+  delete model.offers;
   if (!Array.isArray(model.perceptions) || !model.perceptions.length)
     model.perceptions = [newCommunicationPerception('Brand Perception')];
   model.perceptions = model.perceptions.map(perception => ({
@@ -12774,8 +12764,6 @@ function drawCommunicationWires(){
   const messages = stage.querySelector('[data-comm-node="messages"]');
   const fragments = stage.querySelectorAll('[data-comm-positioning-fragment]');
   const messageNodes = stage.querySelectorAll('[data-comm-message]');
-  const offerNodes = stage.querySelectorAll('[data-comm-offer]');
-  const messagesById = new Map(Array.from(messageNodes).map(message=>[message.dataset.commMessage,message]));
   fragments.forEach(fragment => add(fragment,framework,'right','left',
     'positioning:' + fragment.dataset.commPositioningFragment + '>framework'));
   if (messageNodes.length){
@@ -12783,13 +12771,9 @@ function drawCommunicationWires(){
   } else add(framework,messages,'right','left','framework>messages');
   stage.querySelectorAll('[data-comm-factor]').forEach(factor => add(factor,framework,'top','bottom',
     'factor:' + factor.dataset.commFactor + '>framework'));
-  offerNodes.forEach(offer=>{
-    const message=messagesById.get(offer.dataset.commMessage);
-    add(message,offer,'right','left','message:'+offer.dataset.commMessage+'>offer:'+offer.dataset.commOffer);
-  });
   stage.querySelectorAll('[data-comm-perception]').forEach(perception => {
-    offerNodes.forEach(offer=>add(offer,perception,'right','left',
-      'offer:'+offer.dataset.commOffer+'>perception:'+perception.dataset.commPerception));
+    messageNodes.forEach(message=>add(message,perception,'right','left',
+      'message:'+message.dataset.commMessage+'>perception:'+perception.dataset.commPerception));
   });
 }
 document.addEventListener('keydown',event => {
@@ -13040,20 +13024,6 @@ function renderCommunicationStrategyCanvas(){
   });
   messageHub.append(messageTitle,messageGrid);
 
-  const offerHub=document.createElement('section'); offerHub.className='comm-canvas-offers'; offerHub.dataset.commNode='offers';
-  const offerTitle=document.createElement('div'); offerTitle.className='comm-offer-title'; offerTitle.innerHTML='<strong>Offer</strong><span>One per audience state</span>';
-  const offerGrid=document.createElement('div'); offerGrid.className='comm-offer-grid';
-  ['Problem-aware','Solution-aware','Category-aware','Competitor-aware'].forEach(name=>{
-    const message=model.messages.find(item=>item.name===name),offer=model.offers.find(item=>item.messageName===name);
-    if(!message||!offer)return;
-    const card=document.createElement('label'); card.className='comm-offer'; card.dataset.commOffer=offer.id; card.dataset.commMessage=message.id;
-    const title=document.createElement('b'); title.textContent=offer.name;
-    const textarea=document.createElement('textarea'); textarea.value=offer.text; textarea.placeholder='Write the '+offer.name.toLowerCase(); textarea.readOnly=ro;
-    textarea.oninput=()=>{offer.text=textarea.value;markDirty();}; card.append(title,textarea);
-    makeCommunicationNodeDraggable(card,'offer:'+offer.id,model); offerGrid.append(card);
-  });
-  offerHub.append(offerTitle,offerGrid);
-
   const perceptions = document.createElement('div'); perceptions.className = 'comm-perceptions comm-canvas-perceptions';
   const perceptionWidth = Math.max(340,...model.perceptions.map(perception =>
     56 + Math.max(1,perception.axes.length) * 92));
@@ -13087,7 +13057,7 @@ function renderCommunicationStrategyCanvas(){
     makeCommunicationNodeDraggable(panel,'perception:' + perception.id,model); perceptions.append(panel);
   });
 
-  flow.append(sources,frameworkWrap,factorList,messageHub,offerHub,perceptions);
+  flow.append(sources,frameworkWrap,factorList,messageHub,perceptions);
   $('btnCommAddFactor').hidden = true;
   $('btnCommAddPerception').hidden = true;
   requestAnimationFrame(drawCommunicationWires);
