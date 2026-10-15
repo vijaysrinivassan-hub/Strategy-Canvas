@@ -3,17 +3,16 @@ import vm from 'node:vm';
 import assert from 'node:assert/strict';
 
 const html=fs.readFileSync(new URL('./index.html',import.meta.url),'utf8').replace(/\r\n/g,'\n');
-assert(html.includes('What is the axis of product evolution?'));
 assert(html.includes('id="btnRadarAxis"'));
-assert(html.includes('Product evolution axis'));
-assert(html.includes('id="positioningEvolutionHost"'));
+assert(!html.includes('id="btnOpenProductEvolution"'));
+assert(!html.includes('id="positioningEvolutionHost"'));
 assert(html.includes('id="positioningRadarHost"'));
-assert(html.includes("$('positioningEvolutionHost').append($('evoPane').querySelector('.evo-canvas'))"));
 assert(html.includes("$('positioningRadarHost').append($('brandRadarPane').querySelector('.radar-canvas'))"));
 assert(!html.includes("box.append(tabButton(BRAND_RADAR_TAB, 'Brand Radar'))"));
-assert(html.includes('renderPositioning();\n    renderEvolution();\n    renderBrandRadar();'));
+assert(html.includes('renderPositioning();\n    renderBrandRadar();'));
 
-const render=html.slice(html.indexOf('function renderBrandRadar()'),html.indexOf("$('btnOpenProductEvolution')"));
+const renderStart=html.indexOf('function renderBrandRadar()');
+const render=html.slice(renderStart,html.indexOf("$('btnRadarAxis')",renderStart));
 assert(render.includes('const radar = brandRadarState()'));
 assert(render.includes('radar.axis = activeBuyingIndustryAxis();'));
 assert(render.includes("radar.axis || 'technology'"));
@@ -23,4 +22,4 @@ assert(!evolution.includes('renderBrandRadar();'));
 assert(html.includes("if (!svg || !map || !market || !map.clientWidth || !map.clientHeight) return;"));
 assert(!html.includes("$('brandRadarPane').hidden) return"));
 assert(html.includes('radar.buyingAxis = axis.id;'));
-console.log('PASS: Product Evolution controls Selling Industry, Buying Industry controls Brand Radar and ICP cards, and embedded wires render.');
+console.log('PASS: Product Evolution is removed from Positioning Canvas while Buying Industry continues to control Brand Radar and ICP cards.');

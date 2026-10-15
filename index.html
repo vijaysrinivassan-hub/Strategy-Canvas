@@ -2901,7 +2901,6 @@
             <p>The Buying Industry axis controls this radar and the ICP cards. Every category band and competitor sits inside it; drag either green edge to widen the field and click the centre to reset.</p>
           </div>
           <div class="radar-head-actions">
-            <button id="btnOpenProductEvolution" type="button">Product evolution axis</button>
             <div class="radar-axis-picker">
               <button id="btnRadarAxis" type="button" aria-expanded="false">Choose radar axis</button>
               <div class="radar-axis-menu" id="radarAxisMenu" hidden></div>
@@ -2927,7 +2926,6 @@
           </div>
           <div style="display:flex;gap:8px;align-items:center"><button id="btnPositioningPrompts" type="button">AI Prompts</button><button id="btnAddPositioningIcp" type="button">+ Add ICP</button></div>
         </div>
-        <div class="positioning-evolution-host" id="positioningEvolutionHost"></div>
         <div class="positioning-radar-host" id="positioningRadarHost"></div>
         <div class="icp-list" id="positioningIcps"></div>
       </section>
@@ -3177,7 +3175,7 @@ const SUPABASE_URL = 'https://cskamgfvebryahkljlll.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_MdkD-TxMCIwlu69seSHA3Q_A39GADsK';
 const CLIENT_ID    = '1059013355751-6g50dsgm7df37htl2fdqrtlkh5hmrc0c.apps.googleusercontent.com';
 const ALLOWED      = ['vijaysrinivassan@gmail.com'];
-const BUILD        = 'v8.76';
+const BUILD        = 'v8.77';
 
 const STRATEGY_ONE_TAB = 'Strategy 1 — Brand Strategy';
 const PRODUCT_EVOLUTION_TAB = 'Strategy 1 — Product Evolution';
@@ -3299,7 +3297,6 @@ function closeNav(){
 const $ = id => document.getElementById(id);
 const uid = () => Math.random().toString(36).slice(2, 10) + Date.now().toString(36).slice(-4);
 $('brandChannelHost').append($('chanPane'));
-$('positioningEvolutionHost').append($('evoPane').querySelector('.evo-canvas'));
 $('positioningRadarHost').append($('brandRadarPane').querySelector('.radar-canvas'));
 $('positioningDocumentPage').append($('communicationPane'));
 
@@ -6177,7 +6174,6 @@ function applyTabMode(){
   if (isGuide){ renderStrategyGuide(); renderChannels(); }
   if (isPositioning){
     renderPositioning();
-    renderEvolution();
     renderBrandRadar();
     renderProblemEvidence();
     if (state.user) refreshDocs().then(() => {
@@ -15186,7 +15182,6 @@ function renderBrandRadar(){
   status.append(message);
 }
 
-$('btnOpenProductEvolution').onclick = () => $('positioningEvolutionHost').scrollIntoView({ behavior: 'smooth', block: 'start' });
 $('btnRadarAxis').onclick = ev => {
   ev.stopPropagation();
   if (readOnly()) return;
