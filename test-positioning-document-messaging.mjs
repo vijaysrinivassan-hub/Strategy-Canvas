@@ -3,7 +3,8 @@ import vm from 'node:vm';
 import assert from 'node:assert/strict';
 
 const html = fs.readFileSync(new URL('./index.html', import.meta.url), 'utf8');
-assert.ok(html.includes("['messaging_framework', 'Messaging Framework', 'messaging']"));
+assert.ok(html.includes("['messaging_framework', 'Awareness Messaging Framework', 'messaging']"));
+assert.ok(html.includes("{ id: 'messaging_framework', label: 'Awareness Messaging Framework', fields: ['messaging_framework'] }"));
 for (const field of [
   "['problem_unaware', 'Problem unaware']",
   "['problem_aware', 'Problem-aware']",
@@ -18,4 +19,4 @@ assert.ok(html.includes("fields[field[0]][subfield[0]] = event.target.value"));
 const scripts = [...html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/g)]
   .map(match => match[1]).filter(source => source.trim());
 scripts.forEach(source => new vm.Script(source));
-console.log('PASS: Positioning Document persists a five-part Messaging Framework field.');
+console.log('PASS: Positioning Document persists a five-part Awareness Messaging Framework field.');

@@ -10,7 +10,7 @@ assert(html.includes("{ id: 'framing', label: 'Perception and Framing', fields: 
 assert(html.includes("['usp', 'USP']"));
 assert(html.includes("['offer', 'Offer']"));
 assert(!html.includes("{ id: 'usp', label: 'USP', fields: ['usp'] }"));
-assert(!html.includes("{ id: 'offer', label: 'Offer', fields: ['offer'] }"));
+assert(html.includes("{ id: 'offers', label: 'Offers', fields: ['offer'] }"));
 assert(html.includes("['distribution_plate', 'Distribution Plate', 'distribution']"));
 for(const label of ['50 words','100 words','200 words','400 words'])assert(html.includes(`'${label}'`));
 assert(html.includes("navOpen: { strategy1: false, brand: false, content: false, positioningDocument: false"));
@@ -20,7 +20,8 @@ assert(html.includes("{ id: 'brand_radar', label: 'Brand Radar', fields: [], vie
 assert(html.includes("{ id: 'communication_strategy', label: 'Communication Strategy', fields: [], view: 'communication' }"));
 const sectionOrder=[
   "{ id: 'core', label: 'Positioning'",
-  "{ id: 'messaging_framework', label: 'Messaging Framework'",
+  "{ id: 'messaging_framework', label: 'Awareness Messaging Framework'",
+  "{ id: 'offers', label: 'Offers'",
   "{ id: 'distribution_plate', label: 'Distribution Plate'",
   "{ id: 'trust_signals', label: 'Trust Signals'",
   "{ id: 'framing', label: 'Perception and Framing'",
@@ -52,13 +53,16 @@ assert(html.includes("POSITIONING_DOCUMENT_FIELDS.filter(field => section.fields
 assert(html.includes("positioningDocumentPart: state.positioningDocumentPart || 'core'"));
 assert(html.includes("$('positioningDocumentPage').append($('communicationPane'))"));
 assert(html.includes('class="positioning-radar-host positioning-document-radar-host" id="positioningRadarHost" hidden'));
-assert(html.includes('id="positioningValueUsp"'));
-assert(html.includes('id="positioningValueOffer"'));
+assert(!html.includes('id="positioningValueUsp"'));
+assert(!html.includes('id="positioningValueOffer"'));
 assert(html.includes('id="positioningValueEvolutionHost"'));
 assert(html.includes("$('positioningValueEvolutionHost').append($('evoPane').querySelector('.evo-canvas'))"));
-assert(html.includes('function openValuePositioningField(field)'));
-assert(html.includes("narrativeFields.usp = usp.value"));
-assert(html.includes("narrativeFields.offer = offer.value"));
+assert(!html.includes('function openValuePositioningField(field)'));
+assert(html.includes("uspCheck.title='Mark this value as the USP'"));
+assert(html.includes("badge.className='value-usp-badge'"));
+assert(html.includes("badge.textContent='USP'"));
+assert(html.includes("p.valueRows.forEach(item=>{item.isUsp=false;})"));
+assert(html.includes('row.isUsp = row.isUsp === true'));
 assert(!html.includes('id="positioningDocumentEvolutionHost"'));
 
 const tool=fs.readFileSync(new URL('./mcp-server/src/tools/positioning-document.ts',import.meta.url),'utf8');
@@ -85,4 +89,4 @@ for(const length of ['50-word','100-word','200-word','400-word'])assert(prompt.i
 const scripts=[...html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/gi)]
   .map(match=>match[1]).filter(code=>code.trim());
 scripts.forEach(code=>new vm.Script(code));
-console.log('PASS: Positioning Document navigation excludes moved USP and Offer fields while Value Positioning preserves them with Product Evolution.');
+console.log('PASS: Offers lives in Positioning Document; Value Positioning keeps Product Evolution and selects one value as USP.');

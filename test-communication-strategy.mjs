@@ -36,7 +36,8 @@ assert(html.includes("makeCommunicationNodeDraggable(card,'message:' + message.i
 assert(html.includes("makeCommunicationNodeDraggable(panel,'perception:' + perception.id,model)"));
 assert(html.includes('drawCommunicationWires();'));
 assert(html.includes("const COMMUNICATION_FACTORS = ['Writing Style','Framing','Buying Trigger','Offer']"));
-assert(html.includes("else if(factor.label==='Offer')openValuePositioningField('offer')"));
+assert(html.includes("else if(factor.label==='Offer')openPositioningDocumentField('offers')"));
+assert(html.includes('<strong>Awareness Messaging Framework</strong>'));
 assert(html.includes("if(factor.label==='Framing')openPositioningDocumentField('framing')"));
 assert(html.includes('function syncCommunicationPerceptionFrames(model,fields)'));
 assert(html.includes('const frames=fields.framing_frames||[]'));
