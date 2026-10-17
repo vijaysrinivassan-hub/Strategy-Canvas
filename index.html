@@ -10560,6 +10560,8 @@ socProductArchitecture = function(){
 
 const ARCHITECTURE_INTEGRATION_PROMPT = "Mark every external system the product connects to but does not own, such as a CRM, calendar, email or third-party data provider, with integration: true. It renders with an Integration badge and does not count as part of the product architecture. Leave the product's own modules unmarked, and never present an integration as a native capability.\n\nUnder each workflow keep two fields. Capabilities: one line per capability, naming the node or combination of nodes that delivers it and what it lets the customer do, written as \"Node A + Node B: plain-language outcome\". Features: the product features in that workflow, grouped by node, with integrations labelled as integrations. Write both for a buyer, not an engineer. Keep every workflow canvas the same height.";
 
+const ARCHITECTURE_SPACING_PROMPT = "Lay every canvas out spaciously. Leave at least 280px of clear horizontal space between connected nodes so each connector label is fully readable with room to spare, and at least 80px of clear space between stacked nodes. Keep a single workflow or maturity row on one horizontal line and widen its canvas to the right as far as it needs; never wrap one flow onto a second line to save space.";
+
 productArchitectureState = function(tabOverride){
   const tabKey = tabOverride || activeArchitectureTab();
   const tab = state.tabs[tabKey] ||
@@ -10579,6 +10581,13 @@ if (tab.architectureFeaturePromptRevision !== 1){
       tab.aiPrompt = tab.aiPrompt.trim() + '\n\n' + ARCHITECTURE_INTEGRATION_PROMPT;
     }
     tab.architectureIntegrationPromptRevision = 1;
+    if (!readOnly()) setTimeout(markDirty,0);
+  }
+  if (tab.architectureSpacingPromptRevision !== 1){
+    if (typeof tab.aiPrompt === 'string' && !/Lay every canvas out spaciously/.test(tab.aiPrompt)){
+      tab.aiPrompt = tab.aiPrompt.trim() + '\n\n' + ARCHITECTURE_SPACING_PROMPT;
+    }
+    tab.architectureSpacingPromptRevision = 1;
     if (!readOnly()) setTimeout(markDirty,0);
   }
   let architecture = tab.architecture;

@@ -24,5 +24,9 @@ assert(html.includes("badge.className = 'arch-integration-badge'"));
 assert(html.includes("node.integration = node.integration === true && node.type !== 'people'"));
 assert(html.includes('tab.architectureIntegrationPromptRevision !== 1'));
 assert(tool.includes('integration:z.boolean().optional()'));
+for (const section of ['product_architecture','maturity_axis']) {
+  assert(prompts[section].prompt.includes('Lay every canvas out spaciously'), section + ' prompt asks for spacious single-line layouts');
+}
+assert(html.includes('tab.architectureSpacingPromptRevision !== 1'));
 console.log('PASS: Maturity Axis and Product Architecture use expanded cards with two Features or Skills and no Nodal benefit field.');
 console.log('PASS: Product Architecture marks external systems with an Integration badge and the prompt asks for node-based capabilities.');
