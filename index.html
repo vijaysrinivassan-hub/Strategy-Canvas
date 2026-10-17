@@ -1006,6 +1006,11 @@
   .gtm-onboarding-market{width:100%;min-width:0;margin-top:14px}.gtm-onboarding-market-top{display:grid;grid-template-columns:minmax(0,1fr) 290px;gap:18px;align-items:start}.gtm-onboarding-market .industry-fit{display:grid;grid-template-columns:minmax(0,1fr);width:100%;min-width:0;margin:0}.gtm-onboarding-market .industry-fit-preview,.gtm-onboarding-market .industry-matrix-wrap{width:100%;min-width:0;box-sizing:border-box}
   .gtm-onboarding-market .industry-fit-preview{grid-template-columns:minmax(0,1fr) 30px minmax(0,1fr);width:min(620px,100%);height:auto;margin:0;padding:12px}.gtm-onboarding-market .industry-fit-preview-piece{min-height:0;aspect-ratio:1;padding:18px}.gtm-onboarding-market .industry-fit-preview-name::after{right:-23px;width:22px;height:42px}.gtm-onboarding-market .industry-fit-preview-axis::before{width:22px;height:42px}
   .gtm-market-setup{display:flex;flex-direction:column;gap:11px;padding:13px;border:1px solid #d7dbd6;background:#fafbf9}.gtm-market-setup-title{margin:0;color:#4f554f;font-size:10px;font-weight:850;letter-spacing:.08em;text-transform:uppercase}.gtm-market-question{display:flex;min-width:0;flex-direction:column;gap:5px}.gtm-market-question>label{color:#6b706b;font-size:8px;font-weight:850;letter-spacing:.07em;text-transform:uppercase}.gtm-market-question .gtm-onboarding-control{padding:8px 9px;font-size:11px}.gtm-market-industry-names{display:flex;flex-direction:column;gap:5px}.gtm-market-industry-row{display:grid;grid-template-columns:minmax(0,1fr) 25px;gap:5px}.gtm-market-industry-row button{padding:0;border:1px solid #d5d9d4;background:#fff;color:#8a8f89}.gtm-market-industry-row button:hover:not(:disabled){color:var(--danger)}.gtm-market-add-industry{align-self:flex-start;padding:5px 7px;background:#fff;color:#356d47;font-size:9px}.gtm-onboarding-market-matrix{margin-top:16px;min-width:0}
+  .gtm-ocean-choices{display:flex;flex-direction:column;gap:6px}.gtm-ocean-choices .gtm-onboarding-choice{padding:8px 9px}
+  .gtm-market-industry-row.gtm-icp-row{grid-template-columns:40px minmax(0,1fr) 25px;align-items:center}.gtm-icp-tag{color:#356d47;font-size:9px;font-weight:850;letter-spacing:.04em;white-space:nowrap}
+  .gtm-geo-markets{display:flex;flex-direction:column;gap:8px;max-width:520px;margin:0 0 20px;padding:13px;border:1px solid #d7dbd6;background:#fafbf9}.gtm-geo-markets .gtm-onboarding-hint{margin-top:0}
+  .gtm-geo-list{display:flex;flex-direction:column;gap:6px}.gtm-geo-row{display:grid;grid-template-columns:minmax(0,1fr) 28px;gap:6px}.gtm-geo-row .gtm-onboarding-control{padding:8px 9px;font-size:12px}
+  .gtm-geo-row button{padding:0;border:1px solid #d5d9d4;background:#fff;color:#8a8f89}.gtm-geo-row button:hover:not(:disabled){color:var(--danger)}
   .gtm-onboarding-market .industry-market-grid{grid-template-columns:104px repeat(4,minmax(0,1fr));width:100%;min-width:0}.gtm-onboarding-market .industry-market-cell,.gtm-onboarding-market .industry-market-row{min-width:0;min-height:122px;white-space:normal;overflow:hidden}.gtm-onboarding-market .industry-market-cell{padding:9px 8px}.gtm-onboarding-market .industry-market-cell strong,.gtm-onboarding-market .industry-market-cell span{width:100%;white-space:normal;overflow-wrap:anywhere;word-break:normal}.gtm-onboarding-market .industry-market-cell strong{font-size:9px}.gtm-onboarding-market .industry-market-cell span{font-size:8px}
   .gtm-market-map{width:min(880px,100%);margin:8px auto 0;padding:22px 24px 18px;border:1px solid #d7dbd6;background:#fbfcfa}
   .gtm-market-map-canvas{position:relative;height:440px;margin:0 30px 78px 108px;border-left:2px solid #171b19;border-bottom:2px solid #171b19;background:#fff}
@@ -3004,7 +3009,6 @@
           </div>
           <div style="display:flex;gap:8px;align-items:center"><button id="btnPositioningPrompts" type="button">AI Prompts</button><button id="btnAddPositioningIcp" type="button">+ Add ICP</button></div>
         </div>
-        <div class="positioning-industry-strip" id="positioningIndustryStrip"></div>
         <div class="icp-list" id="positioningIcps"></div>
       </section>
 
@@ -3396,6 +3400,9 @@ const state = {
   clientGoal: 'Customer Acquisition',
   clientSalesMotion: '',
   clientIcp1: 'New Entrants',
+  clientIcps: [],              /* onboarding ICP list: [{id,name}] shown as ICP 1, ICP 2… */
+  clientMarketType: '',        /* 'red' | 'blue' ocean, chosen in onboarding */
+  clientMarkets: [],           /* geographic markets: country codes, or 'ALL' */
   logo: '',
   tab: TABS[0],
   tabs: {},                    /* tabName -> { nodes:[], edges:[] } */
@@ -5458,6 +5465,8 @@ function serialize(){
                           clientGoal: state.clientGoal || 'Customer Acquisition',
                           clientSalesMotion: state.clientSalesMotion || '',
                           clientIcp1: state.clientIcp1 || 'New Entrants', logo: state.logo || '',
+                          clientIcps: state.clientIcps || [], clientMarketType: state.clientMarketType || '',
+                          clientMarkets: state.clientMarkets || [],
                           extra: state.extra, brandOrder: state.brandOrder,
                           frameEdits: state.frameEdits, productWorkspaces: state.productWorkspaces,
                           companyUrlWorkspaceMigrated: !!state.companyUrlWorkspaceMigrated,
@@ -5526,6 +5535,12 @@ function hydrate(text){
     ? d.clientSalesMotion : '';
   state.clientIcp1 = (d && typeof d.clientIcp1 === 'string' && d.clientIcp1.trim())
     ? d.clientIcp1.trim() : 'New Entrants';
+  state.clientIcps = (d && Array.isArray(d.clientIcps))
+    ? d.clientIcps.filter(x => x && typeof x === 'object')
+        .map(x => ({ id: String(x.id || uid()), name: typeof x.name === 'string' ? x.name : '' })) : [];
+  state.clientMarketType = d && (d.clientMarketType === 'red' || d.clientMarketType === 'blue') ? d.clientMarketType : '';
+  state.clientMarkets = (d && Array.isArray(d.clientMarkets))
+    ? [...new Set(d.clientMarkets.filter(code => GEO_MARKET_CODES.has(code)))] : [];
   state.logo = (d && d.logo) || '';
   void 0;   /* the client name is edited on the Clients screen */
   renderBrand();
@@ -5676,6 +5691,9 @@ async function newBoard(clientName, clientProduct, clientType, clientGoal, clien
   state.clientGoal = (clientGoal || '').trim() || 'Customer Acquisition';
   state.clientSalesMotion = clientSalesMotion === 'plg' || clientSalesMotion === 'slg' ? clientSalesMotion : '';
   state.clientIcp1 = (clientIcp1 || '').trim() || 'New Entrants';
+  state.clientIcps = [];
+  state.clientMarketType = '';
+  state.clientMarkets = [];
   state.logo = '';
   state.tabs = blankTabs();
   if (products && products.length){
@@ -7089,7 +7107,21 @@ async function ensureSarasAnalyticsCompetitiveIntelligenceSeed(){
 
 const SUPPORTING_KEYWORD_NODE_ID='supporting-processes';
 const SUPPORTING_KEYWORD_WORKSPACE_REVISION=1;
+const ICP_KEYWORD_NODE_PREFIX='icp:';
 function selectedMaturityKeywordNodes(){
+  /* Boards that set ICPs in onboarding get one main-process keyword set per ICP (a single ICP has one
+     main process), whatever the number of maturity nodes ticked. Older boards keep one set per ticked node. */
+  const icps = Array.isArray(state.clientIcps) ? state.clientIcps : [];
+  if (icps.length){
+    const nodes = icps.map((icp,index) => ({
+      id:ICP_KEYWORD_NODE_PREFIX + icp.id,
+      label:icps.length === 1 ? 'Main Process' : 'ICP ' + (index + 1) + (String(icp.name || '').trim() ? ' · ' + String(icp.name).trim() : ''),
+      order:index,
+      icp:true
+    }));
+    nodes.push({id:SUPPORTING_KEYWORD_NODE_ID,label:'Supporting Processes',order:Number.MAX_SAFE_INTEGER,supporting:true});
+    return nodes;
+  }
   const architecture = state.tabs[MATURITY_ACCESS_TAB]?.architecture;
   if (!architecture || !Array.isArray(architecture.nodes)) return [];
   const systemOrder = new Map((architecture.systems || []).map((system,index) => [system.id,index]));
@@ -7242,6 +7274,8 @@ function ensureKeywordNodeScope(){
     snapshotActiveKeywordNodeWorkspace();
     const target = nodes[0].id;
     if (root.keywordNodeWorkspaces[target]) installKeywordNodeProjection(root,root.keywordNodeWorkspaces[target]);
+    /* Moving a board from per-node sets to ICP sets carries the open set's keywords into the first ICP. */
+    else if (nodes[0].icp) root.keywordNodeWorkspaces[target] = cloneKeywordNodeProjection(root);
     else root.keywordNodeWorkspaces[target] = createFreshKeywordNodeProjection(root);
     root.activeKeywordNodeId = target;
     changed = true;
@@ -10426,10 +10460,11 @@ function maturityIndustryConfiguration(){
   };
 }
 
-function renderPositioningIndustryStrip(ro){
-  const host=$('positioningIndustryStrip');
+/* Industry verticals now live in the onboarding Market Mapping step; the caller passes the host to draw into. */
+function renderPositioningIndustryStrip(ro, host){
   if(!host)return;
   host.replaceChildren();
+  const rerender=()=>renderPositioningIndustryStrip(ro, host);
   const architecture=productArchitectureState(MATURITY_ACCESS_TAB);
   const config=maturityIndustryConfiguration();
   const edit=document.createElement('div'); edit.className='positioning-industry-edit';
@@ -10440,12 +10475,12 @@ function renderPositioningIndustryStrip(ro){
   const tabs=document.createElement('div'); tabs.className='positioning-industry-tabs';
   config.industries.forEach(industry=>{
     const button=document.createElement('button'); button.type='button'; button.className='positioning-industry-tab'+(industry===config.active?' active':''); button.textContent=industry; button.disabled=ro;
-    button.onclick=()=>{architecture.activeIndustry=industry;markDirty();renderPositioningIndustryStrip(readOnly());};
+    button.onclick=()=>{architecture.activeIndustry=industry;markDirty();rerender();};
     tabs.append(button);
   });
   if(config.mode==='multi'&&!ro){
     const add=document.createElement('button'); add.type='button'; add.className='positioning-industry-tab add'; add.textContent='+'; add.title='Add industry'; add.setAttribute('aria-label','Add industry');
-    add.onclick=()=>{const name=String(prompt('Industry name')||'').trim();if(!name)return;if(architecture.industries.some(item=>item.toLowerCase()===name.toLowerCase())){toast('That industry already exists.',true);return;}architecture.industries.push(name);architecture.activeIndustry=name;markDirty();renderPositioningIndustryStrip(readOnly());};
+    add.onclick=()=>{const name=String(prompt('Industry name')||'').trim();if(!name)return;if(architecture.industries.some(item=>item.toLowerCase()===name.toLowerCase())){toast('That industry already exists.',true);return;}architecture.industries.push(name);architecture.activeIndustry=name;markDirty();rerender();};
     tabs.append(add);
   }
   host.append(edit,tabs);
@@ -12243,7 +12278,6 @@ function renderPositioning(){
   $('btnAddPositioningCategory').hidden = ro;
 
   renderIndustryFit(ro);
-  renderPositioningIndustryStrip(ro);
   renderIcpCards(p, ro, activeBuyingIndustryAxis());
 
   const categoryHost = $('positioningCategories');
@@ -15527,6 +15561,26 @@ const GTM_ONBOARDING_STEPS = [
   { id:'market_mapping', label:'Market Mapping', question:'How does delivered value relate to customer awareness?', detail:'This canvas intentionally starts empty and shows only the two axes for future market mapping.', type:'market-map' }
 ];
 
+/* Geographic markets: "All countries" first, then the U.S. and India, then every other ISO 3166 country A–Z. */
+const GEO_COUNTRY_CODES = ('AD AE AF AG AI AL AM AO AQ AR AS AT AU AW AX AZ BA BB BD BE BF BG BH BI BJ BL BM BN BO BQ BR BS BT BV BW BY BZ ' +
+  'CA CC CD CF CG CH CI CK CL CM CN CO CR CU CV CW CX CY CZ DE DJ DK DM DO DZ EC EE EG EH ER ES ET FI FJ FK FM FO FR ' +
+  'GA GB GD GE GF GG GH GI GL GM GN GP GQ GR GS GT GU GW GY HK HM HN HR HT HU ID IE IL IM IN IO IQ IR IS IT JE JM JO JP ' +
+  'KE KG KH KI KM KN KP KR KW KY KZ LA LB LC LI LK LR LS LT LU LV LY MA MC MD ME MF MG MH MK ML MM MN MO MP MQ MR MS MT MU MV MW MX MY MZ ' +
+  'NA NC NE NF NG NI NL NO NP NR NU NZ OM PA PE PF PG PH PK PL PM PN PR PS PT PW PY QA RE RO RS RU RW ' +
+  'SA SB SC SD SE SG SH SI SJ SK SL SM SN SO SR SS ST SV SX SY SZ TC TD TF TG TH TJ TK TL TM TN TO TR TT TV TW TZ ' +
+  'UA UG UM US UY UZ VA VC VE VG VI VN VU WF WS YE YT ZA ZM ZW').split(' ');
+const GEO_MARKET_CODES = new Set(['ALL', ...GEO_COUNTRY_CODES]);
+function geoMarketOptions(){
+  let names = null;
+  try { names = new Intl.DisplayNames(['en'], { type: 'region' }); } catch (e) {}
+  const label = code => code === 'ALL' ? 'All countries' : code === 'US' ? 'U.S.' : (names && names.of(code)) || code;
+  const rest = GEO_COUNTRY_CODES.filter(code => code !== 'US' && code !== 'IN')
+    .map(code => [code, label(code)]).sort((a, b) => a[1].localeCompare(b[1]));
+  return [['ALL', label('ALL')], ['US', label('US')], ['IN', label('IN')], ...rest];
+}
+function geoMarketLabel(code){ return (geoMarketOptions().find(option => option[0] === code) || [code, code])[1]; }
+function syncClientIcp1(){ state.clientIcp1 = String(state.clientIcps[0]?.name || '').trim() || 'New Entrants'; }
+
 function gtmOnboardingValue(step){
   if (step.type==='products'){
     const catalog=channelState(), count=catalog.products.length;
@@ -15539,9 +15593,14 @@ function gtmOnboardingValue(step){
     const config=maturityIndustryConfiguration(), type=clientTypeLabel(state.clientType);
     const motion=state.clientSalesMotion==='plg'?'PLG':state.clientSalesMotion==='slg'?'SLG':'Motion not selected';
     const axes=selling && buying ? labels[selling]+' → '+labels[buying] : 'Axes not selected';
-    return type+' · '+(config.mode==='multi'?'Multi Industry':'Single Industry')+' · '+motion+' · '+axes;
+    const ocean=state.clientMarketType==='red'?'Red Ocean':state.clientMarketType==='blue'?'Blue Ocean':'Ocean not selected';
+    const icps=state.clientIcps.length+' ICP'+(state.clientIcps.length===1?'':'s');
+    return type+' · '+(config.mode==='multi'?'Multi Industry':'Single Industry')+' · '+motion+' · '+ocean+' · '+icps+' · '+axes;
   }
-  if (step.type==='market-map') return 'Axes only';
+  if (step.type==='market-map'){
+    if (!state.clientMarkets.length) return 'No geographic market selected';
+    return state.clientMarkets.map(geoMarketLabel).join(', ');
+  }
   const value=String(step.get() || '');
   if (step.type==='select') return (step.options.find(option=>option[0]===value)||[])[1] || 'Not selected';
   return value || 'Not answered';
@@ -15625,6 +15684,78 @@ function renderGtmMarketQuestions(host, locked, ro){
   [['','Choose sales motion'],['plg','Product-led growth (PLG)'],['slg','Sales-led growth (SLG)']].forEach(([value,label])=>{const option=document.createElement('option');option.value=value;option.textContent=label;motion.append(option);});
   motion.value=state.clientSalesMotion||''; motion.onchange=()=>{state.clientSalesMotion=motion.value;markDirty();};
   host.append(field('Sales motion',motion));
+
+  const ocean=document.createElement('div'); ocean.className='gtm-ocean-choices';
+  [['red','Red Ocean','Compete for customers in an existing, contested market.'],['blue','Blue Ocean','Create new demand where there is little direct competition.']].forEach(([value,label,detail])=>{
+    const card=document.createElement('label'); card.className='gtm-onboarding-choice'+(state.clientMarketType===value?' on':'');
+    const input=document.createElement('input'); input.type='radio'; input.name='gtm-market-type'; input.value=value;
+    input.checked=state.clientMarketType===value; input.disabled=disabled;
+    const copy=document.createElement('span'); const strong=document.createElement('b'); strong.textContent=label;
+    const small=document.createElement('small'); small.textContent=detail; copy.append(strong,small);
+    input.onchange=()=>{state.clientMarketType=value;markDirty();renderGtmOnboarding();};
+    card.append(input,copy); ocean.append(card);
+  });
+  host.append(field('Red Ocean or Blue Ocean',ocean));
+
+  const icps=document.createElement('div'); icps.className='gtm-market-industry-names gtm-icp-list';
+  state.clientIcps.forEach((icp,index)=>{
+    const row=document.createElement('div'); row.className='gtm-market-industry-row gtm-icp-row';
+    const tag=document.createElement('span'); tag.className='gtm-icp-tag'; tag.textContent='ICP '+(index+1);
+    const input=document.createElement('input'); input.type='text'; input.className='gtm-onboarding-control'; input.value=icp.name||'';
+    input.placeholder='Name ICP '+(index+1)+' (optional)'; input.disabled=disabled; input.setAttribute('aria-label','ICP '+(index+1)+' name');
+    input.oninput=()=>{icp.name=input.value;syncClientIcp1();markDirty();};
+    const remove=document.createElement('button'); remove.type='button'; remove.innerHTML='&times;'; remove.title='Remove ICP '+(index+1); remove.disabled=disabled;
+    remove.setAttribute('aria-label','Remove ICP '+(index+1));
+    remove.onclick=()=>{state.clientIcps.splice(index,1);syncClientIcp1();markDirty();renderGtmOnboarding();};
+    row.append(tag,input,remove); icps.append(row);
+  });
+  if(!disabled){
+    const add=document.createElement('button'); add.type='button'; add.className='gtm-market-add-industry'; add.textContent='+ Add ICP';
+    add.onclick=()=>{state.clientIcps.push({id:uid(),name:''});markDirty();renderGtmOnboarding();requestAnimationFrame(()=>{const inputs=$('gtmOnboardingPanel')?.querySelectorAll('.gtm-icp-row input');inputs?.[inputs.length-1]?.focus();});};
+    icps.append(add);
+  }
+  host.append(field('Number of ICPs: '+state.clientIcps.length,icps));
+}
+
+function renderGtmGeoMarkets(host, locked, ro){
+  const disabled=ro || locked, options=geoMarketOptions();
+  const section=document.createElement('section'); section.className='gtm-geo-markets';
+  const heading=document.createElement('h5'); heading.className='gtm-market-setup-title'; heading.textContent='Geographic markets';
+  const help=document.createElement('small'); help.className='gtm-onboarding-hint'; help.textContent='Choose “All countries”, or add one dropdown per country you sell into.';
+  section.append(heading,help);
+  if(!state.clientMarkets.length && !disabled) state.clientMarkets.push('');
+  const list=document.createElement('div'); list.className='gtm-geo-list';
+  state.clientMarkets.forEach((code,index)=>{
+    const row=document.createElement('div'); row.className='gtm-geo-row';
+    const select=document.createElement('select'); select.className='gtm-onboarding-control'; select.disabled=disabled;
+    select.setAttribute('aria-label','Geographic market '+(index+1));
+    const placeholder=document.createElement('option'); placeholder.value=''; placeholder.textContent='Choose a market'; select.append(placeholder);
+    const takenElsewhere=new Set(state.clientMarkets.filter((other,otherIndex)=>otherIndex!==index&&other));
+    options.forEach(([value,label])=>{
+      const option=document.createElement('option'); option.value=value; option.textContent=label;
+      option.disabled=takenElsewhere.has(value) || (value==='ALL'&&state.clientMarkets.length>1);
+      select.append(option);
+    });
+    select.value=code||'';
+    select.onchange=()=>{
+      state.clientMarkets[index]=select.value;
+      if(select.value==='ALL') state.clientMarkets=['ALL'];
+      markDirty(); renderGtmOnboarding();
+    };
+    const remove=document.createElement('button'); remove.type='button'; remove.innerHTML='&times;'; remove.title='Remove this market';
+    remove.disabled=disabled || state.clientMarkets.length===1; remove.setAttribute('aria-label','Remove geographic market '+(index+1));
+    remove.onclick=()=>{state.clientMarkets.splice(index,1);markDirty();renderGtmOnboarding();};
+    row.append(select,remove); list.append(row);
+  });
+  section.append(list);
+  if(!disabled && !state.clientMarkets.includes('ALL')){
+    const add=document.createElement('button'); add.type='button'; add.className='gtm-market-add-industry'; add.textContent='+ Add country';
+    add.disabled=state.clientMarkets.some(code=>!code);
+    add.title=add.disabled?'Choose a market in the empty dropdown first':'Add another country';
+    add.onclick=()=>{state.clientMarkets.push('');markDirty();renderGtmOnboarding();};
+    section.append(add);
+  }
+  host.append(section);
 }
 
 function renderGtmMarketStep(host, locked, ro){
@@ -15637,7 +15768,13 @@ function renderGtmMarketStep(host, locked, ro){
   requestAnimationFrame(()=>renderIndustryFit(ro||locked));
 }
 
-function renderGtmMarketMappingStep(host){
+function renderGtmMarketMappingStep(host, locked, ro){
+  renderGtmGeoMarkets(host, locked, ro);
+  const industries=document.createElement('section'); industries.className='gtm-geo-markets gtm-industry-section';
+  const industriesTitle=document.createElement('h5'); industriesTitle.className='gtm-market-setup-title'; industriesTitle.textContent='Industries';
+  const strip=document.createElement('div'); strip.className='positioning-industry-strip gtm-industry-strip';
+  industries.append(industriesTitle,strip); host.append(industries);
+  renderPositioningIndustryStrip(ro || locked, strip);
   const shell=document.createElement('section'); shell.className='gtm-market-map';
   const canvas=document.createElement('div'); canvas.className='gtm-market-map-canvas';
   canvas.setAttribute('role','img');
@@ -15726,13 +15863,19 @@ function validateGtmOnboardingStep(step, control){
     if(new Set(names.map(name=>name.toLowerCase())).size!==names.length){toast('Use a different name for each industry.',true);return false;}
     if(!String(state.clientGoal||'').trim()){toast('Enter the primary GTM goal.',true);return false;}
     if(!state.clientSalesMotion){toast('Choose PLG or SLG.',true);return false;}
+    if(!state.clientMarketType){toast('Choose Red Ocean or Blue Ocean.',true);return false;}
+    if(!state.clientIcps.length){toast('Add at least one ICP.',true);return false;}
     if (!(evolutionState().axis || brandRadarState().sourceAxis) || !activeBuyingIndustryAxis()){
       toast('Choose both the selling component and buying component.',true); return false;
     }
     architecture.industries=names; architecture.activeIndustry=names.includes(architecture.activeIndustry)?architecture.activeIndustry:names[0];
     return true;
   }
-  if (step.type==='market-map') return true;
+  if (step.type==='market-map'){
+    state.clientMarkets=state.clientMarkets.filter(Boolean);
+    if(!state.clientMarkets.length){toast('Choose at least one geographic market.',true);renderGtmOnboarding();return false;}
+    return true;
+  }
   const value=String(control?.value || '').trim();
   if (!value){ toast('Complete this answer before locking it.',true); control?.focus(); return false; }
   step.set(value); return true;
@@ -15774,7 +15917,7 @@ function renderGtmOnboarding(){
   let control=null;
   if (active.type==='products') renderGtmProductStep(panel,locked,ro);
   else if (active.type==='market') renderGtmMarketStep(panel,locked,ro);
-  else if (active.type==='market-map') renderGtmMarketMappingStep(panel);
+  else if (active.type==='market-map') renderGtmMarketMappingStep(panel,locked,ro);
   else {
     control=document.createElement(active.type==='select'?'select':'input');
     control.className='gtm-onboarding-control';

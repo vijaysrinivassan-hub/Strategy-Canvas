@@ -143,6 +143,8 @@ export interface BoardBody {
   clientMarketType?: string;
   clientSalesMotion?: string;
   clientIcp1?: string;
+  clientIcps?: { id: string; name: string }[];
+  clientMarkets?: string[];
   logo?: string;
   tabs: Record<string, any>;
 }

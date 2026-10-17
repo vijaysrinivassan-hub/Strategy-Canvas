@@ -41,7 +41,9 @@ assert.equal(nodes.keywordModeFilter.children.length,0);
 ctx.state.contentView='category';
 ctx.state.tab='architecture';ctx.renderKeywordModeFilter();
 assert.equal(nodes.keywordModeFilter.hidden,true);
-assert.ok(!html.includes('Red Ocean'));
-assert.ok(!html.includes('Blue Ocean'));
+/* Ocean is now only an onboarding answer; the retired keyword ocean controls must not return. */
+const outsideOnboarding=html.slice(0,html.indexOf('function gtmOnboardingValue'))+html.slice(html.indexOf('function renderGtmOnboarding(){'));
+assert.ok(!outsideOnboarding.includes('Red Ocean'));
+assert.ok(!outsideOnboarding.includes('Blue Ocean'));
 assert.ok(!html.includes('id="oceanSwitcher"'));
 console.log('PASS: shared AEO/SEO toggle, Competitor-only inline switch, new entry routing, legacy preservation and retired ocean controls');

@@ -15,6 +15,7 @@ async function readKeywordSettings(records){
    const draft=JSON.parse(JSON.stringify(keywordSettings));
    draft.promptRevision=KeywordColumns.PROMPT_REVISION;
    draft.routingInstruction=draft.routingInstruction?.includes('COMPETITIVE INTELLIGENCE — TOPIC RELEVANCE AND NODE ROUTING')?draft.routingInstruction:draft.routingInstruction?KeywordColumns.competitiveIntelligencePrompt+'\n\n'+draft.routingInstruction:KeywordColumns.strategyPrompt+'\n\n'+KeywordColumns.comparisonRouting;
+   if(!draft.routingInstruction.includes('ICP KEYWORD WORKSPACES'))draft.routingInstruction=draft.routingInstruction.trim()+'\n\n'+KeywordColumns.icpProcessWorkspacePrompt;
    await saveUniversalColumns(draft,keywordSettingsRecord);
   }
  }

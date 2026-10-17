@@ -30,12 +30,12 @@ assert(html.includes("$('btnAddGtmProduct').hidden = readOnly() || t.products.le
 assert(!html.includes('function renderGtmSetupStep(host, locked, ro)'));
 assert(html.includes('function renderGtmMarketStep(host, locked, ro)'));
 assert(html.includes('function renderGtmMarketQuestions(host, locked, ro)'));
-assert(html.includes('function renderGtmMarketMappingStep(host)'));
+assert(html.includes('function renderGtmMarketMappingStep(host, locked, ro)'));
 for(const label of ['Customer awareness level','Most aware','Least aware','Lower value delivered','Higher value delivered','Value delivered = value provided by the company − price paid by the customer']){
   assert(html.includes(label),`missing Market Mapping axis label: ${label}`);
 }
 assert(html.includes("note.textContent='No companies, customers, segments or points are prefilled.'"));
-assert(html.includes("if (step.type==='market-map') return true;"));
+assert(html.includes("if (step.type==='market-map'){"));assert(html.includes("toast('Choose at least one geographic market.',true)"));
 assert(!html.includes('function renderGtmIndustryStep(host, locked, ro)'));
 assert(html.includes("if (['setup','industries','industry','goal','sales_motion','icp'].includes(onboarding.activeStep)) onboarding.activeStep='market'"));
 assert(html.includes("if (onboarding.activeStep === 'channels') onboarding.activeStep='market'"));

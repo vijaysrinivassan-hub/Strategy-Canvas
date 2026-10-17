@@ -150,7 +150,11 @@ export function registerBoardTools(server: McpServer) {
             body.clientSalesMotion === "slg" ? "SLG" : "Not selected",
           icp_1: body.clientIcp1 || "New Entrants",
           icp_2: body.clientMarketType === "blue" ? "Customers from the Older Category" :
-            body.clientMarketType === "red" ? "Customers from our Category" : "Select a market type"
+            body.clientMarketType === "red" ? "Customers from our Category" : "Select a market type",
+          icps: Array.isArray(body.clientIcps)
+            ? body.clientIcps.map((icp: any, index: number) => ({ label: `ICP ${index + 1}`, name: String(icp?.name || "") }))
+            : [],
+          geographic_markets: Array.isArray(body.clientMarkets) ? body.clientMarkets.filter(Boolean) : []
         },
         tabs: summary
       });

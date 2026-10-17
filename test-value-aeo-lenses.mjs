@@ -29,8 +29,10 @@ assert(html.includes('if(valueLens)updateValueLensCountBadges(v)'));
 assert(html.includes('valueLensStatuses:normalizeValueLensStatusMap(c.valueLensStatuses)'));
 assert(html.includes('const displayStatus=valueLens?valueLensStatus(cell,valueLens):cell.st'));
 assert(html.includes("pageUrls.push({ id: uid(), url: '', traffic: '', ...(o.keywordLens?{lens:o.keywordLens}:{}) })"));
-assert(!html.includes('Red Ocean'));
-assert(!html.includes('Blue Ocean'));
+/* Ocean is now only an onboarding answer; the retired keyword ocean controls must not return. */
+const outsideOnboarding=html.slice(0,html.indexOf('function gtmOnboardingValue'))+html.slice(html.indexOf('function renderGtmOnboarding(){'));
+assert(!outsideOnboarding.includes('Red Ocean'));
+assert(!outsideOnboarding.includes('Blue Ocean'));
 assert(!html.includes('id="oceanSwitcher"'));
 
 const scripts=[...html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/g)].map(match=>match[1]).filter(source=>source.trim());
