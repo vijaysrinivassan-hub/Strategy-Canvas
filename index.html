@@ -1448,6 +1448,8 @@
     color:#28613c; font-weight:800}
   .arch-flow-system-head .system-remove{border-color:transparent; background:transparent; color:#9a6c68}
   .arch-system-fields{display:grid;grid-template-columns:210px minmax(420px,1fr);width:100%;min-height:190px;border:1px solid #cfd2cc;border-top:0;background:#fff}
+  /* Sit above the connector layer (.arch-flow-wires, z-index 2) so the field tabs stay clickable. */
+  .arch-system-fields{position:relative;z-index:3}
   .arch-system-field-tabs{display:flex;flex-direction:column;border-right:1px solid #cfd2cc;background:#f1f3ef}
   .arch-system-field-tab{display:grid;grid-template-columns:minmax(0,1fr) 28px;border-bottom:1px solid #d9ddd7;background:#f1f3ef}
   .arch-system-field-tab.active{background:#fff;box-shadow:inset 3px 0 0 #171b19}

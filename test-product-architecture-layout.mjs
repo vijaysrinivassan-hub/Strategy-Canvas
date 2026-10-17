@@ -7,6 +7,7 @@ assert(html.includes('.arch-flow-systems{position:relative; display:flex; flex-d
 assert(html.includes('.arch-system-row{position:relative; display:flex; flex-direction:row; align-items:flex-start; gap:18px;'));
 assert(html.includes('.arch-system-stack{flex:none; width:max-content}'));
 assert(html.includes('.arch-system-fields{display:grid;grid-template-columns:210px minmax(420px,1fr);'));
+assert(html.includes('.arch-system-fields{position:relative;z-index:3}'), 'workflow field tabs must sit above the z-index:2 connector layer');
 assert(html.includes('.arch-system-field-tabs{display:flex;flex-direction:column;'));
 assert(html.includes('.arch-system-field-panel{display:flex;flex-direction:column;'));
 assert(html.includes('.arch-flow-system{position:relative; flex:0 0 1060px; width:1060px'));
