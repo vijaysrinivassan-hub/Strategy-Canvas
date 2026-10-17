@@ -40,7 +40,7 @@ assert(!html.includes('function renderGtmIndustryStep(host, locked, ro)'));
 assert(html.includes("if (['setup','industries','industry','goal','sales_motion','icp'].includes(onboarding.activeStep)) onboarding.activeStep='market'"));
 assert(html.includes("if (onboarding.activeStep === 'channels') onboarding.activeStep='market'"));
 assert(html.includes('delete locked.channels'));
-for(const label of ['Business / offer type','Industry coverage and names','Primary GTM goal','Sales motion']) assert(html.includes(label));
+for(const label of ['Business / offer type','Primary GTM goal','Sales motion']) assert(html.includes(label));
 assert(!html.includes('<section class="gtm-market-system" aria-labelledby="gtmMarketSystemTitle">'));
 for(const activity of ['AI visibility and citation audit','Prompt and answer monitoring','Entity and topical authority','Answer-ready content','Citation and mention building','Schema and technical readiness']){
   assert(html.includes(`'${activity}'`),`missing AEO activity: ${activity}`);

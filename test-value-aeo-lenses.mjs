@@ -13,7 +13,7 @@ assert(html.includes("if(state.contentView==='value')renderValueMatrixLensToolba
 assert(html.includes('const contentSlots = isValueAeoProcessMatrix ? 4 : 5'));
 assert(!html.includes('function valueIndustryMatrixColumns(baseColumns)'));
 assert(html.includes("industryIndicator.textContent=industryConfig.mode==='multi'?'Multi-industry':'Single Industry'"));
-assert(html.includes("industryIndicator.title='Industry mode is controlled in Maturity Axis'"));
+assert(html.includes("industryIndicator.title='Industry mode is set in Onboarding Form › Market Mapping'"));
 assert(html.includes("className='value-industry-indicator'"));
 assert(html.includes("copy.title='Copy all keywords in the selected value layer'"));
 assert(html.includes("navigator.clipboard.writeText(words.join('\\n'))"));

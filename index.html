@@ -2965,7 +2965,6 @@
             <button id="btnArchClearSelection" type="button">Clear</button>
           </div>
         </div>
-        <section class="maturity-departments" id="maturityDepartments" hidden></section>
         <div class="arch-flow-board" id="archBoard">
           <svg class="arch-flow-wires" id="archWires" aria-hidden="true"></svg>
           <div class="arch-edge-labels" id="archEdgeLabels"></div>
@@ -8839,7 +8838,7 @@ function renderValueMatrixLensToolbar(section,view){
   const industryConfig=maturityIndustryConfiguration();
   const industryIndicator=document.createElement('span');industryIndicator.className='value-industry-indicator';
   industryIndicator.textContent=industryConfig.mode==='multi'?'Multi-industry':'Single Industry';
-  industryIndicator.title='Industry mode is controlled in Maturity Axis';section.append(industryIndicator);
+  industryIndicator.title='Industry mode is set in Onboarding Form › Market Mapping';section.append(industryIndicator);
   const toolbar=document.createElement('div');toolbar.className='value-lens-toolbar';toolbar.setAttribute('role','group');toolbar.setAttribute('aria-label','Value keyword layer');
   const prompt=document.createElement('p');prompt.className='value-lens-prompt';prompt.textContent=VALUE_MATRIX_LENSES.find(lens=>lens.id===active)?.prompt||'';
   VALUE_MATRIX_LENSES.forEach(lens=>{
@@ -10460,32 +10459,6 @@ function maturityIndustryConfiguration(){
   };
 }
 
-/* Industry verticals now live in the onboarding Market Mapping step; the caller passes the host to draw into. */
-function renderPositioningIndustryStrip(ro, host){
-  if(!host)return;
-  host.replaceChildren();
-  const rerender=()=>renderPositioningIndustryStrip(ro, host);
-  const architecture=productArchitectureState(MATURITY_ACCESS_TAB);
-  const config=maturityIndustryConfiguration();
-  const edit=document.createElement('div'); edit.className='positioning-industry-edit';
-  const pencil=document.createElement('button'); pencil.type='button'; pencil.textContent='\u270e'; pencil.title='Edit industries in Maturity Axis'; pencil.setAttribute('aria-label','Edit industries in Maturity Axis');
-  pencil.onclick=()=>{switchTab(MATURITY_ACCESS_TAB);requestAnimationFrame(()=>$('maturityDepartments')?.scrollIntoView({behavior:'smooth',block:'start'}));};
-  const label=document.createElement('span'); label.textContent=config.mode==='multi'?'Industry verticals · Multi Industry':'Industry vertical · Single Industry';
-  edit.append(pencil,label);
-  const tabs=document.createElement('div'); tabs.className='positioning-industry-tabs';
-  config.industries.forEach(industry=>{
-    const button=document.createElement('button'); button.type='button'; button.className='positioning-industry-tab'+(industry===config.active?' active':''); button.textContent=industry; button.disabled=ro;
-    button.onclick=()=>{architecture.activeIndustry=industry;markDirty();rerender();};
-    tabs.append(button);
-  });
-  if(config.mode==='multi'&&!ro){
-    const add=document.createElement('button'); add.type='button'; add.className='positioning-industry-tab add'; add.textContent='+'; add.title='Add industry'; add.setAttribute('aria-label','Add industry');
-    add.onclick=()=>{const name=String(prompt('Industry name')||'').trim();if(!name)return;if(architecture.industries.some(item=>item.toLowerCase()===name.toLowerCase())){toast('That industry already exists.',true);return;}architecture.industries.push(name);architecture.activeIndustry=name;markDirty();rerender();};
-    tabs.append(add);
-  }
-  host.append(edit,tabs);
-}
-
 function dataPlatformMaturityArchitecture(){
   const architecture = { version: 3, sample: 'data-maturity', name: 'AI Data Platform - Department Maturity Axis',
     summary: 'Four successive ways the analytics department transforms data: Reporting, Analysis, Forecasting and Optimization. Gray nodes support the flow; yellow pillars are inherited; blue is the newest pillar in that maturity.',
@@ -11666,12 +11639,11 @@ function addArchitectureProcessToRow(architecture, rowIndex){
   return system;
 }
 
-function renderMaturityDepartments(architecture, ro){
-  const host = $('maturityDepartments');
-  const maturity = state.tab === MATURITY_ACCESS_TAB;
-  host.hidden = !maturity;
+/* Departments and Industries are edited in the onboarding Market Mapping step; the data stays on the
+   Maturity Axis architecture, which Keywords and the Maturity Axis read. */
+function renderMaturityDepartments(architecture, ro, host, rerender){
   host.replaceChildren();
-  if (!maturity) return;
+  const renderProductArchitecture = rerender;
   const departmentRow = document.createElement('div'); departmentRow.className = 'maturity-dimension-row';
   const title = document.createElement('h4'); title.textContent = 'Departments';
   const buttons = document.createElement('div'); buttons.className = 'maturity-department-buttons';
@@ -11760,7 +11732,6 @@ renderProductArchitecture = function(){
   name.oninput = () => { architecture.name = name.value; markDirty(); };
   const summary = $('archProductSummary'); summary.value = architecture.summary || ''; summary.readOnly = ro;
   summary.oninput = () => { architecture.summary = summary.value; markDirty(); };
-  renderMaturityDepartments(architecture,ro);
   renderArchitectureSelectionTools(architecture);
   enableArchitectureBoardMarquee(architecture);
   const systems = $('archSystems'); systems.innerHTML = '';
@@ -15650,7 +15621,7 @@ function renderGtmProductStep(host, locked, ro){
 }
 
 function renderGtmMarketQuestions(host, locked, ro){
-  const architecture=productArchitectureState(MATURITY_ACCESS_TAB), disabled=ro || locked;
+  const disabled=ro || locked;
   const title=document.createElement('h5'); title.className='gtm-market-setup-title'; title.textContent='GTM questions'; host.append(title);
   const field=(label,control)=>{const wrap=document.createElement('div');wrap.className='gtm-market-question';const heading=document.createElement('label');heading.textContent=label;wrap.append(heading,control);return wrap;};
 
@@ -15659,22 +15630,7 @@ function renderGtmMarketQuestions(host, locked, ro){
   businessType.value=state.clientType || ''; businessType.onchange=()=>{state.clientType=businessType.value;markDirty();};
   host.append(field('Business / offer type',businessType));
 
-  const coverage=document.createElement('div'); coverage.className='gtm-market-industry-names';
-  const mode=document.createElement('select'); mode.className='gtm-onboarding-control'; mode.disabled=disabled;
-  [['single','Single Industry'],['multi','Multi Industry']].forEach(([value,label])=>{const option=document.createElement('option');option.value=value;option.textContent=label;mode.append(option);});
-  mode.value=architecture.industryMode==='multi'?'multi':'single';
-  mode.onchange=()=>{architecture.industryMode=mode.value;if(mode.value==='single'){const selected=architecture.activeIndustry||architecture.industries?.[0]||'Industry';architecture.industries=[selected];architecture.activeIndustry=selected;}markDirty();renderGtmOnboarding();};
-  coverage.append(mode);
-  (architecture.industries||[]).forEach((industry,index)=>{
-    const row=document.createElement('div'); row.className='gtm-market-industry-row';
-    const input=document.createElement('input'); input.type='text'; input.className='gtm-onboarding-control'; input.value=industry==='Industry'?'':industry; input.placeholder=architecture.industryMode==='multi'?'Industry '+(index+1):'Industry name'; input.disabled=disabled; input.setAttribute('aria-label','Industry '+(index+1));
-    input.oninput=()=>{const previous=architecture.industries[index];architecture.industries[index]=input.value;if(architecture.activeIndustry===previous||architecture.industryMode==='single')architecture.activeIndustry=input.value;markDirty();};
-    const remove=document.createElement('button'); remove.type='button'; remove.innerHTML='&times;'; remove.title='Remove industry'; remove.hidden=architecture.industryMode!=='multi'; remove.disabled=disabled||architecture.industries.length===1;
-    remove.onclick=()=>{const removed=architecture.industries[index];architecture.industries.splice(index,1);if(architecture.activeIndustry===removed)architecture.activeIndustry=architecture.industries[0]||'';markDirty();renderGtmOnboarding();};
-    row.append(input,remove); coverage.append(row);
-  });
-  if(architecture.industryMode==='multi'&&!disabled){const add=document.createElement('button');add.type='button';add.className='gtm-market-add-industry';add.textContent='+ Add industry';add.onclick=()=>{architecture.industries.push('');markDirty();renderGtmOnboarding();requestAnimationFrame(()=>{const inputs=$('gtmOnboardingPanel')?.querySelectorAll('input[aria-label^="Industry "]');inputs?.[inputs.length-1]?.focus();});};coverage.append(add);}
-  host.append(field('Industry coverage and names',coverage));
+
 
   if(!String(state.clientGoal||'').trim())state.clientGoal='Customer Acquisition';
   const goal=document.createElement('input'); goal.type='text'; goal.className='gtm-onboarding-control'; goal.placeholder='Primary GTM goal'; goal.value=state.clientGoal||'Customer Acquisition'; goal.disabled=disabled; goal.oninput=()=>{state.clientGoal=goal.value;markDirty();};
@@ -15769,12 +15725,15 @@ function renderGtmMarketStep(host, locked, ro){
 }
 
 function renderGtmMarketMappingStep(host, locked, ro){
-  renderGtmGeoMarkets(host, locked, ro);
-  const industries=document.createElement('section'); industries.className='gtm-geo-markets gtm-industry-section';
-  const industriesTitle=document.createElement('h5'); industriesTitle.className='gtm-market-setup-title'; industriesTitle.textContent='Industries';
-  const strip=document.createElement('div'); strip.className='positioning-industry-strip gtm-industry-strip';
-  industries.append(industriesTitle,strip); host.append(industries);
-  renderPositioningIndustryStrip(ro || locked, strip);
+  /* Geographic markets, departments and industries stay editable after this step is locked. */
+  renderGtmGeoMarkets(host, false, ro);
+  const section=document.createElement('section'); section.className='gtm-geo-markets gtm-industry-section';
+  const sectionTitle=document.createElement('h5'); sectionTitle.className='gtm-market-setup-title'; sectionTitle.textContent='Departments & Industries';
+  const help=document.createElement('small'); help.className='gtm-onboarding-hint';
+  help.textContent='Click a department to rename it. Choose Single Industry or Multi-industry; click an industry to make it active, double-click to rename.';
+  const editor=document.createElement('div'); editor.className='maturity-departments gtm-departments-editor';
+  section.append(sectionTitle,help,editor); host.append(section);
+  renderMaturityDepartments(productArchitectureState(MATURITY_ACCESS_TAB), ro, editor, renderGtmOnboarding);
   const shell=document.createElement('section'); shell.className='gtm-market-map';
   const canvas=document.createElement('div'); canvas.className='gtm-market-map-canvas';
   canvas.setAttribute('role','img');
@@ -15855,12 +15814,7 @@ function validateGtmOnboardingStep(step, control){
     return true;
   }
   if (step.type==='market'){
-    const architecture=productArchitectureState(MATURITY_ACCESS_TAB);
-    const names=(architecture.industries||[]).map(value=>String(value||'').trim()).filter(Boolean);
     if (!state.clientType){ toast('Choose the business or offer type.',true); return false; }
-    if (!names.length || names.some(name=>/^industry$/i.test(name))){ toast('Enter the industry name before locking this step.',true); return false; }
-    if (architecture.industryMode==='single'&&names.length!==1){toast('Single Industry requires exactly one industry name.',true);return false;}
-    if(new Set(names.map(name=>name.toLowerCase())).size!==names.length){toast('Use a different name for each industry.',true);return false;}
     if(!String(state.clientGoal||'').trim()){toast('Enter the primary GTM goal.',true);return false;}
     if(!state.clientSalesMotion){toast('Choose PLG or SLG.',true);return false;}
     if(!state.clientMarketType){toast('Choose Red Ocean or Blue Ocean.',true);return false;}
@@ -15868,12 +15822,16 @@ function validateGtmOnboardingStep(step, control){
     if (!(evolutionState().axis || brandRadarState().sourceAxis) || !activeBuyingIndustryAxis()){
       toast('Choose both the selling component and buying component.',true); return false;
     }
-    architecture.industries=names; architecture.activeIndustry=names.includes(architecture.activeIndustry)?architecture.activeIndustry:names[0];
     return true;
   }
   if (step.type==='market-map'){
     state.clientMarkets=state.clientMarkets.filter(Boolean);
     if(!state.clientMarkets.length){toast('Choose at least one geographic market.',true);renderGtmOnboarding();return false;}
+    const architecture=productArchitectureState(MATURITY_ACCESS_TAB);
+    const names=(architecture.industries||[]).map(value=>String(value||'').trim()).filter(Boolean);
+    if (!names.length || names.some(name=>/^industry$/i.test(name))){ toast('Name the industry before locking this step.',true); return false; }
+    if(new Set(names.map(name=>name.toLowerCase())).size!==names.length){toast('Use a different name for each industry.',true);return false;}
+    architecture.industries=names; architecture.activeIndustry=names.includes(architecture.activeIndustry)?architecture.activeIndustry:names[0];
     return true;
   }
   const value=String(control?.value || '').trim();

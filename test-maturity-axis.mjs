@@ -21,23 +21,21 @@ assert.match(html, /function isAiDataIndustryContext\(architecture\)/);
 assert.match(html, /function maturityIndustryConfiguration\(\)/);
 assert.match(html, /const MATURITY_INDUSTRY_PROMPT/);
 assert.match(html, /architecture\.industryPromptRevision = 3/);
-assert.match(html, /function renderMaturityDepartments\(architecture, ro\)/);
+assert.ok(html.includes('function renderMaturityDepartments(architecture, ro, host, rerender)'));
 for (const department of ['Marketing','Inventory Management','Technical SEO / AEO','Incident Response','GRC'])
   assert.ok(html.includes("'" + department + "'"), 'missing department ' + department);
-assert.ok(html.includes('id="maturityDepartments"'));
+/* The Departments & Industries editor moved from the Maturity Axis into onboarding Market Mapping. */
+assert.ok(!html.includes('id="maturityDepartments"'));
+assert.ok(html.includes('function renderMaturityDepartments(architecture, ro, host, rerender)'));
 assert.ok(html.includes('maturity-department-buttons'));
 assert.ok(html.includes('Single Industry'));
 assert.ok(html.includes('Multi-industry'));
 assert.ok(html.includes("return ['E-commerce']"));
 assert.ok(html.includes("if (!ro && architecture.industryMode==='multi')"));
-/* Industry verticals moved from the Positioning Canvas into onboarding Market Mapping. */
+/* The industry strip (with its pencil link to Maturity Axis) is gone; Market Mapping edits industries directly. */
 assert.ok(!html.includes('id="positioningIndustryStrip"'));
-assert.ok(html.includes('function renderPositioningIndustryStrip(ro, host)'));
-assert.ok(html.includes('renderPositioningIndustryStrip(ro || locked, strip);'));
-assert.ok(html.includes("pencil.textContent='\\u270e'"));
-assert.ok(html.includes('host.append(edit,tabs)'));
-assert.match(html, /\.positioning-industry-tabs\{[^}]*justify-content:flex-end/);
-assert.ok(html.includes("config.mode==='multi'&&!ro"));
+assert.ok(!html.includes('function renderPositioningIndustryStrip'));
+assert.ok(!html.includes("pencil.title='Edit industries in Maturity Axis'"));
 assert.ok(html.includes("architecture.industries=['E-commerce']"));
 assert.ok(html.includes("architecture.aiDataIndustryCleanupRevision=1"));
 /* Regression: unknown clients must not inherit the AI Data e-commerce model. */

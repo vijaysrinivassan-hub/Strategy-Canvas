@@ -12,7 +12,7 @@ assert(html.includes("state.clientIcps = [];") && html.includes("state.clientMar
 assert(html.includes("add.textContent='+ Add ICP'"));
 assert(html.includes("tag.textContent='ICP '+(index+1)"), 'ICPs are labelled by position');
 assert(html.includes("field('Red Ocean or Blue Ocean',ocean)"));
-assert(html.includes("renderGtmGeoMarkets(host, locked, ro);"));
+assert(html.includes("renderGtmGeoMarkets(host, false, ro);"));
 assert(html.includes("return [['ALL', label('ALL')], ['US', label('US')], ['IN', label('IN')], ...rest];"), 'All countries, U.S., India come first');
 assert(html.includes("toast('Choose Red Ocean or Blue Ocean.',true)") && html.includes("toast('Add at least one ICP.',true)"));
 assert(html.includes("toast('Choose at least one geographic market.',true)"));
@@ -29,5 +29,9 @@ const columns=fs.readFileSync(new URL('./keyword-columns.js',import.meta.url),'u
 assert(columns.includes('ICP KEYWORD WORKSPACES') && columns.includes("icpProcessWorkspacePrompt+'\\n\\n'+"));
 // Industries moved from the Positioning Canvas into onboarding Market Mapping.
 assert(!html.includes('id="positioningIndustryStrip"'));
-assert(html.includes("industriesTitle.textContent='Industries'"));
+assert(html.includes("sectionTitle.textContent='Departments & Industries'"));
+assert(html.includes('renderMaturityDepartments(productArchitectureState(MATURITY_ACCESS_TAB), ro, editor, renderGtmOnboarding);'), 'departments and industries are edited in Market Mapping');
+assert(!html.includes('id="maturityDepartments"') && !html.includes('renderMaturityDepartments(architecture,ro);'), 'the Maturity Axis no longer shows the editor');
+assert(!html.includes('function renderPositioningIndustryStrip'), 'the pencil strip that redirected to Maturity Axis is gone');
+assert(html.includes('renderGtmGeoMarkets(host, false, ro);'), 'markets stay editable after locking');
 console.log('PASS: onboarding asks for ICPs (+/×), Red or Blue Ocean, geographic markets (All countries, U.S., India first) and industries; keyword sets follow the ICPs.');
