@@ -31,6 +31,9 @@ assert(html.includes("box.append(tabButton(MATURITY_ACCESS_TAB, 'Maturity Axis')
 assert(html.includes('const isArchitecture = isArchitectureTab(state.tab)'));
 assert(html.includes('const tabKey = activeArchitectureTab()'));
 assert(html.includes("architecture.name = 'Maturity Axis'"));
+assert(html.includes("const aiDataMaturity = isAiDataIndustryContext(architecture || {});"));
+assert(html.includes("(!architecture || uninitializedMaturity) && aiDataMaturity"));
+assert(html.includes('architecture.maturityInitialized = true;'));
 assert(html.includes('tabs[LEGACY_MATURITY_ACCESS_TAB]'));
 assert(html.includes('PRODUCT_ARCHITECTURE_TAB, MATURITY_ACCESS_TAB, POSITIONING_TAB'));
 assert(!html.includes('Earlier process'));

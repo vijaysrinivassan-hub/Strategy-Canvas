@@ -21,6 +21,7 @@ export async function architecturePrompts(body?: {tabs: Record<string, any>}, se
 }
 const architectureSchema = z.object({
   name: z.string().min(1), summary: z.string(), detailCardsVersion:z.number().int().optional(),
+  maturityInitialized:z.boolean().optional(),
   analysisSubprocessRevision:z.number().int().optional(),
   departmentsVersion:z.number().int().optional(),
   departments:z.array(z.string()).optional(),
@@ -120,7 +121,7 @@ export function registerArchitectureTools(server:McpServer) {
     for(const e of architecture.edges)if(!nodes.has(e.from)||!nodes.has(e.to)||e.from===e.to)throw new ToolError('Invalid connector endpoints.');
     for(const g of architecture.groups)if(new Set(g.nodeIds).size!==g.nodeIds.length||g.nodeIds.some(id=>!nodes.has(id)||nodes.get(id)!.systemId!==g.systemId))throw new ToolError('Group members must belong to the same maturity row.');
     const slot=body.tabs[MATURITY_TAB]||(body.tabs[MATURITY_TAB]={nodes:[],edges:[]});
-    slot.architecture={...slot.architecture,...architecture,version:3,sample:'blank',nodes:architecture.nodes.map(n=>({...n,width:154}))};
+    slot.architecture={...slot.architecture,...architecture,version:3,sample:'blank',maturityInitialized:true,nodes:architecture.nodes.map(n=>({...n,width:154}))};
     const {data,error}=await db().from('reports').update({body:JSON.stringify(body),updated_at:new Date().toISOString()}).eq('id',board_id).eq('updated_at',revision).select('updated_at');
     if(error)throw new ToolError(error.message);
     if(!data?.length)throw new ToolError('Concurrent edit detected; read again.');

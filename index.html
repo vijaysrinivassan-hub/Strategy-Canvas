@@ -10376,14 +10376,15 @@ const MATURITY_DEPARTMENT_TEMPLATES = {
   soc:['Security Operations','Detection Engineering','Threat Intelligence','Incident Response','Vulnerability Management','GRC','Identity & Access Management']
 };
 function maturityDepartmentsFor(architecture){
-  const sample = String(architecture.sample || '').toLowerCase();
-  const name = String(architecture.name || '').toLowerCase();
-  const product = String(state.clientProduct || '').toLowerCase();
-  const architectureContext = sample + ' ' + name;
-  if (/soc|cyber|security/.test(architectureContext)) return [...MATURITY_DEPARTMENT_TEMPLATES.soc];
-  if (/data-maturity|data platform|analytics platform/.test(architectureContext)) return [...MATURITY_DEPARTMENT_TEMPLATES.platform];
-  if (/agency/.test(product + ' ' + name)) return [...MATURITY_DEPARTMENT_TEMPLATES.agency];
-  return [...MATURITY_DEPARTMENT_TEMPLATES.platform];
+  const context = [architecture?.sample, architecture?.name, state.client, state.clientProduct]
+    .map(value => String(value || '').toLowerCase()).join(' ');
+  if (/soc|cyber|security/.test(context)) return [...MATURITY_DEPARTMENT_TEMPLATES.soc];
+  if (/data-maturity|data platform|analytics platform/.test(context)) return [...MATURITY_DEPARTMENT_TEMPLATES.platform];
+  if (/agency/.test(context)) return [...MATURITY_DEPARTMENT_TEMPLATES.agency];
+  /* A blank axis must remain neutral.  E-commerce departments are specific to
+     the AI Data Platform template and must never become an unknown client's
+     accidental maturity model. */
+  return [];
 }
 function maturityIndustriesFor(architecture){
   const context = [architecture?.sample,architecture?.name,state.client,state.clientProduct]
@@ -10563,12 +10564,14 @@ if (tab.architectureFeaturePromptRevision !== 1){
     if (!readOnly()) setTimeout(markDirty,0);
   }
   let architecture = tab.architecture;
-  const uninitializedMaturity = tabKey === MATURITY_ACCESS_TAB && architecture?.version === 3 &&
+  const aiDataMaturity = isAiDataIndustryContext(architecture || {});
+  const uninitializedMaturity = tabKey === MATURITY_ACCESS_TAB && aiDataMaturity &&
+    !architecture?.maturityInitialized && architecture?.version === 3 &&
     architecture.sample === 'blank' && !(architecture.nodes || []).length &&
     !(architecture.edges || []).length && (architecture.systems || []).length <= 1;
   if (!architecture || architecture.version !== 3 || uninitializedMaturity){
     const previousSample = architecture && architecture.sample;
-    if (tabKey === MATURITY_ACCESS_TAB && (!architecture || uninitializedMaturity)) architecture = dataPlatformMaturityArchitecture();
+    if (tabKey === MATURITY_ACCESS_TAB && (!architecture || uninitializedMaturity) && aiDataMaturity) architecture = dataPlatformMaturityArchitecture();
     else if (previousSample === 'soc') architecture = socProductArchitecture();
     else if (previousSample === 'data') architecture = dataPlatformArchitecture();
     else if (architecture && architecture.version === 2){
@@ -10588,6 +10591,13 @@ if (tab.architectureFeaturePromptRevision !== 1){
   if (!Array.isArray(architecture.edges)) architecture.edges = [];
   if (!Array.isArray(architecture.groups)) architecture.groups = [];
   if (tabKey === MATURITY_ACCESS_TAB){
+    /* This records that a maturity tab has been intentionally created or
+       opened. A deliberately cleared axis is therefore never mistaken for
+       an untouched AI Data board and seeded again on the next load. */
+    if (architecture.maturityInitialized !== true){
+      architecture.maturityInitialized = true;
+      if (!readOnly()) setTimeout(markDirty, 0);
+    }
     const simpleDepartments = Array.isArray(architecture.departments) &&
       architecture.departments.every(value => typeof value === 'string');
     if (!simpleDepartments) architecture.departments = maturityDepartmentsFor(architecture);
@@ -11718,7 +11728,12 @@ $('btnArchLoadSample').onclick = () => {
   state.tabs[tabKey].architecture = sample === 'data-maturity' ? dataPlatformMaturityArchitecture() :
     sample === 'data' ? dataPlatformArchitecture() :
     sample === 'soc' ? socProductArchitecture() : blankArchitecture();
-  if (tabKey === MATURITY_ACCESS_TAB && sample === 'blank') state.tabs[tabKey].architecture.name = 'Maturity Axis';
+  if (tabKey === MATURITY_ACCESS_TAB && sample === 'blank'){
+    state.tabs[tabKey].architecture.name = 'Maturity Axis';
+    /* Set this before rendering: the blank template is a deliberate user
+       choice, not a missing AI Data maturity model to seed. */
+    state.tabs[tabKey].architecture.maturityInitialized = true;
+  }
   architectureSelection.clear();
   markDirty(); renderProductArchitecture();
 };

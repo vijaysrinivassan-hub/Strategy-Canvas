@@ -7,7 +7,13 @@ const tools = readFileSync(new URL('./mcp-server/src/tools/architecture.ts', imp
 
 assert.match(html, /function dataPlatformMaturityArchitecture\(\)/);
 assert.ok(html.includes('const uninitializedMaturity = tabKey === MATURITY_ACCESS_TAB'));
-assert.ok(html.includes("if (tabKey === MATURITY_ACCESS_TAB && (!architecture || uninitializedMaturity)) architecture = dataPlatformMaturityArchitecture();"));
+assert.ok(html.includes("const aiDataMaturity = isAiDataIndustryContext(architecture || {});"));
+assert.match(html, /const uninitializedMaturity = tabKey === MATURITY_ACCESS_TAB && aiDataMaturity &&\s*!architecture\?\.maturityInitialized/);
+assert.ok(html.includes("if (tabKey === MATURITY_ACCESS_TAB && (!architecture || uninitializedMaturity) && aiDataMaturity) architecture = dataPlatformMaturityArchitecture();"));
+assert.ok(html.includes("architecture.name = 'Maturity Axis';"));
+assert.ok(html.includes('architecture.maturityInitialized = true;'));
+assert.match(html, /sample === 'blank'\)\{[\s\S]*?architecture\.maturityInitialized = true;/,
+  'choosing a blank Maturity Axis must mark it initialized before rendering');
 assert.match(html, /const MATURITY_DEPARTMENT_TEMPLATES/);
 assert.match(html, /function maturityDepartmentsFor\(architecture\)/);
 assert.match(html, /function maturityIndustriesFor\(architecture\)/);
@@ -32,6 +38,26 @@ assert.match(html, /\.positioning-industry-tabs\{[^}]*justify-content:flex-end/)
 assert.ok(html.includes("config.mode==='multi'&&!ro"));
 assert.ok(html.includes("architecture.industries=['E-commerce']"));
 assert.ok(html.includes("architecture.aiDataIndustryCleanupRevision=1"));
+/* Regression: unknown clients must not inherit the AI Data e-commerce model. */
+assert.match(html, /function maturityDepartmentsFor\(architecture\)[\s\S]*return \[\];/);
+assert.ok(!html.includes('return [...MATURITY_DEPARTMENT_TEMPLATES.platform];\n}\nfunction maturityIndustriesFor'),
+  'unknown clients must not fall back to the platform department template');
+const departmentStart = html.indexOf('const MATURITY_DEPARTMENT_TEMPLATES = {');
+const departmentEnd = html.indexOf('function maturityIndustriesFor(architecture){');
+const departmentSource = departmentStart >= 0 && departmentEnd > departmentStart
+  ? html.slice(departmentStart, departmentEnd) : '';
+assert.ok(departmentSource, 'could not load the maturity department resolver');
+const departmentResolver = new Function('state', departmentSource + '\nreturn maturityDepartmentsFor;');
+assert.deepEqual(
+  departmentResolver({client:'Event Lead Capture Tool',clientProduct:''})({sample:'blank',name:'Maturity Axis'}),
+  [],
+  'an unknown board must start without the e-commerce departments'
+);
+assert.deepEqual(
+  departmentResolver({client:'AI Data Platform',clientProduct:''})({sample:'data-maturity',name:'Maturity Axis'}),
+  ['Marketing','Sales / Revenue','Merchandising','Inventory Management','Operations / Fulfilment','Finance','Customer Support'],
+  'the AI Data template must retain its department set'
+);
 assert.ok(html.includes('Do not add raw material, input types, descriptions, maps or nested product sections.'));
 for (const stage of ['L1 - Reporting', 'L2 - Analysis', 'L3 - Forecasting', 'L4 - Optimization'])
   assert.ok(html.includes(stage), 'missing maturity row ' + stage);
@@ -67,6 +93,7 @@ assert.match(tools, /replacementSelected:z\.boolean\(\)\.optional\(\)/);
 assert.match(tools, /departments:z\.array\(z\.string\(\)\)\.optional\(\)/);
 assert.match(tools, /industries:z\.array\(z\.string\(\)\)\.optional\(\)/);
 assert.match(tools, /industryMode:z\.enum\(\['single','multi'\]\)\.optional\(\)/);
+assert.match(tools, /maturityInitialized:z\.boolean\(\)\.optional\(\)/);
 assert.match(tools, /activeIndustry:z\.string\(\)\.optional\(\)/);
 assert.match(tools, /departments:architecture\.departments/);
 assert.match(tools, /Preserve Departments and Industries as simple name lists/);
@@ -74,4 +101,5 @@ assert.match(tools, /Industries belong in Solution Aware ICP AEO under Industry 
 assert.match(tools, /never receives industry columns/);
 assert.match(tools, /A replacement process can only be selected inside a selected maturity row/);
 assert.match(tools, /section === 'maturity_axis' \? MATURITY_TAB/);
+assert.match(tools, /maturityInitialized:true/);
 console.log('maturity axis tests passed');
