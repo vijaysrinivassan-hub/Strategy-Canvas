@@ -1,0 +1,13 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+const tool=fs.readFileSync(new URL('./mcp-server/src/tools/positioning-canvas.ts',import.meta.url),'utf8');
+const index=fs.readFileSync(new URL('./mcp-server/src/index.ts',import.meta.url),'utf8');
+const doc=fs.readFileSync(new URL('./mcp-server/src/tools/positioning-document.ts',import.meta.url),'utf8');
+assert(index.includes('registerPositioningCanvasTools(server);'));
+for (const name of ['positioning_canvas_get','positioning_canvas_set']) assert(tool.includes("registerTool('"+name+"'"));
+assert(tool.includes("const TAB = 'Strategy 1 — Positioning Canvas'"));
+assert(tool.includes("if(row.updated_at!==revision)throw new ToolError('Board changed. Read it again before saving.');"));
+assert(tool.includes("productTab[key]=JSON.parse(JSON.stringify(value));"), 'canvas saves mirror into the product workspace');
+assert(tool.includes("must match an existing id"), 'selections are validated');
+assert(doc.includes('productTab.fields = JSON.parse(JSON.stringify(current));'), 'document saves mirror into the product workspace');
+console.log('PASS: Positioning Canvas MCP tools read and save the active product with a revision guard.');

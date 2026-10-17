@@ -9,6 +9,7 @@ import { registerCanvasTools } from "./tools/canvas.js";
 import { registerContentTools } from "./tools/content.js";
 import { registerFrameTools } from "./tools/frames.js";
 import { registerPositioningDocumentTools } from "./tools/positioning-document.js";
+import { registerPositioningCanvasTools } from "./tools/positioning-canvas.js";
 import { registerArchitectureTools } from "./tools/architecture.js";
 import { registerCompetitiveIntelligenceTools } from "./tools/competitive-intelligence.js";
 
@@ -27,6 +28,7 @@ registerCanvasTools(server);
 registerContentTools(server);
 registerFrameTools(server);
 registerPositioningDocumentTools(server);
+registerPositioningCanvasTools(server);
 registerArchitectureTools(server);
 registerCompetitiveIntelligenceTools(server);
 

@@ -144,6 +144,16 @@ export function registerPositioningDocumentTools(server: McpServer) {
           if (typeof fields.distribution_plate[key] === "string") current.distribution_plate[key] = fields.distribution_plate[key];
         }
       }
+      /* The browser also keeps the selected product's document in productWorkspaces; keep both copies
+         in step so a later product switch does not restore the older workspace value. */
+      const productId = body.workspaceProductId;
+      if (productId) {
+        body.productWorkspaces ||= {};
+        const workspace = body.productWorkspaces[productId] ||= { tabs: {} };
+        workspace.tabs ||= {};
+        const productTab = workspace.tabs[TAB] ||= { nodes: [], edges: [] };
+        productTab.fields = JSON.parse(JSON.stringify(current));
+      }
       await saveBoard(board_id, body);
       return ok({ fields: current });
     }
