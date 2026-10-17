@@ -59,6 +59,7 @@ const architectureSchema = z.object({
     processRole:z.enum(['supporting','pillar']).optional(),pillarState:z.enum(['current','inherited']).or(z.literal('')).optional(),
     processName:z.string().optional(),actorType:z.enum(['technology','people','technology_or_people']).optional(),actor:z.string().optional(),
     nodalBenefit:z.string().optional(),capabilities:z.array(z.string()).length(2).optional(),replacementSelected:z.boolean().optional(),
+    integration:z.boolean().optional(),
     subProcesses:z.array(z.object({id:z.string().min(1),name:z.string().min(1),description:z.string()})).optional()
   })),
   edges: z.array(z.object({id:z.string().min(1),from:z.string(),to:z.string(),label:z.string().min(1)})),
@@ -94,7 +95,7 @@ export function registerArchitectureTools(server:McpServer) {
   });
   server.registerTool('product_architecture_set', {
     title:'Save product architecture workflows',
-    description:'Save the complete workflow architecture to Strategy Product Architecture. Read first, preserve existing work unless replacement was requested, and supply its revision. Each system is a process canvas; row groups canvases horizontally and omitted row defaults to the first row. Preserve each system customFields list; these are editable fields displayed beneath that canvas. Nodes are Technology or People; each technology has exactly two features and each person exactly two skills; edge labels are outputs. Keep 154px-wide nodes and groups inside canvas bounds with space between labels. Omitted prior nodes or fields are removed.',
+    description:'Save the complete workflow architecture to Strategy Product Architecture. Read first, preserve existing work unless replacement was requested, and supply its revision. Each system is a process canvas; row groups canvases horizontally and omitted row defaults to the first row. Preserve each system customFields list; these are editable fields displayed beneath that canvas. Nodes are Technology or People; each technology has exactly two features and each person exactly two skills; set integration:true on a technology node that is an external system the product connects to (CRM, calendar, data provider) so it shows an Integration badge rather than counting as part of the product; edge labels are outputs. Keep 154px-wide nodes and groups inside canvas bounds with space between labels. Omitted prior nodes or fields are removed.',
     inputSchema:{board_id:z.string(),product_id:z.string().optional(),revision:z.string(),architecture:architectureSchema},
     annotations:{readOnlyHint:false,destructiveHint:true,idempotentHint:false}
   }, async({board_id,product_id,revision,architecture})=>{

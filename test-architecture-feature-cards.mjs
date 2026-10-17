@@ -18,4 +18,11 @@ assert(prompts.product_architecture.prompt.includes('every technology exactly tw
 assert(tool.includes('exactly two features for technology or two skills for people'));
 assert(tool.includes('n.y+220>system.height'));
 assert(tool.includes('capabilities:z.array(z.string()).length(2)'));
+assert(prompts.product_architecture.prompt.includes('integration: true'));
+assert(prompts.product_architecture.prompt.includes('naming the node or combination of nodes'));
+assert(html.includes("badge.className = 'arch-integration-badge'"));
+assert(html.includes("node.integration = node.integration === true && node.type !== 'people'"));
+assert(html.includes('tab.architectureIntegrationPromptRevision !== 1'));
+assert(tool.includes('integration:z.boolean().optional()'));
 console.log('PASS: Maturity Axis and Product Architecture use expanded cards with two Features or Skills and no Nodal benefit field.');
+console.log('PASS: Product Architecture marks external systems with an Integration badge and the prompt asks for node-based capabilities.');

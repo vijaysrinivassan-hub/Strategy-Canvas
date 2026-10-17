@@ -1489,6 +1489,13 @@
   .arch-flow-node .node-remove{margin-left:auto; padding:0 3px; border:0; background:transparent;
                                color:#a0a29d; font-size:12px; box-shadow:none}
   .arch-flow-node.detail-node{width:176px; min-height:184px; padding:9px 10px 10px; background:#fff}
+  /* External systems the product connects to, shown apart from the product's own modules. */
+  .arch-flow-node.detail-node.integration-node{border:1px dashed #5b8fd6; background:#f3f7fd}
+  .arch-integration-badge{display:inline-block; margin:0 0 3px; padding:1px 6px; border-radius:3px;
+                          background:#2f6fbf; color:#fff; font-size:7px; font-weight:800; letter-spacing:.08em; text-transform:uppercase}
+  .arch-flow-node .arch-integration-toggle{padding:2px 5px; border:1px solid #d5dbd5; background:#fff; color:#83867f;
+                          font-size:7px; font-weight:800; letter-spacing:.07em; text-transform:uppercase; box-shadow:none}
+  .arch-flow-node .arch-integration-toggle[aria-pressed="true"]{border-color:#2f6fbf; background:#2f6fbf; color:#fff}
   .arch-flow-system[data-maturity-selected="true"]{box-shadow:inset 4px 0 0 #5791d0}
   .maturity-row-check{display:flex; align-items:center; justify-content:center; width:18px; height:22px; flex:none}
   .maturity-row-check input,.maturity-replace-check input{width:12px; height:12px; margin:0; accent-color:#3f83c5; cursor:pointer}
@@ -10551,6 +10558,8 @@ socProductArchitecture = function(){
     ], [['graph','correlate','Enriched security context'],['casePlatform','soar','Verified incident']]);
 };
 
+const ARCHITECTURE_INTEGRATION_PROMPT = "Mark every external system the product connects to but does not own, such as a CRM, calendar, email or third-party data provider, with integration: true. It renders with an Integration badge and does not count as part of the product architecture. Leave the product's own modules unmarked, and never present an integration as a native capability.\n\nUnder each workflow keep two fields. Capabilities: one line per capability, naming the node or combination of nodes that delivers it and what it lets the customer do, written as \"Node A + Node B: plain-language outcome\". Features: the product features in that workflow, grouped by node, with integrations labelled as integrations. Write both for a buyer, not an engineer. Keep every workflow canvas the same height.";
+
 productArchitectureState = function(tabOverride){
   const tabKey = tabOverride || activeArchitectureTab();
   const tab = state.tabs[tabKey] ||
@@ -10563,6 +10572,13 @@ if (tab.architectureFeaturePromptRevision !== 1){
       }
     }
     tab.architectureFeaturePromptRevision = 1;
+    if (!readOnly()) setTimeout(markDirty,0);
+  }
+  if (tabKey === PRODUCT_ARCHITECTURE_TAB && tab.architectureIntegrationPromptRevision !== 1){
+    if (typeof tab.aiPrompt === 'string' && !/integration: true/.test(tab.aiPrompt)){
+      tab.aiPrompt = tab.aiPrompt.trim() + '\n\n' + ARCHITECTURE_INTEGRATION_PROMPT;
+    }
+    tab.architectureIntegrationPromptRevision = 1;
     if (!readOnly()) setTimeout(markDirty,0);
   }
   let architecture = tab.architecture;
@@ -10698,6 +10714,7 @@ if (tab.architectureFeaturePromptRevision !== 1){
     if (typeof node.actor !== 'string') node.actor = '';
     if (!Array.isArray(node.capabilities)) node.capabilities = [];
     node.capabilities = node.capabilities.map(value => String(value).trim()).filter(Boolean).slice(0,2);
+    node.integration = node.integration === true && node.type !== 'people';
     if (!Array.isArray(node.subProcesses)) node.subProcesses = [];
     node.subProcesses = node.subProcesses.map(item => typeof item === 'string' ?
       {id:uid(),name:item,description:''} : {
@@ -11419,6 +11436,12 @@ function renderArchitectureSystem(system, index, architecture, siblings){
       (architectureSelection.has(node.id) ? ' selected' : '');
     card.dataset.nodeId = node.id;
     card.dataset.type = node.type; card.style.left = node.x + 'px'; card.style.top = node.y + 'px';
+    if (!maturityNode && node.integration){
+      card.classList.add('integration-node');
+      const badge = document.createElement('span'); badge.className = 'arch-integration-badge';
+      badge.textContent = 'Integration'; badge.title = 'An external system the product connects to, not part of the product itself';
+      card.append(badge);
+    }
     if (maturityNode){
       card.dataset.processRole = node.processRole;
       card.dataset.pillarState = node.pillarState || '';
@@ -11505,10 +11528,22 @@ function renderArchitectureSystem(system, index, architecture, siblings){
     type.onchange = () => {
       if (maturityNode){
         node.actorType = type.value; node.type = type.value === 'people' ? 'people' : 'technology';
-      } else { node.type = type.value; node.actorType = type.value; }
+      } else {
+        node.type = type.value; node.actorType = type.value;
+        if (node.type === 'people') node.integration = false;
+      }
       card.dataset.type = node.type; markDirty(); renderProductArchitecture();
     };
     foot.append(type);
+    if (!maturityNode && node.type !== 'people'){
+      const integration = document.createElement('button'); integration.type = 'button';
+      integration.className = 'arch-integration-toggle'; integration.textContent = 'Integration';
+      integration.title = 'Mark as an external system the product connects to';
+      integration.setAttribute('aria-pressed', String(node.integration === true));
+      integration.disabled = readOnly();
+      integration.onclick = () => { node.integration = !node.integration; markDirty(); renderProductArchitecture(); };
+      foot.append(integration);
+    }
     if (!readOnly()){
       const remove = document.createElement('button'); remove.type = 'button'; remove.className = 'node-remove';
       remove.textContent = '×'; remove.title = 'Delete node'; remove.onclick = () => {
