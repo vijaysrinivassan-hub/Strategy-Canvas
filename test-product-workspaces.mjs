@@ -36,4 +36,11 @@ readonly=true;const before=dirty;context.activateProduct('p2');assert.equal(dirt
 context.hydrate(JSON.stringify({client:'Client B',clientProduct:'Other',tabs:{gtm:{channels:{products:[{id:'other',name:'Other'}],activeProductId:'other'}},architecture:{nodes:[],edges:[],marker:'other'}}}));
 context.ensureProductWorkspace();assert.equal(state.workspaceProductId,'other');
 assert.equal(Object.keys(state.productWorkspaces).length,0);assert.equal(state.tabs.architecture.marker,'other');
+const mcp=fs.readFileSync(new URL('./mcp-server/src/tools/architecture.ts',import.meta.url),'utf8');
+assert.match(mcp,/function activeProductTab\(body:any, tab:string, requestedProductId\?:string\)/);
+assert.match(mcp,/function saveProductArchitecture\(body:any, tab:string, architecture:any, requestedProductId\?:string\)/);
+assert.match(mcp,/product_id:z\.string\(\)\.optional\(\)/);
+assert.match(mcp,/saveProductArchitecture\(body,TAB,savedArchitecture,product_id\)/);
+assert.match(mcp,/saveProductArchitecture\(body,MATURITY_TAB,savedArchitecture,product_id\)/);
+assert.match(mcp,/productTab\.architecture=JSON\.parse\(JSON\.stringify\(architecture\)\)/);
 console.log('PASS: product workspace isolation, company-level Competitive Intelligence URLs, prompts, shared evidence, save/reload, MCP writes, rename, read-only switching and cross-client isolation.');

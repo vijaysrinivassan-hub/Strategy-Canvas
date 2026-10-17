@@ -9,6 +9,27 @@ const TAB = 'Strategy 1 — Product Architecture';
 const MATURITY_TAB = 'Strategy 1 — Maturity Axis';
 type PromptSection = 'product_architecture' | 'maturity_axis' | 'positioning_canvas' | 'positioning_document' | 'keywords';
 const MATURITY_INDUSTRY_AXIS_PROMPT='INDUSTRY ROUTING RULE: Industries belong in Solution Aware ICP AEO under Industry Pages. Keep Solution Aware Value AEO department-only and show the Single Industry / Multi-industry mode there only as a read-only label. Never add industry columns to Value AEO; this rule replaces older industry-column or industry-group instructions.';
+
+/* The browser keeps a selected product's architecture in the live tab and in
+   productWorkspaces. Both copies must move together or a later product switch
+   restores the older workspace value over an apparently successful MCP save. */
+function activeProductTab(body:any, tab:string, requestedProductId?:string){
+  const productId=requestedProductId||body.workspaceProductId;
+  const workspace=productId&&body.productWorkspaces?.[productId];
+  return workspace?.tabs?.[tab]||body.tabs?.[tab]||null;
+}
+function saveProductArchitecture(body:any, tab:string, architecture:any, requestedProductId?:string){
+  body.tabs ||= {};
+  const live=body.tabs[tab] ||= {nodes:[],edges:[]};
+  live.architecture=architecture;
+  const productId=requestedProductId||body.workspaceProductId;
+  if(!productId)return;
+  body.productWorkspaces ||= {};
+  const workspace=body.productWorkspaces[productId] ||= {tabs:{}};
+  workspace.tabs ||= {};
+  const productTab=workspace.tabs[tab] ||= {nodes:[],edges:[]};
+  productTab.architecture=JSON.parse(JSON.stringify(architecture));
+}
 export async function architecturePrompts(body?: {tabs: Record<string, any>}, section: PromptSection = 'product_architecture') {
   if(section==='keywords')return {title:'Keyword strategy',prompt:body?.tabs['Content Strategy']?.routingInstruction || KeywordColumns.strategyPrompt+'\n\n'+KeywordColumns.comparisonRouting};
   const defaults = JSON.parse(await readFile(new URL('../../../ai-prompts.json', import.meta.url), 'utf8'))[section];
@@ -59,24 +80,24 @@ export function registerArchitectureTools(server:McpServer) {
   });
   server.registerTool('product_architecture_get', {
     title:'Read product architecture workflows', description:'Read the Strategy Product Architecture workflow editor (not the older generic canvas), plus its AI prompt. Keep revision for a subsequent write.',
-    inputSchema:{board_id:z.string()}, annotations:{readOnlyHint:true,destructiveHint:false,idempotentHint:true}
-  }, async({board_id})=>{
+    inputSchema:{board_id:z.string(),product_id:z.string().optional()}, annotations:{readOnlyHint:true,destructiveHint:false,idempotentHint:true}
+  }, async({board_id,product_id})=>{
     const {row,body}=await loadBoard(board_id);
-    return ok({client:body.client,revision:row.updated_at,architecture:body.tabs[TAB]?.architecture||null,ai_prompt:await architecturePrompts(body)});
+    return ok({client:body.client,product_id:product_id||body.workspaceProductId||null,revision:row.updated_at,architecture:activeProductTab(body,TAB,product_id)?.architecture||null,ai_prompt:await architecturePrompts(body)});
   });
   server.registerTool('maturity_axis_get', {
     title:'Read maturity axis', description:'Read the active product’s Maturity Axis, including Departments, Industries, its Single Industry / Multi-industry setting, and process-maturity rows, plus its editable AI prompt. Keep revision before writing.',
-    inputSchema:{board_id:z.string()}, annotations:{readOnlyHint:true,destructiveHint:false,idempotentHint:true}
-  }, async({board_id})=>{
+    inputSchema:{board_id:z.string(),product_id:z.string().optional()}, annotations:{readOnlyHint:true,destructiveHint:false,idempotentHint:true}
+  }, async({board_id,product_id})=>{
     const {row,body}=await loadBoard(board_id);
-    return ok({client:body.client,revision:row.updated_at,architecture:body.tabs[MATURITY_TAB]?.architecture||null,ai_prompt:await architecturePrompts(body,'maturity_axis')});
+    return ok({client:body.client,product_id:product_id||body.workspaceProductId||null,revision:row.updated_at,architecture:activeProductTab(body,MATURITY_TAB,product_id)?.architecture||null,ai_prompt:await architecturePrompts(body,'maturity_axis')});
   });
   server.registerTool('product_architecture_set', {
     title:'Save product architecture workflows',
     description:'Save the complete workflow architecture to Strategy Product Architecture. Read first, preserve existing work unless replacement was requested, and supply its revision. Each system is a process canvas; row groups canvases horizontally and omitted row defaults to the first row. Preserve each system customFields list; these are editable fields displayed beneath that canvas. Nodes are Technology or People; each technology has exactly two features and each person exactly two skills; edge labels are outputs. Keep 154px-wide nodes and groups inside canvas bounds with space between labels. Omitted prior nodes or fields are removed.',
-    inputSchema:{board_id:z.string(),revision:z.string(),architecture:architectureSchema},
+    inputSchema:{board_id:z.string(),product_id:z.string().optional(),revision:z.string(),architecture:architectureSchema},
     annotations:{readOnlyHint:false,destructiveHint:true,idempotentHint:false}
-  }, async({board_id,revision,architecture})=>{
+  }, async({board_id,product_id,revision,architecture})=>{
     const {row,body}=await loadBoard(board_id);
     if(row.updated_at!==revision)throw new ToolError('Board changed. Read it again before saving.');
     const unique=(items:{id:string}[])=>new Set(items.map(i=>i.id)).size===items.length;
@@ -88,19 +109,20 @@ export function registerArchitectureTools(server:McpServer) {
     }
     for(const e of architecture.edges)if(!nodes.has(e.from)||!nodes.has(e.to)||e.from===e.to)throw new ToolError('Invalid connector endpoints.');
     for(const g of architecture.groups)if(new Set(g.nodeIds).size!==g.nodeIds.length||g.nodeIds.some(id=>!nodes.has(id)||nodes.get(id)!.systemId!==g.systemId))throw new ToolError('Group members must belong to the same workflow.');
-    const slot=body.tabs[TAB]||(body.tabs[TAB]={nodes:[],edges:[]});
-    slot.architecture={...slot.architecture,...architecture,version:3,sample:'blank',nodes:architecture.nodes.map(n=>({...n,width:154}))};
+    const previous=activeProductTab(body,TAB,product_id)?.architecture||{};
+    const savedArchitecture={...previous,...architecture,version:3,sample:'blank',nodes:architecture.nodes.map(n=>({...n,width:154}))};
+    saveProductArchitecture(body,TAB,savedArchitecture,product_id);
     const {data,error}=await db().from('reports').update({body:JSON.stringify(body),updated_at:new Date().toISOString()}).eq('id',board_id).eq('updated_at',revision).select('updated_at');
     if(error)throw new ToolError(error.message);
     if(!data?.length)throw new ToolError('Concurrent edit detected; read again.');
-    return ok({saved:true,revision:data[0].updated_at,systems:architecture.systems.length,nodes:architecture.nodes.length,connections:architecture.edges.length});
+    return ok({saved:true,product_id:product_id||body.workspaceProductId||null,revision:data[0].updated_at,systems:architecture.systems.length,nodes:architecture.nodes.length,connections:architecture.edges.length});
   });
   server.registerTool('maturity_axis_set', {
     title:'Save maturity axis',
     description:'Save the complete active-product Maturity Axis. Read first and supply its revision. Preserve Departments and Industries as simple name lists, plus industryMode and activeIndustry. Departments define Solution Aware Value AEO columns. Industries belong in Solution Aware ICP AEO under Industry Pages. Value AEO shows industryMode only as a read-only label and never receives industry columns. Do not add raw material, input types, descriptions or nested maps. Each system is one maturity row. Supporting nodes do not directly transform the input. Pillars do; mark the newest pillar current and repeated earlier pillars inherited. Record T/P ownership, actor, exactly two features for technology or two skills for people, and preserve any editable subProcesses attached to a process node. Omitted prior nodes are removed.',
-    inputSchema:{board_id:z.string(),revision:z.string(),architecture:architectureSchema},
+    inputSchema:{board_id:z.string(),product_id:z.string().optional(),revision:z.string(),architecture:architectureSchema},
     annotations:{readOnlyHint:false,destructiveHint:true,idempotentHint:false}
-  }, async({board_id,revision,architecture})=>{
+  }, async({board_id,product_id,revision,architecture})=>{
     const {row,body}=await loadBoard(board_id);
     if(row.updated_at!==revision)throw new ToolError('Board changed. Read it again before saving.');
     const unique=(items:{id:string}[])=>new Set(items.map(i=>i.id)).size===items.length;
@@ -120,11 +142,12 @@ export function registerArchitectureTools(server:McpServer) {
     }
     for(const e of architecture.edges)if(!nodes.has(e.from)||!nodes.has(e.to)||e.from===e.to)throw new ToolError('Invalid connector endpoints.');
     for(const g of architecture.groups)if(new Set(g.nodeIds).size!==g.nodeIds.length||g.nodeIds.some(id=>!nodes.has(id)||nodes.get(id)!.systemId!==g.systemId))throw new ToolError('Group members must belong to the same maturity row.');
-    const slot=body.tabs[MATURITY_TAB]||(body.tabs[MATURITY_TAB]={nodes:[],edges:[]});
-    slot.architecture={...slot.architecture,...architecture,version:3,sample:'blank',maturityInitialized:true,nodes:architecture.nodes.map(n=>({...n,width:154}))};
+    const previous=activeProductTab(body,MATURITY_TAB,product_id)?.architecture||{};
+    const savedArchitecture={...previous,...architecture,version:3,sample:'blank',maturityInitialized:true,nodes:architecture.nodes.map(n=>({...n,width:154}))};
+    saveProductArchitecture(body,MATURITY_TAB,savedArchitecture,product_id);
     const {data,error}=await db().from('reports').update({body:JSON.stringify(body),updated_at:new Date().toISOString()}).eq('id',board_id).eq('updated_at',revision).select('updated_at');
     if(error)throw new ToolError(error.message);
     if(!data?.length)throw new ToolError('Concurrent edit detected; read again.');
-    return ok({saved:true,revision:data[0].updated_at,departments:architecture.departments?.length||0,industries:architecture.industries?.length||0,industry_mode:architecture.industryMode||'single',rows:architecture.systems.length,nodes:architecture.nodes.length,connections:architecture.edges.length});
+    return ok({saved:true,product_id:product_id||body.workspaceProductId||null,revision:data[0].updated_at,departments:architecture.departments?.length||0,industries:architecture.industries?.length||0,industry_mode:architecture.industryMode||'single',rows:architecture.systems.length,nodes:architecture.nodes.length,connections:architecture.edges.length});
   });
 }
