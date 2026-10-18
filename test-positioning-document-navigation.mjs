@@ -58,10 +58,18 @@ assert(!html.includes('id="positioningValueOffer"'));
 assert(html.includes('id="positioningValueEvolutionHost"'));
 assert(html.includes("$('positioningValueEvolutionHost').append($('evoPane').querySelector('.evo-canvas'))"));
 assert(!html.includes('function openValuePositioningField(field)'));
-assert(html.includes("uspCheck.title='Mark this value as the USP'"));
+assert(html.includes("uspCheck.title='Mark this value as a USP (any number of values can be USPs)'"));
 assert(html.includes("badge.className='value-usp-badge'"));
 assert(html.includes("badge.textContent='USP'"));
-assert(html.includes("p.valueRows.forEach(item=>{item.isUsp=false;})"));
+/* Several values can be USPs: ticking one no longer clears the others. */
+assert(!html.includes("p.valueRows.forEach(item=>{item.isUsp=false;})"));
+assert(!html.includes('if(uspSelected)row.isUsp=false;'));
+assert(/uspCheck\.onchange=\(\)=>\{\s*valueRow\.isUsp=uspCheck\.checked;/.test(html));
+/* Canvas shows one axis at a time from a left index; the product-evolution axis sits under Competitive Positioning. */
+assert(html.includes('id="positioningCanvasIndex"'));
+for (const part of ['icp','category','competitive','value']) assert(html.includes('data-pos-part="'+part+'"'), part+' section');
+const competitive=html.slice(html.indexOf('data-pos-part="competitive"'),html.indexOf('data-pos-part="value"'));
+assert(competitive.includes('id="positioningValueEvolutionHost"'), 'evolution axis under Competitive Positioning');
 assert(html.includes('row.isUsp = row.isUsp === true'));
 assert(!html.includes('id="positioningDocumentEvolutionHost"'));
 
@@ -89,4 +97,4 @@ for(const length of ['50-word','100-word','200-word','400-word'])assert(prompt.i
 const scripts=[...html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/gi)]
   .map(match=>match[1]).filter(code=>code.trim());
 scripts.forEach(code=>new vm.Script(code));
-console.log('PASS: Offers lives in Positioning Document; Value Positioning keeps Product Evolution and selects one value as USP.');
+console.log('PASS: Offers lives in Positioning Document; Competitive Positioning holds Product Evolution, the canvas has a left index, and any number of values can be USPs.');

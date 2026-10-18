@@ -1806,7 +1806,9 @@
   .radar-foot button{padding:5px 8px; background:#fff; flex:none; font-size:10px}
 
   /* ================= positioning canvas ================= */
-  .positioning{flex:1; min-height:0; overflow:auto; padding:30px; background:#f7f7f5}
+  .positioning{flex:1; min-height:0; overflow:hidden; padding:0; background:#f7f7f5}
+  .positioning-canvas-workspace{height:100%;min-height:0;display:grid;grid-template-columns:210px minmax(0,1fr)}
+  .positioning-canvas-page{min-height:0;overflow:auto;padding:30px}
   .pos-section{width:min(1080px,100%); margin:0 auto 26px; padding:24px;
                border:1px solid #deded9; border-radius:8px;
                background-color:#fbfbfa;
@@ -2069,10 +2071,10 @@
     color:#292a27;font:inherit;font-size:11.5px;line-height:1.5}
   .value-positioning-narrative textarea:focus{border-color:#57c982;box-shadow:0 0 0 2px rgba(87,201,130,.12)}
   .value-positioning-narrative textarea:read-only{background:#fafaf8;color:#4c4e49}
-  .value-positioning-evolution{margin-top:16px;padding-top:16px;border-top:1px solid #d7dad5}
-  .value-positioning-evolution .evo-canvas{width:100%;min-height:0;padding:28px 24px 34px}
+  .competitive-positioning-evolution{width:100%;margin-top:16px;padding-top:16px;border-top:1px solid #d7dad5}
+  .competitive-positioning-evolution .evo-canvas{width:100%;min-height:0;padding:28px 24px 34px}
   @media(max-width:900px){
-    .positioning{padding:14px}.pos-section{padding:18px 14px}.icp-card-head{padding-right:0}
+    .positioning-canvas-page{padding:14px}.positioning-canvas-workspace{grid-template-columns:150px minmax(0,1fr)}.pos-section{padding:18px 14px}.icp-card-head{padding-right:0}
     .icp-name{width:100%}.icp-row{grid-template-columns:28px 1fr 1fr 28px}
     .icp-row .icp-field:nth-of-type(3),.icp-row .icp-field:nth-of-type(4){grid-row:2}
     .icp-row .icp-field:nth-of-type(3){grid-column:2}.icp-row .icp-field:nth-of-type(4){grid-column:3}
@@ -2999,7 +3001,13 @@
 
     <!-- ICP and category positioning decisions, connected to Keywords. -->
     <div class="positioning" id="positioningPane" hidden>
-      <section class="pos-section">
+     <div class="positioning-canvas-workspace">
+      <aside class="positioning-document-index positioning-canvas-index" aria-label="Positioning Canvas sections">
+        <div class="positioning-document-index-head"><small>Canvas</small><strong>Positioning Canvas</strong></div>
+        <nav class="positioning-document-index-nav" id="positioningCanvasIndex"></nav>
+      </aside>
+      <main class="positioning-canvas-page" id="positioningCanvasPage">
+      <section class="pos-section" data-pos-part="icp">
         <div class="pos-head">
           <div>
             <span class="pos-axis-label">Positioning axis 01</span>
@@ -3011,7 +3019,7 @@
         <div class="icp-list" id="positioningIcps"></div>
       </section>
 
-      <section class="pos-section">
+      <section class="pos-section" data-pos-part="category">
         <div class="pos-head">
           <div>
             <span class="pos-axis-label">Positioning axis 02</span>
@@ -3026,7 +3034,7 @@
         </div>
       </section>
 
-      <section class="pos-section">
+      <section class="pos-section" data-pos-part="competitive">
         <div class="pos-head">
           <div>
             <span class="pos-axis-label">Positioning axis 03</span>
@@ -3037,9 +3045,10 @@
         </div>
         <div class="competitive-context" id="competitiveContext"></div>
         <div class="competitive-ladder" id="competitiveStages"></div>
+        <section class="positioning-evolution-host competitive-positioning-evolution" id="positioningValueEvolutionHost" aria-label="Product Evolution axes"></section>
       </section>
 
-      <section class="pos-section">
+      <section class="pos-section" data-pos-part="value">
         <div class="pos-head">
           <div>
             <span class="pos-axis-label">Positioning axis 04</span>
@@ -3049,7 +3058,6 @@
           <button id="btnAddValuePositioningRow" type="button">+ Add value</button>
         </div>
         <div class="value-map" id="positioningValues"></div>
-        <section class="positioning-evolution-host value-positioning-evolution" id="positioningValueEvolutionHost" aria-label="Product Evolution axes"></section>
         <section class="pe-box" id="problemEvidenceBox">
           <div class="pe-head">
             <div>
@@ -3065,6 +3073,8 @@
           </div>
         </section>
       </section>
+      </main>
+     </div>
     </div>
 
     <!-- Focused editable outputs that turn the positioning canvas into a concise document. -->
@@ -11968,12 +11978,6 @@ function positioningState(){
   });
   if (!p.valueRows.length) p.valueRows.push(newValuePositioningRow());
   p.valueRows = p.valueRows.map(row => newValuePositioningRow(row));
-  let uspSelected=false;
-  p.valueRows.forEach(row=>{
-    if(!row.isUsp)return;
-    if(uspSelected)row.isUsp=false;
-    else uspSelected=true;
-  });
   if (!p.icps.some(x => x.id === p.selectedIcp)) p.selectedIcp = '';
   if (!p.categories.some(x => x.id === p.selectedCategory)) p.selectedCategory = '';
   if (!p.competitive.stages.some(x => x.id === p.competitive.selectedStage)) p.competitive.selectedStage = '';
@@ -11982,7 +11986,8 @@ function positioningState(){
 }
 
 function newValuePositioningRow(seed){
-  const row = seed && typeof seed === 'object' ? Object.assign({}, seed) : {};
+  /* Keep the same row object so value cards already on screen keep editing the saved row. */
+  const row = seed && typeof seed === 'object' ? seed : {};
   if (!row.id) row.id = uid();
   VALUE_POSITIONING_FIELDS.forEach(field => {
     if (typeof row[field[0]] !== 'string') row[field[0]] = '';
@@ -12244,9 +12249,48 @@ function renderIndustryFit(ro){
   const onboardingMatrixSlot=host.closest('.gtm-onboarding-market')?.querySelector('.gtm-onboarding-market-matrix');
   if(onboardingMatrixSlot)onboardingMatrixSlot.append(matrixWrap);
 }
+/* The canvas shows one positioning axis at a time, picked from a left index like the Positioning Document. */
+const POSITIONING_CANVAS_PARTS = [
+  { id: 'icp', label: 'ICP Positioning' },
+  { id: 'category', label: 'Category Positioning' },
+  { id: 'competitive', label: 'Competitive Positioning' },
+  { id: 'value', label: 'Value Positioning' }
+];
+function activePositioningCanvasPart(){
+  if (!POSITIONING_CANVAS_PARTS.some(part => part.id === state.positioningCanvasPart)){
+    let saved = '';
+    try { saved = localStorage.getItem('positioningCanvasPart') || ''; } catch (error) {}
+    state.positioningCanvasPart = POSITIONING_CANVAS_PARTS.some(part => part.id === saved) ? saved : 'icp';
+  }
+  return state.positioningCanvasPart;
+}
+function openPositioningCanvasPart(id){
+  state.positioningCanvasPart = id;
+  try { localStorage.setItem('positioningCanvasPart', id); } catch (error) {}
+  renderPositioningCanvasNavigation();
+  $('positioningCanvasPage').scrollTop = 0;
+}
+function renderPositioningCanvasNavigation(){
+  const active = activePositioningCanvasPart();
+  const host = $('positioningCanvasIndex');
+  host.innerHTML = '';
+  POSITIONING_CANVAS_PARTS.forEach(part => {
+    const button = document.createElement('button');
+    button.type = 'button'; button.textContent = part.label;
+    button.className = part.id === active ? 'active' : '';
+    if (part.id === active) button.setAttribute('aria-current', 'page');
+    button.onclick = () => openPositioningCanvasPart(part.id);
+    host.append(button);
+  });
+  document.querySelectorAll('#positioningCanvasPage > [data-pos-part]').forEach(section => {
+    section.hidden = section.dataset.posPart !== active;
+  });
+}
+
 function renderPositioning(){
   const p = positioningState();
   const ro = readOnly();
+  renderPositioningCanvasNavigation();
   $('btnAddPositioningIcp').hidden = ro;
   $('btnAddPositioningCategory').hidden = ro;
 
@@ -12472,10 +12516,9 @@ function renderPositioning(){
     head.append(title);
     const uspToggle=document.createElement('label'); uspToggle.className='value-usp-toggle';
     const uspCheck=document.createElement('input'); uspCheck.type='checkbox'; uspCheck.checked=!!valueRow.isUsp; uspCheck.disabled=ro;
-    uspCheck.title='Mark this value as the USP'; uspCheck.setAttribute('aria-label','Mark Value '+(rowIndex+1)+' as USP');
+    uspCheck.title='Mark this value as a USP (any number of values can be USPs)'; uspCheck.setAttribute('aria-label','Mark Value '+(rowIndex+1)+' as USP');
     const uspCopy=document.createElement('span'); uspCopy.textContent='Mark as USP';
     uspCheck.onchange=()=>{
-      p.valueRows.forEach(item=>{item.isUsp=false;});
       valueRow.isUsp=uspCheck.checked;
       markDirty(); renderPositioning();
     };
@@ -15501,7 +15544,7 @@ document.addEventListener('click', () => {
   menu.hidden = true;
   $('btnRadarAxis').setAttribute('aria-expanded', 'false');
 });
-$('btnOpenCategoryPositioning').onclick = () => $('positioningCategories').scrollIntoView({ behavior: 'smooth', block: 'start' });
+$('btnOpenCategoryPositioning').onclick = () => openPositioningCanvasPart('category');
 
 /* ===================================================================
    STRATEGY 1 — clickable brand-strategy decision canvas

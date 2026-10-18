@@ -47,7 +47,7 @@ const problemSchema=z.object({id:z.string().min(1),problem:z.string(),evidences:
 export function registerPositioningCanvasTools(server:McpServer){
   server.registerTool('positioning_canvas_get', {
     title:'Read positioning canvas',
-    description:'Read the active product’s Positioning Canvas: ICP cards (rows of People, Process, Technology, Input; a five-level Use Cases table of Industry, Department, Business process, Persona and Interaction scenario in useCaseRows; then Buying Trigger, Firmographics and Economic Buyer), solution categories with competitors, competitive evolution stages, problems with their evidence links, and value rows (functional, benefit, monetary, strategic; one may be the USP), plus the canvas AI prompt. Keep revision for a subsequent write.',
+    description:'Read the active product’s Positioning Canvas: ICP cards (rows of People, Process, Technology, Input; a five-level Use Cases table of Industry, Department, Business process, Persona and Interaction scenario in useCaseRows; then Buying Trigger, Firmographics and Economic Buyer), solution categories with competitors, competitive evolution stages, problems with their evidence links, and value rows (functional, benefit, monetary, strategic; any number may be marked as USPs), plus the canvas AI prompt. Keep revision for a subsequent write.',
     inputSchema:{board_id:z.string(),product_id:z.string().optional()},
     annotations:{readOnlyHint:true,destructiveHint:false,idempotentHint:true}
   }, async({board_id,product_id})=>{
