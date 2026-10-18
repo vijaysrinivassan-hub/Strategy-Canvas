@@ -24,7 +24,10 @@ assert(prompts.positioning_canvas.prompt.includes('one ICP card per Maturity Axi
 assert(prompts.positioning_canvas.prompt.includes('Every row shows four axes'));
 assert(prompts.positioning_canvas.prompt.includes('Firmographics') && prompts.positioning_canvas.prompt.includes('Economic Buyer'));
 assert(prompts.positioning_canvas.prompt.includes('USE CASE LEVELS') && prompts.positioning_canvas.prompt.includes('Interaction / Scenario'));
-assert(html.includes('t.icpMaturityPromptRevision !== 4'), 'saved canvas prompts are updated');
+assert(html.includes('t.icpMaturityPromptRevision !== 5'), 'saved canvas prompts are updated');
+// Only the ICP card for the selected Maturity Axis row is filled completely; the others get their first row only.
+assert(prompts.positioning_canvas.prompt.includes('FILL DEPTH') && prompts.positioning_canvas.prompt.includes('Every other card gets its first row only'));
+assert(prompts.positioning_canvas.prompt.includes('Never erase content that is already there.'));
 // People names each role with a headcount and what it does; every use-case cell states the use case, not a bare label.
 assert(prompts.positioning_canvas.prompt.includes('how many of them there typically are and what each one does'));
 assert(prompts.positioning_canvas.prompt.includes('never a bare label'));
