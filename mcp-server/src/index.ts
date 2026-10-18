@@ -12,6 +12,7 @@ import { registerPositioningDocumentTools } from "./tools/positioning-document.j
 import { registerPositioningCanvasTools } from "./tools/positioning-canvas.js";
 import { registerArchitectureTools } from "./tools/architecture.js";
 import { registerCompetitiveIntelligenceTools } from "./tools/competitive-intelligence.js";
+import { registerOnboardingMarketMapTools } from "./tools/onboarding-market-map.js";
 
 import { registerKeywordAssignmentTools } from './tools/keyword-assignments.js';
 
@@ -31,6 +32,7 @@ registerPositioningDocumentTools(server);
 registerPositioningCanvasTools(server);
 registerArchitectureTools(server);
 registerCompetitiveIntelligenceTools(server);
+registerOnboardingMarketMapTools(server);
 
 async function main() {
   const transport = new StdioServerTransport();
