@@ -2,10 +2,11 @@
 /* Use cases are classified from the market down to the click: each row names where (industry), who (department),
    what (business process), the individual (persona) and how (the step-by-step scenario, including what goes wrong).
    Technographics live in each ICP row's Technology axis, so the use-case table does not repeat them. */
-const ICP_USE_CASE_COLUMNS=[['industry','Industry','Where','Which market the capability delivers value in'],
- ['department','Department / Function','Who','Which team operates or benefits from it'],
+/* Every cell names its level and says what is done with the product at that level, e.g. "B2B software: exhibitors use it to …". */
+const ICP_USE_CASE_COLUMNS=[['industry','Industry','Where','Industry: what companies in it use the product for'],
+ ['department','Department / Function','Who','Department: what this team uses it for'],
  ['process','Business process','What','The workflow, problem or objective it addresses'],
- ['persona','Persona / User','Individual','The exact user and the goal they are trying to reach'],
+ ['persona','Persona / User','Individual','Role: what this person does with it, and the goal'],
  ['scenario','Interaction / Scenario','How','Step by step: inputs → actions → outputs, plus the edge cases']];
 /* The third row of a selected ICP: why they buy now, what the companies look like, and who signs. */
 const ICP_BUYING_FIELDS=[['buyingTrigger','Buying Trigger','What makes this customer start looking for a solution?'],
@@ -34,7 +35,7 @@ function migrateIcpUseCaseLevels(icp){
  });
  icp.useCaseLevels=1;return true;
 }
-const ICP_AXES=[['people','People','Only the people in the buying department who run or approve this process'],
+const ICP_AXES=[['people','People','Each job role in the buying department, how many of them, and what each one does in this process'],
  ['process','Process','The process this ICP runs'],
  ['input','Input','Volume, quality and types of data the process needs'],
  ['technology','Technology','Technology (technographics) needed to run the process']];
