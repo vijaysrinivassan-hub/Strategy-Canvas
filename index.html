@@ -11900,17 +11900,17 @@ const VALUE_POSITIONING_FIELDS = [
   ['monetary', 'Monetary benefit', 'What are the monetary benefits?'],
   ['strategic', 'Strategic benefit', 'What strategic benefit do they get in their interconnected systems?']
 ];
-const ICP_MATURITY_PROMPT = "ICP CARD MODEL\nCreate exactly one ICP card per Maturity Axis row, in the same order and named after that maturity level (for example \"L3 - Qualification\"). Each card describes the buyer whose operating process is at that maturity, in sparse rows of People, Process, Technology and Input; leave cells blank where nothing changes and never pad rows for symmetry. Segments such as industries, company types or sales motions appear at every maturity level, so they are not separate ICP cards: list them under the card's Use Cases, one row per segment, with Firmographics (industry, company size, region, activity volume), Technographics (the tools already in place) and Economic Buyer (who owns the budget and signs off). Maintain Buying Trigger and Industries for each card. The user selects one card, normally the maturity level the product serves; do not select on their behalf. Do not create independent icpChoices, grouped table subcolumns or stage canvases.";
+const ICP_MATURITY_PROMPT = "ICP CARD MODEL\nCreate exactly one ICP card per Maturity Axis row, in the same order and named after that maturity level (for example \"L3 - Qualification\"). Every row shows four axes: People, Process, Input and Technology. The buying axis chosen in onboarding (usually Process) is locked: it is carried over from the matching Maturity Axis row and is never written on the canvas. The other three describe what that process requires, the way the car someone drives tells you the house they live in: Technology is the technographics needed to run that process; Input is the volume, quality and types of data the process needs; People are only the people in the buying department who run or approve it, not company-wide firmographics. Segments such as industries, company types or sales motions appear at every maturity level, so they are not separate ICP cards: list them under the card's Use Cases, one row per segment, with Firmographics (industry, company size, region, activity volume) and Economic Buyer (who owns the budget and signs off). Maintain Buying Trigger and Industries for each card. The user selects one card, normally the maturity level the product serves; do not select on their behalf. Do not create independent icpChoices, grouped table subcolumns or stage canvases.";
 function positioningState(){
   const t = state.tabs[POSITIONING_TAB] ||
             (state.tabs[POSITIONING_TAB] = { nodes: [], edges: [] });
-  if (t.icpMaturityPromptRevision !== 1){
-    if (typeof t.aiPrompt === 'string' && !t.aiPrompt.includes('one ICP card per Maturity Axis row')){
+  if (t.icpMaturityPromptRevision !== 2){
+    if (typeof t.aiPrompt === 'string' && !t.aiPrompt.includes('Every row shows four axes')){
       t.aiPrompt = /ICP CARD MODEL[\s\S]*?(?=\n\nCategories:)/.test(t.aiPrompt)
         ? t.aiPrompt.replace(/ICP CARD MODEL[\s\S]*?(?=\n\nCategories:)/, ICP_MATURITY_PROMPT)
         : t.aiPrompt.trim() + '\n\n' + ICP_MATURITY_PROMPT;
     }
-    t.icpMaturityPromptRevision = 1;
+    t.icpMaturityPromptRevision = 2;
     if (!readOnly()) setTimeout(markDirty, 0);
   }
   if (!t.positioning || typeof t.positioning !== 'object'){

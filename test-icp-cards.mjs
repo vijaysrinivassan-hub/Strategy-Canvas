@@ -17,9 +17,10 @@ assert.equal(all(host.children[0]).filter(x=>x.className==='icp-row').length,2);
 assert.equal(all(host.children[0]).filter(x=>x.className==='icp-detail-field').length,2);assert.equal(all(host.children[0]).filter(x=>x.className==='icp-use-cases').length,1);assert.equal(p.icps[0].useCaseRows[0].useCase,'Reporting');
 assert.equal(all(host.children[1]).filter(x=>x.className==='icp-detail-field').length,0);
 host.replaceChildren();ctx.renderCards(p,false,'process');
-assert.equal(all(host).filter(x=>x.className==='icp-field').filter(x=>x.children.some(c=>c.textContent==='Process')).length,3);
-assert.equal(all(host).filter(x=>x.className==='icp-field').filter(x=>x.children.some(c=>c.textContent==='People')).length,0);
-assert.equal(all(host).filter(x=>String(x.className).includes('single-axis')).length,3);
+/* Every row shows all four axes; the buying axis (here Process) is locked and carried over from the Maturity Axis. */
+assert.equal(all(host).filter(x=>x.className==='icp-field locked-axis').filter(x=>x.children.some(c=>c.textContent==='Process · from Maturity Axis')).length,3);
+for(const axis of ['People','Input','Technology'])assert.equal(all(host).filter(x=>x.className==='icp-field').filter(x=>x.children.some(c=>c.textContent===axis)).length,3);
+assert.equal(all(host).filter(x=>String(x.className).includes('single-axis')).length,0);
 assert.equal(p.icps[0].rows[0].people,'Founder');
 host.replaceChildren();ctx.renderCards(p,false);
 host.children[1].onclick({target:{closest:()=>null}});assert.equal(opened,'b');

@@ -1,6 +1,30 @@
 /* September 15 ICP card renderer retained independently of later table experiments. */
+/* Technographics now live in each ICP row's Technology axis, so the use-case table no longer repeats them. */
 const ICP_USE_CASE_COLUMNS=[['useCase','Use case / segment','Who uses it at this maturity, and for what?'],['firmographics','Firmographics','Industry, company size, region, events per year'],
- ['technographics','Technographics','CRM, marketing automation, event and capture tools in place'],['economicBuyer','Economic buyer','Who owns the budget and signs off']];
+ ['economicBuyer','Economic buyer','Who owns the budget and signs off']];
+const ICP_AXES=[['people','People','Only the people in the buying department who run or approve this process'],
+ ['process','Process','The process this ICP runs'],
+ ['input','Input','Volume, quality and types of data the process needs'],
+ ['technology','Technology','Technology (technographics) needed to run the process']];
+/* The buying axis chosen in onboarding is not written here: it carries over from the Maturity Axis row in the
+   same position as this ICP card. The other three axes describe what that process requires. */
+function maturityAxisCarryover(index){
+ if(typeof state==='undefined'||typeof MATURITY_ACCESS_TAB==='undefined')return '';
+ const architecture=state.tabs?.[MATURITY_ACCESS_TAB]?.architecture;
+ if(!architecture||!Array.isArray(architecture.systems))return '';
+ const system=[...architecture.systems].sort((a,b)=>(Number(a.row)||0)-(Number(b.row)||0))[index];
+ if(!system)return '';
+ const nodes=(architecture.nodes||[]).filter(node=>node.systemId===system.id).sort((a,b)=>(a.x-b.x)||(a.y-b.y));
+ const name=node=>String((typeof maturityProcessName==='function'?maturityProcessName(node):'')||node.label||'').trim();
+ const pillars=nodes.filter(node=>node.processRole==='pillar');
+ const current=pillars.find(node=>node.pillarState==='current');
+ const inherited=pillars.filter(node=>node!==current).map(name);
+ const supporting=nodes.filter(node=>node.processRole!=='pillar').map(name);
+ return [system.name,
+  current?'Core process: '+name(current)+(current.label&&current.label!==name(current)?' ('+current.label+')':''):'',
+  inherited.length?'Builds on: '+inherited.join(' → '):'',
+  supporting.length?'Supported by: '+[...new Set(supporting)].join(', '):''].filter(Boolean).join('\n');
+}
 function newIcpUseCaseRow(){return {id:typeof uid==='function'?uid():'uc-'+Math.random().toString(36).slice(2,10),useCase:'',firmographics:'',technographics:'',economicBuyer:''};}
 function renderLegacyIcpDetails(icp,ro){
  const details=document.createElement('div');details.className='icp-details';
@@ -56,14 +80,25 @@ function renderIcpCards(p,ro,activeAxis){
   const name=positioningInput(icp.name,'ICP name / maturity stage',ro,value=>{icp.name=value;},'icp-title');
   nameField.append(nameLabel,name);head.append(nameField);card.append(head);
   const rows=document.createElement('div');rows.className='icp-rows';
+  const carryover=activeAxis?maturityAxisCarryover(index):'';
   icp.rows.forEach((rowData,rowIndex)=>{
-   const row=document.createElement('div');row.className='icp-row'+(activeAxis?' single-axis':'');
+   const row=document.createElement('div');row.className='icp-row';
    const number=document.createElement('span');number.className='icp-row-number';number.textContent=String(rowIndex+1).padStart(2,'0');row.append(number);
-   const axes=[['people','People'],['process','Process'],['technology','Technology'],['input','Input']];
-   axes.filter(([key])=>!activeAxis||key===activeAxis).forEach(([key,labelText])=>{
+   ICP_AXES.forEach(([key,labelText,placeholder])=>{
     const field=document.createElement('div');field.className='icp-field';
-    const label=document.createElement('label');label.textContent=labelText;
-    const input=positioningInput(rowData[key],labelText+' maturity',ro,value=>{rowData[key]=value;if(rowIndex===0)syncLegacyIcpFields(icp);});
+    const label=document.createElement('label');
+    if(key===activeAxis){
+     /* Locked: copied from the Maturity Axis, never edited on the canvas. */
+     field.className='icp-field locked-axis';label.textContent=labelText+' · from Maturity Axis';
+     const value=rowIndex===0?carryover:'';
+     if(rowIndex===0&&value&&rowData[key]!==value){rowData[key]=value;syncLegacyIcpFields(icp);if(!ro)setTimeout(markDirty,0);}
+     const locked=positioningTextarea(value,value?'':'Add a matching Maturity Axis row',true,()=>{});
+     locked.rows=5;locked.setAttribute('aria-label',labelText+' (locked, from Maturity Axis)');
+     field.append(label,locked);row.append(field);return;
+    }
+    label.textContent=labelText;
+    const input=positioningTextarea(rowData[key],placeholder,ro,value=>{rowData[key]=value;if(rowIndex===0)syncLegacyIcpFields(icp);});
+    input.rows=5;input.setAttribute('aria-label',labelText+' '+(rowIndex+1));
     field.append(label,input);row.append(field);
    });
    if(!ro){
