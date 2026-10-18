@@ -9,12 +9,16 @@ const host=new Element('div');let dirty=0,rendered=0,opened='';
 const p={selectedIcp:'a',icps:[{id:'a',name:'Small',buyingTrigger:'Manual work',industries:'Retail',useCases:'Reporting',rows:[{id:'r1',people:'Founder',process:'Manual',technology:'Sheets',input:'Orders'},{id:'r2',process:'Forecasting'}]},{id:'b',name:'Large',buyingTrigger:'',industries:'',useCases:'',rows:[{id:'r3',people:'Analyst'}]}]};
 const input=(tag,value,onInput)=>{const e=new Element(tag);e.value=value;e.oninput=()=>onInput(e.value);return e;};
 const ctx=vm.createContext({document:{createElement:t=>new Element(t)},$:()=>host,positioningInput:(v,p,r,f)=>input('input',v,f),positioningTextarea:(v,p,r,f)=>input('textarea',v,f),selectPositioningIcp:id=>opened=id,newPositioningIcpRow:()=>({id:'new',people:'',process:'',technology:'',input:'',dimensions:{}}),newPositioningIcp:()=>({id:'new-icp',name:'',rows:[]}),syncLegacyIcpFields:icp=>{for(const k of ['people','process','technology','input'])icp[k]=icp.rows[0]?.[k]||''},markDirty:()=>dirty++,renderPositioning:()=>rendered++,confirm:()=>true});
-vm.runInContext(fs.readFileSync('icp-cards.js','utf8')+'\nglobalThis.renderCards=renderIcpCards;',ctx);
+vm.runInContext(fs.readFileSync('icp-cards.js','utf8')+'\nglobalThis.renderCards=renderIcpCards;globalThis.migrate=migrateIcpUseCaseLevels;',ctx);
 ctx.renderCards(p,false);
 assert.equal(host.className,'icp-list');assert.equal(host.children.length,2);
 assert.ok(host.children[0].className.includes('on'));
 assert.equal(all(host.children[0]).filter(x=>x.className==='icp-row').length,2);
-assert.equal(all(host.children[0]).filter(x=>x.className==='icp-detail-field').length,2);assert.equal(all(host.children[0]).filter(x=>x.className==='icp-use-cases').length,1);assert.equal(p.icps[0].useCaseRows[0].useCase,'Reporting');
+assert.equal(all(host.children[0]).filter(x=>x.className==='icp-detail-field').length,3);assert.equal(all(host.children[0]).filter(x=>x.className==='icp-use-cases').length,1);assert.equal(p.icps[0].useCaseRows[0].process,'Reporting');
+/* Old "Segment: use case" rows split into Industry and Business process; firmographics and buyer lift to the card. */
+const old={id:'m',name:'Old',buyingTrigger:'',rows:[{id:'x'}],useCaseRows:[{id:'u1',useCase:'Retail: Weekly report',firmographics:'Mid-size',economicBuyer:'CFO',technographics:'Sheets'},{id:'u2',useCase:'Health: Claims',firmographics:'Large',economicBuyer:'CFO'}]};
+assert.equal(ctx.migrate(old),true);assert.equal(old.useCaseRows[0].industry,'Retail');assert.equal(old.useCaseRows[0].process,'Weekly report');
+assert.equal(old.useCaseRows[0].technographics,undefined);assert.equal(old.firmographics,'Retail: Mid-size\nHealth: Large');assert.equal(old.economicBuyer,'Retail: CFO\nHealth: CFO');assert.equal(ctx.migrate(old),false);
 assert.equal(all(host.children[1]).filter(x=>x.className==='icp-detail-field').length,0);
 host.replaceChildren();ctx.renderCards(p,false,'process');
 /* Every row shows all four axes; the buying axis (here Process) is locked and carried over from the Maturity Axis. */

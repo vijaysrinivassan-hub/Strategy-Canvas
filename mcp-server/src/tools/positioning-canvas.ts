@@ -26,7 +26,9 @@ function writeBoth(body:any, key:'positioning'|'problems', value:any, requestedP
 }
 
 const icpRow=z.object({id:z.string().min(1),people:z.string(),process:z.string(),technology:z.string(),input:z.string()}).passthrough();
-const icp=z.object({id:z.string().min(1),name:z.string(),buyingTrigger:z.string(),industries:z.string(),useCases:z.string(),
+const icp=z.object({id:z.string().min(1),name:z.string(),buyingTrigger:z.string(),industries:z.string().optional(),useCases:z.string().optional(),
+  firmographics:z.string().optional(),economicBuyer:z.string().optional(),
+  useCaseRows:z.array(z.object({id:z.string().min(1),industry:z.string(),department:z.string(),process:z.string(),persona:z.string(),scenario:z.string()}).passthrough()).optional(),
   rows:z.array(icpRow).min(1)}).passthrough();
 const category=z.object({id:z.string().min(1),name:z.string(),maturity:z.string(),
   competitors:z.array(z.object({id:z.string().min(1),name:z.string()}).passthrough())}).passthrough();
@@ -45,7 +47,7 @@ const problemSchema=z.object({id:z.string().min(1),problem:z.string(),evidences:
 export function registerPositioningCanvasTools(server:McpServer){
   server.registerTool('positioning_canvas_get', {
     title:'Read positioning canvas',
-    description:'Read the active product’s Positioning Canvas: ICP cards (rows of People, Process, Technology, Input plus Buying Trigger, Industries, Use Cases), solution categories with competitors, competitive evolution stages, problems with their evidence links, and value rows (functional, benefit, monetary, strategic; one may be the USP), plus the canvas AI prompt. Keep revision for a subsequent write.',
+    description:'Read the active product’s Positioning Canvas: ICP cards (rows of People, Process, Technology, Input; a five-level Use Cases table of Industry, Department, Business process, Persona and Interaction scenario in useCaseRows; then Buying Trigger, Firmographics and Economic Buyer), solution categories with competitors, competitive evolution stages, problems with their evidence links, and value rows (functional, benefit, monetary, strategic; one may be the USP), plus the canvas AI prompt. Keep revision for a subsequent write.',
     inputSchema:{board_id:z.string(),product_id:z.string().optional()},
     annotations:{readOnlyHint:true,destructiveHint:false,idempotentHint:true}
   }, async({board_id,product_id})=>{

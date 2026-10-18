@@ -11900,17 +11900,17 @@ const VALUE_POSITIONING_FIELDS = [
   ['monetary', 'Monetary benefit', 'What are the monetary benefits?'],
   ['strategic', 'Strategic benefit', 'What strategic benefit do they get in their interconnected systems?']
 ];
-const ICP_MATURITY_PROMPT = "ICP CARD MODEL\nCreate exactly one ICP card per Maturity Axis row, in the same order and named after that maturity level (for example \"L3 - Qualification\"). Every row shows four axes: People, Process, Input and Technology. The buying axis chosen in onboarding (usually Process) is locked: it is carried over from the matching Maturity Axis row and is never written on the canvas. The other three describe what that process requires, the way the car someone drives tells you the house they live in: Technology is the technographics needed to run that process; Input is the volume, quality and types of data the process needs; People are only the people in the buying department who run or approve it, not company-wide firmographics. Segments such as industries, company types or sales motions appear at every maturity level, so they are not separate ICP cards: list them under the card's Use Cases, one row per segment, with Firmographics (industry, company size, region, activity volume) and Economic Buyer (who owns the budget and signs off). Maintain Buying Trigger and Industries for each card. The user selects one card, normally the maturity level the product serves; do not select on their behalf. Do not create independent icpChoices, grouped table subcolumns or stage canvases.";
+const ICP_MATURITY_PROMPT = "ICP CARD MODEL\nCreate exactly one ICP card per Maturity Axis row, in the same order and named after that maturity level (for example \"L3 - Qualification\"). Every row shows four axes: People, Process, Input and Technology. The buying axis chosen in onboarding (usually Process) is locked: it is carried over from the matching Maturity Axis row and is never written on the canvas. The other three describe what that process requires, the way the car someone drives tells you the house they live in: Technology is the technographics needed to run that process; Input is the volume, quality and types of data the process needs; People are only the people in the buying department who run or approve it, not company-wide firmographics. Segments such as industries, company types or sales motions appear at every maturity level, so they are not separate ICP cards. USE CASE LEVELS: below the four axes, the card's Use Cases table classifies each use case from the market down to the click, one row per use case, across five levels: Industry (the where: the market it delivers value in), Department / Function (the who: the team that operates or benefits), Business Process (the what: the specific workflow, problem or objective), Persona / User (the individual: the exact user and their goal) and Interaction / Scenario (the how: the step-by-step sequence of inputs, actions and outputs, with the happy path and at least one edge case). The third row holds Buying Trigger (what makes them start looking now), Firmographics (industry, company size, region, activity volume; one line per industry when they differ) and Economic Buyer (who owns the budget and signs off; one line per industry when they differ). The user selects one card, normally the maturity level the product serves; do not select on their behalf. Do not create independent icpChoices, grouped table subcolumns or stage canvases.";
 function positioningState(){
   const t = state.tabs[POSITIONING_TAB] ||
             (state.tabs[POSITIONING_TAB] = { nodes: [], edges: [] });
-  if (t.icpMaturityPromptRevision !== 2){
-    if (typeof t.aiPrompt === 'string' && !t.aiPrompt.includes('Every row shows four axes')){
+  if (t.icpMaturityPromptRevision !== 3){
+    if (typeof t.aiPrompt === 'string' && !t.aiPrompt.includes('USE CASE LEVELS')){
       t.aiPrompt = /ICP CARD MODEL[\s\S]*?(?=\n\nCategories:)/.test(t.aiPrompt)
         ? t.aiPrompt.replace(/ICP CARD MODEL[\s\S]*?(?=\n\nCategories:)/, ICP_MATURITY_PROMPT)
         : t.aiPrompt.trim() + '\n\n' + ICP_MATURITY_PROMPT;
     }
-    t.icpMaturityPromptRevision = 2;
+    t.icpMaturityPromptRevision = 3;
     if (!readOnly()) setTimeout(markDirty, 0);
   }
   if (!t.positioning || typeof t.positioning !== 'object'){
@@ -11944,6 +11944,8 @@ function positioningState(){
       icp.useCaseRows = String(icp.useCases || '').trim()
         ? [Object.assign(newIcpUseCaseRow(), { useCase: String(icp.useCases).trim() })] : [];
     }
+    /* Use cases are classified on five levels; older segment rows split into Industry and Business process. */
+    if (migrateIcpUseCaseLevels(icp) && !readOnly()) setTimeout(markDirty, 0);
     icp.useCaseRows = icp.useCaseRows.map(row => Object.assign(newIcpUseCaseRow(), row || {},
       { id: row && row.id ? String(row.id) : uid() }));
     if (!icp.useCaseRows.length) icp.useCaseRows.push(newIcpUseCaseRow());

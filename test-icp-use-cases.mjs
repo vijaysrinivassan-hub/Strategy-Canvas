@@ -4,8 +4,12 @@ const html=fs.readFileSync(new URL('./index.html',import.meta.url),'utf8');
 const cards=fs.readFileSync(new URL('./icp-cards.js',import.meta.url),'utf8');
 const css=fs.readFileSync(new URL('./icp-cards.css',import.meta.url),'utf8');
 const prompts=JSON.parse(fs.readFileSync(new URL('./ai-prompts.json',import.meta.url),'utf8'));
-// Use cases keep segments, firmographics and the economic buyer; technographics moved to the Technology axis.
-for (const key of ['useCase','firmographics','economicBuyer']) assert(cards.includes("['"+key+"',"), key+' column');
+// Use cases are classified on five levels; buying trigger, firmographics and economic buyer form the third row.
+for (const key of ['industry','department','process','persona','scenario']) assert(cards.includes("['"+key+"',"), key+' use-case level');
+for (const key of ['buyingTrigger','firmographics','economicBuyer']) assert(cards.includes("['"+key+"','"), key+' third-row field');
+assert(cards.indexOf('details.append(renderIcpUseCases(icp,ro));')<cards.indexOf('ICP_BUYING_FIELDS.forEach'), 'use cases come before the buying row');
+assert(!cards.includes("['industries','Industries'"), 'Industries is now the first use-case level');
+assert(html.includes('migrateIcpUseCaseLevels(icp)'), 'old use-case rows migrate to five levels');
 assert(!cards.includes("['technographics','Technographics'"), 'technographics are no longer a use-case column');
 assert(cards.includes("details.append(renderIcpUseCases(icp,ro));"), 'selected ICP shows the use-case table');
 assert(!cards.includes("['useCases','Use Cases'"), 'use cases are no longer a single text box');
@@ -19,5 +23,6 @@ assert(cards.includes('function maturityAxisCarryover(index)'), 'locked value co
 assert(prompts.positioning_canvas.prompt.includes('one ICP card per Maturity Axis row'));
 assert(prompts.positioning_canvas.prompt.includes('Every row shows four axes'));
 assert(prompts.positioning_canvas.prompt.includes('Firmographics') && prompts.positioning_canvas.prompt.includes('Economic Buyer'));
-assert(html.includes('t.icpMaturityPromptRevision !== 2'), 'saved canvas prompts are updated');
-console.log('PASS: ICP rows show People, Process, Input and Technology with the buying axis carried from the Maturity Axis; use cases keep firmographics and economic buyer.');
+assert(prompts.positioning_canvas.prompt.includes('USE CASE LEVELS') && prompts.positioning_canvas.prompt.includes('Interaction / Scenario'));
+assert(html.includes('t.icpMaturityPromptRevision !== 3'), 'saved canvas prompts are updated');
+console.log('PASS: ICP rows show four axes; use cases classify Industry → Department → Process → Persona → Scenario; buying trigger, firmographics and economic buyer sit in the third row.');
