@@ -6,7 +6,7 @@
 <title>Strategy Board</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Inter+Tight:wght@700;800&display=swap" rel="stylesheet">
 <style>
   /* Tokens lifted from the Maximus Labs Content Dashboard so this tool reads
      as part of the same product. The dashboard is light-only, so this is too. */
@@ -2810,12 +2810,15 @@
       <div class="chan-head">
         <div>
           <h3>Onboarding Form</h3>
-          <p>Set the products and market system, then review the Market Mapping axes. Configure channels under Research &rsaquo; GTM Strategy.</p>
+          <p>Tell us what you have and what you want. Then the AI builds the rest of the strategy, one stage at a time. Configure channels under Research &rsaquo; GTM Strategy.</p>
         </div>
       </div>
-      <section class="gtm-onboarding" id="gtmOnboarding" aria-label="GTM onboarding">
-        <nav class="gtm-onboarding-steps" id="gtmOnboardingSteps" aria-label="GTM onboarding steps"></nav>
-        <div class="gtm-onboarding-panel" id="gtmOnboardingPanel"></div>
+      <section class="obf" id="gtmOnboarding" aria-label="Client onboarding">
+        <div class="obf-journey" id="obfJourney" aria-label="Strategy progress"></div>
+        <div class="obf-body">
+          <nav class="obf-rail" id="gtmOnboardingSteps" aria-label="Onboarding steps"></nav>
+          <div class="obf-main" id="gtmOnboardingPanel"></div>
+        </div>
       </section>
       <div class="gtm-workspace" id="gtmWorkspace" hidden>
       <div class="chan-canvas gtm-canvas">
@@ -3254,6 +3257,8 @@
 <link rel="stylesheet" href="icp-table.css">
 <script src="icp-table.js"></script>
 <script src="icp-cards.js"></script>
+<script src="onboarding-flow.js"></script>
+<link rel="stylesheet" href="onboarding-flow.css">
 <script src="icp-cell-canvas.js"></script>
 <script src="icp-choices.js"></script>
 <script src="icp-keyword-bridge.js"></script>
@@ -12092,6 +12097,26 @@ function activeBuyingIndustryAxis(){
   return ['people','technology','process','input'].includes(axis) ? axis : '';
 }
 
+/* The 16 market-system cells: what is sold (selling axis) × what it changes for the buyer (buying axis). */
+const INDUSTRY_FIT_MARKETS = [
+  {selling:'technology',buying:'technology',b2b:{market:'IT / Infrastructure market',example:'Servers, networking, cloud, cybersecurity and database infrastructure'},b2c:{market:'Consumer technology market',example:'Smartphones, wearables, home networking, smart-home systems and personal storage'}},
+  {selling:'technology',buying:'process',b2b:{market:'B2B SaaS market',example:'CRM, HRMS, accounting, marketing automation and project-management software'},b2c:{market:'Consumer software market',example:'Budgeting, tax filing, travel booking, meal planning and personal-productivity apps'}},
+  {selling:'technology',buying:'people',b2b:{market:'Workforce enablement software market',example:'Learning, collaboration, sales-enablement, design and developer-productivity software'},b2c:{market:'Personal enablement app market',example:'Language learning, fitness, meditation, creator tools and personal AI assistants'}},
+  {selling:'technology',buying:'input',b2b:{market:'Data / Technology Infrastructure market',example:'ETL, data enrichment, ingestion, quality and product-information platforms'},b2c:{market:'Personal data utility market',example:'Cloud storage, password managers, credit monitoring, genealogy and personal-data vaults'}},
+  {selling:'process',buying:'technology',b2b:{market:'Implementation / Integration Services market',example:'ERP implementation, cloud migration, systems integration and managed deployment'},b2c:{market:'Consumer technology service market',example:'Device repair, smart-home installation, home-network setup and personal tech support'}},
+  {selling:'process',buying:'process',b2b:{market:'Business Services / Agencies market',example:'SEO, AEO and marketing agencies, accounting and support outsourcing'},b2c:{market:'Managed consumer services market',example:'Cleaning, moving, laundry, meal delivery and travel-planning services'}},
+  {selling:'process',buying:'people',b2b:{market:'Corporate Training / Coaching market',example:'Sales training, leadership coaching, onboarding and workforce-development programs'},b2c:{market:'Personal coaching / Education market',example:'Tutoring, fitness coaching, career coaching, music instruction and language lessons'}},
+  {selling:'process',buying:'input',b2b:{market:'Operations / Supply-chain Services market',example:'Logistics, warehousing, procurement, inventory and supply-chain optimization'},b2c:{market:'Household operations service market',example:'Grocery delivery, home organization, relocation, storage and last-mile delivery'}},
+  {selling:'people',buying:'technology',b2b:{market:'Staff Augmentation / IT Services market',example:'Developers, DevOps engineers, cybersecurity engineers and contract technical teams'},b2c:{market:'Expert-assisted technology market',example:'Personal tech concierges, computer help, creator production support and home-office setup'}},
+  {selling:'people',buying:'process',b2b:{market:'Professional Services / Consulting market',example:'Management, legal, strategy, financial and business advisory services'},b2c:{market:'Consumer professional services market',example:'Tax preparation, legal advice, financial planning, real-estate and travel advisory'}},
+  {selling:'people',buying:'people',b2b:{market:'Talent / Workforce Services market',example:'Recruiting, executive search, occupational health, employee wellness and specialist staffing'},b2c:{market:'Personal Care / Wellness market',example:'Doctors, dentists, therapists, personal trainers, beauty professionals and tutors'}},
+  {selling:'people',buying:'input',b2b:{market:'Skilled Business Services market',example:'Field maintenance, laboratory work, prototyping, quality inspection and specialist fabrication'},b2c:{market:'Craft / Personal Production market',example:'Tailoring, catering, appliance repair, custom furniture and artisan goods'}},
+  {selling:'input',buying:'technology',b2b:{market:'Industrial / Technology Components market',example:'Semiconductors, batteries, electronic components, sensors and specialty materials'},b2c:{market:'Consumer Device Components market',example:'Chargers, replacement batteries, smart sensors, device accessories and repair parts'}},
+  {selling:'input',buying:'process',b2b:{market:'Business Inputs / Information Services market',example:'Market research, financial data, business datasets and specialized information'},b2c:{market:'Consumer Information / Subscription market',example:'Credit reports, property data, comparison services, reference content and learning subscriptions'}},
+  {selling:'input',buying:'people',b2b:{market:'Workplace Goods market',example:'Uniforms, catering, protective equipment, office supplies and employee amenities'},b2c:{market:'Consumer Goods market',example:'Food, beverages, cosmetics, clothing, supplements and household products'}},
+  {selling:'input',buying:'input',b2b:{market:'Commodities / Materials market',example:'Steel, chemicals, agricultural commodities, petroleum and industrial raw materials'},b2c:{market:'Household Materials market',example:'Fuel, building materials, gardening supplies, craft materials and bulk staples'}}
+];
+
 function renderIndustryFit(ro){
   const host = $('gtmIndustryFit');
   if (!host) return;
@@ -12103,24 +12128,7 @@ function renderIndustryFit(ro){
     {id:'people',label:'People'},
     {id:'input',label:'Input'}
   ];
-  const markets = [
-    {selling:'technology',buying:'technology',b2b:{market:'IT / Infrastructure market',example:'Servers, networking, cloud, cybersecurity and database infrastructure'},b2c:{market:'Consumer technology market',example:'Smartphones, wearables, home networking, smart-home systems and personal storage'}},
-    {selling:'technology',buying:'process',b2b:{market:'B2B SaaS market',example:'CRM, HRMS, accounting, marketing automation and project-management software'},b2c:{market:'Consumer software market',example:'Budgeting, tax filing, travel booking, meal planning and personal-productivity apps'}},
-    {selling:'technology',buying:'people',b2b:{market:'Workforce enablement software market',example:'Learning, collaboration, sales-enablement, design and developer-productivity software'},b2c:{market:'Personal enablement app market',example:'Language learning, fitness, meditation, creator tools and personal AI assistants'}},
-    {selling:'technology',buying:'input',b2b:{market:'Data / Technology Infrastructure market',example:'ETL, data enrichment, ingestion, quality and product-information platforms'},b2c:{market:'Personal data utility market',example:'Cloud storage, password managers, credit monitoring, genealogy and personal-data vaults'}},
-    {selling:'process',buying:'technology',b2b:{market:'Implementation / Integration Services market',example:'ERP implementation, cloud migration, systems integration and managed deployment'},b2c:{market:'Consumer technology service market',example:'Device repair, smart-home installation, home-network setup and personal tech support'}},
-    {selling:'process',buying:'process',b2b:{market:'Business Services / Agencies market',example:'SEO, AEO and marketing agencies, accounting and support outsourcing'},b2c:{market:'Managed consumer services market',example:'Cleaning, moving, laundry, meal delivery and travel-planning services'}},
-    {selling:'process',buying:'people',b2b:{market:'Corporate Training / Coaching market',example:'Sales training, leadership coaching, onboarding and workforce-development programs'},b2c:{market:'Personal coaching / Education market',example:'Tutoring, fitness coaching, career coaching, music instruction and language lessons'}},
-    {selling:'process',buying:'input',b2b:{market:'Operations / Supply-chain Services market',example:'Logistics, warehousing, procurement, inventory and supply-chain optimization'},b2c:{market:'Household operations service market',example:'Grocery delivery, home organization, relocation, storage and last-mile delivery'}},
-    {selling:'people',buying:'technology',b2b:{market:'Staff Augmentation / IT Services market',example:'Developers, DevOps engineers, cybersecurity engineers and contract technical teams'},b2c:{market:'Expert-assisted technology market',example:'Personal tech concierges, computer help, creator production support and home-office setup'}},
-    {selling:'people',buying:'process',b2b:{market:'Professional Services / Consulting market',example:'Management, legal, strategy, financial and business advisory services'},b2c:{market:'Consumer professional services market',example:'Tax preparation, legal advice, financial planning, real-estate and travel advisory'}},
-    {selling:'people',buying:'people',b2b:{market:'Talent / Workforce Services market',example:'Recruiting, executive search, occupational health, employee wellness and specialist staffing'},b2c:{market:'Personal Care / Wellness market',example:'Doctors, dentists, therapists, personal trainers, beauty professionals and tutors'}},
-    {selling:'people',buying:'input',b2b:{market:'Skilled Business Services market',example:'Field maintenance, laboratory work, prototyping, quality inspection and specialist fabrication'},b2c:{market:'Craft / Personal Production market',example:'Tailoring, catering, appliance repair, custom furniture and artisan goods'}},
-    {selling:'input',buying:'technology',b2b:{market:'Industrial / Technology Components market',example:'Semiconductors, batteries, electronic components, sensors and specialty materials'},b2c:{market:'Consumer Device Components market',example:'Chargers, replacement batteries, smart sensors, device accessories and repair parts'}},
-    {selling:'input',buying:'process',b2b:{market:'Business Inputs / Information Services market',example:'Market research, financial data, business datasets and specialized information'},b2c:{market:'Consumer Information / Subscription market',example:'Credit reports, property data, comparison services, reference content and learning subscriptions'}},
-    {selling:'input',buying:'people',b2b:{market:'Workplace Goods market',example:'Uniforms, catering, protective equipment, office supplies and employee amenities'},b2c:{market:'Consumer Goods market',example:'Food, beverages, cosmetics, clothing, supplements and household products'}},
-    {selling:'input',buying:'input',b2b:{market:'Commodities / Materials market',example:'Steel, chemicals, agricultural commodities, petroleum and industrial raw materials'},b2c:{market:'Household Materials market',example:'Fuel, building materials, gardening supplies, craft materials and bulk staples'}}
-  ];
+  const markets = INDUSTRY_FIT_MARKETS;
   const pagesByAxis = {
     process:['Use case','Country','Industry','Company size'],
     people:['Person or role','Identity','Cognitive jobs'],
@@ -15571,12 +15579,6 @@ function strategyOneState(){
   return t.guide;
 }
 
-const GTM_ONBOARDING_STEPS = [
-  { id:'product', label:'Products', question:'Which products are we taking to market?', detail:'Add one, two or three products, then capture the source text or notes for each. Choose the active product whose strategy workspace you want to edit.', type:'products' },
-  { id:'market', label:'Market system', question:'How does the selling system meet the buying component?', detail:'Choose the exact market intersection on the left, then complete the GTM questions on its right.', type:'market' },
-  { id:'market_mapping', label:'Market Mapping', question:'How does delivered value relate to customer awareness?', detail:'This canvas intentionally starts empty and shows only the two axes for future market mapping.', type:'market-map' }
-];
-
 /* Geographic markets: "All countries" first, then the U.S. and India, then every other ISO 3166 country A–Z. */
 const GEO_COUNTRY_CODES = ('AD AE AF AG AI AL AM AO AQ AR AS AT AU AW AX AZ BA BB BD BE BF BG BH BI BJ BL BM BN BO BQ BR BS BT BV BW BY BZ ' +
   'CA CC CD CF CG CH CI CK CL CM CN CO CR CU CV CW CX CY CZ DE DJ DK DM DO DZ EC EE EG EH ER ES ET FI FJ FK FM FO FR ' +
@@ -15596,203 +15598,6 @@ function geoMarketOptions(){
 }
 function geoMarketLabel(code){ return (geoMarketOptions().find(option => option[0] === code) || [code, code])[1]; }
 function syncClientIcp1(){ state.clientIcp1 = String(state.clientIcps[0]?.name || '').trim() || 'New Entrants'; }
-
-function gtmOnboardingValue(step){
-  if (step.type==='products'){
-    const catalog=channelState(), count=catalog.products.length;
-    return count+' product'+(count===1?'':'s');
-  }
-  if (step.type==='market'){
-    const selling=evolutionState().axis || brandRadarState().sourceAxis || '';
-    const buying=activeBuyingIndustryAxis();
-    const labels={technology:'Technology',process:'Process',people:'People',input:'Input'};
-    const config=maturityIndustryConfiguration(), type=clientTypeLabel(state.clientType);
-    const motion=state.clientSalesMotion==='plg'?'PLG':state.clientSalesMotion==='slg'?'SLG':'Motion not selected';
-    const axes=selling && buying ? labels[selling]+' → '+labels[buying] : 'Axes not selected';
-    const ocean=state.clientMarketType==='red'?'Red Ocean':state.clientMarketType==='blue'?'Blue Ocean':'Ocean not selected';
-    const icps=state.clientIcps.length+' ICP'+(state.clientIcps.length===1?'':'s');
-    return type+' · '+(config.mode==='multi'?'Multi Industry':'Single Industry')+' · '+motion+' · '+ocean+' · '+icps+' · '+axes;
-  }
-  if (step.type==='market-map'){
-    if (!state.clientMarkets.length) return 'No geographic market selected';
-    return state.clientMarkets.map(geoMarketLabel).join(', ');
-  }
-  const value=String(step.get() || '');
-  if (step.type==='select') return (step.options.find(option=>option[0]===value)||[])[1] || 'Not selected';
-  return value || 'Not answered';
-}
-
-function renderGtmProductStep(host, locked, ro){
-  const catalog=ensureProductWorkspace();
-  const list=document.createElement('div'); list.className='gtm-onboarding-products';
-  catalog.products.slice(0,3).forEach(product=>{
-    const row=document.createElement('div'); row.className='gtm-onboarding-product';
-    const active=document.createElement('input'); active.type='radio'; active.name='gtm-active-product';
-    active.checked=product.id===catalog.activeProductId; active.disabled=ro || locked;
-    active.title='Use this as the active product workspace';
-    active.onchange=()=>{ activateProduct(product.id); markDirty(); renderGtmOnboarding(); renderChannels(); };
-    const fields=document.createElement('div'); fields.className='gtm-onboarding-product-fields';
-    const input=document.createElement('input'); input.type='text'; input.value=product.name || ''; input.placeholder='Product name';
-    input.disabled=ro || locked; input.setAttribute('aria-label','Product name');
-    input.oninput=()=>{
-      product.name=input.value;
-      if (product.id===catalog.activeProductId){ state.clientProduct=input.value; }
-      markDirty();
-    };
-    const description=document.createElement('textarea'); description.value=product.description || '';
-    description.placeholder='Enter the product source text, description, notes, or other onboarding context';
-    description.disabled=ro || locked; description.setAttribute('aria-label','Product text for '+(product.name || 'product'));
-    description.oninput=()=>{ product.description=description.value; markDirty(); };
-    fields.append(input,description);
-    const remove=document.createElement('button'); remove.type='button'; remove.innerHTML='&times;'; remove.title='Remove product';
-    remove.disabled=ro || locked || catalog.products.length===1;
-    remove.onclick=()=>{ removeGtmProduct(product.id); renderGtmOnboarding(); };
-    row.append(active,fields,remove); list.append(row);
-  });
-  if (catalog.products.length<3){
-    const add=document.createElement('button'); add.type='button'; add.className='gtm-onboarding-add'; add.textContent='+ Add product'; add.disabled=ro || locked;
-    add.onclick=()=>{
-      const product={id:uid(),name:'New product',description:''}; catalog.products.push(product); activateProduct(product.id);
-      markDirty(); renderGtmOnboarding(); renderChannels();
-      requestAnimationFrame(()=>{
-        const inputs=$('gtmOnboardingPanel')?.querySelectorAll('.gtm-onboarding-product input[type=text]');
-        const last=inputs && inputs[inputs.length-1]; if (last){ last.focus(); last.select(); }
-      });
-    };
-    list.append(add);
-  }
-  const hint=document.createElement('small'); hint.className='gtm-onboarding-hint'; hint.textContent='The selected product controls the active Product Architecture, Maturity Axis, Positioning and Keywords workspace.';
-  host.append(list,hint);
-}
-
-function renderGtmMarketQuestions(host, locked, ro){
-  const disabled=ro || locked;
-  const title=document.createElement('h5'); title.className='gtm-market-setup-title'; title.textContent='GTM questions'; host.append(title);
-  const field=(label,control)=>{const wrap=document.createElement('div');wrap.className='gtm-market-question';const heading=document.createElement('label');heading.textContent=label;wrap.append(heading,control);return wrap;};
-
-  const businessType=document.createElement('select'); businessType.className='gtm-onboarding-control'; businessType.disabled=disabled;
-  [['','Choose business type'],...CLIENT_TYPES.map(item=>[item.id,item.label])].forEach(([value,label])=>{const option=document.createElement('option');option.value=value;option.textContent=label;businessType.append(option);});
-  businessType.value=state.clientType || ''; businessType.onchange=()=>{state.clientType=businessType.value;markDirty();};
-  host.append(field('Business / offer type',businessType));
-
-
-
-  if(!String(state.clientGoal||'').trim())state.clientGoal='Customer Acquisition';
-  const goal=document.createElement('input'); goal.type='text'; goal.className='gtm-onboarding-control'; goal.placeholder='Primary GTM goal'; goal.value=state.clientGoal||'Customer Acquisition'; goal.disabled=disabled; goal.oninput=()=>{state.clientGoal=goal.value;markDirty();};
-  host.append(field('Primary GTM goal',goal));
-
-  const motion=document.createElement('select'); motion.className='gtm-onboarding-control'; motion.disabled=disabled;
-  [['','Choose sales motion'],['plg','Product-led growth (PLG)'],['slg','Sales-led growth (SLG)']].forEach(([value,label])=>{const option=document.createElement('option');option.value=value;option.textContent=label;motion.append(option);});
-  motion.value=state.clientSalesMotion||''; motion.onchange=()=>{state.clientSalesMotion=motion.value;markDirty();};
-  host.append(field('Sales motion',motion));
-
-  const ocean=document.createElement('div'); ocean.className='gtm-ocean-choices';
-  [['red','Red Ocean','Compete for customers in an existing, contested market.'],['blue','Blue Ocean','Create new demand where there is little direct competition.']].forEach(([value,label,detail])=>{
-    const card=document.createElement('label'); card.className='gtm-onboarding-choice'+(state.clientMarketType===value?' on':'');
-    const input=document.createElement('input'); input.type='radio'; input.name='gtm-market-type'; input.value=value;
-    input.checked=state.clientMarketType===value; input.disabled=disabled;
-    const copy=document.createElement('span'); const strong=document.createElement('b'); strong.textContent=label;
-    const small=document.createElement('small'); small.textContent=detail; copy.append(strong,small);
-    input.onchange=()=>{state.clientMarketType=value;markDirty();renderGtmOnboarding();};
-    card.append(input,copy); ocean.append(card);
-  });
-  host.append(field('Red Ocean or Blue Ocean',ocean));
-
-  const icps=document.createElement('div'); icps.className='gtm-market-industry-names gtm-icp-list';
-  state.clientIcps.forEach((icp,index)=>{
-    const row=document.createElement('div'); row.className='gtm-market-industry-row gtm-icp-row';
-    const tag=document.createElement('span'); tag.className='gtm-icp-tag'; tag.textContent='ICP '+(index+1);
-    const input=document.createElement('input'); input.type='text'; input.className='gtm-onboarding-control'; input.value=icp.name||'';
-    input.placeholder='Name ICP '+(index+1)+' (optional)'; input.disabled=disabled; input.setAttribute('aria-label','ICP '+(index+1)+' name');
-    input.oninput=()=>{icp.name=input.value;syncClientIcp1();markDirty();};
-    const remove=document.createElement('button'); remove.type='button'; remove.innerHTML='&times;'; remove.title='Remove ICP '+(index+1); remove.disabled=disabled;
-    remove.setAttribute('aria-label','Remove ICP '+(index+1));
-    remove.onclick=()=>{state.clientIcps.splice(index,1);syncClientIcp1();markDirty();renderGtmOnboarding();};
-    row.append(tag,input,remove); icps.append(row);
-  });
-  if(!disabled){
-    const add=document.createElement('button'); add.type='button'; add.className='gtm-market-add-industry'; add.textContent='+ Add ICP';
-    add.onclick=()=>{state.clientIcps.push({id:uid(),name:''});markDirty();renderGtmOnboarding();requestAnimationFrame(()=>{const inputs=$('gtmOnboardingPanel')?.querySelectorAll('.gtm-icp-row input');inputs?.[inputs.length-1]?.focus();});};
-    icps.append(add);
-  }
-  host.append(field('Number of ICPs: '+state.clientIcps.length,icps));
-}
-
-function renderGtmGeoMarkets(host, locked, ro){
-  const disabled=ro || locked, options=geoMarketOptions();
-  const section=document.createElement('section'); section.className='gtm-geo-markets';
-  const heading=document.createElement('h5'); heading.className='gtm-market-setup-title'; heading.textContent='Geographic markets';
-  const help=document.createElement('small'); help.className='gtm-onboarding-hint'; help.textContent='Choose “All countries”, or add one dropdown per country you sell into.';
-  section.append(heading,help);
-  if(!state.clientMarkets.length && !disabled) state.clientMarkets.push('');
-  const list=document.createElement('div'); list.className='gtm-geo-list';
-  state.clientMarkets.forEach((code,index)=>{
-    const row=document.createElement('div'); row.className='gtm-geo-row';
-    const select=document.createElement('select'); select.className='gtm-onboarding-control'; select.disabled=disabled;
-    select.setAttribute('aria-label','Geographic market '+(index+1));
-    const placeholder=document.createElement('option'); placeholder.value=''; placeholder.textContent='Choose a market'; select.append(placeholder);
-    const takenElsewhere=new Set(state.clientMarkets.filter((other,otherIndex)=>otherIndex!==index&&other));
-    options.forEach(([value,label])=>{
-      const option=document.createElement('option'); option.value=value; option.textContent=label;
-      option.disabled=takenElsewhere.has(value) || (value==='ALL'&&state.clientMarkets.length>1);
-      select.append(option);
-    });
-    select.value=code||'';
-    select.onchange=()=>{
-      state.clientMarkets[index]=select.value;
-      if(select.value==='ALL') state.clientMarkets=['ALL'];
-      markDirty(); renderGtmOnboarding();
-    };
-    const remove=document.createElement('button'); remove.type='button'; remove.innerHTML='&times;'; remove.title='Remove this market';
-    remove.disabled=disabled || state.clientMarkets.length===1; remove.setAttribute('aria-label','Remove geographic market '+(index+1));
-    remove.onclick=()=>{state.clientMarkets.splice(index,1);markDirty();renderGtmOnboarding();};
-    row.append(select,remove); list.append(row);
-  });
-  section.append(list);
-  if(!disabled && !state.clientMarkets.includes('ALL')){
-    const add=document.createElement('button'); add.type='button'; add.className='gtm-market-add-industry'; add.textContent='+ Add country';
-    add.disabled=state.clientMarkets.some(code=>!code);
-    add.title=add.disabled?'Choose a market in the empty dropdown first':'Add another country';
-    add.onclick=()=>{state.clientMarkets.push('');markDirty();renderGtmOnboarding();};
-    section.append(add);
-  }
-  host.append(section);
-}
-
-function renderGtmMarketStep(host, locked, ro){
-  const wrap=document.createElement('div'); wrap.className='gtm-onboarding-market';
-  const top=document.createElement('div'); top.className='gtm-onboarding-market-top';
-  const fit=document.createElement('div'); fit.className='industry-fit'; fit.id='gtmIndustryFit';
-  const questions=document.createElement('aside'); questions.className='gtm-market-setup'; renderGtmMarketQuestions(questions,locked,ro);
-  const matrix=document.createElement('div'); matrix.className='gtm-onboarding-market-matrix';
-  top.append(fit,questions); wrap.append(top,matrix); host.append(wrap);
-  requestAnimationFrame(()=>renderIndustryFit(ro||locked));
-}
-
-function renderGtmMarketMappingStep(host, locked, ro){
-  /* Geographic markets, departments and industries stay editable after this step is locked. */
-  renderGtmGeoMarkets(host, false, ro);
-  const section=document.createElement('section'); section.className='gtm-geo-markets gtm-industry-section';
-  const sectionTitle=document.createElement('h5'); sectionTitle.className='gtm-market-setup-title'; sectionTitle.textContent='Departments & Industries';
-  const help=document.createElement('small'); help.className='gtm-onboarding-hint';
-  help.textContent='Click a department to rename it. Choose Single Industry or Multi-industry; click an industry to make it active, double-click to rename.';
-  const editor=document.createElement('div'); editor.className='maturity-departments gtm-departments-editor';
-  section.append(sectionTitle,help,editor); host.append(section);
-  renderMaturityDepartments(productArchitectureState(MATURITY_ACCESS_TAB), ro, editor, renderGtmOnboarding);
-  const shell=document.createElement('section'); shell.className='gtm-market-map';
-  const canvas=document.createElement('div'); canvas.className='gtm-market-map-canvas';
-  canvas.setAttribute('role','img');
-  canvas.setAttribute('aria-label','Empty Market Mapping canvas. The horizontal axis is value delivered, calculated as company-provided value minus customer price paid. The vertical axis is customer awareness from least aware to most aware.');
-  const yTitle=document.createElement('span'); yTitle.className='gtm-market-map-y-title'; yTitle.textContent='Customer awareness level';
-  const yHigh=document.createElement('span'); yHigh.className='gtm-market-map-y-high'; yHigh.textContent='Most aware';
-  const yLow=document.createElement('span'); yLow.className='gtm-market-map-y-low'; yLow.textContent='Least aware';
-  const xLow=document.createElement('span'); xLow.className='gtm-market-map-x-low'; xLow.textContent='Lower value delivered';
-  const xHigh=document.createElement('span'); xHigh.className='gtm-market-map-x-high'; xHigh.textContent='Higher value delivered';
-  const xTitle=document.createElement('span'); xTitle.className='gtm-market-map-x-title'; xTitle.textContent='Value delivered = value provided by the company − price paid by the customer';
-  canvas.append(yTitle,yHigh,yLow,xLow,xHigh,xTitle);
-  const note=document.createElement('p'); note.className='gtm-market-map-note'; note.textContent='No companies, customers, segments or points are prefilled.';
-  shell.append(canvas,note); host.append(shell);
-}
 
 function renderGtmChannelsStep(host, locked, ro, rerender=renderGtmOnboarding){
   const channels=channelState(), disabled=ro || locked;
@@ -15848,110 +15653,6 @@ function renderChannelFrame(){
   if (!host) return;
   host.replaceChildren();
   renderGtmChannelsStep(host,false,readOnly(),renderChannelFrame);
-}
-
-function validateGtmOnboardingStep(step, control){
-  if (step.type==='products'){
-    const catalog=channelState(), names=catalog.products.map(product=>String(product.name||'').trim());
-    if (!names.length || names.length>3 || names.some(name=>!name || /^(new product|product name)$/i.test(name))){ toast('Name each product before locking this step.',true); return false; }
-    if (!validProductNames(catalog.products)) return false;
-    const active=activeGtmProduct(catalog); state.clientProduct=active?.name || names[0];
-    return true;
-  }
-  if (step.type==='market'){
-    if (!state.clientType){ toast('Choose the business or offer type.',true); return false; }
-    if(!String(state.clientGoal||'').trim()){toast('Enter the primary GTM goal.',true);return false;}
-    if(!state.clientSalesMotion){toast('Choose PLG or SLG.',true);return false;}
-    if(!state.clientMarketType){toast('Choose Red Ocean or Blue Ocean.',true);return false;}
-    if(!state.clientIcps.length){toast('Add at least one ICP.',true);return false;}
-    if (!(evolutionState().axis || brandRadarState().sourceAxis) || !activeBuyingIndustryAxis()){
-      toast('Choose both the selling component and buying component.',true); return false;
-    }
-    return true;
-  }
-  if (step.type==='market-map'){
-    state.clientMarkets=state.clientMarkets.filter(Boolean);
-    if(!state.clientMarkets.length){toast('Choose at least one geographic market.',true);renderGtmOnboarding();return false;}
-    const architecture=productArchitectureState(MATURITY_ACCESS_TAB);
-    const names=(architecture.industries||[]).map(value=>String(value||'').trim()).filter(Boolean);
-    if (!names.length || names.some(name=>/^industry$/i.test(name))){ toast('Name the industry before locking this step.',true); return false; }
-    if(new Set(names.map(name=>name.toLowerCase())).size!==names.length){toast('Use a different name for each industry.',true);return false;}
-    architecture.industries=names; architecture.activeIndustry=names.includes(architecture.activeIndustry)?architecture.activeIndustry:names[0];
-    return true;
-  }
-  const value=String(control?.value || '').trim();
-  if (!value){ toast('Complete this answer before locking it.',true); control?.focus(); return false; }
-  step.set(value); return true;
-}
-
-function renderGtmOnboarding(){
-  const guide=strategyOneState(), onboarding=guide.onboarding, ro=readOnly();
-  const completedBefore=index=>GTM_ONBOARDING_STEPS.slice(0,index).every(step=>onboarding.locked[step.id]===true);
-  const firstOpen=GTM_ONBOARDING_STEPS.find((step,index)=>completedBefore(index) && onboarding.locked[step.id]!==true);
-  if (!GTM_ONBOARDING_STEPS.some(step=>step.id===onboarding.activeStep) ||
-      !completedBefore(GTM_ONBOARDING_STEPS.findIndex(step=>step.id===onboarding.activeStep))){
-    onboarding.activeStep=(firstOpen || GTM_ONBOARDING_STEPS[0]).id;
-  }
-  const active=GTM_ONBOARDING_STEPS.find(step=>step.id===onboarding.activeStep) || GTM_ONBOARDING_STEPS[0];
-  const steps=$('gtmOnboardingSteps'); steps.replaceChildren();
-  GTM_ONBOARDING_STEPS.forEach((step,index)=>{
-    const locked=onboarding.locked[step.id]===true;
-    const button=document.createElement('button'); button.type='button';
-    button.className='gtm-onboarding-step'+(step.id===active.id?' active':'')+(locked?' locked':'');
-    button.disabled=!locked && !completedBefore(index) && step.id!==active.id;
-    const number=document.createElement('span'); number.className='gtm-onboarding-step-index'; number.textContent=locked?'✓':String(index+1);
-    const copy=document.createElement('span'); copy.className='gtm-onboarding-step-copy';
-    const name=document.createElement('b'); name.textContent=step.label;
-    const answer=document.createElement('small'); answer.textContent=gtmOnboardingValue(step);
-    copy.append(name,answer);
-    const lock=document.createElement('span'); lock.className='gtm-onboarding-step-lock'; lock.textContent=locked?'●':'';
-    button.append(number,copy,lock);
-    button.onclick=()=>{ onboarding.activeStep=step.id; markDirty(); renderGtmOnboarding(); };
-    steps.append(button);
-  });
-
-  const panel=$('gtmOnboardingPanel'); panel.replaceChildren();
-  const kicker=document.createElement('span'); kicker.className='gtm-onboarding-panel-kicker';
-  kicker.textContent='Step '+(GTM_ONBOARDING_STEPS.indexOf(active)+1)+' of '+GTM_ONBOARDING_STEPS.length;
-  const title=document.createElement('h4'); title.textContent=active.question;
-  const description=document.createElement('p'); description.textContent=active.detail;
-  const locked=onboarding.locked[active.id]===true;
-  panel.append(kicker,title,description);
-  let control=null;
-  if (active.type==='products') renderGtmProductStep(panel,locked,ro);
-  else if (active.type==='market') renderGtmMarketStep(panel,locked,ro);
-  else if (active.type==='market-map') renderGtmMarketMappingStep(panel,locked,ro);
-  else {
-    control=document.createElement(active.type==='select'?'select':'input');
-    control.className='gtm-onboarding-control';
-    if (control.tagName==='INPUT') control.type='text';
-    if (active.type==='select') active.options.forEach(option=>{
-      const element=document.createElement('option'); element.value=option[0]; element.textContent=option[1]; control.append(element);
-    });
-    control.value=active.get() || '';
-    control.disabled=ro || locked;
-    panel.append(control);
-  }
-  const actions=document.createElement('div'); actions.className='gtm-onboarding-actions';
-  const source=document.createElement('span'); source.className='gtm-onboarding-source';
-  const sourceLabel=active.type==='market'?'Shared with Client settings, Maturity Axis, Product Evolution and Positioning':active.type==='products'?'Shared with product workspaces and Client settings':active.type==='market-map'?'Empty axis canvas · no points are prefilled':'Prefilled from Client settings';
-  source.textContent=locked?'Locked source · '+sourceLabel:sourceLabel;
-  const action=document.createElement('button'); action.type='button'; action.className='primary';
-  action.hidden=ro;
-  action.textContent=locked?'Edit answer':'Lock & continue';
-  action.onclick=()=>{
-    if (locked){ onboarding.locked[active.id]=false; onboarding.activeStep=active.id; markDirty(); renderGtmOnboarding(); requestAnimationFrame(()=>$('gtmOnboardingPanel')?.querySelector('.gtm-onboarding-control')?.focus()); return; }
-    if (!validateGtmOnboardingStep(active,control)) return;
-    onboarding.locked[active.id]=true;
-    const next=GTM_ONBOARDING_STEPS.find((step,index)=>completedBefore(index) && onboarding.locked[step.id]!==true);
-    onboarding.activeStep=(next || active).id;
-    markDirty(); renderBrand(); renderTabs(); renderStrategyGuide();
-  };
-  if (ro){ source.textContent=locked?'Locked source':'Not locked'; }
-  actions.append(source,action); panel.append(actions);
-  const complete=GTM_ONBOARDING_STEPS.every(step=>onboarding.locked[step.id]===true);
-  $('gtmWorkspace').hidden=true;
-  if (complete){ source.textContent='Onboarding complete · click any step to review'; source.classList.add('gtm-onboarding-complete'); }
 }
 
 function strategyNode(host, value, title, detail, current){

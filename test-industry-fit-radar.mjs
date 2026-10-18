@@ -3,10 +3,13 @@ import vm from 'node:vm';
 import assert from 'node:assert/strict';
 
 const html=fs.readFileSync(new URL('./index.html',import.meta.url),'utf8').replace(/\r\n/g,'\n');
-assert(html.includes("fit.id='gtmIndustryFit'"));
+const flow=fs.readFileSync(new URL('./onboarding-flow.js',import.meta.url),'utf8');
+/* The onboarding Market system step draws the same 16 cells from the shared INDUSTRY_FIT_MARKETS list. */
+assert(html.includes('const INDUSTRY_FIT_MARKETS = [') && html.includes('const markets = INDUSTRY_FIT_MARKETS;'));
+assert(flow.includes('INDUSTRY_FIT_MARKETS.find(item=>item.selling===sellId&&item.buying===buyId)'));
+assert(flow.includes('evolutionState().axis=sellId;radar.sourceAxis=sellId;radar.buyingAxis=buyId;'));
 assert(!html.includes('id="icpIndustryFit"'));
-assert(html.includes("id:'market', label:'Market system'"));
-assert(html.includes('Choose the exact market intersection on the left'));
+assert(flow.includes("{id:'market',group:'want',label:'Market system'"));
 for(const market of ['IT / Infrastructure market','B2B SaaS market','Consumer technology market','Consumer software market','Personal enablement app market','Consumer professional services market','Personal Care / Wellness market','Household Materials market']){
   assert(html.includes(`market:'${market}'`),`missing market example: ${market}`);
 }
@@ -25,8 +28,6 @@ assert(html.includes("sharedPagesLabel.textContent = 'Pages to create'"));
 assert(/\.industry-market-grid\{[^}]*grid-template-columns:126px repeat\(4,minmax\(174px,1fr\)\)/.test(html));
 assert(/\.industry-market-cell\{[^}]*min-height:112px/.test(html));
 assert(!html.includes('<section class="gtm-market-system"'));
-assert(html.includes("renderGtmMarketStep(panel,locked,ro)"));
-assert(html.includes("top.append(fit,questions); wrap.append(top,matrix)"));
 assert(html.includes("const onboardingMatrixSlot=host.closest('.gtm-onboarding-market')?.querySelector('.gtm-onboarding-market-matrix')"));
 assert(html.includes('if(onboardingMatrixSlot)onboardingMatrixSlot.append(matrixWrap)'));
 assert(/\.gtm-onboarding-market-top\{[^}]*grid-template-columns:minmax\(0,1fr\) 290px/.test(html));
