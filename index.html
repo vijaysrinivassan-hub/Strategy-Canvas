@@ -3182,7 +3182,7 @@
       <div class="mx-wrap"><table class="mx-table" id="mxTable"></table><section id="competitorComparison" hidden></section></div>
     </div>
 
-    <!-- Search Intent: written articles split into Informational and Commercial, as a matrix or a cluster -->
+    <!-- Keywords › Cluster: written articles split into Informational and Commercial on a canvas -->
     <div id="intentPane" hidden></div>
 
     <!-- Keyword Repo: selected keywords on top, the full pull underneath -->
@@ -3268,8 +3268,8 @@
 <link rel="stylesheet" href="icp-cell-canvas.css">
 <link rel="stylesheet" href="icp-cards.css">
 <link rel="stylesheet" href="icp-keyword-bridge.css">
-<script src="intent-cluster.js?v=intent-v1"></script>
-<link rel="stylesheet" href="intent-cluster.css?v=intent-v1">
+<script src="intent-cluster.js?v=intent-v2"></script>
+<link rel="stylesheet" href="intent-cluster.css?v=intent-v2">
 <script>
 /* ===================================================================
    CONFIG — all public values. No secrets belong in this file.
@@ -3435,7 +3435,7 @@ const state = {
   contentView: 'competitor',      /* which axis the content matrix is showing */
   keywordAwareness: '',          /* problem-unaware | problem-aware | solution-aware */
   keywordAwarenessPicker: false, /* the full-page ICP / Value choice is open */
-  keywordIntent: '',             /* '' | 'matrix' | 'cluster' — the Search Intent page is open */
+  keywordIntent: '',             /* 'cluster' while Keywords › Cluster is open, '' for the Matrix tables */
   navOpen: { strategy1: false, brand: false, content: false, positioningDocument: false, settings: false, frames: false, canvas: false },
   positioningDocumentPart: 'core',
   frames: [],                     /* the Obsidian Frames folder, loaded once */
@@ -3488,7 +3488,7 @@ function restoreLocation(location){
   state.keywordAwareness = ['icp','value'].includes(state.contentView)
     ? (awareness || (keywordMode === 'seo' ? 'problem-aware' : 'solution-aware')) : '';
   state.keywordAwarenessPicker = !!location.keywordAwarenessPicker && !!state.keywordAwareness;
-  state.keywordIntent = state.tab === CONTENT_TAB && ['matrix','cluster'].includes(location.keywordIntent) ? location.keywordIntent : '';
+  state.keywordIntent = state.tab === CONTENT_TAB && location.keywordIntent === 'cluster' ? 'cluster' : '';
   const frameIndex = Number(location.frameIndex);
   if (state.tab === FRAME_TAB && Number.isInteger(frameIndex) && state.frames[frameIndex]){
     state.frameIndex = frameIndex;
@@ -3768,7 +3768,6 @@ const TAB_ICONS = {
   'Product Aware': '<path d="M5 4h14v16H5z"/><path d="M8 8h8M8 12h8M8 16h5"/>',
   'Competitor': '<circle cx="8" cy="9" r="3"/><circle cx="16" cy="9" r="3"/><path d="M3 19c.5-3 2.2-5 5-5s4.5 2 5 5M11 19c.5-3 2.2-5 5-5s4.5 2 5 5"/>',
   'Competitor-aware': '<circle cx="8" cy="9" r="3"/><circle cx="16" cy="9" r="3"/><path d="M3 19c.5-3 2.2-5 5-5s4.5 2 5 5M11 19c.5-3 2.2-5 5-5s4.5 2 5 5"/>',
-  'Search Intent': '<circle cx="5" cy="12" r="2.5"/><circle cx="19" cy="6" r="2.5"/><circle cx="19" cy="18" r="2.5"/><path d="M7.3 11 16.7 7M7.3 13l9.4 4"/>',
   'Competitor Aware': '<circle cx="8" cy="9" r="3"/><circle cx="16" cy="9" r="3"/><path d="M3 19c.5-3 2.2-5 5-5s4.5 2 5 5M11 19c.5-3 2.2-5 5-5s4.5 2 5 5"/>',
   'Problem Unaware': '<circle cx="12" cy="12" r="8"/><path d="M9.8 9a2.4 2.4 0 1 1 3.6 2.1c-.9.5-1.4 1-1.4 2.1M12 17h.01"/>',
   'Problem Aware': '<circle cx="12" cy="12" r="8"/><path d="M12 7v6M12 17h.01"/>',
@@ -4083,6 +4082,27 @@ function renderTabs(){
        opens a full-page ICP / Value choice rather than nesting sidebar rows. */
     if (item.kind === 'keywords-tabs'){
       ensureKeywordCountRepository();
+      /* One black switch heads the section: Matrix lists the keyword tables
+         below it, Cluster swaps them for the article canvas. */
+      const cluster = state.keywordIntent === 'cluster';
+      const onKeywords = onBoard && state.tab === CONTENT_TAB;
+      const modes = document.createElement('div');
+      modes.className = 'keyword-mode-switch';
+      modes.setAttribute('role', 'group');
+      modes.setAttribute('aria-label', 'Keywords view');
+      [['matrix', 'Matrix'], ['cluster', 'Cluster']].forEach(([id, label]) => {
+        const on = id === 'cluster' ? cluster : !cluster;
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.textContent = label;
+        b.className = on ? 'on' : '';
+        b.classList.toggle('current', on && onKeywords);
+        b.setAttribute('aria-pressed', String(on));
+        b.onclick = () => id === 'cluster' ? openIntentView() : openKeywordMatrix();
+        modes.append(b);
+      });
+      box.append(modes);
+      if (cluster) return;
       const counts = keywordFilledCounts();
       const awarenessLayers = [
         { id:'problem-unaware', label:'Problem Unaware' },
@@ -4106,13 +4126,6 @@ function renderTabs(){
         appendKeywordCount(b, counts[viewId].total);
         box.append(b);
       });
-      const intent = tabButton(CONTENT_TAB, 'Search Intent');
-      intent.replaceChild(tabIcon('Search Intent'), intent.firstChild);
-      intent.classList.add('intent-tab');
-      intent.classList.toggle('active', onBoard && state.tab === CONTENT_TAB && !!state.keywordIntent);
-      intent.title = 'Every written article, split into Informational and Commercial intent';
-      intent.onclick = () => openIntentView();
-      box.append(intent);
       return;
     }
 
@@ -9487,7 +9500,7 @@ function awarenessLabel(id){
   })[id] || '';
 }
 function activeContentLabel(){
-  if (state.keywordIntent) return 'Search Intent';
+  if (state.keywordIntent) return 'Cluster';
   const view = viewDef(state.contentView).label;
   const layer = awarenessLabel(state.keywordAwareness);
   if (layer && state.keywordAwarenessPicker) return layer;
@@ -9500,13 +9513,24 @@ function repaintKeywordViews(){
   if (state.tab === CONTENT_TAB) renderContentView();
 }
 
-/* Search Intent reads written articles from the shared URL repository, so it
-   waits for that repository once and then draws from memory. */
-let lastIntentMode = 'matrix';
-function openIntentView(mode){
+/* Keywords › Cluster reads written articles from the shared URL repository,
+   so it waits for that repository once and then draws from memory. */
+function openIntentView(){
   captureFrame();
-  state.keywordIntent = mode === 'cluster' || mode === 'matrix' ? mode : (state.keywordIntent || lastIntentMode);
+  state.keywordIntent = 'cluster';
   state.keywordAwarenessPicker = false;
+  state.frameIndex = -1;
+  closeNav();
+  state.tab = CONTENT_TAB;
+  state.screen = 'board';
+  renderTabs();
+  applyTabMode();
+  rememberLocation();
+}
+/* Keywords › Matrix returns to the keyword table that was open before Cluster. */
+function openKeywordMatrix(){
+  captureFrame();
+  state.keywordIntent = '';
   state.frameIndex = -1;
   closeNav();
   state.tab = CONTENT_TAB;
@@ -9540,14 +9564,12 @@ function renderIntentView(){
   const matchOptions = {keywordNodeId:root.activeKeywordNodeId||'', supportingTerms:supportingKeywordTerms()};
   IntentCluster.render(host, {
     boardKey: [state.boardId, state.workspaceProductId || '', root.activeKeywordNodeId || ''].join('|'),
-    mode: (lastIntentMode = state.keywordIntent),
-    client: state.client || 'Search intent',
+    client: state.client || 'Articles',
     workspace,
     records: workspace ? repository.records() : [],
     matches: record => repository.matchesNode(record, matchOptions),
     pageGroup: repository?.pageGroup,
     competitors: intentCompetitorNames(),
-    onMode: mode => { state.keywordIntent = lastIntentMode = mode; rememberLocation(); },
     onOpen: target => {
       if (!target) return;
       if (target.kind === 'awareness') openAwarenessLayer(target.id);

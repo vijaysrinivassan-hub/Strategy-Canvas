@@ -57,13 +57,13 @@ bottom plus adds a row, so the old top-right add buttons are no longer needed.
 Keywords added from a cell are remembered by that cell and appear there after
 they are saved.
 
-The black **Search Intent** tab at the bottom of Keywords sorts every article
-the client has already published into the two reasons someone searches:
-**Informational** (Problem Unaware, Problem Aware) and **Commercial** (Solution,
-Category, Product and Competitor Aware). Its **Matrix** button lists the stages
-under each intent with their article counts and topics; **Cluster** draws the
-same articles as a branching canvas, Commercial › Category › Competitors › each
-competitor, where clicking a node lists its articles. The articles come from the
+The Keywords section opens with one black two-part switch, **Matrix | Cluster**,
+split by a thin white line. **Matrix** lists the keyword tables (Problem Unaware
+through Competitor Aware) and reopens the one last used. **Cluster** swaps that
+list for a canvas of every article the client has already published, sorted into
+the two reasons someone searches: **Informational** (Problem Unaware, Problem
+Aware) and **Commercial** › Category › Competitors › each competitor, plus
+Solution and Product Aware. Clicking a node lists its articles. The articles come from the
 represented company's URLs in the shared URL repository (`intent-cluster.js`);
 the view only reads, it never writes to the board.
 

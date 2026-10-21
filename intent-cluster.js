@@ -1,9 +1,8 @@
-/* Search Intent: every written article sorted into the two reasons a person
-   searches — to learn something (Informational) or to decide what to buy
-   (Commercial). Matrix lists the awareness stages under each intent; Cluster
-   draws the same data as a branching canvas. Data comes from the shared URL
-   repository: records published by the represented company are the articles
-   already written. Nothing here writes to the board. */
+/* Keywords › Cluster: every written article drawn as a canvas under the two
+   reasons a person searches — to learn something (Informational) or to decide
+   what to buy (Commercial). Data comes from the shared URL repository: records
+   published by the represented company are the articles already written.
+   Nothing here writes to the board. */
 (function(global){
   'use strict';
 
@@ -144,13 +143,6 @@
     return null;
   }
 
-  function stageSummary(articles){
-    return STAGES.map(stage=>{
-      const list=articles.filter(item=>item.stage===stage.id);
-      return {...stage,total:list.length,topics:groupBy(list,item=>item.topic).map(([label,items])=>({label,total:items.length}))};
-    });
-  }
-
   /* Left-to-right tidy tree: leaves take one row each, a parent sits midway
      between its first and last visible child. */
   const COL=290,ROW=46,NODE_W=226;
@@ -173,10 +165,10 @@
   }
 
   /* ---------------- rendering ---------------- */
-  const view={mode:'matrix',expanded:null,selected:'',pan:null,boardKey:''};
+  const view={expanded:null,selected:'',pan:null,boardKey:''};
   const STORE='sb-intent-cluster-v1';
   function remember(){
-    try{localStorage.setItem(STORE,JSON.stringify({boardKey:view.boardKey,mode:view.mode,expanded:[...(view.expanded||[])],selected:view.selected}));}catch(e){}
+    try{localStorage.setItem(STORE,JSON.stringify({boardKey:view.boardKey,expanded:[...(view.expanded||[])],selected:view.selected}));}catch(e){}
   }
   function recall(boardKey){
     try{const saved=JSON.parse(localStorage.getItem(STORE)||'null');if(saved&&saved.boardKey===boardKey)return saved;}catch(e){}
@@ -188,60 +180,18 @@
     if(view.boardKey!==ctx.boardKey){
       const saved=recall(ctx.boardKey);
       view.boardKey=ctx.boardKey;view.pan=null;
-      view.mode=saved?.mode==='cluster'?'cluster':'matrix';
       view.expanded=new Set(saved?.expanded?.length?saved.expanded:['root','informational','commercial','category-aware']);
       view.selected=saved?.selected||'';
     }
-    if(ctx.mode==='matrix'||ctx.mode==='cluster')view.mode=ctx.mode;
     const articles=writtenArticles(ctx.records,ctx);
     const tree=buildTree(articles,{client:ctx.client,competitors:ctx.competitors});
     host.replaceChildren();
     host.className='intent-page';
-    const head=el('div','intent-head');
-    const titles=el('div','intent-titles');
-    titles.append(el('span','intent-kicker','Keywords · Search intent'),el('h2',null,'Why people search'),
-      el('p',null,articles.length+' written articles, sorted into the two reasons someone searches: to learn, or to buy.'));
-    const toggle=el('div','intent-toggle');toggle.setAttribute('role','tablist');
-    for(const [id,label] of [['matrix','Matrix'],['cluster','Cluster']]){
-      const button=el('button',view.mode===id?'on':'',label);button.type='button';
-      button.setAttribute('role','tab');button.setAttribute('aria-selected',String(view.mode===id));
-      button.onclick=()=>{if(view.mode===id)return;view.mode=id;remember();ctx.onMode&&ctx.onMode(id);render(host,{...ctx,mode:id});};
-      toggle.append(button);
-    }
-    head.append(titles,toggle);host.append(head);
     if(!ctx.workspace){
       host.append(el('div','intent-empty','No written articles are linked to this board yet. Articles appear here once the client’s published URLs are imported into Competitive Intelligence.'));
       return;
     }
-    if(view.mode==='cluster')renderCluster(host,tree,ctx);else renderMatrix(host,articles,ctx);
-  }
-
-  function renderMatrix(host,articles,ctx){
-    const summary=stageSummary(articles);
-    const grid=el('div','intent-matrix');
-    for(const intent of INTENTS){
-      const column=el('section','intent-col '+intent.id);
-      const stages=summary.filter(stage=>stage.intent===intent.id);
-      const total=new Set(articles.filter(item=>stages.some(stage=>stage.id===item.stage)).map(item=>item.id)).size;
-      const top=el('header','intent-col-head');
-      top.append(el('span','intent-dot'),el('strong',null,intent.label),el('span','intent-count',total+' articles'));
-      column.append(top,el('p','intent-question',intent.question));
-      for(const stage of stages){
-        const card=el('button','intent-stage');card.type='button';
-        card.title='Open the '+stage.label+' table';
-        const line=el('div','intent-stage-line');
-        line.append(el('strong',null,stage.label),el('span','intent-count',String(stage.total)));
-        const topics=el('div','intent-topics');
-        stage.topics.slice(0,6).forEach(topic=>topics.append(el('span','intent-chip',topic.label+' · '+topic.total)));
-        if(stage.topics.length>6)topics.append(el('span','intent-chip more','+'+(stage.topics.length-6)+' more'));
-        if(!stage.topics.length)topics.append(el('span','intent-none','No articles written yet'));
-        card.append(line,topics,el('span','intent-open','Open table →'));
-        card.onclick=()=>ctx.onOpen&&ctx.onOpen(stage.open);
-        column.append(card);
-      }
-      grid.append(column);
-    }
-    host.append(grid);
+    renderCluster(host,tree,ctx);
   }
 
   function renderCluster(host,tree,ctx){
@@ -373,5 +323,5 @@
     if(view.pan)apply();else if(stage.getBoundingClientRect().width)fit(true);else requestAnimationFrame(()=>fit(true));
   }
 
-  global.IntentCluster={STAGES,INTENTS,stageOf,writtenArticles,buildTree,stageSummary,layout,articlesUnder,find,render};
+  global.IntentCluster={STAGES,INTENTS,stageOf,writtenArticles,buildTree,layout,articlesUnder,find,render};
 })(typeof globalThis!=='undefined'?globalThis:this);

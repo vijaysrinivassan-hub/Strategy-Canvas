@@ -37,19 +37,20 @@ assert.ok(category.children.some(node => node.label === 'E-commerce Data Analyti
 const product = commercial.children.find(node => node.label === 'Product Aware');
 assert.ok(product.total > 0 && IntentCluster.articlesUnder(product).every(item => item.stage === 'product-aware'));
 
-const summary = IntentCluster.stageSummary(articles);
-assert.equal(summary.map(stage => stage.intent).join("|"), ['informational','informational','commercial','commercial','commercial','commercial'].join("|"));
-assert.equal(summary.reduce((sum, stage) => sum + stage.total, 0), articles.length);
-
 const collapsed = IntentCluster.layout(tree, new Set(['root']));
 assert.equal(collapsed.placed.length, 3, 'collapsed cluster shows the two intent spikes');
 const open = IntentCluster.layout(tree, new Set(['root','commercial','category-aware','competitor-aware']));
 assert.ok(open.placed.some(spot => spot.item.label === 'Supermetrics'), 'opening Category › Competitors reveals each competitor');
 
 const html = read('index.html');
-assert.ok(html.includes("const intent = tabButton(CONTENT_TAB, 'Search Intent');"));
-assert.ok(html.includes("intent.classList.add('intent-tab');"));
+assert.ok(!html.includes('Search Intent'), 'the old Search Intent tab is gone');
+assert.ok(html.includes("modes.className = 'keyword-mode-switch';"), 'Keywords opens with the Matrix / Cluster switch');
+assert.ok(html.includes("[['matrix', 'Matrix'], ['cluster', 'Cluster']]"), 'Matrix sits left of Cluster');
+assert.ok(html.includes('if (cluster) return;'), 'Cluster hides the keyword tables from the sidebar');
+assert.ok(html.includes('function openKeywordMatrix()'));
 assert.ok(html.includes('<div id="intentPane" hidden></div>'));
 assert.ok(html.includes('<script src="intent-cluster.js'));
-assert.ok(html.includes("keywordIntent: state.keywordIntent || ''"));
+assert.ok(html.includes("location.keywordIntent === 'cluster' ? 'cluster' : ''"));
+const css = read('intent-cluster.css');
+assert.ok(css.includes('.keyword-mode-switch button + button{border-left:1px solid #fff}'), 'a thin white line splits the two buttons');
 console.log('intent cluster ok');
