@@ -37,29 +37,27 @@ assert.ok(category.children.some(node => node.label === 'E-commerce Data Analyti
 const product = commercial.children.find(node => node.label === 'Product Aware');
 assert.ok(product.total > 0 && IntentCluster.articlesUnder(product).every(item => item.stage === 'product-aware'));
 
-// inner layer: money pages plus the very same commercial circles
-const site = ['https://ask-luca.com','https://ask-luca.com/pricing','https://ask-luca.com/how-it-works','https://ask-luca.com/blog',
-  'https://ask-luca.com/blog-categories/wayflyer','https://ask-luca.com/privacy','https://ask-luca.com/careers','https://ask-luca.com/blogs/ecommerce-kpis'];
-const pages = IntentCluster.moneyPages(site, ['https://ask-luca.com/blogs/ecommerce-kpis']);
-assert.equal(pages.map(p => p.title).join('|'), 'Home|Pricing|Ecommerce kpis|How it works', 'money pages skip blog, legal and careers pages but keep starred ones');
-const inner = IntentCluster.buildInner(tree, pages, { client:'AI Data Platform' });
-assert.equal(inner.children[0].label, 'Money pages');
-assert.ok(inner.children.includes(category), 'the inner layer reuses the outer commercial circles, not copies');
-const dual = IntentCluster.dualIds(inner);
-assert.ok(dual.has('category-aware') && dual.has(glew.id), 'commercial circles are marked as in both layers');
-assert.ok(!dual.has('money-pages') && !dual.has('problem-aware'), 'money and informational circles sit in one layer only');
-assert.ok(inner.children[0].children.find(p => p.label === 'Ecommerce kpis').alsoArticle, 'a starred blog post is flagged as also being an article');
-
-// topics added on the map hang under any circle, shared circles show them in both layers
-const left = IntentCluster.applyTopics([tree, inner], [
-  { id:'t1', parentId:'category-aware', label:'Data observability' },
-  { id:'t2', parentId:'topic:t1', label:'Pipeline alerts' },
-  { id:'t3', parentId:'gone', label:'Orphan' }
-]);
-assert.equal(left.length, 1, 'a topic whose parent disappeared is reported, not drawn');
-const added = IntentCluster.find(inner, 'topic:t1');
-assert.ok(added && IntentCluster.find(tree, 'topic:t1') === added, 'an added commercial topic is the same circle in both layers');
-assert.equal(added.children[0].label, 'Pipeline alerts', 'topics can be added under added topics');
+// matrix rows and titled cells join the map; stars mark high-priority pages
+const glewArticle = IntentCluster.articlesUnder(glew).find(item => /glew-alternatives/.test(item.url));
+const mapped = IntentCluster.buildTree(articles, {
+  competitors:['Glew', 'Mixpanel'],
+  topics:[{ stage:'problem-aware', topic:'Pipeline monitoring' }],
+  planned:[
+    { stage:'competitor-aware', topic:'Mixpanel', item:{ id:'competitor|m|alt', title:'Mixpanel alternatives', url:'', type:'Alternatives' } },
+    { stage:'competitor-aware', topic:'Glew', item:{ id:'competitor|g|alt', title:'dup', url:glewArticle.url, type:'Alternatives' } },
+    { stage:'problem-aware', topic:'Pipeline monitoring', item:{ id:'p|1', title:'What is pipeline monitoring', url:'', type:'Explainers' } }
+  ],
+  starred:[glewArticle.url]
+});
+const mixpanel = IntentCluster.find(mapped, 'competitor-aware/mixpanel');
+assert.ok(mixpanel && mixpanel.total === 1, 'a planned matrix cell shows under its competitor');
+const glew2 = IntentCluster.find(mapped, 'competitor-aware/glew');
+assert.equal(IntentCluster.articlesUnder(glew2).filter(a => a.url === glewArticle.url).length, 1, 'a planned cell whose slug is already published is not listed twice');
+assert.ok(glew2.starred && IntentCluster.find(mapped, 'competitor-aware').starred && mapped.starred, 'a starred page marks its circle and every circle above it');
+assert.ok(!IntentCluster.find(mapped, 'competitor-aware/mixpanel').starred);
+const pipeline = IntentCluster.find(mapped, 'problem-aware/pipeline-monitoring');
+assert.ok(pipeline && pipeline.total === 1 && !pipeline.articles[0].written, 'a new matrix row is a topic circle with its planned article');
+assert.ok(IntentCluster.articlesUnder(mapped).filter(a => a.written).length === articles.length, 'published articles are all still on the map');
 
 // radial map: centre, then one ring per level
 const ring = IntentCluster.radial(tree, new Set(['root']));
@@ -76,13 +74,15 @@ assert.ok(html.includes("[['matrix', 'Matrix'], ['cluster', 'Cluster']]"), 'Matr
 const tabsBlock = html.slice(html.indexOf("if (item.kind === 'keywords-tabs')"), html.indexOf("if (item.kind === 'canvas-tabs')"));
 assert.ok(tabsBlock.indexOf("viewDef(viewId)") < tabsBlock.indexOf("keyword-mode-switch"), 'the switch sits below the Competitor Aware tab');
 assert.ok(tabsBlock.includes("button.disabled = true;") && tabsBlock.includes("keyword-lock"), 'Cluster locks the keyword tabs instead of hiding them');
-assert.ok(!tabsBlock.includes('if (cluster) return;'));
 assert.ok(html.includes('function openKeywordMatrix()'));
-assert.ok(html.includes('onAddCompetitor: name =>') && html.includes("matrix.rows.push({ id: uid(), name })"), 'a competitor added on the map becomes a matrix row');
-assert.ok(html.includes('function intentTopics()'));
+assert.ok(html.includes('function clusterCellEditor(spec)') && html.includes('ro, inlineMode: true, get: spec.get, set: spec.set'),'cluster cells use the matrix cell controls');
+assert.ok(html.includes('set: patch => setCellIn(row, col.id') && html.includes('setCellState(matrix, key'), 'cluster edits write straight into the matrix cells');
+assert.ok(html.includes('onStar: url =>') && html.includes('toggleHighPriorityLink(url)'), 'the star is the high-priority flag');
+assert.ok(!/money|siteUrls|clusterTopics|3d/i.test(html.slice(html.indexOf('function renderIntentView'), html.indexOf('function switchContentView'))), 'one map, no money pages or 3D');
 assert.ok(html.includes('<div id="intentPane" hidden></div>'));
 assert.ok(html.includes("location.keywordIntent === 'cluster' ? 'cluster' : ''"));
 const css = read('intent-cluster.css');
 assert.ok(css.includes('.keyword-mode-switch button + button{border-left:1px solid #fff}'), 'a thin white line splits the two buttons');
-assert.ok(!/marker|arrow/i.test(read('intent-cluster.js').replace(/\/\*[\s\S]*?\*\//g,'')), 'straight lines, no arrowheads');
+assert.ok(!css.includes('#0b0b0c'), 'the map uses the board theme, not a black canvas');
+assert.ok(!/marker|arrow/i.test(read('intent-cluster.js').replace(/\/\*[\s\S]*?\*\//g,'')),'straight lines, no arrowheads');
 console.log('intent cluster ok');

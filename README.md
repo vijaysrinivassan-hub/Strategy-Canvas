@@ -60,23 +60,22 @@ they are saved.
 Below Competitor Aware sits one black two-part switch, **Matrix | Cluster**, split
 by a thin white line. **Matrix** opens the keyword tables. **Cluster** opens a
 topical map and locks the six keyword tabs (a lock replaces their counts) until
-Matrix is chosen again. The map is plain circles joined by straight lines, one
-ring per level, with three views:
+Matrix is chosen again. The map is one view of the keyword matrix: circles on
+rings joined by straight lines, Informational (Problem Unaware, Problem Aware)
+on one half and Commercial › Category › Competitors › each competitor, Solution
+and Product Aware on the other. Topic circles are the matrix rows (by their
+category, parent group or process name) plus the topics of published articles;
+each circle counts the articles published there and the titled matrix cells.
+A ★ marks a page starred as a high-priority link, and the star can be set from
+the side panel.
 
-- **Outer** — every article the client has published: Informational (Problem
-  Unaware, Problem Aware) on one half, Commercial › Category › Competitors ›
-  each competitor, Solution and Product Aware on the other.
-- **Inner** — the money pages (the client's own non-blog site pages from
-  Competitive Intelligence, plus starred high-priority links) and the commercial
-  pages. Commercial circles are the same circles as in Outer, drawn with a
-  double ring, so the two layers form one map rather than two silos.
-- **3D** — Outer stacked above Inner on tilted discs, with a dashed line joining
-  each shared circle to its twin. Drag to turn it.
-
-Every circle has a **+** to add a topic beneath it. A topic added under
-Competitors becomes a Competitor Aware row, and every competitor row appears on
-the map; other topics are saved with the product as `clusterTopics`. Articles
-come from the represented company's URLs in the shared URL repository
+Clicking a circle opens its matrix cells in the side panel, drawn with the
+table's own fields (title, keywords, slug, AEO/SEO, status, article type,
+traffic goal, written by, + kw / + URL). Edits there are edits to the matrix.
+The **+** on a circle adds: a topic (a new row in the chosen table and section)
+on a stage circle, a competitor (a Competitor Aware row) on Competitors, or an
+article (an empty cell in a chosen column) on a topic or competitor. Published
+articles come from the represented company's URLs in the shared URL repository
 (`intent-cluster.js`).
 
 The separate free-form canvas collection appears under **Canvas**. In Settings,

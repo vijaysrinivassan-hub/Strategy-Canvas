@@ -26,7 +26,8 @@ const controls=html.slice(html.indexOf('function cellControls('),html.indexOf('f
 assert.ok(controls.includes('if (o.inlineMode)'));
 assert.ok(controls.includes('foot.append(modeSwitch('));
 assert.ok(controls.includes("if (!o.inlineMode && (cell.mode || 'aeo') !== keywordMode)"));
-assert.equal((html.match(/inlineMode: true/g)||[]).length,1);
+// the competitor matrix and the Keywords › Cluster cell editor show the AEO/SEO switch inline
+assert.equal((html.match(/inlineMode: true/g)||[]).length,2);
 assert.ok(controls.includes("td.classList.add('empty')"));
 assert.ok(controls.includes("td.removeAttribute('aria-label')"));
 assert.ok(!controls.includes('gr-channel-placeholder'));
