@@ -24,12 +24,14 @@ assert(prompts.positioning_canvas.prompt.includes('one ICP card per Maturity Axi
 assert(prompts.positioning_canvas.prompt.includes('Every row shows four axes'));
 assert(prompts.positioning_canvas.prompt.includes('Firmographics') && prompts.positioning_canvas.prompt.includes('Economic Buyer'));
 assert(prompts.positioning_canvas.prompt.includes('USE CASE LEVELS') && prompts.positioning_canvas.prompt.includes('Interaction / Scenario'));
-assert(html.includes('t.icpMaturityPromptRevision !== 5'), 'saved canvas prompts are updated');
+assert(html.includes('t.icpMaturityPromptRevision !== 6'), 'saved canvas prompts are updated');
 // Only the ICP card for the selected Maturity Axis row is filled completely; the others get their first row only.
 assert(prompts.positioning_canvas.prompt.includes('FILL DEPTH') && prompts.positioning_canvas.prompt.includes('Every other card gets its first row only'));
 assert(prompts.positioning_canvas.prompt.includes('Never erase content that is already there.'));
 // People names each role with a headcount and what it does; every use-case cell states the use case, not a bare label.
-assert(prompts.positioning_canvas.prompt.includes('how many of them there typically are and what each one does'));
+/* People maps the whole department by job designation: its size first, then each role with count, seniority and a JD. */
+assert(prompts.positioning_canvas.prompt.includes('Start with a Department line'))
+assert(prompts.positioning_canvas.prompt.includes('how many people typically hold it (a range), their seniority and core skills, and a one-line JD'));
 assert(prompts.positioning_canvas.prompt.includes('never a bare label'));
 assert(cards.includes("'Industry: what companies in it use the product for'") && cards.includes("'Department: what this team uses it for'"));
 console.log('PASS: ICP rows show four axes; use cases classify Industry → Department → Process → Persona → Scenario; buying trigger, firmographics and economic buyer sit in the third row.');
