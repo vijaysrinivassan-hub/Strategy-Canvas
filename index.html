@@ -3182,6 +3182,9 @@
       <div class="mx-wrap"><table class="mx-table" id="mxTable"></table><section id="competitorComparison" hidden></section></div>
     </div>
 
+    <!-- Search Intent: written articles split into Informational and Commercial, as a matrix or a cluster -->
+    <div id="intentPane" hidden></div>
+
     <!-- Keyword Repo: selected keywords on top, the full pull underneath -->
     <div class="kw" id="kwPane" hidden>
       <div class="kw-setup" id="kwSetup" hidden></div>
@@ -3265,6 +3268,8 @@
 <link rel="stylesheet" href="icp-cell-canvas.css">
 <link rel="stylesheet" href="icp-cards.css">
 <link rel="stylesheet" href="icp-keyword-bridge.css">
+<script src="intent-cluster.js?v=intent-v1"></script>
+<link rel="stylesheet" href="intent-cluster.css?v=intent-v1">
 <script>
 /* ===================================================================
    CONFIG — all public values. No secrets belong in this file.
@@ -3430,6 +3435,7 @@ const state = {
   contentView: 'competitor',      /* which axis the content matrix is showing */
   keywordAwareness: '',          /* problem-unaware | problem-aware | solution-aware */
   keywordAwarenessPicker: false, /* the full-page ICP / Value choice is open */
+  keywordIntent: '',             /* '' | 'matrix' | 'cluster' — the Search Intent page is open */
   navOpen: { strategy1: false, brand: false, content: false, positioningDocument: false, settings: false, frames: false, canvas: false },
   positioningDocumentPart: 'core',
   frames: [],                     /* the Obsidian Frames folder, loaded once */
@@ -3459,6 +3465,7 @@ function rememberLocation(){
       contentView: state.contentView,
       keywordAwareness: state.keywordAwareness,
       keywordAwarenessPicker: !!state.keywordAwarenessPicker,
+      keywordIntent: state.keywordIntent || '',
       keywordMode: typeof keywordMode === 'string' ? keywordMode : 'aeo',
       frameIndex: state.frameIndex,
       positioningDocumentPart: state.positioningDocumentPart || 'core',
@@ -3481,6 +3488,7 @@ function restoreLocation(location){
   state.keywordAwareness = ['icp','value'].includes(state.contentView)
     ? (awareness || (keywordMode === 'seo' ? 'problem-aware' : 'solution-aware')) : '';
   state.keywordAwarenessPicker = !!location.keywordAwarenessPicker && !!state.keywordAwareness;
+  state.keywordIntent = state.tab === CONTENT_TAB && ['matrix','cluster'].includes(location.keywordIntent) ? location.keywordIntent : '';
   const frameIndex = Number(location.frameIndex);
   if (state.tab === FRAME_TAB && Number.isInteger(frameIndex) && state.frames[frameIndex]){
     state.frameIndex = frameIndex;
@@ -3760,6 +3768,7 @@ const TAB_ICONS = {
   'Product Aware': '<path d="M5 4h14v16H5z"/><path d="M8 8h8M8 12h8M8 16h5"/>',
   'Competitor': '<circle cx="8" cy="9" r="3"/><circle cx="16" cy="9" r="3"/><path d="M3 19c.5-3 2.2-5 5-5s4.5 2 5 5M11 19c.5-3 2.2-5 5-5s4.5 2 5 5"/>',
   'Competitor-aware': '<circle cx="8" cy="9" r="3"/><circle cx="16" cy="9" r="3"/><path d="M3 19c.5-3 2.2-5 5-5s4.5 2 5 5M11 19c.5-3 2.2-5 5-5s4.5 2 5 5"/>',
+  'Search Intent': '<circle cx="5" cy="12" r="2.5"/><circle cx="19" cy="6" r="2.5"/><circle cx="19" cy="18" r="2.5"/><path d="M7.3 11 16.7 7M7.3 13l9.4 4"/>',
   'Competitor Aware': '<circle cx="8" cy="9" r="3"/><circle cx="16" cy="9" r="3"/><path d="M3 19c.5-3 2.2-5 5-5s4.5 2 5 5M11 19c.5-3 2.2-5 5-5s4.5 2 5 5"/>',
   'Problem Unaware': '<circle cx="12" cy="12" r="8"/><path d="M9.8 9a2.4 2.4 0 1 1 3.6 2.1c-.9.5-1.4 1-1.4 2.1M12 17h.01"/>',
   'Problem Aware': '<circle cx="12" cy="12" r="8"/><path d="M12 7v6M12 17h.01"/>',
@@ -4083,7 +4092,7 @@ function renderTabs(){
       awarenessLayers.forEach(layer => {
         const button = tabButton(CONTENT_TAB, layer.label);
         button.replaceChild(tabIcon(layer.label), button.firstChild);
-        button.classList.toggle('active', onBoard && state.tab === CONTENT_TAB && state.keywordAwareness === layer.id);
+        button.classList.toggle('active', onBoard && state.tab === CONTENT_TAB && state.keywordAwareness === layer.id && !state.keywordIntent);
         button.onclick = () => openAwarenessLayer(layer.id);
         appendKeywordCount(button, counts[layer.id].total);
         box.append(button);
@@ -4092,11 +4101,18 @@ function renderTabs(){
         const v = viewDef(viewId);
         const b = tabButton(CONTENT_TAB, v.label);
         b.replaceChild(tabIcon(v.label), b.firstChild);
-        b.classList.toggle('active', onBoard && state.tab === CONTENT_TAB && state.contentView === viewId && !state.keywordAwareness);
+        b.classList.toggle('active', onBoard && state.tab === CONTENT_TAB && state.contentView === viewId && !state.keywordAwareness && !state.keywordIntent);
         b.onclick = () => switchContentView(viewId);
         appendKeywordCount(b, counts[viewId].total);
         box.append(b);
       });
+      const intent = tabButton(CONTENT_TAB, 'Search Intent');
+      intent.replaceChild(tabIcon('Search Intent'), intent.firstChild);
+      intent.classList.add('intent-tab');
+      intent.classList.toggle('active', onBoard && state.tab === CONTENT_TAB && !!state.keywordIntent);
+      intent.title = 'Every written article, split into Informational and Commercial intent';
+      intent.onclick = () => openIntentView();
+      box.append(intent);
       return;
     }
 
@@ -5493,6 +5509,7 @@ function hydrate(text){
   state.contentView = 'competitor';
   state.keywordAwareness = '';
   state.keywordAwarenessPicker = false;
+  state.keywordIntent = '';
   keywordMode = 'aeo';
   state.productWorkspaces = d && d.productWorkspaces && typeof d.productWorkspaces === 'object' ? d.productWorkspaces : {};
   state.companyUrlWorkspaceMigrated = !!(d && d.companyUrlWorkspaceMigrated);
@@ -6211,7 +6228,7 @@ function applyTabMode(){
   $('mcpPane').hidden = !onSettings;
   if (onSettings){
     $('viewport').hidden = true; $('docsPane').hidden = true;
-    $('chanPane').hidden = true; $('channelFramePane').hidden = true; $('kwPane').hidden = true; $('mxPane').hidden = true;
+    $('chanPane').hidden = true; $('channelFramePane').hidden = true; $('kwPane').hidden = true; $('mxPane').hidden = true; $('intentPane').hidden = true;
     $('strategyGuidePane').hidden = true; $('evoPane').hidden = true; $('architecturePane').hidden = true;
     $('positioningPane').hidden = true;
     $('positioningDocumentPane').hidden = true;
@@ -6273,7 +6290,9 @@ function applyTabMode(){
   $('chanPane').hidden = !isGuide;
   $('channelFramePane').hidden = !isChannelFrame;
   $('kwPane').hidden   = !isKw;
-  $('mxPane').hidden   = !isMx;
+  const isIntent = isMx && !!state.keywordIntent;
+  $('mxPane').hidden   = !isMx || isIntent;
+  $('intentPane').hidden = !isIntent;
   $('strategyGuidePane').hidden = !isGuide;
   $('evoPane').hidden = !isEvo;
   $('architecturePane').hidden = !isArchitecture;
@@ -6289,7 +6308,8 @@ function applyTabMode(){
   renderFramePicker();
   if (isDocs && state.user) refreshDocs();
   if (isKw && state.user) refreshKeywords();
-  if (isMx) refreshMatrix();   /* grids need no database, so no user check */
+  if (isIntent) renderIntentView();
+  else if (isMx) refreshMatrix();   /* grids need no database, so no user check */
   if (isGuide) renderStrategyGuide();
   if (isChannelFrame) renderChannelFrame();
   if (isPositioning){
@@ -9467,6 +9487,7 @@ function awarenessLabel(id){
   })[id] || '';
 }
 function activeContentLabel(){
+  if (state.keywordIntent) return 'Search Intent';
   const view = viewDef(state.contentView).label;
   const layer = awarenessLabel(state.keywordAwareness);
   if (layer && state.keywordAwarenessPicker) return layer;
@@ -9479,11 +9500,68 @@ function repaintKeywordViews(){
   if (state.tab === CONTENT_TAB) renderContentView();
 }
 
+/* Search Intent reads written articles from the shared URL repository, so it
+   waits for that repository once and then draws from memory. */
+let lastIntentMode = 'matrix';
+function openIntentView(mode){
+  captureFrame();
+  state.keywordIntent = mode === 'cluster' || mode === 'matrix' ? mode : (state.keywordIntent || lastIntentMode);
+  state.keywordAwarenessPicker = false;
+  state.frameIndex = -1;
+  closeNav();
+  state.tab = CONTENT_TAB;
+  state.screen = 'board';
+  renderTabs();
+  applyTabMode();
+  rememberLocation();
+}
+function intentCompetitorNames(){
+  const rows = contentRoot().views?.competitor?.rows || [];
+  return rows.map(row => String(row?.name || '').trim()).filter(Boolean);
+}
+function renderIntentView(){
+  const host = $('intentPane');
+  if (!host || !globalThis.IntentCluster) return;
+  const repository = globalThis.SharedUrlRepository;
+  const context = sharedUrlBoardContext();
+  const workspace = repository?.workspaceFor(context) || '';
+  if (workspace && !globalThis.CompetitiveIntelligenceClassifications){
+    host.replaceChildren();
+    const wait = document.createElement('div'); wait.className = 'intent-page';
+    const note = document.createElement('div'); note.className = 'intent-empty'; note.textContent = 'Loading written articles…';
+    wait.append(note); host.append(wait);
+    const board = state.boardId;
+    repository.load().then(() => {
+      if (state.boardId === board && state.tab === CONTENT_TAB && state.keywordIntent) renderIntentView();
+    }).catch(error => { console.error(error); note.textContent = 'Could not load written articles: ' + (error.message || error); });
+    return;
+  }
+  const root = contentRoot();
+  const matchOptions = {keywordNodeId:root.activeKeywordNodeId||'', supportingTerms:supportingKeywordTerms()};
+  IntentCluster.render(host, {
+    boardKey: [state.boardId, state.workspaceProductId || '', root.activeKeywordNodeId || ''].join('|'),
+    mode: (lastIntentMode = state.keywordIntent),
+    client: state.client || 'Search intent',
+    workspace,
+    records: workspace ? repository.records() : [],
+    matches: record => repository.matchesNode(record, matchOptions),
+    pageGroup: repository?.pageGroup,
+    competitors: intentCompetitorNames(),
+    onMode: mode => { state.keywordIntent = lastIntentMode = mode; rememberLocation(); },
+    onOpen: target => {
+      if (!target) return;
+      if (target.kind === 'awareness') openAwarenessLayer(target.id);
+      else switchContentView(target.id);
+    }
+  });
+}
+
 function switchContentView(id){
   captureFrame();
   state.contentView = id;
   if (id === 'product') keywordMode = 'aeo';
   state.keywordAwarenessPicker = false;
+  state.keywordIntent = '';
   if (!['icp','value'].includes(id)){
     state.keywordAwareness = '';
   }
@@ -9501,6 +9579,7 @@ function openAwarenessLayer(layer){
   captureFrame();
   state.keywordAwareness = layer;
   state.keywordAwarenessPicker = true;
+  state.keywordIntent = '';
   state.contentView = 'icp';
   keywordMode = layer === 'solution-aware' ? 'aeo' : 'seo';
   state.frameIndex = -1;
