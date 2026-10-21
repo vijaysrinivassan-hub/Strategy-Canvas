@@ -86,8 +86,14 @@ assert(tool.includes('"words_400"'));
 assert(tool.includes('Framing frames; USP; Offer'));
 // each document section has its own prompt; together they still cover every section
 const allPrompts=JSON.parse(fs.readFileSync(new URL('./ai-prompts.json',import.meta.url),'utf8'));
-for(const key of ['core','messaging_framework','offers','distribution_plate','trust_signals','framing'])
+for(const key of ['core','icp','category','competitive','value','messaging_framework','offers','distribution_plate','trust_signals','framing'])
   assert(typeof allPrompts['positioning_document_'+key]?.prompt==='string',`missing ${key} section prompt`);
+// the four positioning fields each open their own prompt from a button on the field
+for(const field of ['icp','category','competitive','value'])
+  assert(html.includes(field+"_positioning: 'positioning_document_"+field+"'"),field+' field prompt key');
+assert(html.includes("prompt.onclick = () => openAiPrompt(POSITIONING_DOCUMENT_TAB, fieldPromptKey"));
+const tools=fs.readFileSync(new URL('./mcp-server/src/tools/architecture.ts',import.meta.url),'utf8');
+for(const field of ['icp','category','competitive','value'])assert(tools.includes("'positioning_document_"+field+"'"),field+' server prompt');
 const prompt=Object.keys(allPrompts).filter(key=>key.startsWith('positioning_document')).map(key=>allPrompts[key].prompt).join('\n\n');
 assert(prompt.includes('Trust Signals'));
 assert(prompt.includes('Framing'));

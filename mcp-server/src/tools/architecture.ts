@@ -8,10 +8,15 @@ import { db, loadBoard, ok, ToolError } from '../lib.js';
 const TAB = 'Strategy 1 — Product Architecture';
 const MATURITY_TAB = 'Strategy 1 — Maturity Axis';
 /* The Positioning Document has one prompt per section; positioning_document holds the shared rules. */
-export const DOCUMENT_SECTION_PROMPTS = ['positioning_document_core','positioning_document_messaging_framework','positioning_document_offers',
+export const DOCUMENT_SECTION_PROMPTS = ['positioning_document_core','positioning_document_icp','positioning_document_category',
+  'positioning_document_competitive','positioning_document_value','positioning_document_messaging_framework','positioning_document_offers',
   'positioning_document_distribution_plate','positioning_document_trust_signals','positioning_document_framing'] as const;
 type DocumentSectionPrompt = typeof DOCUMENT_SECTION_PROMPTS[number];
 type PromptSection = 'product_architecture' | 'maturity_axis' | 'positioning_canvas' | 'positioning_document' | DocumentSectionPrompt | 'keywords';
+/* Each maturity row has a Firmographic Proxies card in its top-left corner; nodes keep clear of it. */
+const FIRMOGRAPHIC_CARD_BOTTOM=252, FIRMOGRAPHIC_GUTTER=226;
+const firmographicMinX=(y:number)=>y<FIRMOGRAPHIC_CARD_BOTTOM?FIRMOGRAPHIC_GUTTER:10;
+const MATURITY_FIRMOGRAPHIC_PROMPT='FIRMOGRAPHIC PROXIES: every maturity row has a small Firmographic Proxies card in its top-left corner. Fill firmographicProxies on each row: revenue (the annual revenue band that typically signals a company running the department at this maturity), employees (the company headcount band, and where it helps, the size of the team that runs the process) and segment (smb, mid_market or enterprise). These are proxies: they suggest the maturity, they do not define it. Derive them from the roles, tools and data volume the row needs. Keep every node at x 226 or more wherever its y is below 252, so no node covers the card.';
 const MATURITY_INDUSTRY_AXIS_PROMPT='INDUSTRY ROUTING RULE: Industries belong in Solution Aware ICP AEO under Industry Pages. Keep Solution Aware Value AEO department-only and show the Single Industry / Multi-industry mode there only as a read-only label. Never add industry columns to Value AEO; this rule replaces older industry-column or industry-group instructions.';
 
 /* The browser keeps a selected product's architecture in the live tab and in
@@ -46,7 +51,11 @@ export async function architecturePrompts(body?: {tabs: Record<string, any>}, se
     section === 'maturity_axis' ? MATURITY_TAB : TAB;
   const custom = body?.tabs[customTab]?.aiPrompt;
   const prompt=typeof custom === 'string' ? custom : defaults.prompt;
-  return {...defaults, prompt:section==='maturity_axis'&&!prompt.includes(MATURITY_INDUSTRY_AXIS_PROMPT)?prompt+'\n\n'+MATURITY_INDUSTRY_AXIS_PROMPT:prompt};
+  if(section!=='maturity_axis')return {...defaults,prompt};
+  let maturity=prompt;
+  if(!maturity.includes('FIRMOGRAPHIC PROXIES'))maturity+='\n\n'+MATURITY_FIRMOGRAPHIC_PROMPT;
+  if(!maturity.includes(MATURITY_INDUSTRY_AXIS_PROMPT))maturity+='\n\n'+MATURITY_INDUSTRY_AXIS_PROMPT;
+  return {...defaults, prompt:maturity};
 }
 const architectureSchema = z.object({
   name: z.string().min(1), summary: z.string(), detailCardsVersion:z.number().int().optional(),
@@ -60,6 +69,8 @@ const architectureSchema = z.object({
   systems: z.array(z.object({
     id:z.string().min(1),name:z.string().min(1),height:z.number().min(230),width:z.number().min(640).optional(),
     row:z.number().int().min(0).optional(),selected:z.boolean().optional(),
+    firmographicProxies:z.object({revenue:z.string(),employees:z.string(),segment:z.enum(['','smb','mid_market','enterprise'])}).optional(),
+    firmographicLayout:z.number().int().optional(),
     customFields:z.array(z.object({id:z.string().min(1),label:z.string(),value:z.string()})).optional()
   })),
   nodes: z.array(z.object({
@@ -128,7 +139,7 @@ export function registerArchitectureTools(server:McpServer) {
   });
   server.registerTool('maturity_axis_set', {
     title:'Save maturity axis',
-    description:'Save the complete active-product Maturity Axis. Read first and supply its revision. Preserve Departments and Industries as simple name lists, plus industryMode and activeIndustry. Departments define Solution Aware Value AEO columns. Industries belong in Solution Aware ICP AEO under Industry Pages. Value AEO shows industryMode only as a read-only label and never receives industry columns. Do not add raw material, input types, descriptions or nested maps. Each system is one maturity row. Supporting nodes do not directly transform the input. Pillars do; mark the newest pillar current and repeated earlier pillars inherited. Record T/P ownership, actor, exactly two features for technology or two skills for people, and preserve any editable subProcesses attached to a process node. Omitted prior nodes are removed.',
+    description:'Save the complete active-product Maturity Axis. Read first and supply its revision. Preserve Departments and Industries as simple name lists, plus industryMode and activeIndustry. Departments define Solution Aware Value AEO columns. Industries belong in Solution Aware ICP AEO under Industry Pages. Value AEO shows industryMode only as a read-only label and never receives industry columns. Do not add raw material, input types, descriptions or nested maps. Each system is one maturity row. Supporting nodes do not directly transform the input. Pillars do; mark the newest pillar current and repeated earlier pillars inherited. Record T/P ownership, actor, exactly two features for technology or two skills for people, and preserve any editable subProcesses attached to a process node. Each row may carry firmographicProxies {revenue, employees, segment: smb | mid_market | enterprise}, shown as a card in the row\'s top-left corner; keep nodes at x >= 226 while y < 252 so they do not cover it. Omitted prior nodes are removed.',
     inputSchema:{board_id:z.string(),product_id:z.string().optional(),revision:z.string(),architecture:architectureSchema},
     annotations:{readOnlyHint:false,destructiveHint:true,idempotentHint:false}
   }, async({board_id,product_id,revision,architecture})=>{
@@ -136,9 +147,17 @@ export function registerArchitectureTools(server:McpServer) {
     if(row.updated_at!==revision)throw new ToolError('Board changed. Read it again before saving.');
     const unique=(items:{id:string}[])=>new Set(items.map(i=>i.id)).size===items.length;
     if(![architecture.systems,architecture.nodes,architecture.edges,architecture.groups].every(unique))throw new ToolError('Duplicate ids.');
+    for(const system of architecture.systems){
+      if(system.firmographicLayout===1)continue;
+      const rowNodes=architecture.nodes.filter(n=>n.systemId===system.id);
+      const shift=rowNodes.reduce((most,n)=>Math.max(most,firmographicMinX(n.y)-n.x),0);
+      if(shift>0){rowNodes.forEach(n=>{n.x+=shift;});system.width=(system.width||1060)+shift;}
+      system.firmographicLayout=1;
+    }
     const nodes=new Map(architecture.nodes.map(n=>[n.id,n]));
     for(const n of architecture.nodes){
       const system=architecture.systems.find(s=>s.id===n.systemId);
+      if(n.x<firmographicMinX(n.y))throw new ToolError('Maturity node '+n.id+' covers the Firmographic Proxies card: keep x at '+FIRMOGRAPHIC_GUTTER+' or more while y is below '+FIRMOGRAPHIC_CARD_BOTTOM+'.');
       if(!system || n.y+220>system.height || n.x+190>(system.width||1060))throw new ToolError('Maturity node falls outside its row.');
       if(!n.processRole||!n.actorType)throw new ToolError('Every maturity node needs processRole and actorType.');
       if(n.processRole==='pillar'&&!n.pillarState)throw new ToolError('Every pillar needs current or inherited state.');
