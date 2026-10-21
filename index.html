@@ -3268,8 +3268,8 @@
 <link rel="stylesheet" href="icp-cell-canvas.css">
 <link rel="stylesheet" href="icp-cards.css">
 <link rel="stylesheet" href="icp-keyword-bridge.css">
-<script src="intent-cluster.js?v=intent-v2"></script>
-<link rel="stylesheet" href="intent-cluster.css?v=intent-v2">
+<script src="intent-cluster.js?v=intent-v3"></script>
+<link rel="stylesheet" href="intent-cluster.css?v=intent-v3">
 <script>
 /* ===================================================================
    CONFIG — all public values. No secrets belong in this file.
@@ -4082,9 +4082,47 @@ function renderTabs(){
        opens a full-page ICP / Value choice rather than nesting sidebar rows. */
     if (item.kind === 'keywords-tabs'){
       ensureKeywordCountRepository();
-      /* One black switch heads the section: Matrix lists the keyword tables
-         below it, Cluster swaps them for the article canvas. */
       const cluster = state.keywordIntent === 'cluster';
+      const counts = keywordFilledCounts();
+      /* While Cluster is open the tables stay listed but locked; Matrix unlocks them. */
+      const lockTab = button => {
+        if (!cluster) return;
+        button.classList.add('keyword-locked');
+        button.disabled = true;
+        button.title = 'Switch to Matrix to open this table';
+        button.querySelector('.keyword-filled-count')?.remove();
+        const lock = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        lock.setAttribute('viewBox', '0 0 24 24');
+        lock.setAttribute('class', 'keyword-lock');
+        lock.setAttribute('aria-hidden', 'true');
+        lock.innerHTML = '<rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/>';
+        button.append(lock);
+      };
+      const awarenessLayers = [
+        { id:'problem-unaware', label:'Problem Unaware' },
+        { id:'problem-aware', label:'Problem Aware' },
+        { id:'solution-aware', label:'Solution Aware' }
+      ];
+      awarenessLayers.forEach(layer => {
+        const button = tabButton(CONTENT_TAB, layer.label);
+        button.replaceChild(tabIcon(layer.label), button.firstChild);
+        button.classList.toggle('active', onBoard && state.tab === CONTENT_TAB && state.keywordAwareness === layer.id && !cluster);
+        button.onclick = () => openAwarenessLayer(layer.id);
+        appendKeywordCount(button, counts[layer.id].total);
+        lockTab(button);
+        box.append(button);
+      });
+      ['category','product','competitor'].forEach(viewId => {
+        const v = viewDef(viewId);
+        const b = tabButton(CONTENT_TAB, v.label);
+        b.replaceChild(tabIcon(v.label), b.firstChild);
+        b.classList.toggle('active', onBoard && state.tab === CONTENT_TAB && state.contentView === viewId && !state.keywordAwareness && !cluster);
+        b.onclick = () => switchContentView(viewId);
+        appendKeywordCount(b, counts[viewId].total);
+        lockTab(b);
+        box.append(b);
+      });
+      /* The black Matrix | Cluster switch sits under the keyword tables. */
       const onKeywords = onBoard && state.tab === CONTENT_TAB;
       const modes = document.createElement('div');
       modes.className = 'keyword-mode-switch';
@@ -4102,30 +4140,6 @@ function renderTabs(){
         modes.append(b);
       });
       box.append(modes);
-      if (cluster) return;
-      const counts = keywordFilledCounts();
-      const awarenessLayers = [
-        { id:'problem-unaware', label:'Problem Unaware' },
-        { id:'problem-aware', label:'Problem Aware' },
-        { id:'solution-aware', label:'Solution Aware' }
-      ];
-      awarenessLayers.forEach(layer => {
-        const button = tabButton(CONTENT_TAB, layer.label);
-        button.replaceChild(tabIcon(layer.label), button.firstChild);
-        button.classList.toggle('active', onBoard && state.tab === CONTENT_TAB && state.keywordAwareness === layer.id && !state.keywordIntent);
-        button.onclick = () => openAwarenessLayer(layer.id);
-        appendKeywordCount(button, counts[layer.id].total);
-        box.append(button);
-      });
-      ['category','product','competitor'].forEach(viewId => {
-        const v = viewDef(viewId);
-        const b = tabButton(CONTENT_TAB, v.label);
-        b.replaceChild(tabIcon(v.label), b.firstChild);
-        b.classList.toggle('active', onBoard && state.tab === CONTENT_TAB && state.contentView === viewId && !state.keywordAwareness && !state.keywordIntent);
-        b.onclick = () => switchContentView(viewId);
-        appendKeywordCount(b, counts[viewId].total);
-        box.append(b);
-      });
       return;
     }
 
@@ -9570,12 +9584,53 @@ function renderIntentView(){
     matches: record => repository.matchesNode(record, matchOptions),
     pageGroup: repository?.pageGroup,
     competitors: intentCompetitorNames(),
+    siteUrls: intentSiteUrls(workspace, repository.records()),
+    starred: highPriorityLinkList(),
+    topics: intentTopics(),
+    readOnly: readOnly(),
     onOpen: target => {
       if (!target) return;
       if (target.kind === 'awareness') openAwarenessLayer(target.id);
       else switchContentView(target.id);
+    },
+    /* a competitor added on the map is a real Competitor Aware row */
+    onAddCompetitor: name => {
+      if (readOnly()) return;
+      const matrix = contentRoot().views.competitor;
+      matrix.rows ||= [];
+      const blank = matrix.rows.find(row => !String(row.name || '').trim());
+      if (blank) blank.name = name; else matrix.rows.push({ id: uid(), name });
+      markDirty(); renderTabs(); renderIntentView();
+    },
+    onAddTopic: topic => {
+      if (readOnly()) return;
+      intentTopics().push({ id: uid(), parentId: topic.parentId, label: topic.label });
+      markDirty(); renderIntentView();
+    },
+    onRemoveTopic: id => {
+      if (readOnly()) return;
+      const topics = intentTopics(), doomed = new Set([id]);
+      let grew = true;
+      while (grew){ grew = false; topics.forEach(t => { if (!doomed.has(t.id) && doomed.has(String(t.parentId).replace(/^topic:/, ''))){ doomed.add(t.id); grew = true; } }); }
+      contentRoot().clusterTopics = topics.filter(t => !doomed.has(t.id));
+      markDirty(); renderIntentView();
     }
   });
+}
+/* Topics added on the Cluster map, saved with the active product's keywords. */
+function intentTopics(){
+  const root = contentRoot();
+  if (!Array.isArray(root.clusterTopics)) root.clusterTopics = [];
+  return root.clusterTopics;
+}
+/* The client's own site pages: the Competitive Intelligence inventory whose
+   domain matches the represented company's published articles. */
+function intentSiteUrls(workspace, records){
+  const host = url => { try { return new URL(url).hostname.replace(/^www\./, '').toLowerCase(); } catch (e) { return ''; } };
+  const hosts = new Set(records.filter(r => r.represented && (!workspace || r.workspace === workspace)).map(r => host(r.url)).filter(Boolean));
+  const model = state.tabs[COMPETITIVE_INTELLIGENCE_TAB] || {};
+  const profile = (model.competitors || []).find(item => hosts.has(host(item.domain || '')));
+  return (profile?.urls || []).map(item => typeof item === 'string' ? item : item?.url).filter(Boolean);
 }
 
 function switchContentView(id){

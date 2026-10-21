@@ -37,20 +37,52 @@ assert.ok(category.children.some(node => node.label === 'E-commerce Data Analyti
 const product = commercial.children.find(node => node.label === 'Product Aware');
 assert.ok(product.total > 0 && IntentCluster.articlesUnder(product).every(item => item.stage === 'product-aware'));
 
-const collapsed = IntentCluster.layout(tree, new Set(['root']));
-assert.equal(collapsed.placed.length, 3, 'collapsed cluster shows the two intent spikes');
-const open = IntentCluster.layout(tree, new Set(['root','commercial','category-aware','competitor-aware']));
+// inner layer: money pages plus the very same commercial circles
+const site = ['https://ask-luca.com','https://ask-luca.com/pricing','https://ask-luca.com/how-it-works','https://ask-luca.com/blog',
+  'https://ask-luca.com/blog-categories/wayflyer','https://ask-luca.com/privacy','https://ask-luca.com/careers','https://ask-luca.com/blogs/ecommerce-kpis'];
+const pages = IntentCluster.moneyPages(site, ['https://ask-luca.com/blogs/ecommerce-kpis']);
+assert.equal(pages.map(p => p.title).join('|'), 'Home|Pricing|Ecommerce kpis|How it works', 'money pages skip blog, legal and careers pages but keep starred ones');
+const inner = IntentCluster.buildInner(tree, pages, { client:'AI Data Platform' });
+assert.equal(inner.children[0].label, 'Money pages');
+assert.ok(inner.children.includes(category), 'the inner layer reuses the outer commercial circles, not copies');
+const dual = IntentCluster.dualIds(inner);
+assert.ok(dual.has('category-aware') && dual.has(glew.id), 'commercial circles are marked as in both layers');
+assert.ok(!dual.has('money-pages') && !dual.has('problem-aware'), 'money and informational circles sit in one layer only');
+assert.ok(inner.children[0].children.find(p => p.label === 'Ecommerce kpis').alsoArticle, 'a starred blog post is flagged as also being an article');
+
+// topics added on the map hang under any circle, shared circles show them in both layers
+const left = IntentCluster.applyTopics([tree, inner], [
+  { id:'t1', parentId:'category-aware', label:'Data observability' },
+  { id:'t2', parentId:'topic:t1', label:'Pipeline alerts' },
+  { id:'t3', parentId:'gone', label:'Orphan' }
+]);
+assert.equal(left.length, 1, 'a topic whose parent disappeared is reported, not drawn');
+const added = IntentCluster.find(inner, 'topic:t1');
+assert.ok(added && IntentCluster.find(tree, 'topic:t1') === added, 'an added commercial topic is the same circle in both layers');
+assert.equal(added.children[0].label, 'Pipeline alerts', 'topics can be added under added topics');
+
+// radial map: centre, then one ring per level
+const ring = IntentCluster.radial(tree, new Set(['root']));
+assert.equal(ring.placed.length, 3, 'collapsed map shows the two intents around the centre');
+assert.ok(ring.placed.slice(1).every(spot => Math.abs(Math.hypot(spot.x, spot.y) - ring.ring) < 1e-6), 'first ring sits at one ring distance');
+const open = IntentCluster.radial(tree, new Set(['root','commercial','category-aware','competitor-aware']));
 assert.ok(open.placed.some(spot => spot.item.label === 'Supermetrics'), 'opening Category › Competitors reveals each competitor');
+assert.ok(open.links.every(link => link.b.depth === link.a.depth + 1), 'every line joins a circle to its parent');
 
 const html = read('index.html');
 assert.ok(!html.includes('Search Intent'), 'the old Search Intent tab is gone');
-assert.ok(html.includes("modes.className = 'keyword-mode-switch';"), 'Keywords opens with the Matrix / Cluster switch');
+assert.ok(html.includes("modes.className = 'keyword-mode-switch';"));
 assert.ok(html.includes("[['matrix', 'Matrix'], ['cluster', 'Cluster']]"), 'Matrix sits left of Cluster');
-assert.ok(html.includes('if (cluster) return;'), 'Cluster hides the keyword tables from the sidebar');
+const tabsBlock = html.slice(html.indexOf("if (item.kind === 'keywords-tabs')"), html.indexOf("if (item.kind === 'canvas-tabs')"));
+assert.ok(tabsBlock.indexOf("viewDef(viewId)") < tabsBlock.indexOf("keyword-mode-switch"), 'the switch sits below the Competitor Aware tab');
+assert.ok(tabsBlock.includes("button.disabled = true;") && tabsBlock.includes("keyword-lock"), 'Cluster locks the keyword tabs instead of hiding them');
+assert.ok(!tabsBlock.includes('if (cluster) return;'));
 assert.ok(html.includes('function openKeywordMatrix()'));
+assert.ok(html.includes('onAddCompetitor: name =>') && html.includes("matrix.rows.push({ id: uid(), name })"), 'a competitor added on the map becomes a matrix row');
+assert.ok(html.includes('function intentTopics()'));
 assert.ok(html.includes('<div id="intentPane" hidden></div>'));
-assert.ok(html.includes('<script src="intent-cluster.js'));
 assert.ok(html.includes("location.keywordIntent === 'cluster' ? 'cluster' : ''"));
 const css = read('intent-cluster.css');
 assert.ok(css.includes('.keyword-mode-switch button + button{border-left:1px solid #fff}'), 'a thin white line splits the two buttons');
+assert.ok(!/marker|arrow/i.test(read('intent-cluster.js').replace(/\/\*[\s\S]*?\*\//g,'')), 'straight lines, no arrowheads');
 console.log('intent cluster ok');

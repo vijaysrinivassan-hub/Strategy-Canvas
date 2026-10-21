@@ -57,15 +57,27 @@ bottom plus adds a row, so the old top-right add buttons are no longer needed.
 Keywords added from a cell are remembered by that cell and appear there after
 they are saved.
 
-The Keywords section opens with one black two-part switch, **Matrix | Cluster**,
-split by a thin white line. **Matrix** lists the keyword tables (Problem Unaware
-through Competitor Aware) and reopens the one last used. **Cluster** swaps that
-list for a canvas of every article the client has already published, sorted into
-the two reasons someone searches: **Informational** (Problem Unaware, Problem
-Aware) and **Commercial** › Category › Competitors › each competitor, plus
-Solution and Product Aware. Clicking a node lists its articles. The articles come from the
-represented company's URLs in the shared URL repository (`intent-cluster.js`);
-the view only reads, it never writes to the board.
+Below Competitor Aware sits one black two-part switch, **Matrix | Cluster**, split
+by a thin white line. **Matrix** opens the keyword tables. **Cluster** opens a
+topical map and locks the six keyword tabs (a lock replaces their counts) until
+Matrix is chosen again. The map is plain circles joined by straight lines, one
+ring per level, with three views:
+
+- **Outer** — every article the client has published: Informational (Problem
+  Unaware, Problem Aware) on one half, Commercial › Category › Competitors ›
+  each competitor, Solution and Product Aware on the other.
+- **Inner** — the money pages (the client's own non-blog site pages from
+  Competitive Intelligence, plus starred high-priority links) and the commercial
+  pages. Commercial circles are the same circles as in Outer, drawn with a
+  double ring, so the two layers form one map rather than two silos.
+- **3D** — Outer stacked above Inner on tilted discs, with a dashed line joining
+  each shared circle to its twin. Drag to turn it.
+
+Every circle has a **+** to add a topic beneath it. A topic added under
+Competitors becomes a Competitor Aware row, and every competitor row appears on
+the map; other topics are saved with the product as `clusterTopics`. Articles
+come from the represented company's URLs in the shared URL repository
+(`intent-cluster.js`).
 
 The separate free-form canvas collection appears under **Canvas**. In Settings,
 Clients is a compact workspace directory rather than a tile gallery. Creating a
