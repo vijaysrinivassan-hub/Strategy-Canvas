@@ -7,7 +7,11 @@ import { db, loadBoard, ok, ToolError } from '../lib.js';
 
 const TAB = 'Strategy 1 — Product Architecture';
 const MATURITY_TAB = 'Strategy 1 — Maturity Axis';
-type PromptSection = 'product_architecture' | 'maturity_axis' | 'positioning_canvas' | 'positioning_document' | 'keywords';
+/* The Positioning Document has one prompt per section; positioning_document holds the shared rules. */
+export const DOCUMENT_SECTION_PROMPTS = ['positioning_document_core','positioning_document_messaging_framework','positioning_document_offers',
+  'positioning_document_distribution_plate','positioning_document_trust_signals','positioning_document_framing'] as const;
+type DocumentSectionPrompt = typeof DOCUMENT_SECTION_PROMPTS[number];
+type PromptSection = 'product_architecture' | 'maturity_axis' | 'positioning_canvas' | 'positioning_document' | DocumentSectionPrompt | 'keywords';
 const MATURITY_INDUSTRY_AXIS_PROMPT='INDUSTRY ROUTING RULE: Industries belong in Solution Aware ICP AEO under Industry Pages. Keep Solution Aware Value AEO department-only and show the Single Industry / Multi-industry mode there only as a read-only label. Never add industry columns to Value AEO; this rule replaces older industry-column or industry-group instructions.';
 
 /* The browser keeps a selected product's architecture in the live tab and in
@@ -33,6 +37,10 @@ function saveProductArchitecture(body:any, tab:string, architecture:any, request
 export async function architecturePrompts(body?: {tabs: Record<string, any>}, section: PromptSection = 'product_architecture') {
   if(section==='keywords')return {title:'Keyword strategy',prompt:body?.tabs['Content Strategy']?.routingInstruction || KeywordColumns.strategyPrompt+'\n\n'+KeywordColumns.comparisonRouting};
   const defaults = JSON.parse(await readFile(new URL('../../../ai-prompts.json', import.meta.url), 'utf8'))[section];
+  if((DOCUMENT_SECTION_PROMPTS as readonly string[]).includes(section)){
+    const custom=body?.tabs['Strategy 1 — Positioning Document']?.aiPrompts?.[section];
+    return {...defaults, prompt:typeof custom==='string'?custom:defaults.prompt};
+  }
   const customTab = section === 'positioning_document' ? 'Strategy 1 — Positioning Document' :
     section === 'positioning_canvas' ? 'Strategy 1 — Positioning Canvas' :
     section === 'maturity_axis' ? MATURITY_TAB : TAB;
@@ -68,7 +76,7 @@ const architectureSchema = z.object({
 export function registerArchitectureTools(server:McpServer) {
   server.registerTool('ai_prompts_get', {
     title:'Read AI Prompts', description:'Read the Product Architecture, Maturity Axis, Positioning Canvas, Positioning Document or Keywords AI prompt. Keywords reads the owner-wide high-level Clients instructions; read it before column-specific prompts. Supply board_id to read the active product’s manually edited prompt; omit only for the default template. Use before filling that section.',
-    inputSchema:{board_id:z.string().optional(),section:z.enum(['product_architecture','maturity_axis','positioning_canvas','positioning_document','keywords']).default('product_architecture')}, annotations:{readOnlyHint:true,destructiveHint:false,idempotentHint:true}
+    inputSchema:{board_id:z.string().optional(),section:z.enum(['product_architecture','maturity_axis','positioning_canvas','positioning_document',...DOCUMENT_SECTION_PROMPTS,'keywords']).default('product_architecture')}, annotations:{readOnlyHint:true,destructiveHint:false,idempotentHint:true}
   }, async({board_id,section})=>{
     const loaded=board_id?await loadBoard(board_id):undefined;
     if(section==='keywords'&&loaded){

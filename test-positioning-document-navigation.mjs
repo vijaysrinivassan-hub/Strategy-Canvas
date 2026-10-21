@@ -84,7 +84,11 @@ assert(tool.includes('"offer"'));
 assert(tool.includes('"words_50"'));
 assert(tool.includes('"words_400"'));
 assert(tool.includes('Framing frames; USP; Offer'));
-const prompt=JSON.parse(fs.readFileSync(new URL('./ai-prompts.json',import.meta.url),'utf8')).positioning_document.prompt;
+// each document section has its own prompt; together they still cover every section
+const allPrompts=JSON.parse(fs.readFileSync(new URL('./ai-prompts.json',import.meta.url),'utf8'));
+for(const key of ['core','messaging_framework','offers','distribution_plate','trust_signals','framing'])
+  assert(typeof allPrompts['positioning_document_'+key]?.prompt==='string',`missing ${key} section prompt`);
+const prompt=Object.keys(allPrompts).filter(key=>key.startsWith('positioning_document')).map(key=>allPrompts[key].prompt).join('\n\n');
 assert(prompt.includes('Trust Signals'));
 assert(prompt.includes('Framing'));
 assert(prompt.includes('Frame 1, Frame 2, Frame 3, Frame 4'));

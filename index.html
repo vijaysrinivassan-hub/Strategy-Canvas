@@ -10651,7 +10651,8 @@ const ARCH_NODE_TYPES = [
   ['people', 'People']
 ];
 const promptCache = {};
-async function openAiPrompt(tabKey, promptKey, label){
+/* storeKey keeps a section prompt's board edits apart from the tab's own prompt. */
+async function openAiPrompt(tabKey, promptKey, label, storeKey){
   const dialog = $('archPromptsDialog');
   const slot = state.tabs[tabKey] ||
     (state.tabs[tabKey] = { nodes: [], edges: [] });
@@ -10665,7 +10666,8 @@ async function openAiPrompt(tabKey, promptKey, label){
   $('archPromptStatus').textContent = 'Loading prompt…';
   $('btnArchPromptCopy').disabled = true;
   try {
-    if (typeof slot.aiPrompt !== 'string' && !promptCache[promptKey]){
+    const saved = () => storeKey ? slot.aiPrompts?.[storeKey] : slot.aiPrompt;
+    if (typeof saved() !== 'string' && !promptCache[promptKey]){
       const response = await fetch('./ai-prompts.json?v=' + encodeURIComponent(BUILD));
       if (!response.ok) throw new Error('Prompt unavailable');
       const prompts = await response.json();
@@ -10673,11 +10675,14 @@ async function openAiPrompt(tabKey, promptKey, label){
       promptCache[promptKey] = prompts[promptKey].prompt;
     }
     if (state.tabs[tabKey] !== slot || !dialog.open) return;
-    editor.value = typeof slot.aiPrompt === 'string' ? slot.aiPrompt : promptCache[promptKey];
+    editor.value = typeof saved() === 'string' ? saved() : promptCache[promptKey];
     editor.readOnly = readOnly();
     editor.oninput = () => {
       if (readOnly() || state.tabs[tabKey] !== slot) return;
-      slot.aiPrompt = editor.value;
+      if (storeKey){
+        if (!slot.aiPrompts || typeof slot.aiPrompts !== 'object') slot.aiPrompts = {};
+        slot.aiPrompts[storeKey] = editor.value;
+      } else slot.aiPrompt = editor.value;
       markDirty();
       $('archPromptStatus').textContent = 'Changes autosave with this board.';
     };
@@ -10694,7 +10699,10 @@ $('btnArchPrompts').onclick = () => {
   openAiPrompt(activeArchitectureTab(), state.tab === MATURITY_ACCESS_TAB ? 'maturity_axis' : 'product_architecture', label);
 };
 $('btnPositioningPrompts').onclick = () => openAiPrompt(POSITIONING_TAB, 'positioning_canvas', 'Positioning Canvas');
-$('btnDocumentPrompts').onclick = () => openAiPrompt(POSITIONING_DOCUMENT_TAB, 'positioning_document', 'Positioning Document');
+$('btnDocumentPrompts').onclick = () => {
+  const section = activePositioningDocumentSection(), key = POSITIONING_DOCUMENT_PROMPT_KEYS[section.id];
+  if (key) openAiPrompt(POSITIONING_DOCUMENT_TAB, key, 'Positioning Document › ' + section.label, key);
+};
 $('btnArchPromptsClose').onclick = () => $('archPromptsDialog').close();
 $('archPromptsDialog').addEventListener('keydown', event => event.stopPropagation());
 $('btnArchPromptCopy').onclick = async () => {
@@ -13001,8 +13009,17 @@ const POSITIONING_DOCUMENT_FIELDS = [
 ];
 const POSITIONING_DOCUMENT_CORE_KEYS = [
   'positioning_statement', 'icp_positioning', 'category_positioning',
-  'competitive_positioning', 'value_positioning'
+  'competitive_positioning', 'value_positioning', 'usp'
 ];
+/* Each Positioning Document section has its own AI prompt in ai-prompts.json. */
+const POSITIONING_DOCUMENT_PROMPT_KEYS = {
+  core: 'positioning_document_core',
+  messaging_framework: 'positioning_document_messaging_framework',
+  offers: 'positioning_document_offers',
+  distribution_plate: 'positioning_document_distribution_plate',
+  trust_signals: 'positioning_document_trust_signals',
+  framing: 'positioning_document_framing'
+};
 const POSITIONING_DOCUMENT_SECTIONS = [
   { id: 'core', label: 'Positioning', fields: POSITIONING_DOCUMENT_CORE_KEYS },
   { id: 'messaging_framework', label: 'Awareness Messaging Framework', fields: ['messaging_framework'] },
@@ -13161,7 +13178,7 @@ function renderPositioningDocument(){
   renderPositioningDocumentNavigation();
   $('positioningDocumentNarrative').classList.toggle('framing-workspace',isFraming);
   $('positioningDocumentNarrative').hidden = isCommunication || isBrandRadar;
-  $('positioningDocumentActions').hidden = isCommunication || isBrandRadar;
+  $('positioningDocumentActions').hidden = isCommunication || isBrandRadar || !POSITIONING_DOCUMENT_PROMPT_KEYS[section.id];
   $('communicationPane').hidden = !isCommunication;
   $('positioningRadarHost').hidden = !isBrandRadar;
   if (isCommunication){
